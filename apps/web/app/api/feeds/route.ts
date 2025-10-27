@@ -39,6 +39,11 @@ export async function GET(request: NextRequest) {
 
     const conditions = [];
     
+    // Only show feeds from the last 2 weeks
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    conditions.push(sql`${feeds.publishedAt} >= ${twoWeeksAgo}`);
+    
     if (sourceId) {
       conditions.push(eq(feeds.sourceId, sourceId));
     }
@@ -75,7 +80,7 @@ export async function GET(request: NextRequest) {
     }));
     
     const nextCursor = hasMore && items.length > 0
-      ? `${items[items.length - 1].publishedAt.toISOString()}_${items[items.length - 1].id}`
+      ? `${new Date(items[items.length - 1].publishedAt).toISOString()}_${items[items.length - 1].id}`
       : null;
 
     return NextResponse.json({
