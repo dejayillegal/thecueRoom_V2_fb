@@ -12,36 +12,50 @@ export default function HomeClient({ initialItems }: { initialItems: FeedItem[] 
   const [loading, setLoading] = useState(!initialItems || initialItems.length === 0);
   const [loadingMore, setLoadingMore] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
 
   const loadMore = useCallback(async () => {
-    if (loadingMore || done) return;
+    if (loadingMore || !hasMore) return;
 
     setLoadingMore(true);
     try {
-      const currentOffset = allItems.length;
-      const res = await fetch(`/api/feeds?limit=60&offset=${currentOffset}`);
-      const newItems = await res.json();
-
+      const url = nextCursor 
+        ? `/api/feeds?limit=48&cursor=${nextCursor}`
+        : `/api/feeds?limit=48&offset=${allItems.length}`;
+      
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to fetch feeds');
+      
+      const json = await res.json();
+      const newItems = json.data || [];
+      
       if (newItems.length === 0) {
-        setDone(true);
+        setHasMore(false);
       } else {
         setAllItems(prev => [...prev, ...newItems]);
+        setNextCursor(json.nextCursor || null);
+        setHasMore(json.hasMore ?? false);
       }
     } catch (error) {
       console.error("Failed to fetch more feed items:", error);
+      setHasMore(false);
     } finally {
       setLoadingMore(false);
     }
-  }, [loadingMore, done, allItems.length]);
+  }, [loadingMore, hasMore, allItems.length, nextCursor]);
 
   useEffect(() => {
     if (!initialItems || initialItems.length === 0) {
       setLoading(true);
-      fetch('/api/feeds?limit=44')
-        .then(res => res.json())
-        .then(items => {
+      fetch('/api/feeds?limit=48')
+        .then(async res => {
+          if (!res.ok) throw new Error('Failed to fetch feeds');
+          const json = await res.json();
+          const items = json.data || [];
           setAllItems(items);
+          setNextCursor(json.nextCursor || null);
+          setHasMore(json.hasMore ?? false);
           setLoading(false);
         })
         .catch(error => {
@@ -117,7 +131,7 @@ export default function HomeClient({ initialItems }: { initialItems: FeedItem[] 
                 items={feedItems}
                 onTag={handleTagClick} 
                 loadMore={loadMore}
-                hasMore={!done && !selectedTag} // Only enable infinite scroll if no tag is selected
+                hasMore={hasMore && !selectedTag}
                 isLoading={loadingMore}
             />
         </div>
