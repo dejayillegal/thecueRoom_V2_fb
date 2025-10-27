@@ -9,14 +9,11 @@ interface FeedItem {
   id: string;
   title: string;
   summary: string | null;
-  link: string;
+  url: string;
   image: string | null;
   tags: string[] | null;
   publishedAt: Date;
-  source: {
-    id: string;
-    name: string;
-  } | null;
+  source: string | null;
 }
 
 const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date: Date) => string }) => {
@@ -38,7 +35,7 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
 
   return (
     <article className="bg-card rounded-lg overflow-hidden border border-border hover:border-primary/50 transition-all group">
-      <Link href={feed.link} target="_blank" rel="noopener noreferrer">
+      <Link href={feed.url} target="_blank" rel="noopener noreferrer">
         <div className="relative h-48 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
           <Image
             key={feedKey}
@@ -55,7 +52,7 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
           <div className="absolute bottom-2 left-2 right-2">
             <div className="text-xs font-medium text-white drop-shadow-lg">
-              {feed.source?.name || 'Unknown Source'}
+              {feed.source || 'Unknown Source'}
             </div>
             <div className="text-xs text-white/90 drop-shadow-lg">
               {formatDate(feed.publishedAt)}
@@ -67,7 +64,7 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
       <div className="p-5 space-y-3">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span className="font-medium text-primary">
-            {feed.source?.name || 'Unknown Source'}
+            {feed.source || 'Unknown Source'}
           </span>
           <span>{formatDate(feed.publishedAt)}</span>
         </div>

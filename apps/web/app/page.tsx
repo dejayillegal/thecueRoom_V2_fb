@@ -60,11 +60,11 @@ async function fetchSpotlightData() {
 
   const spotlightFeeds = spotlightData.data?.slice(0, 8).map((item: any) => ({
     title: item.title,
-    url: item.link,
+    url: item.url,
     summary: item.summary || '',
     image: item.image,
     publishedAt: item.publishedAt,
-    source: item.source?.name || 'Unknown',
+    source: item.source || 'Unknown',
     tags: item.tags || [],
   })) || [];
 
@@ -88,11 +88,11 @@ async function fetchSpotlightData() {
     .slice(0, 16)
     .map((item: any) => ({
       title: item.title,
-      url: item.link,
+      url: item.url,
       summary: item.summary || '',
       image: item.image,
       publishedAt: item.publishedAt,
-      source: item.source?.name || 'Unknown',
+      source: item.source || 'Unknown',
       tags: item.tags || [],
     }));
 

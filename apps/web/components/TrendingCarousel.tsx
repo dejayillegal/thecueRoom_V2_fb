@@ -57,7 +57,7 @@ const TrendingCard = memo(({ feed, index }: { feed: FeedItem; index: number }) =
             <div className="text-xs font-medium text-white drop-shadow-lg">
               {feed.source}
             </div>
-            <div className="text-xs text-white/90 drop-shadow-lg">
+            <div className="text-xs text-white/90 drop-shadow-lg" suppressHydrationWarning>
               {(() => {
                 const date = new Date(feed.publishedAt);
                 return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;

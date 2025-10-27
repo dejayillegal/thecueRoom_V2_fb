@@ -88,9 +88,14 @@ export async function GET(request: Request) {
     const items = hasMore ? results.slice(0, -1) : results;
 
     const sanitizedItems = items.map(item => ({
-      ...item,
+      id: item.id,
+      title: item.title,
+      summary: item.summary,
+      url: item.link,
       image: sanitizeImageUrl(item.image, item.title),
+      tags: item.tags || [],
       publishedAt: typeof item.publishedAt === 'string' ? item.publishedAt : item.publishedAt?.toISOString(),
+      source: item.source?.name || 'Unknown',
     }));
 
     const nextCursor = hasMore && sanitizedItems.length > 0
