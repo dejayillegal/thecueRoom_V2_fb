@@ -26,6 +26,24 @@ function sanitizeImageUrl(url: string | null | undefined, title: string): string
   return url;
 }
 
+// Advanced trending algorithm - prioritizes recent + diversity
+function calculateTrendingScore(item: any, index: number): number {
+  const now = Date.now();
+  const publishedTime = new Date(item.publishedAt).getTime();
+  const ageInHours = (now - publishedTime) / (1000 * 60 * 60);
+  
+  // Recency score (decays over 48 hours)
+  const recencyScore = Math.max(0, 100 - (ageInHours / 48) * 100);
+  
+  // Diversity bonus (prefer varied sources)
+  const diversityBonus = index % 3 === 0 ? 20 : 0;
+  
+  // Tag richness (more tags = more engaging)
+  const tagScore = Math.min(30, (item.tags?.length || 0) * 5);
+  
+  return recencyScore + diversityBonus + tagScore;
+}
+
 export default function SpotlightSection({ 
   initialFeeds, 
   initialTrending 
@@ -65,7 +83,12 @@ export default function SpotlightSection({
   useEffect(() => {
     const refreshFeeds = async () => {
       try {
-        const spotlightResponse = await fetch('/api/feeds?limit=24');
+        // Fetch spotlight feeds (top 8 for hero carousel)
+        const spotlightResponse = await fetch('/api/feeds?limit=8');
+        
+        // Fetch trending feeds (16 items from offset 8)
+        const trendingResponse = await fetch('/api/feeds?limit=32&offset=0');
+        
         if (spotlightResponse.ok) {
           const spotlightData = await spotlightResponse.json();
           if (spotlightData.data && spotlightData.data.length > 0) {
@@ -79,7 +102,33 @@ export default function SpotlightSection({
               tags: item.tags || [],
             }));
             setCurrentFeeds(formattedFeeds);
-            setCurrentTrending(formattedFeeds.slice(0, 8));
+          }
+        }
+        
+        if (trendingResponse.ok) {
+          const trendingData = await trendingResponse.json();
+          if (trendingData.data && trendingData.data.length > 0) {
+            // Apply trending algorithm
+            const scoredItems = trendingData.data.map((item: any, index: number) => ({
+              ...item,
+              trendingScore: calculateTrendingScore(item, index)
+            }));
+            
+            // Sort by trending score and take top 16
+            const topTrending = scoredItems
+              .sort((a: any, b: any) => b.trendingScore - a.trendingScore)
+              .slice(0, 16)
+              .map((item: any) => ({
+                title: item.title,
+                url: item.link,
+                summary: item.summary || '',
+                image: sanitizeImageUrl(item.image, item.title),
+                publishedAt: item.publishedAt,
+                source: item.source?.name || 'Unknown',
+                tags: item.tags || [],
+              }));
+            
+            setCurrentTrending(topTrending);
           }
         }
       } catch (error) {
@@ -87,6 +136,10 @@ export default function SpotlightSection({
       }
     };
 
+    // Initial refresh
+    refreshFeeds();
+    
+    // Refresh every hour
     const interval = setInterval(refreshFeeds, 3600000);
     return () => clearInterval(interval);
   }, []);

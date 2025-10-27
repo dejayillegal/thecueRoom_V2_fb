@@ -254,11 +254,16 @@ export default function HomePage() {
   useEffect(() => {
     const fetchSpotlightData = async () => {
       try {
-        const response = await fetch('/api/feeds?limit=24');
-        const data = await response.json();
+        // Fetch 8 items for spotlight hero
+        const spotlightResponse = await fetch('/api/feeds?limit=8');
+        const spotlightData = await spotlightResponse.json();
         
-        if (data.data && Array.isArray(data.data)) {
-          const formattedFeeds = data.data.map((item: any) => ({
+        // Fetch 32 items for trending (will be scored and filtered to 16)
+        const trendingResponse = await fetch('/api/feeds?limit=32&offset=0');
+        const trendingData = await trendingResponse.json();
+        
+        if (spotlightData.data && Array.isArray(spotlightData.data)) {
+          const formattedSpotlight = spotlightData.data.map((item: any) => ({
             title: item.title,
             url: item.link,
             summary: item.summary || '',
@@ -268,8 +273,41 @@ export default function HomePage() {
             tags: item.tags || [],
           }));
           
-          setSpotlightFeeds(formattedFeeds);
-          setTrendingFeeds(formattedFeeds.slice(0, 8));
+          setSpotlightFeeds(formattedSpotlight);
+        }
+        
+        if (trendingData.data && Array.isArray(trendingData.data)) {
+          // Calculate trending scores
+          const scoredItems = trendingData.data.map((item: any, index: number) => {
+            const now = Date.now();
+            const publishedTime = new Date(item.publishedAt).getTime();
+            const ageInHours = (now - publishedTime) / (1000 * 60 * 60);
+            
+            const recencyScore = Math.max(0, 100 - (ageInHours / 48) * 100);
+            const diversityBonus = index % 3 === 0 ? 20 : 0;
+            const tagScore = Math.min(30, (item.tags?.length || 0) * 5);
+            
+            return {
+              ...item,
+              trendingScore: recencyScore + diversityBonus + tagScore
+            };
+          });
+          
+          // Sort and take top 16
+          const topTrending = scoredItems
+            .sort((a: any, b: any) => b.trendingScore - a.trendingScore)
+            .slice(0, 16)
+            .map((item: any) => ({
+              title: item.title,
+              url: item.link,
+              summary: item.summary || '',
+              image: item.image || `/api/og-fallback?title=${encodeURIComponent(item.title.slice(0, 120))}`,
+              publishedAt: item.publishedAt,
+              source: item.source?.name || 'Unknown',
+              tags: item.tags || [],
+            }));
+          
+          setTrendingFeeds(topTrending);
         }
       } catch (error) {
         console.error('Failed to fetch spotlight feeds:', error);

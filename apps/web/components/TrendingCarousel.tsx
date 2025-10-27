@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 
 export interface FeedItem {
   title: string;
@@ -17,16 +17,33 @@ export interface FeedItem {
 
 export default function TrendingCarousel({ feeds }: { feeds: FeedItem[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const autoScrollRef = useRef<NodeJS.Timeout>();
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const [isAutoScrolling, setIsAutoScrolling] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
 
-  const checkScroll = () => {
+  const checkScroll = useCallback(() => {
     if (scrollRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
       setCanScrollLeft(scrollLeft > 0);
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
     }
-  };
+  }, []);
+
+  const autoScroll = useCallback(() => {
+    if (scrollRef.current && isAutoScrolling) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      
+      // If reached the end, reset to beginning
+      if (scrollLeft >= scrollWidth - clientWidth - 10) {
+        scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        // Smooth continuous scroll (1px every 50ms = ~20px/second)
+        scrollRef.current.scrollBy({ left: 1, behavior: 'auto' });
+      }
+    }
+  }, [isAutoScrolling]);
 
   useEffect(() => {
     checkScroll();
@@ -35,7 +52,18 @@ export default function TrendingCarousel({ feeds }: { feeds: FeedItem[] }) {
       ref.addEventListener('scroll', checkScroll);
       return () => ref.removeEventListener('scroll', checkScroll);
     }
-  }, []);
+  }, [checkScroll]);
+
+  useEffect(() => {
+    if (isAutoScrolling && !isPaused) {
+      autoScrollRef.current = setInterval(autoScroll, 50);
+      return () => {
+        if (autoScrollRef.current) {
+          clearInterval(autoScrollRef.current);
+        }
+      };
+    }
+  }, [isAutoScrolling, isPaused, autoScroll]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -47,12 +75,46 @@ export default function TrendingCarousel({ feeds }: { feeds: FeedItem[] }) {
     }
   };
 
+  const toggleAutoScroll = () => {
+    setIsPaused(!isPaused);
+  };
+
+  const handleMouseEnter = () => {
+    setIsPaused(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (isAutoScrolling) {
+      setIsPaused(false);
+    }
+  };
+
   if (!feeds || feeds.length === 0) {
     return null;
   }
 
   return (
-    <div className="relative group">
+    <div 
+      className="relative group"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+          <span className="text-xs text-muted-foreground">
+            {isPaused ? 'Paused' : 'Auto-scrolling'}
+          </span>
+        </div>
+        <button
+          onClick={toggleAutoScroll}
+          className="p-1.5 rounded-full bg-background/80 backdrop-blur-sm border border-border hover:bg-background transition-colors"
+          aria-label={isPaused ? 'Resume auto-scroll' : 'Pause auto-scroll'}
+        >
+          {isPaused ? <Play className="w-3 h-3" /> : <Pause className="w-3 h-3" />}
+        </button>
+      </div>
+
       {canScrollLeft && (
         <button
           onClick={() => scroll('left')}
