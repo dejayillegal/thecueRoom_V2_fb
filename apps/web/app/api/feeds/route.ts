@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
 import { feeds, sources } from '@thecueroom/db/schema';
@@ -6,12 +5,29 @@ import { desc, eq, and, sql } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+function sanitizeImageUrl(url: string | null, title: string): string {
+  if (!url) {
+    return `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
+  }
+
+  if (url.includes('youtube.com/embed') || url.includes('youtu.be')) {
+    return `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
+  }
+
+  const imageExtensions = /\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i;
+  if (!imageExtensions.test(url) && !url.includes('og:image') && !url.includes('twitter:image')) {
+    return `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
+  }
+
+  return url;
+}
+
+export async function GET(request: Request) {
   try {
-    const searchParams = request.nextUrl.searchParams;
+    const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const sourceId = searchParams.get('source');
-    const limit = parseInt(searchParams.get('limit') || '20');
+    const limit = Math.min(100, parseInt(searchParams.get('limit') || '24', 10));
     const cursor = searchParams.get('cursor');
 
     const db = getDbClient();
@@ -38,21 +54,21 @@ export async function GET(request: NextRequest) {
       .$dynamic();
 
     const conditions = [];
-    
+
     const twoWeeksAgo = new Date();
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
     const twoWeeksAgoISO = twoWeeksAgo.toISOString();
-    
+
     conditions.push(sql`${feeds.publishedAt} >= ${twoWeeksAgoISO}`);
-    
+
     if (sourceId) {
       conditions.push(eq(feeds.sourceId, sourceId));
     }
-    
+
     if (category) {
       conditions.push(sql`${sources.tags} @> ARRAY[${category}]::text[]`);
     }
-    
+
     if (cursor) {
       const [timestamp, id] = cursor.split('_');
       conditions.push(
@@ -70,27 +86,25 @@ export async function GET(request: NextRequest) {
 
     const hasMore = results.length > limit;
     const items = hasMore ? results.slice(0, -1) : results;
-    
-    const itemsWithValidImages = items.map(item => ({
+
+    const sanitizedItems = items.map(item => ({
       ...item,
-      image: item.image && item.image !== '/placeholder.jpg' 
-        ? item.image 
-        : `/api/og-fallback?title=${encodeURIComponent(item.title.slice(0, 120))}`,
+      image: sanitizeImageUrl(item.image, item.title),
     }));
-    
-    const nextCursor = hasMore && items.length > 0
-      ? `${new Date(items[items.length - 1].publishedAt).toISOString()}_${items[items.length - 1].id}`
+
+    const nextCursor = hasMore && sanitizedItems.length > 0
+      ? `${new Date(sanitizedItems[sanitizedItems.length - 1].publishedAt).toISOString()}_${sanitizedItems[sanitizedItems.length - 1].id}`
       : null;
 
     return NextResponse.json({
-      data: itemsWithValidImages,
+      data: sanitizedItems,
       nextCursor,
       hasMore,
     }, {
       headers: {
         'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
         'X-Cache-Age': '60',
-        'X-Feeds-Count': items.length.toString(),
+        'X-Feeds-Count': sanitizedItems.length.toString(),
       },
     });
   } catch (error) {

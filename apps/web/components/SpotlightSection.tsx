@@ -1,11 +1,30 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Users } from 'lucide-react';
+import { Users, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 import TrendingCarousel, { FeedItem } from './TrendingCarousel';
+
+function sanitizeImageUrl(url: string | null | undefined, title: string): string {
+  if (!url) {
+    return `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
+  }
+  
+  // Filter out YouTube embeds and invalid URLs
+  if (url.includes('youtube.com/embed') || url.includes('youtu.be')) {
+    return `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
+  }
+  
+  // Check if it's a valid image URL
+  const imageExtensions = /\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i;
+  if (!imageExtensions.test(url) && !url.includes('og:image') && !url.includes('twitter:image')) {
+    return `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
+  }
+  
+  return url;
+}
 
 export default function SpotlightSection({ 
   initialFeeds, 
@@ -16,11 +35,36 @@ export default function SpotlightSection({
 }) {
   const [currentFeeds, setCurrentFeeds] = useState<FeedItem[]>(initialFeeds);
   const [currentTrending, setCurrentTrending] = useState<FeedItem[]>(initialTrending);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  const autoPlayRef = useRef<NodeJS.Timeout>();
+
+  const goToNext = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % currentFeeds.length);
+  }, [currentFeeds.length]);
+
+  const goToPrevious = useCallback(() => {
+    setCurrentIndex((prev) => (prev - 1 + currentFeeds.length) % currentFeeds.length);
+  }, [currentFeeds.length]);
+
+  const goToSlide = useCallback((index: number) => {
+    setCurrentIndex(index);
+    setIsPaused(true);
+    setIsAutoPlaying(false);
+    if (autoPlayRef.current) {
+      clearInterval(autoPlayRef.current);
+    }
+  }, []);
+
+  const toggleAutoPlay = useCallback(() => {
+    setIsAutoPlaying((prev) => !prev);
+    setIsPaused((prev) => !prev);
+  }, []);
 
   useEffect(() => {
     const refreshFeeds = async () => {
       try {
-        // Fetch spotlight feeds
         const spotlightResponse = await fetch('/api/feeds?limit=24');
         if (spotlightResponse.ok) {
           const spotlightData = await spotlightResponse.json();
@@ -29,7 +73,7 @@ export default function SpotlightSection({
               title: item.title,
               url: item.link,
               summary: item.summary || '',
-              image: item.image || `/api/og-fallback?title=${encodeURIComponent(item.title.slice(0, 120))}`,
+              image: sanitizeImageUrl(item.image, item.title),
               publishedAt: item.publishedAt,
               source: item.source?.name || 'Unknown',
               tags: item.tags || [],
@@ -43,11 +87,20 @@ export default function SpotlightSection({
       }
     };
 
-    // Refresh every hour (3600000ms)
     const interval = setInterval(refreshFeeds, 3600000);
-
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (isAutoPlaying && currentFeeds.length > 1) {
+      autoPlayRef.current = setInterval(goToNext, 5000);
+      return () => {
+        if (autoPlayRef.current) {
+          clearInterval(autoPlayRef.current);
+        }
+      };
+    }
+  }, [isAutoPlaying, goToNext, currentFeeds.length]);
 
   if (!currentFeeds || currentFeeds.length === 0) {
     return (
@@ -56,6 +109,8 @@ export default function SpotlightSection({
       </div>
     );
   }
+
+  const currentFeed = currentFeeds[currentIndex] || currentFeeds[0];
 
   return (
     <section className="relative">
@@ -68,22 +123,31 @@ export default function SpotlightSection({
       </div>
 
       <div className="relative h-[50vh] md:h-[60vh] bg-card rounded-xl overflow-hidden border border-border shadow-lg group/spotlight">
-        <Image
-          src={currentFeeds[0]?.image || '/placeholder.jpg'}
-          alt={currentFeeds[0]?.title || 'Spotlight'}
-          fill
-          sizes="100vw"
-          priority
-          quality={85}
-          className="object-cover"
-        />
+        <div className="relative w-full h-full">
+          <Image
+            key={currentFeed.url}
+            src={currentFeed.image}
+            alt={currentFeed.title}
+            fill
+            sizes="100vw"
+            priority
+            quality={85}
+            className="object-cover transition-opacity duration-700"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = `/api/og-fallback?title=${encodeURIComponent(currentFeed.title.slice(0, 120))}`;
+            }}
+          />
+        </div>
+        
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+        
         <div className="absolute top-4 left-4 right-4 opacity-0 group-hover/spotlight:opacity-100 transition-opacity">
           <div className="text-sm font-medium text-white drop-shadow-lg">
-            {currentFeeds[0]?.source}
+            {currentFeed.source}
           </div>
           <div className="text-xs text-white/90 drop-shadow-lg">
-            {currentFeeds[0]?.publishedAt && new Date(currentFeeds[0].publishedAt).toLocaleString('en-US', { 
+            {currentFeed.publishedAt && new Date(currentFeed.publishedAt).toLocaleString('en-US', { 
               month: 'short', 
               day: 'numeric', 
               year: 'numeric',
@@ -92,14 +156,39 @@ export default function SpotlightSection({
             })}
           </div>
         </div>
+
+        <button
+          onClick={goToPrevious}
+          className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm border border-border rounded-full p-2 opacity-0 group-hover/spotlight:opacity-100 transition-opacity hover:bg-background/90 z-10"
+          aria-label="Previous slide"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+
+        <button
+          onClick={goToNext}
+          className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm border border-border rounded-full p-2 opacity-0 group-hover/spotlight:opacity-100 transition-opacity hover:bg-background/90 z-10"
+          aria-label="Next slide"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+
+        <button
+          onClick={toggleAutoPlay}
+          className="absolute right-4 top-4 bg-background/80 backdrop-blur-sm border border-border rounded-full p-2 opacity-0 group-hover/spotlight:opacity-100 transition-opacity hover:bg-background/90 z-10"
+          aria-label={isPaused ? 'Play' : 'Pause'}
+        >
+          {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+        </button>
+
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
           <div className="max-w-3xl">
-            <div className="text-xs text-primary mb-2">{currentFeeds[0]?.source}</div>
-            <h2 className="text-2xl md:text-4xl font-bold mb-2 line-clamp-2">{currentFeeds[0]?.title}</h2>
-            <p className="text-sm md:text-base text-muted-foreground mb-4 line-clamp-2">{currentFeeds[0]?.summary}</p>
-            {currentFeeds[0]?.url && (
+            <div className="text-xs text-primary mb-2">{currentFeed.source}</div>
+            <h2 className="text-2xl md:text-4xl font-bold mb-2 line-clamp-2">{currentFeed.title}</h2>
+            <p className="text-sm md:text-base text-muted-foreground mb-4 line-clamp-2">{currentFeed.summary}</p>
+            {currentFeed.url && (
               <Link
-                href={currentFeeds[0].url}
+                href={currentFeed.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 md:px-6 md:py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm md:text-base"
@@ -108,6 +197,21 @@ export default function SpotlightSection({
               </Link>
             )}
           </div>
+        </div>
+
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+          {currentFeeds.slice(0, 8).map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`w-2 h-2 rounded-full transition-all ${
+                index === currentIndex
+                  ? 'bg-primary w-8'
+                  : 'bg-white/50 hover:bg-white/75'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
         </div>
       </div>
 

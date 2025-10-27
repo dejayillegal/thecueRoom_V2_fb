@@ -94,6 +94,10 @@ export default function TrendingCarousel({ feeds }: { feeds: FeedItem[] }) {
                 loading="lazy"
                 quality={80}
                 className="object-cover group-hover/card:scale-105 transition-transform"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`;
+                }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity">
                 <div className="absolute bottom-2 left-2 right-2">
