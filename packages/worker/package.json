@@ -1,0 +1,27 @@
+{
+  "name": "@thecueroom/worker",
+  "version": "2.0.0",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "scripts": {
+    "start": "tsx index.ts",
+    "dev": "tsx watch index.ts"
+  },
+  "dependencies": {
+    "@thecueroom/db": "workspace:*",
+    "bottleneck": "^2.19.5",
+    "drizzle-orm": "^0.36.4",
+    "got": "^14.6.1",
+    "node-cron": "^3.0.3",
+    "pino": "^9.6.0",
+    "pino-pretty": "^14.2.0",
+    "postgres": "^3.4.7",
+    "rss-parser": "^3.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.10",
+    "@types/node-cron": "^3.0.11",
+    "tsx": "^4.20.6",
+    "typescript": "^5.7.2"
+  }
+}
