@@ -97,4 +97,31 @@ Edit `data/sources.json` to add/remove news sources. Supports:
 
 ## 📄 License
 
-All rights reserved © thecueRoom
+All rights reserved © theCueRoom
+
+## Automated Feed Ingestion
+
+### Free Option: External Cron Service
+
+For automatic feed ingestion without paying for Replit Scheduled Deployments:
+
+1. **Set up CRON_SECRET**:
+   ```bash
+   # Add to Replit Secrets
+   CRON_SECRET=your-super-secret-random-string-min-32-chars
+   ```
+
+2. **Test your endpoint**:
+   ```bash
+   CRON_SECRET=your-secret tsx scripts/test-cron-endpoint.ts
+   ```
+
+3. **Configure cron-job.org** (free):
+   - Sign up at https://cron-job.org
+   - Create job pointing to: `https://[your-repl].repl.co/api/cron/ingest`
+   - Add header: `Authorization: Bearer YOUR_CRON_SECRET`
+   - Set schedule: `0 * * * *` (every hour)
+
+See [docs/EXTERNAL_CRON_SETUP.md](docs/EXTERNAL_CRON_SETUP.md) for detailed instructions.
+
+## Setup

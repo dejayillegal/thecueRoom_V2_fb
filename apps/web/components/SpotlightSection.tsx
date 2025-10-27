@@ -212,7 +212,7 @@ export default function SpotlightSection({
           <div className="text-sm font-medium text-white drop-shadow-lg">
             {currentFeed.source}
           </div>
-          <div className="text-xs text-white/90 drop-shadow-lg">
+          <div className="text-xs text-white/90 drop-shadow-lg" suppressHydrationWarning>
             {currentFeed.publishedAt && (() => {
               const date = new Date(currentFeed.publishedAt);
               return `${date.toLocaleDateString('en-US', {

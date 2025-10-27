@@ -14,15 +14,28 @@ export async function GET(request: NextRequest) {
     const cronSecret = process.env.CRON_SECRET;
     
     if (!cronSecret) {
+      console.error('❌ CRON_SECRET not configured');
       return NextResponse.json({ 
-        error: 'Server misconfigured: CRON_SECRET environment variable is required' 
+        error: 'Server misconfigured: CRON_SECRET environment variable is required',
+        hint: 'Add CRON_SECRET to your Replit Secrets'
       }, { status: 500 });
     }
     
     const authHeader = request.headers.get('authorization');
     
+    if (!authHeader) {
+      console.error('❌ Missing Authorization header');
+      return NextResponse.json({ 
+        error: 'Unauthorized: Missing Authorization header',
+        hint: 'Add header: Authorization: Bearer YOUR_CRON_SECRET'
+      }, { status: 401 });
+    }
+    
     if (authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      console.error('❌ Invalid CRON_SECRET');
+      return NextResponse.json({ 
+        error: 'Unauthorized: Invalid credentials' 
+      }, { status: 401 });
     }
 
     if (isRunning) {
