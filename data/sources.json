@@ -1,422 +1,108 @@
+
 [
   {
     "name": "6AM Group",
-    "kind": "rss",
     "url": "https://www.6amgroup.com/feed/",
-    "tags": ["scene", "asia"],
-    "category": "scene"
+    "kind": "rss",
+    "tags": ["scene", "asia", "techno"],
+    "enabled": true
   },
   {
     "name": "The Playground",
-    "kind": "rss",
     "url": "https://theplayground.co.uk/blog/feed/",
-    "tags": ["scene"],
-    "category": "scene"
+    "kind": "rss",
+    "tags": ["scene", "culture"],
+    "enabled": true
   },
   {
     "name": "Earmilk",
-    "kind": "rss",
     "url": "https://earmilk.com/feed/",
-    "tags": ["scene"],
-    "category": "scene"
+    "kind": "rss",
+    "tags": ["scene", "alt", "electronic"],
+    "enabled": true
   },
   {
     "name": "XLR8R",
-    "kind": "rss",
     "url": "https://xlr8r.com/feed/",
-    "tags": ["scene", "mixes"],
-    "category": "scene"
+    "kind": "rss",
+    "tags": ["scene", "mixes", "techno"],
+    "enabled": true
   },
   {
-    "name": "FACT Magazine",
-    "kind": "rss",
+    "name": "FACT",
     "url": "https://www.factmag.com/feed/",
-    "tags": ["news", "features"],
-    "category": "features"
+    "kind": "rss",
+    "tags": ["news", "features", "scene"],
+    "enabled": true
   },
   {
     "name": "Bandcamp Daily",
-    "kind": "rss",
     "url": "https://daily.bandcamp.com/feed",
-    "tags": ["features", "reviews"],
-    "category": "features"
+    "kind": "rss",
+    "tags": ["features", "reviews", "indie"],
+    "enabled": true
   },
   {
     "name": "Ransom Note",
-    "kind": "rss",
     "url": "https://www.theransomnote.com/feed/",
+    "kind": "rss",
     "tags": ["culture", "scene"],
-    "category": "scene"
-  },
-  {
-    "name": "Stereofox",
-    "kind": "rss",
-    "url": "https://www.stereofox.com/feed/",
-    "tags": ["discover"],
-    "category": "scene"
-  },
-  {
-    "name": "Neon Music",
-    "kind": "rss",
-    "url": "https://neonmusic.co.uk/feed/",
-    "tags": ["discover"],
-    "category": "scene"
-  },
-  {
-    "name": "This Song Is Sick",
-    "kind": "rss",
-    "url": "https://thissongissick.com/feed/",
-    "tags": ["discover"],
-    "category": "scene"
-  },
-  {
-    "name": "UFO Network",
-    "kind": "rss",
-    "url": "https://ufo-network.com/feed/",
-    "tags": ["edm", "scene"],
-    "category": "edm"
-  },
-  {
-    "name": "Your EDM",
-    "kind": "rss",
-    "url": "https://www.youredm.com/feed/",
-    "tags": ["edm", "scene"],
-    "category": "edm"
-  },
-  {
-    "name": "EDM.com",
-    "kind": "rss",
-    "url": "https://edm.com/.rss/full/",
-    "tags": ["edm"],
-    "category": "edm"
-  },
-  {
-    "name": "EDM Sauce",
-    "kind": "rss",
-    "url": "https://www.edmsauce.com/feed/",
-    "tags": ["edm"],
-    "category": "edm"
+    "enabled": true
   },
   {
     "name": "Music Business Worldwide",
-    "kind": "rss",
     "url": "https://www.musicbusinessworldwide.com/feed/",
-    "tags": ["industry"],
-    "category": "industry"
+    "kind": "rss",
+    "tags": ["industry", "news"],
+    "enabled": true
   },
   {
     "name": "Hypebot",
-    "kind": "rss",
     "url": "https://www.hypebot.com/feed",
-    "tags": ["industry"],
-    "category": "industry"
+    "kind": "rss",
+    "tags": ["industry", "tech", "trends"],
+    "enabled": true
   },
   {
-    "name": "Music 3.0",
-    "kind": "rss",
-    "url": "https://music3point0.com/feed/",
-    "tags": ["industry", "howto"],
-    "category": "industry"
-  },
-  {
-    "name": "CDM - Create Digital Music",
-    "kind": "rss",
+    "name": "CDM — Create Digital Music",
     "url": "https://cdm.link/feed/",
-    "tags": ["gear", "production"],
-    "category": "gear"
+    "kind": "rss",
+    "tags": ["gear", "production", "tech"],
+    "enabled": true
   },
   {
     "name": "MusicTech",
-    "kind": "rss",
     "url": "https://musictech.com/feed/",
-    "tags": ["gear", "production"],
-    "category": "gear"
+    "kind": "rss",
+    "tags": ["gear", "production", "hardware"],
+    "enabled": true
   },
   {
-    "name": "KVR Audio - News",
-    "kind": "rss",
+    "name": "KVR Audio — News",
     "url": "https://www.kvraudio.com/news.rss",
+    "kind": "rss",
     "tags": ["plugins", "updates", "kvr"],
-    "category": "gear"
-  },
-  {
-    "name": "Bedroom Producers Blog",
-    "kind": "rss",
-    "url": "https://bedroomproducersblog.com/feed/",
-    "tags": ["plugins", "freebies"],
-    "category": "gear"
-  },
-  {
-    "name": "MusicRadar - News",
-    "kind": "rss",
-    "url": "https://www.musicradar.com/rss/news",
-    "tags": ["gear"],
-    "category": "gear"
+    "enabled": true
   },
   {
     "name": "Ableton Blog",
-    "kind": "rss",
     "url": "https://www.ableton.com/en/blog/feed/",
-    "tags": ["daw", "ableton", "tutorials"],
-    "category": "gear"
-  },
-  {
-    "name": "Bitwig",
     "kind": "rss",
-    "url": "https://www.bitwig.com/news/feed/",
-    "tags": ["daw", "bitwig"],
-    "category": "gear"
+    "tags": ["daw", "ableton", "tutorials"],
+    "enabled": true
   },
   {
     "name": "Rolling Stone India",
-    "kind": "rss",
     "url": "https://rollingstoneindia.com/feed/",
-    "tags": ["india", "scene"],
-    "category": "regional"
+    "kind": "rss",
+    "tags": ["india", "scene", "culture"],
+    "enabled": true
   },
   {
-    "name": "HighOnScore",
+    "name": "Magnetic Mag",
+    "url": "https://www.magneticmag.com/.rss/full/",
     "kind": "rss",
-    "url": "https://highonscore.com/feed/",
-    "tags": ["india", "reviews"],
-    "category": "regional"
-  },
-  {
-    "name": "Resident Advisor",
-    "kind": "rss",
-    "url": "https://ra.co/feed/headlines.xml",
-    "tags": ["scene", "techno", "house"],
-    "category": "scene"
-  },
-  {
-    "name": "Mixmag",
-    "kind": "rss",
-    "url": "https://mixmag.net/feed",
-    "tags": ["scene", "news"],
-    "category": "scene"
-  },
-  {
-    "name": "DJ Mag",
-    "kind": "rss",
-    "url": "https://djmag.com/feed",
-    "tags": ["scene", "news"],
-    "category": "scene"
-  },
-  {
-    "name": "Beatportal",
-    "kind": "rss",
-    "url": "https://www.beatportal.com/feed/",
-    "tags": ["scene", "features"],
-    "category": "scene"
-  },
-  {
-    "name": "Decoded Magazine",
-    "kind": "rss",
-    "url": "https://www.decodedmagazine.com/feed/",
-    "tags": ["techno", "house"],
-    "category": "scene"
-  },
-  {
-    "name": "Data Transmission",
-    "kind": "rss",
-    "url": "https://datatransmission.co/feed/",
-    "tags": ["scene", "techno"],
-    "category": "scene"
-  },
-  {
-    "name": "Electronic Groove",
-    "kind": "rss",
-    "url": "https://www.electronicgroove.com/feed/",
-    "tags": ["techno", "house"],
-    "category": "scene"
-  },
-  {
-    "name": "Groove Magazine (Germany)",
-    "kind": "rss",
-    "url": "https://groove.de/feed/",
-    "tags": ["scene", "europe"],
-    "category": "regional"
-  },
-  {
-    "name": "Inverted Audio",
-    "kind": "rss",
-    "url": "https://inverted-audio.com/feed/",
-    "tags": ["experimental", "techno"],
-    "category": "scene"
-  },
-  {
-    "name": "Little White Earbuds",
-    "kind": "rss",
-    "url": "https://littlewhiteearbuds.com/feed/",
-    "tags": ["minimal", "techno"],
-    "category": "scene"
-  },
-  {
-    "name": "Magnetic Magazine",
-    "kind": "rss",
-    "url": "https://www.magneticmag.com/feed/",
-    "tags": ["scene"],
-    "category": "scene"
-  },
-  {
-    "name": "We Rave You",
-    "kind": "rss",
-    "url": "https://weraveyou.com/feed/",
-    "tags": ["edm", "scene"],
-    "category": "edm"
-  },
-  {
-    "name": "Dancing Astronaut",
-    "kind": "rss",
-    "url": "https://www.dancingastronaut.com/feed/",
-    "tags": ["edm"],
-    "category": "edm"
-  },
-  {
-    "name": "Run The Trap",
-    "kind": "rss",
-    "url": "https://runthetrap.com/feed/",
-    "tags": ["trap", "bass"],
-    "category": "edm"
-  },
-  {
-    "name": "Traxsource",
-    "kind": "rss",
-    "url": "https://blog.traxsource.com/feed/",
-    "tags": ["house", "soulful"],
-    "category": "scene"
-  },
-  {
-    "name": "Deep House Amsterdam",
-    "kind": "rss",
-    "url": "https://www.deephouseamsterdam.com/feed/",
-    "tags": ["deep-house"],
-    "category": "scene"
-  },
-  {
-    "name": "Attack Magazine",
-    "kind": "rss",
-    "url": "https://www.attackmagazine.com/feed/",
-    "tags": ["production", "tutorials"],
-    "category": "gear"
-  },
-  {
-    "name": "Sonic Academy Blog",
-    "kind": "rss",
-    "url": "https://www.sonicacademy.com/blog/feed",
-    "tags": ["production", "tutorials"],
-    "category": "gear"
-  },
-  {
-    "name": "Point Blank Music School",
-    "kind": "rss",
-    "url": "https://www.pointblankmusicschool.com/feed/",
-    "tags": ["education", "production"],
-    "category": "gear"
-  },
-  {
-    "name": "Dubspot",
-    "kind": "rss",
-    "url": "https://blog.dubspot.com/feed/",
-    "tags": ["education", "production"],
-    "category": "gear"
-  },
-  {
-    "name": "Native Instruments",
-    "kind": "rss",
-    "url": "https://blog.native-instruments.com/feed/",
-    "tags": ["plugins", "hardware"],
-    "category": "gear"
-  },
-  {
-    "name": "Arturia",
-    "kind": "rss",
-    "url": "https://blog.arturia.com/feed/",
-    "tags": ["plugins", "hardware"],
-    "category": "gear"
-  },
-  {
-    "name": "Elektron",
-    "kind": "rss",
-    "url": "https://www.elektron.se/news/feed/",
-    "tags": ["hardware"],
-    "category": "gear"
-  },
-  {
-    "name": "Novation",
-    "kind": "rss",
-    "url": "https://novationmusic.com/en/news/feed",
-    "tags": ["hardware"],
-    "category": "gear"
-  },
-  {
-    "name": "The FADER - Music",
-    "kind": "rss",
-    "url": "https://www.thefader.com/feeds/music.rss",
-    "tags": ["alt", "scene"],
-    "category": "scene"
-  },
-  {
-    "name": "Complex - Music",
-    "kind": "rss",
-    "url": "https://www.complex.com/music/rss",
-    "tags": ["alt"],
-    "category": "scene"
-  },
-  {
-    "name": "Pitchfork",
-    "kind": "rss",
-    "url": "https://pitchfork.com/rss/reviews/albums/",
-    "tags": ["reviews"],
-    "category": "features"
-  },
-  {
-    "name": "Boiler Room",
-    "kind": "rss",
-    "url": "https://boilerroom.tv/feed/",
-    "tags": ["scene", "live"],
-    "category": "community"
-  },
-  {
-    "name": "KEXP Blog",
-    "kind": "rss",
-    "url": "https://blog.kexp.org/feed/",
-    "tags": ["community", "indie"],
-    "category": "community"
-  },
-  {
-    "name": "Quietus",
-    "kind": "rss",
-    "url": "https://thequietus.com/feed",
-    "tags": ["experimental", "indie"],
-    "category": "features"
-  },
-  {
-    "name": "Tiny Mix Tapes",
-    "kind": "rss",
-    "url": "https://www.tinymixtapes.com/feed.xml",
-    "tags": ["experimental"],
-    "category": "features"
-  },
-  {
-    "name": "AllMusic Blog",
-    "kind": "rss",
-    "url": "https://www.allmusic.com/blog/rss",
-    "tags": ["culture"],
-    "category": "features"
-  },
-  {
-    "name": "DJ Booth",
-    "kind": "rss",
-    "url": "https://djbooth.net/rss",
-    "tags": ["hip-hop"],
-    "category": "scene"
-  },
-  {
-    "name": "Passion of the Weiss",
-    "kind": "rss",
-    "url": "https://passionweiss.com/feed/",
-    "tags": ["hip-hop", "indie"],
-    "category": "scene"
+    "tags": ["scene", "gear", "techno"],
+    "enabled": true
   }
 ]
