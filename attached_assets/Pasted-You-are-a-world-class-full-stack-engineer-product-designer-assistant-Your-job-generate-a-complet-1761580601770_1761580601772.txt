@@ -1,0 +1,174 @@
+You are a world-class full-stack engineer + product designer assistant. Your job: generate a complete, production-grade monorepo implementing **thecueRoom V2** — an advanced, creative, and reliable SaaS product for underground techno & house communities with the following pages/features:
+
+Core requirements (non-negotiable)
+- Use the existing thecueRoom **V1 repo** as the canonical reference. Clone it first and preserve its codex, brand tokens, and UX conventions. If the V1 repo is at https://github.com/dejayillegal/thecueRoom use that as source-of-truth.
+- Use **Next.js App Router** (TypeScript strict) for the web app (`apps/web`).
+- Use **Supabase** (Auth, Postgres, Storage) + **Drizzle ORM** for DB + **Zod** for runtime schema validation (`packages/db`).
+- Tailwind CSS, shadcn/ui, lucide-react for icons. Use Inter as UI font and Source Code Pro for monospace.
+- All branding color tokens must match thecueRoom spec: background `#0B0B0B`, surface `#111111`, lime `#D1FF3D`, purple `#873BBF`. Respect `prefers-reduced-motion`.
+- Use the **exact** logo SVG (from the V1 preamble) verbatim at `apps/web/public/logo.svg` — do not change IDs, classNames, animation keyframes, or geometry.
+- Monorepo managed with **pnpm workspaces**.
+- Provide Docker + docker-compose to run local dev stack: web, Postgres, and optional Supabase emulator.
+- Provide GitHub Actions CI workflow to run lint, type-check, tests, build, migrations, and asset assembly.
+- No placeholders or TODOs in generated code. Where external APIs are required, include a robust local fixture/mocker and an adapter switch so the app runs fully without third-party keys.
+
+High-level feature list (all pages + APIs)
+- Public Landing / Homescreen (hero spotlight + news feed grid + spotlights carousel + curated playlist sidebar + search + keyboard shortcuts).
+- Auth (Supabase sign-in/email magic links + OAuth providers optional).
+- Profile (settings, display name, email, phone optional, social links, EPK generation history, avatar).
+- AI Cover Art Studio (prompt-based image generator + gallery + download + copyright notice + job queue + local fallback generator).
+- AI EPK Generator (artist EPK creation using user inputs + automatically generate PDF and shareable page).
+- AI Meme Generator (text + image mashup UI, easy sharing to community feed).
+- Avatar Generator (AI + classic avatar builder with maskable layers; produce PNG/SVG exports; store originals in Supabase Storage).
+- Community Forum (threads, comments, upvotes, moderation tools, rate limits, WYSIWYG with sanitization).
+- Gig Radar (gig creation UI for artists, location, date/time, private/secret gigs toggle, map view, calendar export).
+- Weekly Curated Music (store weekly playlists metadata in DB; SoundCloud embed playback for playlists; proxy endpoints that return playlist metadata).
+- News Feeds aggregator (poll RSS/JSON APIs from the provided source list; normalizer; dedupe; caching).
+- Spotlights & Editorial (curated content, editorial cards with rich media).
+- Admin Console (manage sources, spotlights, users, weekly playlists, gig approval).
+- API services for ingestion, normalization, image processing, and AI job orchestration.
+
+Technical & implementation details (must be implemented exactly)
+1) Monorepo + infra
+- `pnpm-workspace.yaml`, root `package.json` with scripts for `dev`, `build`, `test`, `migrate`, `ingest`, `worker`.
+- Dockerfiles and `docker-compose.yml` to run web + Postgres + optional Supabase emulator + worker.
+- `.env.example` with required env keys: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, DATABASE_URL, OPENAI_API_KEY (optional), REPLICATE_API_KEY (optional), SOUNDCLOUD_CLIENT_ID (optional), NODE_ENV, NEXTAUTH_URL.
+
+2) Database (Drizzle)
+- `packages/db/schema.ts` with tables: users, profiles, news, sources, feeds, spotlight_items, playlists, gigs, forum_threads, forum_comments, epks, memes, assets, ai_jobs, ingestion_jobs.
+- `packages/db/migrations/` with at least one migration SQL file that creates the above tables.
+- `packages/db/zodSchemas.ts` exporting Zod schemas for each DTO (FeedItem, SpotlightItem, Playlist, Gig, Thread, EPKRequest, MemeRequest, AvatarRequest, AIJob).
+
+3) Feed ingestion & normalizer
+- `data/sources.json` mapping the exact categories & sources you specified earlier (Scene/Underground, Industry/Business, Gear/Production, Regional (Asia/India), Features/Reviews, EDM, Community).
+- `apps/api/ingest/route.ts` — POST route to accept normalized items (protected via HMAC using SUPABASE_SERVICE_ROLE_KEY). Validates payload with Zod. Stores raw payload JSONB + normalized fields.
+- `scripts/ingest-worker.ts` — polling worker (node script) that:
+  - loads `data/sources.json`, fetches RSS/JSON endpoints (use `undici` or `node-fetch`), parses XML (fast-xml-parser), sanitizes HTML (DOMPurify or sanitize-html), extracts image, title, excerpt, published_at.
+  - dedupe by computing SHA256 over (normalized title + cleaned text + source_id). Insert only new items.
+  - exposes metrics log and a `--once` flag to run one iteration.
+  - supports local fixtures when remote endpoints are not reachable.
+
+4) API endpoints (Next/Edge where appropriate)
+- `GET /api/feeds` — cursor (keyset) paginated, accepts category, source, q, since, sort; returns canonical FeedItem shape and ETag/Cache-Control.
+- `GET /api/spotlights` — returns spotlight items, editorial notes, and playlist metadata.
+- `POST /api/ai/job` — submit AI jobs (cover art / epk / meme / avatar); stores job in `ai_jobs`, enqueues to worker.
+- `GET /api/ai/job/:id` — job status + result URLs.
+- `GET /api/playlists/:id` — returns playlist metadata + SoundCloud embed URL; implement a server-side proxy to avoid CORS issues and to optionally swap in mock playlists locally.
+- `POST /api/gigs` — create gig (authenticated), geocodes location (local geocode mock if no external key), stores gig and optionally publishes to Gig Radar.
+
+5) AI integrations & job orchestration
+- Create an adapter layer `packages/ai-adapters/*` that supports:
+  - OpenAI image API (if key present).
+  - Replicate or local stable diffusion fallback (if key present).
+  - A deterministic local fallback using a seeded procedural image generator (canvas-based) so the Cover Art and Avatar features produce something usable in a dev environment with no external key.
+- All AI endpoints must queue jobs into `ai_jobs` table and a worker `scripts/ai-worker.ts` must process them asynchronously when run via `pnpm ingest:run` or in Docker worker service.
+- Ensure job retries, exponential backoff, and result checksum verification. Store outputs in Supabase Storage via server-side client and return signed URLs.
+
+6) Frontend — apps/web (must be high-polish)
+- Root layout (`app/layout.tsx`) with theme tokens, accessible skip-links, and header + footer with the exact logo (public/logo.svg).
+- Landing / Homescreen (`app/page.tsx`) — hero with large animated logo, CTA, spotlight carousel (autoplay but respects reduced-motion), tabbed categories, advanced filter/search, feed grid with infinite scroll (server-render first page), sidebar showing Weekly playlist and Gig Radar summary.
+- FeedCard component with optimized image loading (next/image), read time estimate, source badge, published date (relative + absolute tooltip), tags, and share action.
+- Spotlight modal (keyboard accessible) with immersive media view (video/image/embed).
+- AI Studio pages:
+  - `/ai/cover-art` — prompt, style pickers, seed slider, submit button, gallery previews, job status.
+  - `/ai/epk` — guided EPK generator form (artist bio, discography, press quotes, images) → generate PDF and public EPK page; store generated PDF in Supabase Storage.
+  - `/ai/meme` — meme templates, text fields, AI image remix options, share to community.
+  - `/ai/avatar` — avatar builder + AI variant generator.
+- Community Forum:
+  - Thread list, create thread (with tags), thread details with comments, upvote/downvote (rate-limited), moderation flags.
+  - Use progressive enhancement and optimistic updates for comments/upvotes.
+- Profile page:
+  - Edit profile, social links, manage EPKs, view saved playlists, manage AI credits (if you implement a simple credit system), avatar editor.
+- Admin panel:
+  - Protected route for admin users, manage sources, approve spotlights/gigs, view ingestion logs.
+
+7) SoundCloud & playback
+- Implement SoundCloud embed card that uses server-side proxy to avoid CORS and to support oEmbed for track/playlist embedding.
+- Provide an alternate local `MockSoundCloudService` returning sample playlists.
+
+8) Security, data integrity & performance
+- Ingestion webhook protected by HMAC (SUPABASE_SERVICE_ROLE_KEY) and rate-limited with token bucket.
+- API authentication with Supabase JWT tokens (server-side verify).
+- Sanitize all rich HTML before storing/serving (no inline scripts).
+- Images proxied via `/api/image/proxy?url=...` to avoid leaking referrers; cache proxied images in Supabase Storage or local cache.
+- Use appropriate HTTP cache headers on feed endpoints and ETag support.
+- DB indices on `feeds(published_at)`, `feeds(category, published_at)`, `ai_jobs(status, inserted_at)`.
+
+9) Tests & CI
+- Vitest unit tests:
+  - parser/normalizer tests (XML -> normalized FeedItem).
+  - Zod schema tests.
+  - AI job queue tests (mock adapter).
+- Playwright E2E:
+  - Smoke test: build the app, start server, visit `/`, assert hero logo present and `/api/feeds` returns at least 1 item (use a local fixture).
+  - Admin flow smoke (login as test admin via Supabase test fixtures).
+- GitHub Actions:
+  - `ci.yml` installs pnpm, runs `pnpm -w install`, `pnpm -w lint`, `pnpm -w test`, `pnpm -w build`, runs drizzle migrations against ephemeral test DB, runs `scripts/assemble-assets.ts`.
+  - Use matrix strategy for Node versions (18, 20).
+
+10) Scripts & developer ergonomics
+- Root scripts:
+  - `pnpm dev` → starts Next dev with watches and a worker process.
+  - `pnpm start` → production start.
+  - `pnpm build` → build web app.
+  - `pnpm migrate` → runs drizzle migrations.
+  - `pnpm ingest` → runs ingest-worker in one-off mode (or as daemon).
+  - `pnpm ai:worker` → runs AI worker.
+  - `pnpm test` → runs vitest + playwright in headless CI mode.
+- Provide `README.md`, `DEVELOPER_GUIDE.md`, and `docs/UI_UX_FLOW.md` with step-by-step local and cloud deploy instructions:
+  - Local dev using Supabase CLI (`supabase start`) and Docker compose.
+  - Cloud deploy via Supabase + Vercel, with example GitHub Actions to deploy.
+  - How to setup Spotify/SoundCloud/OpenAI keys and how to enable real integrations vs local fixtures.
+
+11) Asset handling
+- Implement `scripts/assemble-assets.ts` to follow the Large Asset Embedding Protocol:
+  - Accepts `.base64.part*` chunks, reconstructs to final asset, validates SHA256, stores to `apps/web/public/assets/`.
+  - CI must fail when checksum mismatch.
+
+12) Documentation & handoff
+- `README.md` with 3-step quick start and full setup.
+- `DEVELOPER_GUIDE.md` with codebase maps, how to add new feed sources, how to add new AI adapters, how to extend DB schema with Drizzle migrations.
+- `docs/UI_UX_FLOW.md` describing flows (landing → spotlight → AI studio → community) and keyboard shortcuts list (`/` for search, `g` for Gig Radar, `s` for spotlight).
+- `OPERATION_GUIDE.md` for running workers, monitoring, and common troubleshooting.
+
+13) Output deliverable format (for generator)
+- The generator must produce the full repository file contents. For each file, print using the following exact header format (this allows copy-paste into a repo):
+
+```txt
+// FILE: <relative/path/from/repo/root>
+<file contents>
+The generator must ensure there are no literal TODO or PLACEHOLDER tokens in code files.
+
+If a file would normally require private credentials, put placeholders ONLY in .env.example (no secrets). But ensure the app runs with local mockers without keys.
+
+The repo must be runnable locally out-of-the-box for a developer following the README (using local fixtures where necessary).
+
+Edge cases & graceful fallbacks
+
+If OpenAI/Replicate/SoundCloud/Spotify keys are missing, fallback to deterministic local generators and mock playlist data that still demonstrate UI behavior.
+
+Put clear developer notes in the AI adapter files explaining how to wire real keys.
+
+All image generation results must be stored in Supabase Storage (local) and served via signed URLs.
+
+UX expectations (designer notes)
+
+Futuristic but readable aesthetic: dark, high-contrast (lime accents), use subtle glass panels and soft shadows, large expressive typography in hero.
+
+Spotlight carousel should feel editorial — big image, short excerpt, “read more” CTA.
+
+Feed grid uses Masonry-like layout (responsive). Cards have micro-interactions: hover lift, focus outline, small animation respecting prefers-reduced-motion.
+
+The AI Studio has a two-column layout: left controls, right preview. Long generation jobs show progress history and saves every result.
+
+Provide keyboard accessibility and ARIA labels for all interactive elements.
+
+Acceptance checks (generator must ensure)
+
+pnpm -w install && pnpm -w build should succeed in CI when using local fixtures; any external API must be optional.
+
+Vitest parser tests pass.
+
+Playwright smoke test passes in headless mode using local fixtures.
+
+scripts/assemble-assets.ts verifies the included sample asset.
