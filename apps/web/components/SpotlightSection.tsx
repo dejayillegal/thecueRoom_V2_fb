@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useCallback, useRef, memo } from 'react';
@@ -42,10 +41,10 @@ const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
 
 SpotlightImage.displayName = 'SpotlightImage';
 
-export default function SpotlightSection({ 
-  initialFeeds, 
-  initialTrending 
-}: { 
+export default function SpotlightSection({
+  initialFeeds,
+  initialTrending
+}: {
   initialFeeds: FeedItem[];
   initialTrending: FeedItem[];
 }) {
@@ -85,28 +84,28 @@ export default function SpotlightSection({
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
-      
+
       abortControllerRef.current = new AbortController();
-      
+
       try {
         const [spotlightRes, trendingRes] = await Promise.all([
-          fetch('/api/feeds?limit=8', { 
+          fetch('/api/feeds?limit=8', {
             signal: abortControllerRef.current.signal,
             headers: { 'Accept': 'application/json' }
           }),
-          fetch('/api/feeds?limit=32&offset=0', { 
+          fetch('/api/feeds?limit=32&offset=0', {
             signal: abortControllerRef.current.signal,
             headers: { 'Accept': 'application/json' }
           })
         ]);
-        
+
         if (!spotlightRes.ok || !trendingRes.ok) return;
 
         const [spotlightData, trendingData] = await Promise.all([
           spotlightRes.json(),
           trendingRes.json()
         ]);
-        
+
         if (spotlightData.data && spotlightData.data.length > 0) {
           const formattedFeeds = spotlightData.data.map((item: any) => ({
             title: item.title,
@@ -119,23 +118,23 @@ export default function SpotlightSection({
           }));
           setCurrentFeeds(formattedFeeds);
         }
-        
+
         if (trendingData.data && trendingData.data.length > 0) {
           const scoredItems = trendingData.data.map((item: any, index: number) => {
             const now = Date.now();
             const publishedTime = new Date(item.publishedAt).getTime();
             const ageInHours = (now - publishedTime) / (1000 * 60 * 60);
-            
+
             const recencyScore = Math.max(0, 100 - (ageInHours / 48) * 100);
             const diversityBonus = index % 3 === 0 ? 20 : 0;
             const tagScore = Math.min(30, (item.tags?.length || 0) * 5);
-            
+
             return {
               ...item,
               trendingScore: recencyScore + diversityBonus + tagScore
             };
           });
-          
+
           const topTrending = scoredItems
             .sort((a: any, b: any) => b.trendingScore - a.trendingScore)
             .slice(0, 16)
@@ -148,7 +147,7 @@ export default function SpotlightSection({
               source: item.source?.name || 'Unknown',
               tags: item.tags || [],
             }));
-          
+
           setCurrentTrending(topTrending);
         }
       } catch (error: any) {
@@ -159,7 +158,7 @@ export default function SpotlightSection({
     };
 
     refreshRef.current = setInterval(refreshFeeds, 3600000);
-    
+
     return () => {
       if (refreshRef.current) {
         clearInterval(refreshRef.current);
@@ -174,7 +173,7 @@ export default function SpotlightSection({
     if (isAutoPlaying && currentFeeds.length > 1 && !isPaused) {
       autoPlayRef.current = setInterval(goToNext, 5000);
     }
-    
+
     return () => {
       if (autoPlayRef.current) {
         clearInterval(autoPlayRef.current);
@@ -206,9 +205,9 @@ export default function SpotlightSection({
         <div className="relative w-full h-full">
           <SpotlightImage feed={currentFeed} />
         </div>
-        
+
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-        
+
         <div className="absolute top-4 left-4 right-4 opacity-0 group-hover/spotlight:opacity-100 transition-opacity">
           <div className="text-sm font-medium text-white drop-shadow-lg">
             {currentFeed.source}
@@ -216,7 +215,11 @@ export default function SpotlightSection({
           <div className="text-xs text-white/90 drop-shadow-lg">
             {currentFeed.publishedAt && (() => {
               const date = new Date(currentFeed.publishedAt);
-              return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
+              return `${date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              })}`;
             })()}
           </div>
         </div>

@@ -1,26 +1,21 @@
 #!/usr/bin/env tsx
 
-import { startWorker } from '../packages/worker/index';
+import { runEnhancedIngestion } from './enhanced-ingest';
 
-async function main() {
-  console.log('\n🚀 Starting thecueRoom Background Feed Worker...\n');
-  
-  try {
-    await startWorker();
-    
-    process.on('SIGINT', async () => {
-      console.log('\n\n👋 Shutting down worker gracefully...\n');
-      process.exit(0);
-    });
+async function runWorker() {
+  console.log('🚀 Starting thecueRoom Background Feed Worker...\n');
 
-    process.on('SIGTERM', async () => {
-      console.log('\n\n👋 Shutting down worker gracefully...\n');
-      process.exit(0);
-    });
-  } catch (error) {
-    console.error('❌ Worker failed to start:', error);
-    process.exit(1);
-  }
+  // Initial fetch
+  await runEnhancedIngestion();
+
+  // Schedule to run every hour
+  setInterval(async () => {
+    console.log('\n⏰ Running scheduled ingestion...');
+    await runEnhancedIngestion();
+  }, 60 * 60 * 1000); // 1 hour
 }
 
-main();
+runWorker().catch((error) => {
+  console.error('Failed to start worker:', error);
+  process.exit(1);
+});
