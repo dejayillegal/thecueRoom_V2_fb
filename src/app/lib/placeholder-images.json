@@ -1,0 +1,32 @@
+{
+    "dashboardQuickActions": [
+        {
+            "title": "AI Cover Art",
+            "href": "/ai/cover-art",
+            "description": "Generate unique, on-brand cover art from a simple text prompt.",
+            "image": "https://picsum.photos/seed/dashboard-cover-art/600/400",
+            "hint": "abstract art"
+        },
+        {
+            "title": "AI Meme Generator",
+            "href": "/meme-generator",
+            "description": "Create viral-worthy memes in seconds for your social media.",
+            "image": "https://picsum.photos/seed/dashboard-meme-gen/600/400",
+            "hint": "funny cat"
+        },
+        {
+            "title": "AI EPK Generator",
+            "href": "/ai/epk",
+            "description": "Build a professional Electronic Press Kit ready to send to promoters.",
+            "image": "https://picsum.photos/seed/dashboard-epk/600/400",
+            "hint": "music producer"
+        },
+        {
+            "title": "Community Forum",
+            "href": "/community",
+            "description": "Connect with other artists, share tips, and get feedback.",
+            "image": "https://picsum.photos/seed/dashboard-community/600/400",
+            "hint": "people talking"
+        }
+    ]
+}

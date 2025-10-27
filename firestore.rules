@@ -1,0 +1,60 @@
+/**
+ * @file Firebase Security Rules for thecueRoom Application
+ *
+ * Core Philosophy: This ruleset enforces a strict user-ownership model for user profiles stored in Firestore.
+ * Only the authenticated user can create, read, update, or delete their own profile data.
+ *
+ * Data Structure: All user data is stored under the `/users/{userId}` path, where `{userId}` is the Firebase Authentication UID.
+ * Each document contains profile information including verification status and submitted links.
+ *
+ * Key Security Decisions:
+ * - Users can only access their own data. Listing other users is disallowed.
+ * - Verification status is denormalized to enable efficient rules.
+ *
+ * Denormalization for Authorization: The `users/{userId}` documents directly store `verified` and `verificationStatus` fields.
+ * This allows rules to quickly check verification status without needing to perform additional reads,
+ * ensuring authorization independence and efficient security checks.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Enforces user-ownership for profile data. Only the authenticated user can create, read, update, or delete their own profile data.
+     * @path /users/{userId}
+     * @allow (create) - Authenticated user with UID 'user_abc' can create their profile if the `id` field matches their UID.
+     * @allow (get, list) - Authenticated user with UID 'user_abc' can read their own profile.
+     * @allow (update, delete) - Authenticated user with UID 'user_abc' can update/delete their profile if the document exists and the `id` field matches their UID.
+     * @deny (create) - Authenticated user with UID 'user_xyz' cannot create a profile for user 'user_abc'.
+     * @deny (get, list) - Authenticated user with UID 'user_xyz' cannot read the profile of user 'user_abc'.
+     * @deny (update, delete) - Authenticated user with UID 'user_xyz' cannot update/delete the profile of user 'user_abc'.
+     * @principle Enforces document ownership for all operations.
+     */
+    match /users/{userId} {
+      // Helper function to check if the authenticated user is the owner of the document
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+
+      // Helper function to check if the authenticated user is the owner of the existing document
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
+      // Allow the user to create their own profile, validating the `id` field.
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+
+      // Allow the user to read their own profile.
+      allow get: if isOwner(userId);
+
+      // Allow the user to list their own profile.
+      allow list: if isOwner(userId);
+
+      // Allow the user to update their own profile, enforcing `id` immutability and document existence.
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+
+      // Allow the user to delete their own profile, enforcing document existence.
+      allow delete: if isExistingOwner(userId);
+    }
+  }
+}

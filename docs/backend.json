@@ -1,0 +1,90 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user account in the thecueRoom application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user account."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The user's first name."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The user's last name."
+        },
+        "artistName": {
+          "type": "string",
+          "description": "The user's artist or project name."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "region": {
+          "type": "string",
+          "description": "The user's geographical region."
+        },
+        "primaryGenre": {
+          "type": "string",
+          "description": "The user's primary music genre."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user account was created.",
+          "format": "date-time"
+        },
+        "verified": {
+          "type": "boolean",
+          "description": "Indicates whether the user's account has been verified."
+        },
+        "submittedLink": {
+          "type": "string",
+          "description": "The URL submitted by the user for profile verification."
+        },
+        "verificationStatus": {
+          "type": "string",
+          "description": "The current status of the user's verification process (e.g., queued, passed)."
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "createdAt",
+        "verified",
+        "verificationStatus"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile information. Includes denormalized fields for verification status to support authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user. This is the document ID and matches the Firebase Authentication UID."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
