@@ -18,6 +18,19 @@ export interface FeedItem {
 
 const TrendingCard = memo(({ feed }: { feed: FeedItem }) => {
   const [imgSrc, setImgSrc] = useState(feed.image);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setImgSrc(feed.image);
+    setHasError(false);
+  }, [feed.image, feed.url]);
+
+  const handleError = useCallback(() => {
+    if (!hasError) {
+      setHasError(true);
+      setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
+    }
+  }, [hasError, feed.title]);
 
   return (
     <Link
@@ -35,9 +48,8 @@ const TrendingCard = memo(({ feed }: { feed: FeedItem }) => {
           loading="lazy"
           quality={75}
           className="object-cover group-hover/card:scale-105 transition-transform"
-          onError={() => {
-            setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
-          }}
+          onError={handleError}
+          unoptimized={imgSrc.startsWith('/api/og-fallback')}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity">
           <div className="absolute bottom-2 left-2 right-2">

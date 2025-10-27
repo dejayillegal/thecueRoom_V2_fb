@@ -1,17 +1,32 @@
-
 import { ImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
+export const dynamic = 'force-static';
 
-export async function GET(request: NextRequest) {
+const generatedCache = new Map<string, { data: ArrayBuffer; timestamp: number }>();
+const CACHE_DURATION = 3600000; // 1 hour
+
+export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const title = searchParams.get('title') || 'Music News';
+    const title = searchParams.get('title') || 'thecueRoom';
+    const cacheKey = title.slice(0, 120);
+
+    // Check cache
+    const cached = generatedCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      return new Response(cached.data, {
+        headers: {
+          'Content-Type': 'image/png',
+          'Cache-Control': 'public, max-age=3600, immutable',
+        },
+      });
+    }
 
     const truncatedTitle = title.length > 100 ? title.substring(0, 97) + '...' : title;
 
-    return new ImageResponse(
+    const imageResponse = new ImageResponse(
       (
         <div
           style={{
@@ -49,7 +64,7 @@ export async function GET(request: NextRequest) {
               filter: 'blur(80px)',
             }}
           />
-          
+
           <div
             style={{
               display: 'flex',
@@ -93,6 +108,25 @@ export async function GET(request: NextRequest) {
         height: 630,
       }
     );
+
+    // Convert to buffer and cache
+    const buffer = await imageResponse.arrayBuffer();
+    generatedCache.set(cacheKey, { data: buffer, timestamp: Date.now() });
+
+    // Clean old cache entries (keep only last 100)
+    if (generatedCache.size > 100) {
+      const entries = Array.from(generatedCache.entries());
+      entries.sort((a, b) => b[1].timestamp - a[1].timestamp);
+      generatedCache.clear();
+      entries.slice(0, 100).forEach(([key, value]) => generatedCache.set(key, value));
+    }
+
+    return new Response(buffer, {
+      headers: {
+        'Content-Type': 'image/png',
+        'Cache-Control': 'public, max-age=3600, immutable',
+      },
+    });
   } catch (error) {
     console.error('OG Image generation error:', error);
     return new Response('Failed to generate image', { status: 500 });

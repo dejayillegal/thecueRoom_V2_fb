@@ -9,6 +9,19 @@ import TrendingCarousel, { FeedItem } from './TrendingCarousel';
 
 const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
   const [imgSrc, setImgSrc] = useState(feed.image);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setImgSrc(feed.image);
+    setHasError(false);
+  }, [feed.image, feed.url]);
+
+  const handleError = useCallback(() => {
+    if (!hasError) {
+      setHasError(true);
+      setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
+    }
+  }, [hasError, feed.title]);
 
   return (
     <Image
@@ -19,9 +32,8 @@ const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
       priority
       quality={85}
       className="object-cover transition-opacity duration-700"
-      onError={() => {
-        setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
-      }}
+      onError={handleError}
+      unoptimized={imgSrc.startsWith('/api/og-fallback')}
     />
   );
 });
@@ -253,9 +265,9 @@ export default function SpotlightSection({
         </div>
 
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-          {currentFeeds.slice(0, 8).map((_, index) => (
+          {currentFeeds.slice(0, 8).map((feed, index) => (
             <button
-              key={index}
+              key={`${feed.url}-${index}`}
               onClick={() => goToSlide(index)}
               className={`w-2 h-2 rounded-full transition-all ${
                 index === currentIndex

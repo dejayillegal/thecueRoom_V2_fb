@@ -19,19 +19,32 @@ interface FeedItem {
   } | null;
 }
 
-const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date: Date) => string }) => (
-  <article className="bg-card rounded-lg overflow-hidden border border-border hover:border-primary/50 transition-all group">
-    <Link href={feed.link} target="_blank" rel="noopener noreferrer">
-      <div className="relative h-48 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
-        <Image
-          src={feed.image || `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`}
-          alt={feed.title}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-300"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          loading="lazy"
-          quality={75}
-        />
+const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date: Date) => string }) => {
+  const [imgSrc, setImgSrc] = useState(feed.image || `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
+  const [hasError, setHasError] = useState(false);
+
+  const handleError = useCallback(() => {
+    if (!hasError && feed.image) {
+      setHasError(true);
+      setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
+    }
+  }, [hasError, feed.image, feed.title]);
+
+  return (
+    <article className="bg-card rounded-lg overflow-hidden border border-border hover:border-primary/50 transition-all group">
+      <Link href={feed.link} target="_blank" rel="noopener noreferrer">
+        <div className="relative h-48 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
+          <Image
+            src={imgSrc}
+            alt={feed.title}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            loading="lazy"
+            quality={75}
+            onError={handleError}
+            unoptimized={imgSrc.startsWith('/api/og-fallback')}
+          />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
           <div className="absolute bottom-2 left-2 right-2">
             <div className="text-xs font-medium text-white drop-shadow-lg">
@@ -77,7 +90,8 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
       </div>
     </Link>
   </article>
-));
+  );
+});
 
 FeedCard.displayName = 'FeedCard';
 
