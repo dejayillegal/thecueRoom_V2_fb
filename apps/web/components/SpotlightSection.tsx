@@ -2,27 +2,30 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import HomeClient, { FeedItem } from './HomeClient';
-import TrendingCarousel from './TrendingCarousel';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Users } from 'lucide-react';
+import TrendingCarousel, { FeedItem } from './TrendingCarousel';
 
 export default function SpotlightSection({ 
-  feeds, 
-  trendingFeeds 
+  initialFeeds, 
+  initialTrending 
 }: { 
-  feeds: FeedItem[];
-  trendingFeeds: FeedItem[];
+  initialFeeds: FeedItem[];
+  initialTrending: FeedItem[];
 }) {
-  const [currentFeeds, setCurrentFeeds] = useState<FeedItem[]>(feeds);
-  const [currentTrending, setCurrentTrending] = useState<FeedItem[]>(trendingFeeds);
+  const [currentFeeds, setCurrentFeeds] = useState<FeedItem[]>(initialFeeds);
+  const [currentTrending, setCurrentTrending] = useState<FeedItem[]>(initialTrending);
 
   useEffect(() => {
     const refreshFeeds = async () => {
       try {
-        const response = await fetch('/api/feeds?limit=24');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.data && data.data.length > 0) {
-            const formattedFeeds = data.data.map((item: any) => ({
+        // Fetch spotlight feeds
+        const spotlightResponse = await fetch('/api/feeds?limit=24');
+        if (spotlightResponse.ok) {
+          const spotlightData = await spotlightResponse.json();
+          if (spotlightData.data && spotlightData.data.length > 0) {
+            const formattedFeeds = spotlightData.data.map((item: any) => ({
               title: item.title,
               url: item.link,
               summary: item.summary || '',
@@ -46,17 +49,52 @@ export default function SpotlightSection({
     return () => clearInterval(interval);
   }, []);
 
+  if (!currentFeeds || currentFeeds.length === 0) {
+    return (
+      <div className="relative h-[60vh] bg-card rounded-lg flex items-center justify-center border border-border">
+        <p className="text-muted-foreground">No spotlight feeds available yet. Run the ingestion script to populate feeds.</p>
+      </div>
+    );
+  }
+
   return (
-    <section aria-label="Feeds">
-      {currentTrending.length > 0 && (
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Trending Now
-          </h2>
-          <TrendingCarousel items={currentTrending} />
+    <section className="relative mb-16">
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-3xl font-bold">Spotlight</h2>
+        <div className="flex items-center gap-2">
+          <Users className="w-5 h-5 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Live Updates</span>
         </div>
-      )}
-      <HomeClient initialItems={currentFeeds} />
+      </div>
+
+      <div className="relative h-[60vh] bg-card rounded-lg overflow-hidden border border-border">
+        <Image
+          src={currentFeeds[0]?.image || '/placeholder.jpg'}
+          alt={currentFeeds[0]?.title || 'Spotlight'}
+          fill
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 p-8">
+          <h2 className="text-4xl font-bold mb-2">{currentFeeds[0]?.title}</h2>
+          <p className="text-lg text-muted-foreground mb-4">{currentFeeds[0]?.summary}</p>
+          {currentFeeds[0]?.url && (
+            <Link
+              href={currentFeeds[0].url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              Read More
+            </Link>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <h3 className="text-2xl font-bold mb-4">Trending Now</h3>
+        <TrendingCarousel feeds={currentTrending} />
+      </div>
     </section>
   );
 }

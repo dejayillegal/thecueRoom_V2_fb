@@ -124,7 +124,10 @@ async function main() {
   await client.end();
 }
 
-if (require.main === module) {
+// Allow running as script or importing as module
+const isMainModule = typeof require !== 'undefined' && require.main === module;
+
+if (isMainModule) {
   main().catch(console.error);
 }
 
