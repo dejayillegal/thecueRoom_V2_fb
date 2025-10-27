@@ -166,9 +166,9 @@ async function NewsSection() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {feeds.map((feed: any) => (
+      {feeds.map((feed: any, index: number) => (
         <Link
-          key={feed.id}
+          key={`${feed.title}-${index}`}
           href={feed.url}
           target="_blank"
           rel="noopener noreferrer"
@@ -180,6 +180,7 @@ async function NewsSection() {
                 src={feed.image}
                 alt={feed.title}
                 fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 className="object-cover group-hover:scale-105 transition-transform"
               />
             </div>
@@ -195,9 +196,9 @@ async function NewsSection() {
             )}
             {feed.tags && feed.tags.length > 0 && (
               <div className="flex gap-2 mt-4 flex-wrap">
-                {feed.tags.slice(0, 3).map((tag: string) => (
+                {feed.tags.slice(0, 3).map((tag: string, tagIndex: number) => (
                   <span
-                    key={tag}
+                    key={`${tag}-${tagIndex}`}
                     className="px-2 py-1 bg-muted rounded text-xs"
                   >
                     #{tag}
@@ -218,22 +219,22 @@ export default function HomePage() {
       <div className="grain-overlay" />
 
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <Logo className="w-10 h-10" />
-            <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <Logo className="w-8 h-8" />
+            <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               thecueRoom
             </span>
           </Link>
 
-          <nav className="flex items-center gap-6">
+          <nav className="flex items-center gap-4">
             <AuthButton />
           </nav>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-12">
-        <section className="mb-16">
+      <div className="container mx-auto px-4 py-8">
+        <section className="mb-12">
           <Suspense fallback={<SpotlightSkeleton />}>
             {(async () => {
               const spotlightFeeds = await getSpotlightFeeds();
@@ -244,8 +245,8 @@ export default function HomePage() {
         </section>
 
         <section>
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold">Latest News</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold">Latest News</h2>
             <Link
               href="/feeds"
               className="text-sm text-primary hover:underline flex items-center gap-1"

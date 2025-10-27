@@ -1,9 +1,9 @@
-
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export interface FeedItem {
   title: string;
@@ -16,96 +16,95 @@ export interface FeedItem {
 }
 
 export default function TrendingCarousel({ feeds }: { feeds: FeedItem[] }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const carouselRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScroll = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+    }
+  };
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % Math.max(feeds.length - 4, 1));
-    }, 5000); // Auto-scroll every 5 seconds
+    checkScroll();
+    const ref = scrollRef.current;
+    if (ref) {
+      ref.addEventListener('scroll', checkScroll);
+      return () => ref.removeEventListener('scroll', checkScroll);
+    }
+  }, []);
 
-    return () => clearInterval(interval);
-  }, [feeds.length]);
-
-  useEffect(() => {
-    if (carouselRef.current) {
-      const scrollWidth = carouselRef.current.scrollWidth / feeds.length;
-      carouselRef.current.scrollTo({
-        left: scrollWidth * currentIndex,
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const scrollAmount = 320;
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
         behavior: 'smooth',
       });
     }
-  }, [currentIndex, feeds.length]);
+  };
 
   if (!feeds || feeds.length === 0) {
     return null;
   }
 
-  const visibleFeeds = feeds.slice(currentIndex, currentIndex + 5);
-  if (visibleFeeds.length < 5 && feeds.length >= 5) {
-    const remaining = 5 - visibleFeeds.length;
-    visibleFeeds.push(...feeds.slice(0, remaining));
-  }
-
   return (
-    <div className="relative">
+    <div className="relative group">
+      {canScrollLeft && (
+        <button
+          onClick={() => scroll('left')}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm border border-border rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity"
+          aria-label="Scroll left"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+      )}
+
+      {canScrollRight && (
+        <button
+          onClick={() => scroll('right')}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm border border-border rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity"
+          aria-label="Scroll right"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      )}
+
       <div
-        ref={carouselRef}
-        className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        ref={scrollRef}
+        className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth"
       >
-        {visibleFeeds.map((feed, index) => (
-          <div
+        {feeds.map((feed, index) => (
+          <Link
             key={`${feed.url}-${index}`}
-            className="flex-shrink-0 w-64 snap-start"
+            href={feed.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-shrink-0 w-72 bg-card rounded-lg overflow-hidden border border-border hover:border-primary transition-colors group/card"
           >
-            <Link
-              href={feed.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block group"
-            >
-              <div className="relative h-32 rounded-lg overflow-hidden bg-card border border-border">
-                <Image
-                  src={feed.image}
-                  alt={feed.title}
-                  fill
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  sizes="256px"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`;
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <h4 className="text-sm font-semibold text-white line-clamp-2 group-hover:text-primary transition-colors">
-                    {feed.title}
-                  </h4>
-                </div>
-              </div>
-            </Link>
-          </div>
+            <div className="relative h-40">
+              <Image
+                src={feed.image}
+                alt={feed.title}
+                fill
+                sizes="288px"
+                className="object-cover group-hover/card:scale-105 transition-transform"
+              />
+            </div>
+            <div className="p-4">
+              <h4 className="font-semibold text-sm line-clamp-2 group-hover/card:text-primary transition-colors">
+                {feed.title}
+              </h4>
+              <p className="text-xs text-muted-foreground mt-2">
+                {feed.source}
+              </p>
+            </div>
+          </Link>
         ))}
       </div>
-
-      {/* Navigation dots */}
-      {feeds.length > 5 && (
-        <div className="flex justify-center gap-2 mt-4">
-          {Array.from({ length: Math.min(feeds.length - 4, 8) }).map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentIndex(index)}
-              className={`w-2 h-2 rounded-full transition-all ${
-                index === currentIndex % Math.min(feeds.length - 4, 8)
-                  ? 'bg-primary w-8'
-                  : 'bg-border hover:bg-muted-foreground'
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

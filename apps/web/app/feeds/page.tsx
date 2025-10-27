@@ -52,7 +52,7 @@ export default function FeedsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [cursor, hasMore, isLoading]);
+  }, [cursor, hasMore]);
 
   useEffect(() => {
     loadFeeds();
@@ -94,15 +94,15 @@ export default function FeedsPage() {
       <div className="grain-overlay" />
       
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <Logo className="w-10 h-10" />
-            <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <Logo className="w-8 h-8" />
+            <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               thecueRoom
             </span>
           </Link>
           
-          <nav className="flex items-center gap-6">
+          <nav className="flex items-center gap-4 text-sm">
             <Link href="/ai/cover-art" className="hover:text-primary transition-colors">
               AI Studio
             </Link>

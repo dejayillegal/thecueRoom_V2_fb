@@ -9,7 +9,13 @@ export function AuthButton() {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)}>Sign In / Sign Up</Button>
+      <Button
+        variant="default"
+        onClick={() => setOpen(true)}
+        className="bg-primary hover:bg-primary/90 text-sm"
+      >
+        Sign In / Sign Up
+      </Button>
       <AuthModal open={open} onOpenChange={setOpen} />
     </>
   );

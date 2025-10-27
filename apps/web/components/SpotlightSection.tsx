@@ -58,41 +58,46 @@ export default function SpotlightSection({
   }
 
   return (
-    <section className="relative mb-16">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-3xl font-bold">Spotlight</h2>
+    <section className="relative">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Spotlight</h2>
         <div className="flex items-center gap-2">
-          <Users className="w-5 h-5 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Live Updates</span>
+          <Users className="w-4 h-4 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">Live Updates</span>
         </div>
       </div>
 
-      <div className="relative h-[60vh] bg-card rounded-lg overflow-hidden border border-border">
+      <div className="relative h-[50vh] md:h-[60vh] bg-card rounded-xl overflow-hidden border border-border shadow-lg">
         <Image
           src={currentFeeds[0]?.image || '/placeholder.jpg'}
           alt={currentFeeds[0]?.title || 'Spotlight'}
           fill
+          sizes="100vw"
+          priority
           className="object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-8">
-          <h2 className="text-4xl font-bold mb-2">{currentFeeds[0]?.title}</h2>
-          <p className="text-lg text-muted-foreground mb-4">{currentFeeds[0]?.summary}</p>
-          {currentFeeds[0]?.url && (
-            <Link
-              href={currentFeeds[0].url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-            >
-              Read More
-            </Link>
-          )}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+          <div className="max-w-3xl">
+            <div className="text-xs text-primary mb-2">{currentFeeds[0]?.source}</div>
+            <h2 className="text-2xl md:text-4xl font-bold mb-2 line-clamp-2">{currentFeeds[0]?.title}</h2>
+            <p className="text-sm md:text-base text-muted-foreground mb-4 line-clamp-2">{currentFeeds[0]?.summary}</p>
+            {currentFeeds[0]?.url && (
+              <Link
+                href={currentFeeds[0].url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 md:px-6 md:py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm md:text-base"
+              >
+                Read More
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="mt-8">
-        <h3 className="text-2xl font-bold mb-4">Trending Now</h3>
+      <div className="mt-6 md:mt-8">
+        <h3 className="text-xl font-bold mb-4">Trending Now</h3>
         <TrendingCarousel feeds={currentTrending} />
       </div>
     </section>
