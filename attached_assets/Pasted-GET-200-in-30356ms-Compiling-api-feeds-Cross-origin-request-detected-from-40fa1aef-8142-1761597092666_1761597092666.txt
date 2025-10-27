@@ -1,0 +1,41 @@
+GET / 200 in 30356ms
+ ○ Compiling /api/feeds ...
+ ⚠ Cross origin request detected from 40fa1aef-8142-47d6-8893-a76619afdbaf-00-1zdhl4ace25p1.spock.replit.dev to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ ✓ Compiled /api/feeds in 13.7s (1052 modules)
+ GET / 200 in 420ms
+ GET /api/feeds?limit=8 200 in 13423ms
+ GET /api/feeds?limit=32&offset=0 200 in 13509ms
+ GET /api/feeds?limit=24 200 in 7911ms
+ GET /api/feeds?limit=8 200 in 868ms
+ GET /api/feeds?limit=32&offset=0 200 in 916ms
+ GET / 200 in 854ms
+ GET /api/feeds?limit=24 200 in 200ms
+ ○ Compiling /api/og-fallback ...
+ ✓ Compiled /api/og-fallback in 2.1s (1057 modules)
+Expected style "zIndex: 1px" to be unitless
+Expected style "zIndex: 1px" to be unitless
+Expected style "zIndex: 1px" to be unitless
+Expected style "zIndex: 1px" to be unitless
+ GET /api/og-fallback?title=Demi%20Lovato%20Will%20Bring%20%E2%80%98PopVato%E2%80%99%20on%20the%20Road%20for%20%E2%80%98It%E2%80%99s%20Not%20That%20Deep%E2%80%99%20Tour 200 in 10028ms
+ GET /api/og-fallback?title=Australia%20rejects%20proposal%20that%20would%20have%20exempted%20AI%20training%20from%20copyright%20laws 200 in 9094ms
+ GET /api/og-fallback?title=The%20Best%20Headphones%20of%202025%3A%20Open%2C%20Closed%2C%20and%20Wireless%20Designs 200 in 8399ms
+ GET /api/og-fallback?title=Forever%20Forever%20shares%20vibrant%20yet%20introspective%20debut%20EP%20%27Good%20Light%20In%27 200 in 10349ms
+Expected style "zIndex: 1px" to be unitless
+ GET /api/og-fallback?title=Alysha%20channels%20heartache%20into%20strength%20in%20fearless%20and%20soulful%20%22Red%20Wine%22 200 in 9556ms
+Expected style "zIndex: 1px" to be unitless
+Expected style "zIndex: 1px" to be unitless
+ GET /api/og-fallback?title=%E2%80%98Springsteen%3A%20Deliver%20Me%20From%20Nowhere%E2%80%99%20Has%20Divided%20the%20Film%20Critic%20Community 200 in 2899ms
+ GET /api/og-fallback?title=The%205th%20Element%20Festival%20Unveils%20Full%20Lineup%20for%20Inaugural%20Edition 200 in 2877ms
+ GET /api/feeds?limit=24&cursor=2025-10-27T16%3A33%3A25.000Z_d51446a4-d408-4fe9-acd7-4d62032d55fe 200 in 3759ms
+Expected style "zIndex: 1px" to be unitless
+ GET /api/og-fallback?title=MyCompiledThoughts%20delivers%20minimal%20alt-R%26B%20with%20%E2%80%9CAnymore%E2%80%9D 200 in 1514ms
+Expected style "zIndex: 1px" to be unitless
+ GET /api/og-fallback?title=Lorc%20D%20finds%20freedom%20in%20motion%20on%20%E2%80%9CI%E2%80%99m%20Away%E2%80%9D 200 in 2799ms
+Expected style "zIndex: 1px" to be unitless
+Expected style "zIndex: 1px" to be unitless
+Expected style "zIndex: 1px" to be unitless
+ GET / 200 in 5036ms
+ GET /api/feeds?limit=8 200 in 2661ms
+ GET /api/feeds?limit=32&offset=0 200 in 2782ms
+ GET /api/feeds?limit=24 200 in 222ms
