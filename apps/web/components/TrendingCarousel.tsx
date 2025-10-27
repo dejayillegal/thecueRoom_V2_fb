@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { useRef, useCallback, memo } from 'react';
 import Link from 'next/link';
 import { OptimizedImage } from './OptimizedImage';
 import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
@@ -16,22 +16,6 @@ export interface FeedItem {
 }
 
 const TrendingCard = memo(({ feed, index }: { feed: FeedItem; index: number }) => {
-  const feedKey = `${feed.url}-${feed.image}-${index}`;
-  const [imgSrc, setImgSrc] = useState(feed.image);
-  const [hasError, setHasError] = useState(false);
-
-  useEffect(() => {
-    setImgSrc(feed.image);
-    setHasError(false);
-  }, [feedKey]);
-
-  const handleError = useCallback(() => {
-    if (!hasError) {
-      setHasError(true);
-      setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
-    }
-  }, [hasError, feed.title]);
-
   return (
     <Link
       href={feed.url}
@@ -41,14 +25,13 @@ const TrendingCard = memo(({ feed, index }: { feed: FeedItem; index: number }) =
     >
       <div className="relative h-40">
         <OptimizedImage
-          key={feedKey}
-          src={imgSrc}
+          src={feed.image || `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`}
           alt={feed.title}
+          fill
           quality={75}
+          sizes="320px"
           className="object-cover group-hover/card:scale-105 transition-transform"
-          onError={handleError}
-          unoptimized={imgSrc.startsWith('/api/og-fallback')}
-          fallbackSrc={`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`}
+          fallbackUrl={`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity">
           <div className="absolute bottom-2 left-2 right-2">
