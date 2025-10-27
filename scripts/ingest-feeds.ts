@@ -1,16 +1,20 @@
 
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 import Parser from 'rss-parser';
 import { feeds, sources } from '../packages/db/schema';
 import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+const connectionString = process.env.DATABASE_URL;
 
-const db = drizzle(pool);
+if (!connectionString) {
+  console.error('DATABASE_URL environment variable is required');
+  process.exit(1);
+}
+
+const client = postgres(connectionString);
+const db = drizzle(client, { schema: { feeds, sources } });
 const parser = new Parser({
   timeout: 15000,
   headers: {
@@ -117,7 +121,7 @@ async function main() {
   }
 
   console.log('\n✓ Ingestion complete');
-  await pool.end();
+  await client.end();
 }
 
 if (require.main === module) {
