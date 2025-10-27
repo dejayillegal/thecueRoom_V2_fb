@@ -10,11 +10,12 @@ import TrendingCarousel, { FeedItem } from './TrendingCarousel';
 const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
   const [imgSrc, setImgSrc] = useState(feed.image);
   const [hasError, setHasError] = useState(false);
+  const feedKey = `${feed.url}-${feed.image}`;
 
   useEffect(() => {
     setImgSrc(feed.image);
     setHasError(false);
-  }, [feed.image, feed.url]);
+  }, [feedKey]);
 
   const handleError = useCallback(() => {
     if (!hasError) {
@@ -25,6 +26,7 @@ const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
 
   return (
     <Image
+      key={feedKey}
       src={imgSrc}
       alt={feed.title}
       fill
@@ -212,13 +214,10 @@ export default function SpotlightSection({
             {currentFeed.source}
           </div>
           <div className="text-xs text-white/90 drop-shadow-lg">
-            {currentFeed.publishedAt && new Date(currentFeed.publishedAt).toLocaleString('en-US', { 
-              month: 'short', 
-              day: 'numeric', 
-              year: 'numeric',
-              hour: 'numeric',
-              minute: '2-digit'
-            })}
+            {currentFeed.publishedAt && (() => {
+              const date = new Date(currentFeed.publishedAt);
+              return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
+            })()}
           </div>
         </div>
 

@@ -16,14 +16,15 @@ export interface FeedItem {
   tags: string[];
 }
 
-const TrendingCard = memo(({ feed }: { feed: FeedItem }) => {
+const TrendingCard = memo(({ feed, index }: { feed: FeedItem; index: number }) => {
+  const feedKey = `${feed.url}-${feed.image}-${index}`;
   const [imgSrc, setImgSrc] = useState(feed.image);
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     setImgSrc(feed.image);
     setHasError(false);
-  }, [feed.image, feed.url]);
+  }, [feedKey]);
 
   const handleError = useCallback(() => {
     if (!hasError) {
@@ -41,6 +42,7 @@ const TrendingCard = memo(({ feed }: { feed: FeedItem }) => {
     >
       <div className="relative h-40">
         <Image
+          key={feedKey}
           src={imgSrc}
           alt={feed.title}
           fill
@@ -57,12 +59,10 @@ const TrendingCard = memo(({ feed }: { feed: FeedItem }) => {
               {feed.source}
             </div>
             <div className="text-xs text-white/90 drop-shadow-lg">
-              {new Date(feed.publishedAt).toLocaleString('en-US', { 
-                month: 'short', 
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit'
-              })}
+              {(() => {
+                const date = new Date(feed.publishedAt);
+                return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
+              })()}
             </div>
           </div>
         </div>
@@ -208,7 +208,7 @@ export default function TrendingCarousel({ feeds }: { feeds: FeedItem[] }) {
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {feeds.map((feed, index) => (
-          <TrendingCard key={`${feed.url}-${index}`} feed={feed} />
+          <TrendingCard key={`${feed.url}-${index}`} feed={feed} index={index} />
         ))}
       </div>
     </div>

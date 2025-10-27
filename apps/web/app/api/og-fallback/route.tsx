@@ -2,10 +2,12 @@ import { ImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
 
 export const runtime = 'nodejs';
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 const generatedCache = new Map<string, { data: ArrayBuffer; timestamp: number }>();
 const CACHE_DURATION = 3600000; // 1 hour
+const MAX_CACHE_SIZE = 200;
 
 export async function GET(request: Request) {
   try {
@@ -113,12 +115,12 @@ export async function GET(request: Request) {
     const buffer = await imageResponse.arrayBuffer();
     generatedCache.set(cacheKey, { data: buffer, timestamp: Date.now() });
 
-    // Clean old cache entries (keep only last 100)
-    if (generatedCache.size > 100) {
+    // Clean old cache entries (keep only last 200 most recent)
+    if (generatedCache.size > MAX_CACHE_SIZE) {
       const entries = Array.from(generatedCache.entries());
       entries.sort((a, b) => b[1].timestamp - a[1].timestamp);
       generatedCache.clear();
-      entries.slice(0, 100).forEach(([key, value]) => generatedCache.set(key, value));
+      entries.slice(0, MAX_CACHE_SIZE).forEach(([key, value]) => generatedCache.set(key, value));
     }
 
     return new Response(buffer, {

@@ -20,8 +20,14 @@ interface FeedItem {
 }
 
 const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date: Date) => string }) => {
+  const feedKey = `${feed.id}-${feed.image}`;
   const [imgSrc, setImgSrc] = useState(feed.image || `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
   const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setImgSrc(feed.image || `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
+    setHasError(false);
+  }, [feedKey]);
 
   const handleError = useCallback(() => {
     if (!hasError && feed.image) {
@@ -35,6 +41,7 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
       <Link href={feed.link} target="_blank" rel="noopener noreferrer">
         <div className="relative h-48 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
           <Image
+            key={feedKey}
             src={imgSrc}
             alt={feed.title}
             fill
