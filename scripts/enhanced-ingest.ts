@@ -80,13 +80,6 @@ async function extractImageAdvanced(item: any, baseUrl: string, itemLink: string
       }
     }
 
-    if (itemLink && Math.random() < 0.3) {
-      const extractedImage = await extractImageFromPage(itemLink);
-      if (extractedImage) {
-        return extractedImage;
-      }
-    }
-
     return null;
   } catch (error) {
     return null;
@@ -464,7 +457,7 @@ export async function runEnhancedIngestion() {
   console.log(`📊 Processing ${allSources.length} sources with enhanced image extraction...\n`);
 
   const startTime = Date.now();
-  const results = await ingestBatch(allSources, 3);
+  const results = await ingestBatch(allSources, 5);
   const duration = ((Date.now() - startTime) / 1000).toFixed(2);
 
   console.log('\n============================================');

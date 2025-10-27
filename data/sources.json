@@ -5,14 +5,14 @@
     "url": "https://www.6amgroup.com/feed/",
     "kind": "rss",
     "tags": ["scene", "asia", "techno"],
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "The Playground",
     "url": "https://theplayground.co.uk/blog/feed/",
     "kind": "rss",
     "tags": ["scene", "culture"],
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "Earmilk",
@@ -82,14 +82,14 @@
     "url": "https://www.kvraudio.com/news.rss",
     "kind": "rss",
     "tags": ["plugins", "updates", "kvr"],
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "Ableton Blog",
     "url": "https://www.ableton.com/en/blog/feed/",
     "kind": "rss",
     "tags": ["daw", "ableton", "tutorials"],
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "Rolling Stone India",
@@ -103,28 +103,28 @@
     "url": "https://www.magneticmag.com/.rss/full/",
     "kind": "rss",
     "tags": ["scene", "gear", "techno", "interviews"],
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "Festival Insider",
     "url": "https://festivalinsider.com/feed/",
     "kind": "rss",
     "tags": ["festivals", "events", "coverage"],
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "Festicket Magazine",
     "url": "https://www.festicket.com/magazine/feed/",
     "kind": "rss",
     "tags": ["festivals", "events", "travel"],
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "Billboard Dance",
     "url": "https://www.billboard.com/feed/section/dance/",
     "kind": "rss",
     "tags": ["festivals", "dance", "charts"],
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "EDM.com Festivals",
@@ -152,21 +152,21 @@
     "url": "https://www.musicfestivalwizard.com/feed/",
     "kind": "rss",
     "tags": ["festivals", "guides", "planning"],
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "Your EDM — Festivals",
     "url": "https://www.youredm.com/category/festivals/feed/",
     "kind": "rss",
     "tags": ["festivals", "edm", "events"],
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "The FADER",
     "url": "https://www.thefader.com/feeds/music.rss",
     "kind": "rss",
     "tags": ["interviews", "features", "culture"],
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "Attack Magazine",
@@ -180,7 +180,7 @@
     "url": "https://reverb.com/news/rss",
     "kind": "rss",
     "tags": ["gear", "interviews", "reviews"],
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "Rolling Stone Music Interviews",
@@ -194,7 +194,7 @@
     "url": "https://www.soundonsound.com/people/rss",
     "kind": "rss",
     "tags": ["interviews", "production", "gear"],
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "DJ TechTools",
@@ -215,7 +215,7 @@
     "url": "https://feeds.feedburner.com/Sonicstate",
     "kind": "rss",
     "tags": ["gear", "synth", "reviews"],
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "DJWORX",
@@ -250,14 +250,14 @@
     "url": "https://www.musicradar.com/rss/reviews",
     "kind": "rss",
     "tags": ["gear", "reviews", "guides"],
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "Serato Blog",
     "url": "https://serato.com/feed",
     "kind": "rss",
     "tags": ["gear", "dj", "software"],
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "Synthtopia",
@@ -271,7 +271,7 @@
     "url": "https://www.modulargrid.net/feed/",
     "kind": "rss",
     "tags": ["modular", "synth", "community"],
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "Synth Anatomy",
@@ -285,14 +285,14 @@
     "url": "https://musictech.com/category/reviews/hardware/feed/",
     "kind": "rss",
     "tags": ["hardware", "reviews", "modular"],
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "Arturia Blog",
     "url": "https://blog.arturia.com/feed/",
     "kind": "rss",
     "tags": ["synth", "gear", "software"],
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "Elektronauts Forum",
@@ -313,6 +313,6 @@
     "url": "https://dancingastronaut.com/category/events/feed/",
     "kind": "rss",
     "tags": ["events", "edm", "festivals"],
-    "enabled": true
+    "enabled": false
   }
 ]
