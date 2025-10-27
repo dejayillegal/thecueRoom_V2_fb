@@ -11,6 +11,8 @@
     "migrate": "pnpm --filter db migrate",
     "migrate:generate": "pnpm --filter db migrate:generate",
     "ingest": "pnpm --filter worker ingest",
+    "ingest:all": "tsx scripts/ingest-all.ts",
+    "seed:sources": "tsx scripts/seed-sources.ts",
     "ai:worker": "pnpm --filter worker ai",
     "test": "pnpm -r test",
     "clean": "pnpm -r clean"
@@ -24,5 +26,9 @@
     "drizzle-orm": "^0.36.4",
     "postgres": "^3.4.7",
     "rss-parser": "3.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.23",
+    "tsx": "^4.20.6"
   }
 }
