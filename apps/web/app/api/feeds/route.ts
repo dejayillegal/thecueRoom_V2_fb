@@ -41,10 +41,9 @@ export async function GET(request: Request) {
 
     const twoWeeksAgo = new Date();
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-    const twoWeeksAgoISO = twoWeeksAgo.toISOString();
 
     const conditions = [
-      gt(feeds.publishedAt, twoWeeksAgoISO)
+      gt(feeds.publishedAt, twoWeeksAgo)
     ];
 
     if (sourceId) {
@@ -91,6 +90,7 @@ export async function GET(request: Request) {
     const sanitizedItems = items.map(item => ({
       ...item,
       image: sanitizeImageUrl(item.image, item.title),
+      publishedAt: typeof item.publishedAt === 'string' ? item.publishedAt : item.publishedAt?.toISOString(),
     }));
 
     const nextCursor = hasMore && sanitizedItems.length > 0
@@ -111,6 +111,8 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error('Feed API error:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
+    console.error('Error details:', JSON.stringify(error, null, 2));
     return NextResponse.json(
       { error: 'Failed to fetch feeds', data: [], nextCursor: null, hasMore: false },
       { status: 500 }

@@ -36,9 +36,12 @@ export function getDbClient() {
         date: {
           to: 1184,
           from: [1082, 1083, 1114, 1184],
-          serialize: (x: Date | string) => {
+          serialize: (x: any) => {
+            if (x === null || x === undefined) return null;
             if (typeof x === 'string') return x;
-            return x.toISOString();
+            if (x instanceof Date) return x.toISOString();
+            if (typeof x.toISOString === 'function') return x.toISOString();
+            return String(x);
           },
           parse: (x: string) => x,
         },
