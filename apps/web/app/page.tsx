@@ -19,7 +19,7 @@ async function getSpotlightFeeds() {
   }
 }
 
-async function getNewsFe eds() {
+async function getNewsFeeds() {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5000'}/api/feeds?limit=24&offset=8`, {
       cache: 'no-store',
