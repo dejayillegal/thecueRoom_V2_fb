@@ -93,6 +93,21 @@ export default function TrendingCarousel({ feeds }: { feeds: FeedItem[] }) {
                 sizes="288px"
                 className="object-cover group-hover/card:scale-105 transition-transform"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity">
+                <div className="absolute bottom-2 left-2 right-2">
+                  <div className="text-xs font-medium text-white drop-shadow-lg">
+                    {feed.source}
+                  </div>
+                  <div className="text-xs text-white/90 drop-shadow-lg">
+                    {new Date(feed.publishedAt).toLocaleString('en-US', { 
+                      month: 'short', 
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit'
+                    })}
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="p-4">
               <h4 className="font-semibold text-sm line-clamp-2 group-hover/card:text-primary transition-colors">

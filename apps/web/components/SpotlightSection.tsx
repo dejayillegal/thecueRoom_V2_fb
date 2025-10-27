@@ -67,7 +67,7 @@ export default function SpotlightSection({
         </div>
       </div>
 
-      <div className="relative h-[50vh] md:h-[60vh] bg-card rounded-xl overflow-hidden border border-border shadow-lg">
+      <div className="relative h-[50vh] md:h-[60vh] bg-card rounded-xl overflow-hidden border border-border shadow-lg group/spotlight">
         <Image
           src={currentFeeds[0]?.image || '/placeholder.jpg'}
           alt={currentFeeds[0]?.title || 'Spotlight'}
@@ -77,6 +77,20 @@ export default function SpotlightSection({
           className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+        <div className="absolute top-4 left-4 right-4 opacity-0 group-hover/spotlight:opacity-100 transition-opacity">
+          <div className="text-sm font-medium text-white drop-shadow-lg">
+            {currentFeeds[0]?.source}
+          </div>
+          <div className="text-xs text-white/90 drop-shadow-lg">
+            {currentFeeds[0]?.publishedAt && new Date(currentFeeds[0].publishedAt).toLocaleString('en-US', { 
+              month: 'short', 
+              day: 'numeric', 
+              year: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit'
+            })}
+          </div>
+        </div>
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
           <div className="max-w-3xl">
             <div className="text-xs text-primary mb-2">{currentFeeds[0]?.source}</div>

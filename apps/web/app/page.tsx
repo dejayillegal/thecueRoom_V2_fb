@@ -1,219 +1,216 @@
-import { Suspense } from 'react';
+'use client';
+
+import { Suspense, useState, useEffect, useRef, useCallback } from 'react';
 import { Logo } from '@/components/Logo';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AuthButton } from '@/components/auth/AuthButton';
-import { getDbClient } from '@/lib/db-client';
-import { feeds, sources } from '@thecueroom/db/schema';
-import { eq, desc } from 'drizzle-orm';
 
-const REFRESH_INTERVAL = 60 * 60 * 1000; // 1 hour
-
-async function getSpotlightFeeds() {
-  try {
-    const db = getDbClient();
-
-    const results = await db
-      .select({
-        id: feeds.id,
-        title: feeds.title,
-        summary: feeds.summary,
-        link: feeds.link,
-        image: feeds.image,
-        tags: feeds.tags,
-        publishedAt: feeds.publishedAt,
-        source: {
-          name: sources.name,
-        },
-      })
-      .from(feeds)
-      .leftJoin(sources, eq(feeds.sourceId, sources.id))
-      .orderBy(desc(feeds.publishedAt))
-      .limit(24);
-
-    return results.map(r => ({
-      title: r.title,
-      url: r.link,
-      summary: r.summary || '',
-      image: r.image && r.image !== '/placeholder.jpg' ? r.image : `/api/og-fallback?title=${encodeURIComponent(r.title.slice(0, 120))}`,
-      publishedAt: r.publishedAt.toISOString(),
-      source: r.source?.name || 'Unknown',
-      tags: (r.tags as string[]) || [],
-    }));
-  } catch (error) {
-    console.error('Failed to fetch spotlight feeds:', error);
-    return [];
-  }
-}
-
-async function getNewsFeeds() {
-  try {
-    const db = getDbClient();
-
-    const results = await db
-      .select({
-        id: feeds.id,
-        title: feeds.title,
-        summary: feeds.summary,
-        link: feeds.link,
-        image: feeds.image,
-        tags: feeds.tags,
-        publishedAt: feeds.publishedAt,
-        source: {
-          name: sources.name,
-        },
-      })
-      .from(feeds)
-      .leftJoin(sources, eq(feeds.sourceId, sources.id))
-      .orderBy(desc(feeds.publishedAt))
-      .limit(24);
-
-    return results.map(r => ({
-      title: r.title,
-      url: r.link,
-      summary: r.summary || '',
-      image: r.image && r.image !== '/placeholder.jpg' ? r.image : `/api/og-fallback?title=${encodeURIComponent(r.title.slice(0, 120))}`,
-      publishedAt: r.publishedAt.toISOString(),
-      source: r.source?.name || 'Unknown',
-      tags: (r.tags as string[]) || [],
-    }));
-  } catch (error) {
-    console.error('Failed to fetch news feeds:', error);
-    return [];
-  }
-}
-
-async function getTrendingFeeds() {
-  try {
-    const db = getDbClient();
-
-    const results = await db
-      .select({
-        id: feeds.id,
-        title: feeds.title,
-        summary: feeds.summary,
-        link: feeds.link,
-        image: feeds.image,
-        tags: feeds.tags,
-        publishedAt: feeds.publishedAt,
-        source: {
-          name: sources.name,
-        },
-      })
-      .from(feeds)
-      .leftJoin(sources, eq(feeds.sourceId, sources.id))
-      .orderBy(desc(feeds.publishedAt))
-      .limit(8);
-
-    return results.map(r => ({
-      title: r.title,
-      url: r.link,
-      summary: r.summary || '',
-      image: r.image && r.image !== '/placeholder.jpg' ? r.image : `/api/og-fallback?title=${encodeURIComponent(r.title.slice(0, 120))}`,
-      publishedAt: r.publishedAt.toISOString(),
-      source: r.source?.name || 'Unknown',
-      tags: (r.tags as string[]) || [],
-    }));
-  } catch (error) {
-    console.error('Failed to fetch trending feeds:', error);
-    return [];
-  }
-}
-
-function SpotlightSkeleton() {
-  return (
-    <div className="relative h-[60vh] bg-muted animate-pulse rounded-lg" />
-  );
-}
-
-function NewsSkeleton() {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {[1, 2, 3, 4, 5, 6].map((i) => (
-        <div key={i} className="bg-card rounded-lg p-6 border border-border animate-pulse">
-          <div className="h-4 bg-muted rounded w-3/4 mb-4"></div>
-          <div className="h-3 bg-muted rounded w-full mb-2"></div>
-          <div className="h-3 bg-muted rounded w-5/6"></div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function TrendingSkeleton() {
-  return (
-    <div className="flex items-center space-x-4 animate-pulse">
-      {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-        <div key={i} className="flex-shrink-0 w-64 h-32 bg-card rounded-lg border border-border"></div>
-      ))}
-    </div>
-  );
+interface FeedItem {
+  id: string;
+  title: string;
+  summary: string | null;
+  link: string;
+  image: string | null;
+  tags: string[] | null;
+  publishedAt: Date;
+  source: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 import SpotlightSection from '@/components/SpotlightSection';
 
-async function NewsSection() {
-  const feeds = await getNewsFeeds();
+function NewsSection() {
+  const [newsFeeds, setNewsFeeds] = useState<FeedItem[]>([]);
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
-  if (!feeds || feeds.length === 0) {
+  const formatDate = (date: Date) => {
+    const d = new Date(date);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const loadNewsFeeds = useCallback(async () => {
+    if (isLoading || !hasMore) return;
+    
+    setIsLoading(true);
+    try {
+      const params = new URLSearchParams({ limit: '24' });
+      if (cursor) params.append('cursor', cursor);
+      
+      const response = await fetch(`/api/feeds?${params}`);
+      const data = await response.json();
+      
+      if (data.data && Array.isArray(data.data)) {
+        setNewsFeeds(prev => [...prev, ...data.data]);
+        setCursor(data.nextCursor);
+        setHasMore(data.hasMore);
+      }
+    } catch (error) {
+      console.error('Failed to load news feeds:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [cursor, hasMore, isLoading]);
+
+  useEffect(() => {
+    loadNewsFeeds();
+  }, []);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading) {
+          loadNewsFeeds();
+        }
+      },
+      { threshold: 0.1, rootMargin: '200px' }
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore, isLoading, loadNewsFeeds]);
+
+  if (newsFeeds.length === 0 && !isLoading) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">No news feeds available yet. Run the ingestion script to populate feeds.</p>
+        <p className="text-muted-foreground">No news feeds available yet.</p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {feeds.map((feed: any, index: number) => (
-        <Link
-          key={`${feed.title}-${index}`}
-          href={feed.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-card rounded-lg overflow-hidden border border-border hover:border-primary transition-colors group"
-        >
-          {feed.image && (
-            <div className="relative h-48 overflow-hidden">
-              <Image
-                src={feed.image}
-                alt={feed.title}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                className="object-cover group-hover:scale-105 transition-transform"
-              />
-            </div>
-          )}
-          <div className="p-6">
-            <h3 className="font-semibold mb-2 group-hover:text-primary transition-colors">
-              {feed.title}
-            </h3>
-            {feed.summary && (
-              <p className="text-sm text-muted-foreground line-clamp-3">
-                {feed.summary}
-              </p>
-            )}
-            {feed.tags && feed.tags.length > 0 && (
-              <div className="flex gap-2 mt-4 flex-wrap">
-                {feed.tags.slice(0, 3).map((tag: string, tagIndex: number) => (
-                  <span
-                    key={`${tag}-${tagIndex}`}
-                    className="px-2 py-1 bg-muted rounded text-xs"
-                  >
-                    #{tag}
-                  </span>
-                ))}
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {newsFeeds.map((feed) => (
+          <article
+            key={feed.id}
+            className="bg-card rounded-lg overflow-hidden border border-border hover:border-primary/50 transition-all group"
+          >
+            <Link href={feed.link} target="_blank" rel="noopener noreferrer">
+              <div className="relative h-48 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
+                <Image
+                  src={feed.image || `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`}
+                  alt={feed.title}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute bottom-2 left-2 right-2">
+                    <div className="text-xs font-medium text-white drop-shadow-lg">
+                      {feed.source?.name || 'Unknown Source'}
+                    </div>
+                    <div className="text-xs text-white/90 drop-shadow-lg">
+                      {formatDate(feed.publishedAt)}
+                    </div>
+                  </div>
+                </div>
               </div>
-            )}
+              
+              <div className="p-5 space-y-3">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span className="font-medium text-primary">
+                    {feed.source?.name || 'Unknown Source'}
+                  </span>
+                  <span>{formatDate(feed.publishedAt)}</span>
+                </div>
+                
+                <h3 className="text-lg font-semibold line-clamp-2 group-hover:text-primary transition-colors">
+                  {feed.title}
+                </h3>
+                
+                {feed.summary && (
+                  <p className="text-sm text-muted-foreground line-clamp-3">
+                    {feed.summary}
+                  </p>
+                )}
+                
+                {feed.tags && feed.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {feed.tags.slice(0, 3).map((tag, idx) => (
+                      <span 
+                        key={idx}
+                        className="px-2 py-1 text-xs bg-primary/10 text-primary rounded-md"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Link>
+          </article>
+        ))}
+      </div>
+
+      <div ref={observerTarget} className="h-20 flex items-center justify-center mt-8">
+        {isLoading && (
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <span>Loading more feeds...</span>
           </div>
-        </Link>
-      ))}
-    </div>
+        )}
+        {!hasMore && newsFeeds.length > 0 && (
+          <p className="text-muted-foreground">You've reached the end</p>
+        )}
+      </div>
+    </>
   );
 }
 
 export default function HomePage() {
+  const [spotlightFeeds, setSpotlightFeeds] = useState<any[]>([]);
+  const [trendingFeeds, setTrendingFeeds] = useState<any[]>([]);
+  const [isLoadingSpotlight, setIsLoadingSpotlight] = useState(true);
+
+  useEffect(() => {
+    const fetchSpotlightData = async () => {
+      try {
+        const response = await fetch('/api/feeds?limit=24');
+        const data = await response.json();
+        
+        if (data.data && Array.isArray(data.data)) {
+          const formattedFeeds = data.data.map((item: any) => ({
+            title: item.title,
+            url: item.link,
+            summary: item.summary || '',
+            image: item.image || `/api/og-fallback?title=${encodeURIComponent(item.title.slice(0, 120))}`,
+            publishedAt: item.publishedAt,
+            source: item.source?.name || 'Unknown',
+            tags: item.tags || [],
+          }));
+          
+          setSpotlightFeeds(formattedFeeds);
+          setTrendingFeeds(formattedFeeds.slice(0, 8));
+        }
+      } catch (error) {
+        console.error('Failed to fetch spotlight feeds:', error);
+      } finally {
+        setIsLoadingSpotlight(false);
+      }
+    };
+
+    fetchSpotlightData();
+  }, []);
+
   return (
     <main className="min-h-screen">
       <div className="grain-overlay" />
@@ -235,30 +232,19 @@ export default function HomePage() {
 
       <div className="container mx-auto px-4 py-8">
         <section className="mb-12">
-          <Suspense fallback={<SpotlightSkeleton />}>
-            {(async () => {
-              const spotlightFeeds = await getSpotlightFeeds();
-              const trendingFeeds = await getTrendingFeeds();
-              return <SpotlightSection initialFeeds={spotlightFeeds} initialTrending={trendingFeeds} />;
-            })()}
-          </Suspense>
+          {isLoadingSpotlight ? (
+            <div className="relative h-[60vh] bg-muted animate-pulse rounded-lg" />
+          ) : (
+            <SpotlightSection initialFeeds={spotlightFeeds} initialTrending={trendingFeeds} />
+          )}
         </section>
 
         <section>
-          <div className="flex items-center justify-between mb-6">
+          <div className="mb-6">
             <h2 className="text-2xl font-bold">Latest News</h2>
-            <Link
-              href="/feeds"
-              className="text-sm text-primary hover:underline flex items-center gap-1"
-            >
-              View All
-              <ChevronRight className="w-4 h-4" />
-            </Link>
           </div>
 
-          <Suspense fallback={<NewsSkeleton />}>
-            <NewsSection />
-          </Suspense>
+          <NewsSection />
         </section>
       </div>
     </main>
