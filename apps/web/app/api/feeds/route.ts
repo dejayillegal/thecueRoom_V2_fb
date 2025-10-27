@@ -65,12 +65,21 @@ export async function GET(request: NextRequest) {
 
     const hasMore = results.length > limit;
     const items = hasMore ? results.slice(0, -1) : results;
+    
+    // Fix broken images with fallback
+    const itemsWithValidImages = items.map(item => ({
+      ...item,
+      image: item.image && item.image !== '/placeholder.jpg' 
+        ? item.image 
+        : `/api/og-fallback?title=${encodeURIComponent(item.title.slice(0, 120))}`,
+    }));
+    
     const nextCursor = hasMore && items.length > 0
       ? `${items[items.length - 1].publishedAt.toISOString()}_${items[items.length - 1].id}`
       : null;
 
     return NextResponse.json({
-      data: items,
+      data: itemsWithValidImages,
       nextCursor,
       hasMore,
     }, {

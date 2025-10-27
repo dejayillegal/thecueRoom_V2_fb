@@ -4,29 +4,119 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AuthModal } from '@/components/auth/SignInModal';
+import { getDbClient } from '@/lib/db';
+import { feeds, sources } from '@/db/schema';
+import { eq, desc } from 'drizzle-orm';
+
+const REFRESH_INTERVAL = 60 * 60 * 1000; // 1 hour
 
 async function getSpotlightFeeds() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5000'}/api/feeds?limit=8`, {
-      cache: 'no-store',
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return Array.isArray(data) ? data : data.data || [];
-  } catch {
+    const db = getDbClient();
+
+    const results = await db
+      .select({
+        id: feeds.id,
+        title: feeds.title,
+        summary: feeds.summary,
+        link: feeds.link,
+        image: feeds.image,
+        tags: feeds.tags,
+        publishedAt: feeds.publishedAt,
+        source: {
+          name: sources.name,
+        },
+      })
+      .from(feeds)
+      .leftJoin(sources, eq(feeds.sourceId, sources.id))
+      .orderBy(desc(feeds.publishedAt))
+      .limit(24);
+
+    return results.map(r => ({
+      title: r.title,
+      url: r.link,
+      summary: r.summary || '',
+      image: r.image && r.image !== '/placeholder.jpg' ? r.image : `/api/og-fallback?title=${encodeURIComponent(r.title.slice(0, 120))}`,
+      publishedAt: r.publishedAt.toISOString(),
+      source: r.source?.name || 'Unknown',
+      tags: (r.tags as string[]) || [],
+    }));
+  } catch (error) {
+    console.error('Failed to fetch spotlight feeds:', error);
     return [];
   }
 }
 
 async function getNewsFeeds() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5000'}/api/feeds?limit=24&offset=8`, {
-      cache: 'no-store',
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return Array.isArray(data) ? data : data.data || [];
-  } catch {
+    const db = getDbClient();
+
+    const results = await db
+      .select({
+        id: feeds.id,
+        title: feeds.title,
+        summary: feeds.summary,
+        link: feeds.link,
+        image: feeds.image,
+        tags: feeds.tags,
+        publishedAt: feeds.publishedAt,
+        source: {
+          name: sources.name,
+        },
+      })
+      .from(feeds)
+      .leftJoin(sources, eq(feeds.sourceId, sources.id))
+      .orderBy(desc(feeds.publishedAt))
+      .limit(24);
+
+    return results.map(r => ({
+      title: r.title,
+      url: r.link,
+      summary: r.summary || '',
+      image: r.image && r.image !== '/placeholder.jpg' ? r.image : `/api/og-fallback?title=${encodeURIComponent(r.title.slice(0, 120))}`,
+      publishedAt: r.publishedAt.toISOString(),
+      source: r.source?.name || 'Unknown',
+      tags: (r.tags as string[]) || [],
+    }));
+  } catch (error) {
+    console.error('Failed to fetch news feeds:', error);
+    return [];
+  }
+}
+
+async function getTrendingFeeds() {
+  try {
+    const db = getDbClient();
+
+    const results = await db
+      .select({
+        id: feeds.id,
+        title: feeds.title,
+        summary: feeds.summary,
+        link: feeds.link,
+        image: feeds.image,
+        tags: feeds.tags,
+        publishedAt: feeds.publishedAt,
+        source: {
+          name: sources.name,
+        },
+      })
+      .from(feeds)
+      .leftJoin(sources, eq(feeds.sourceId, sources.id))
+      .orderBy(desc(feeds.publishedAt))
+      .limit(8);
+
+    return results.map(r => ({
+      title: r.title,
+      url: r.link,
+      summary: r.summary || '',
+      image: r.image && r.image !== '/placeholder.jpg' ? r.image : `/api/og-fallback?title=${encodeURIComponent(r.title.slice(0, 120))}`,
+      publishedAt: r.publishedAt.toISOString(),
+      source: r.source?.name || 'Unknown',
+      tags: (r.tags as string[]) || [],
+    }));
+  } catch (error) {
+    console.error('Failed to fetch trending feeds:', error);
     return [];
   }
 }
@@ -51,9 +141,17 @@ function NewsSkeleton() {
   );
 }
 
-async function SpotlightSection() {
-  const feeds = await getSpotlightFeeds();
+function TrendingSkeleton() {
+  return (
+    <div className="flex items-center space-x-4 animate-pulse">
+      {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+        <div key={i} className="flex-shrink-0 w-64 h-32 bg-card rounded-lg border border-border"></div>
+      ))}
+    </div>
+  );
+}
 
+async function SpotlightSection({ feeds, trendingFeeds }: { feeds: any[]; trendingFeeds: any[] }) {
   if (!feeds || feeds.length === 0) {
     return (
       <div className="relative h-[60vh] bg-card rounded-lg flex items-center justify-center border border-border">
@@ -63,29 +161,46 @@ async function SpotlightSection() {
   }
 
   return (
-    <div className="relative h-[60vh] bg-card rounded-lg overflow-hidden border border-border">
-      <Image
-        src={feeds[0]?.image || '/placeholder.jpg'}
-        alt={feeds[0]?.title || 'Spotlight'}
-        fill
-        className="object-cover"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 p-8">
-        <h2 className="text-4xl font-bold mb-2">{feeds[0]?.title}</h2>
-        <p className="text-lg text-muted-foreground mb-4">{feeds[0]?.summary}</p>
-        {feeds[0]?.link && (
-          <Link
-            href={feeds[0].link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-          >
-            Read More
-          </Link>
-        )}
+    <section className="relative mb-16">
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-3xl font-bold">Spotlight</h2>
+        <div className="flex items-center gap-2">
+          <Users className="w-5 h-5 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Live Updates</span>
+        </div>
       </div>
-    </div>
+
+      <div className="relative h-[60vh] bg-card rounded-lg overflow-hidden border border-border">
+        <Image
+          src={feeds[0]?.image || '/placeholder.jpg'}
+          alt={feeds[0]?.title || 'Spotlight'}
+          fill
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 p-8">
+          <h2 className="text-4xl font-bold mb-2">{feeds[0]?.title}</h2>
+          <p className="text-lg text-muted-foreground mb-4">{feeds[0]?.summary}</p>
+          {feeds[0]?.url && (
+            <Link
+              href={feeds[0].url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              Read More
+            </Link>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <h3 className="text-2xl font-bold mb-4">Trending Now</h3>
+        <Suspense fallback={<TrendingSkeleton />}>
+          <TrendingCarousel feeds={trendingFeeds} />
+        </Suspense>
+      </div>
+    </section>
   );
 }
 
@@ -105,7 +220,7 @@ async function NewsSection() {
       {feeds.map((feed: any) => (
         <Link
           key={feed.id}
-          href={feed.link}
+          href={feed.url}
           target="_blank"
           rel="noopener noreferrer"
           className="bg-card rounded-lg overflow-hidden border border-border hover:border-primary transition-colors group"
@@ -148,6 +263,61 @@ async function NewsSection() {
   );
 }
 
+import React, { useState, useEffect } from 'react';
+
+function TrendingCarousel({ feeds }: { feeds: any[] }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % feeds.length);
+    }, REFRESH_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [feeds.length]);
+
+  if (!feeds || feeds.length === 0) {
+    return null;
+  }
+
+  const visibleFeeds = feeds.slice(currentIndex, currentIndex + 5);
+  if (visibleFeeds.length < 5) {
+    const remaining = 5 - visibleFeeds.length;
+    const overflow = feeds.slice(0, remaining);
+    visibleFeeds.push(...overflow);
+  }
+
+  return (
+    <div className="flex space-x-4 overflow-hidden py-4">
+      {visibleFeeds.map((feed: any, index: number) => (
+        <Link
+          key={feed.id || index}
+          href={feed.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-shrink-0 w-64 bg-card rounded-lg overflow-hidden border border-border hover:border-primary transition-colors group"
+        >
+          {feed.image && (
+            <div className="relative h-32 overflow-hidden">
+              <Image
+                src={feed.image}
+                alt={feed.title}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform"
+              />
+            </div>
+          )}
+          <div className="p-4">
+            <h4 className="font-semibold text-sm group-hover:text-primary transition-colors line-clamp-2">
+              {feed.title}
+            </h4>
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 export default function HomePage() {
   return (
     <main className="min-h-screen">
@@ -173,14 +343,6 @@ export default function HomePage() {
 
       <div className="container mx-auto px-4 py-12">
         <section className="mb-16">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold">Spotlight</h2>
-            <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Live Updates</span>
-            </div>
-          </div>
-
           <Suspense fallback={<SpotlightSkeleton />}>
             <SpotlightSection />
           </Suspense>
