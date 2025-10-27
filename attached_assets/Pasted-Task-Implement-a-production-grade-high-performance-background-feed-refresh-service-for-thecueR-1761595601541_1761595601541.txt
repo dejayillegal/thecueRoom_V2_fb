@@ -1,0 +1,210 @@
+Task: Implement a production-grade, **high-performance background feed refresh service** for thecueRoom that:
+
+- reliably fetches the supplied RSS and scrape sources,
+- runs safely in Replit / local macOS / Linux,
+- is non-blocking (landing page serves instantly; background refresh runs independent),
+- silently ignores permanently failing sources (but records status),
+- uses per-domain rate-limits, retries with exponential backoff, circuit-breaker for bad sources,
+- uses conditional requests (ETag / Last-Modified),
+- supports scraping fallback (cheerio), optional Playwright rendering only when configured,
+- extracts article thumbnails (OG/meta first), with low-concurrency image fetching,
+- stores source metadata and feed items in SQLite (better-sqlite3) with optional Redis for locks/queue,
+- exposes health & metrics endpoints,
+- includes unit & integration tests and a GitHub Actions CI workflow.
+
+Produce a full repository that is runnable. Do NOT output placeholder comments or TODOs. Pin all dependencies. Ensure TypeScript strict mode.
+
+Requirements & implementation details
+
+1) Tech stack & deps (pinned)
+- Node 20, TypeScript, pnpm
+- better-sqlite3 (DB)
+- rss-parser
+- got
+- cheerio
+- bottleneck
+- node-cron
+- pino (logging)
+- bullmq (optional when REDIS_URL present)
+- playwright (dev-only; enabled only when PLAYWRIGHT_ENABLED=true)
+- msw / nock for tests
+- vitest for unit tests
+- tsx for running scripts
+
+Provide `package.json` with pinned versions (use recent stable versions; include scripts: dev, start, seed, ingest, test, lint).
+
+2) High-level architecture (explicit behavior)
+- Two processes (or modes) in the app:
+  - HTTP server (Next.js or lightweight Express/Fastify) that:
+    - serves landing page quickly using cached feed snapshot
+    - exposes `/api/feeds` (fast, paginated, read from DB)
+    - exposes `/api/sources` (metadata: lastFetched, status, errorCount, circuitOpenUntil)
+    - exposes `/api/health` (db ok, queue ok)
+    - admin POST `/api/refresh?sourceId=...` protected by REFRESH_API_KEY
+  - Background refresh worker:
+    - runs continuous scheduler + startup immediate pass
+    - uses a concurrency-controlled work queue to refresh sources
+    - obeys per-domain Bottleneck limiter
+    - uses conditional headers (If-None-Match/If-Modified-Since)
+    - deduplicates items, stores normalized FeedItem in DB
+    - smaller tasks (RSS parsing) run concurrently; heavy tasks (scraping images, Playwright pages) run in a separate worker thread / child process to not block event loop
+    - supports "fast mode" on startup: parallelism tuned to be high but safe; after start, steady-state parallelism is low to avoid hammering
+    - records detailed telemetry: lastFetched, lastSuccess, consecutiveFailures, averageFetchTime, lastETag, lastModified, lastStatusCode, circuitOpenUntil (timestamp)
+    - circuit breaker behavior: after N (configurable, default 3) consecutive failures, mark source as "circuit open" and skip for coolDownMs (exponential backoff: 10min * 2^(consecutive failures-3)). Save to DB.
+    - silent failure policy: when a fetch fails repeatedly, mark it and continue; do NOT block other sources or the landing page.
+
+3) Fetching algorithm (step-by-step — implement exactly)
+For each source (seed list from spotlight-sources.ts):
+
+A. Quick checks
+  - If `source.circuitOpenUntil` > now, skip (return STATUS_SKIPPED_CIRCUIT).
+  - If source is scheduled and `now - lastFetched < source.minIntervalMs`, skip (respect per-source frequency).
+
+B. Attempt RSS (fast path)
+  1. Use `got` with `timeout` (default 10s), `followRedirect: true`, accept gzip.
+  2. If we have stored `etag` / `lastModified` for the source, include `If-None-Match` / `If-Modified-Since`.
+  3. Use `rss-parser` to parse the response.
+  4. On 304 (Not Modified): update lastFetched and return.
+  5. On 2xx with feed items: normalize items; store ETag/Last-Modified from response headers; update lastFetched, consecutiveFailures=0.
+  6. If `rss-parser` errors / response not feed / status 4xx/5xx: go to "Scrape fallback" (C).
+
+C. Scrape fallback (only if source.kind === 'scrape' or RSS failed)
+  1. Respect `robots.txt` — fetch it once per domain, parse Disallow & Crawl-delay. If scraping disallowed and ALLOW_ROBOT_OVERRIDE not set, mark as disallowed and skip.
+  2. Use Bottleneck per-domain limiter to throttle requests (minTime default 500ms, maxConcurrent 2).
+  3. Fetch article pages using `got` with short timeout (10s).
+  4. Parse with `cheerio`, use provided selectors (`list`, `title`, `link`, `image`, `summary`, `date`) to build items.
+  5. If `PLAYWRIGHT_ENABLED=true` and `cheerio` returns no items or page is JS-rendered, push job to Playwright worker (spawned only when needed; use concurrency 1-2). Use Playwright headless with minimal browser context to render, then pass HTML back to cheerio.
+  6. Normalize items and store them. Update metadata.
+
+D. Image extraction (lightweight)
+  - Prefer `og:image` meta property on article page. If not present, pick largest `<img>` by dimensions or srcset. Do NOT download large images in full; fetch headers to get content-type & content-length. If image > configured maxImageBytes (e.g., 1.5MB), skip full download and store remote URL for on-demand retrieval.
+  - All image extraction tasks are limited to small pool (max 2 concurrent image fetches).
+
+E. Deduplication & normalization
+  - Compute deterministic `id = sha256(canonicalUrl || url || title+date)`.
+  - Deduplicate by `id` or canonical URL.
+  - Normalize fields to `FeedItem` shape provided earlier.
+
+F. Failure handling & retries
+  - Use deterministic retries with exponential backoff: on transient errors (network 5xx, 429, timeouts) retry up to 3 times with base delay 2s -> 4s -> 8s.
+  - On permanent errors (4xx except 429), treat as failure and increment consecutiveFailures.
+  - After each failure, if consecutiveFailures >= circuitThreshold (3), set circuitOpenUntil to now + coolDownMs (10min * 2^(consecutiveFailures - 3)).
+  - Always log error with pino at `warn` or `error` level, but do NOT fail the whole run.
+
+4) Scheduling & concurrency
+- Use `node-cron` to schedule per-source refresh depending on tags:
+  - High-volume sources (news sites): default every 10 minutes
+  - Medium (blogs): every 30 minutes
+  - Low (forums / rarely updated): every 6 hours
+- Also run an immediate pass on startup that launches workers in controlled parallelism:
+  - startupParallelism = min(20, numberOfSources)
+  - steadyParallelism = 3
+- Use Bottleneck.Group keyed by domain with per-domain configuration: `minTime` default 500ms, `maxConcurrent` default 2, and dynamic increase on 429.
+
+5) Storage & locking
+- Use better-sqlite3 DB with tables:
+  - sources (id, name, kind, url, selectors json, tags json, lastFetched, etag, lastModified, consecutiveFailures, lastStatusCode, circuitOpenUntil, minIntervalMs)
+  - feed_items (id, sourceId, title, excerpt, content, url, image, tags json, date, fetchedAt)
+  - fetch_logs (id, sourceId, startedAt, finishedAt, status, httpStatus, errorMessage)
+- Use a lightweight lock strategy:
+  - If REDIS_URL present: use Redlock (via ioredis) or BullMQ to ensure only one instance fetches a given source.
+  - Otherwise: use a `locked_sources` table row (begin transaction, check locked flag, set locked=true, commit) to prevent concurrent workers fetching same source.
+
+6) Non-blocking landing page behavior
+- Landing page (server) reads from DB (cached snapshot) and returns instantly. It MUST NOT wait for the background refresh to complete.
+- Provide HTTP header `X-Cache-Age` and `X-Feeds-Count`.
+
+7) Health, metrics & admin
+- `/api/health` returns { db: true, queue: true, lastIngestAt: ISO, runningJobs: N }
+- `/api/metrics` (optional) returns counts of successful fetches, failed fetches, average latency per source (for monitoring).
+- Admin POST `/api/refresh?sourceId=` triggers a refresh job for that source (require REFRESH_API_KEY header or x-refresh-key).
+- Provide README instructions to run local Redis for BullMQ or fallback to built-in queue.
+
+8) CLI & scripts
+- `scripts/seed.ts` seeds DB with `spotlight-sources.ts`.
+- `scripts/enhanced-ingest.ts` runs a single manual ingestion pass (the one you were running manually). It should:
+  - run in parallel with controlled concurrency using the same worker logic,
+  - print a compact progress summary as shown by user, but include timings and skipped sources.
+- `scripts/background-worker.ts` starts the scheduler and worker loop.
+- Expose `pnpm run ingest` (single run) and `pnpm run worker` (background worker) and `pnpm dev` (start server + worker concurrently).
+
+9) Logging & observability
+- Use `pino` for structured logs. Include request id and sourceId tags.
+- Log levels: info for successes; warn for retries; error for permanent failures.
+- Store basic fetch logs in DB for debugging.
+
+10) Tests & CI
+- Unit tests for fetcher: simulate success, 304, 404, 503, and ensure behavior matches (etag updated, lastFetched updated, consecutiveFailures increment).
+- Scraper tests: provide HTML fixtures and test selectors.
+- Integration test: run `scripts/enhanced-ingest.ts` in test-mode (THECUEROOM_TEST_MODE=true) with MSW or nock intercepting external requests and returning prebuilt feed fixtures; assert DB gets inserted items and failing sources are recorded.
+- Provide `.github/workflows/ci.yml` that runs `pnpm install`, `pnpm -w tsc --noEmit`, `pnpm test`.
+
+11) Performance & safety tuning (explicit values)
+- default HTTP timeout: 10s for RSS, 12s for article fetch
+- retries: 3 (2s, 4s, 8s)
+- startup parallelism: 20 (configurable)
+- steady parallelism: 3
+- image fetch max concurrency: 2
+- per-domain minTime: 500ms (increase to 2000ms on 429)
+- queue max size: 1000
+- circuitThreshold: 3
+- coolDown base: 10 minutes
+- ETag/Cache TTL: honor server `cache-control` or default 30 mins
+
+12) Safety & legal
+- Respect robots.txt scraping rules and provide `ALLOW_ROBOT_OVERRIDE` env var for admin use (default false).
+- Rate-limit and backoff politely.
+- Log when scraping is skipped due to robots.
+
+13) Env vars (.env.example)
+- DATABASE_URL (sqlite file path or connection string)
+- REDIS_URL (optional)
+- REFRESH_API_KEY
+- PLAYWRIGHT_ENABLED (default false)
+- THECUEROOM_TEST_MODE (true|false)
+- NODE_ENV
+- STARTUP_PARALLELISM
+- STEADY_PARALLELISM
+
+14) Deliverables (exact files)
+- package.json (pinned deps), tsconfig.json, .env.example
+- src/
+  - server.ts (simple Express or Fastify server with /api endpoints)
+  - lib/
+    - db.ts (better-sqlite3 wrapper)
+    - queue.ts (Bottleneck Group + queue abstraction)
+    - fetcher.ts (core fetch logic)
+    - scraper.ts (cheerio scrape + Playwright wrapper)
+    - image.ts (lightweight image extractor)
+    - scheduler.ts (cron + worker)
+    - seed.ts
+  - scripts/
+    - enhanced-ingest.ts (manual run)
+    - background-worker.ts (start worker)
+- tests/ (vitest) + fixtures
+- .github/workflows/ci.yml
+- README.md with exact run commands:
+  - `pnpm install`
+  - `cp .env.example .env` and edit
+  - `pnpm run seed`
+  - `pnpm run ingest` (single run)
+  - `pnpm run worker` (background worker)
+  - `pnpm dev` (server + worker concurrently)
+
+Acceptance criteria (what CI and you will check)
+- `pnpm run seed` seeds all sources.
+- `THECUEROOM_TEST_MODE=true pnpm run ingest` runs and completes with:
+  - majority of sources succeeded from fixtures
+  - failing sources marked in DB with consecutiveFailures>0
+  - DB contains normalized feed items
+- Landing page `/api/feeds` returns quickly (<50ms median in local test) and `X-Cache-Age` header present.
+- Background worker can run concurrently without blocking the server (server still responds while ingestion runs).
+- Tests pass (`pnpm test`).
+
+Developer note for implementer (style)
+- Keep code modular and well typed.
+- Use small functions with clear responsibilities.
+- Avoid global blocking operations on main thread.
+- Provide clear comments in code describing behavior, but do not leave TODOs.
+
+End of prompt.
