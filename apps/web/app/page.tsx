@@ -3,9 +3,9 @@ import { Logo } from '@/components/Logo';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Users, ChevronLeft, ChevronRight } from 'lucide-react';
-import { AuthModal } from '@/components/auth/SignInModal';
-import { getDbClient } from '@/lib/db';
-import { feeds, sources } from '@/db/schema';
+import { AuthButton } from '@/components/auth/AuthButton';
+import { getDbClient } from '@/lib/db-client';
+import { feeds, sources } from '@thecueroom/db/schema';
 import { eq, desc } from 'drizzle-orm';
 
 const REFRESH_INTERVAL = 60 * 60 * 1000; // 1 hour
@@ -230,7 +230,7 @@ export default function HomePage() {
             <Link href="/feeds" className="hover:text-primary transition-colors">
               Feeds
             </Link>
-            <AuthModal />
+            <AuthButton />
           </nav>
         </div>
       </header>
