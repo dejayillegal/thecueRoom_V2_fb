@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { runEnhancedIngestion } from '../../../../../scripts/enhanced-ingest';
+import { runEnhancedIngestion } from '../../../../../../scripts/enhanced-ingest';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
