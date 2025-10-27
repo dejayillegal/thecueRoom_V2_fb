@@ -29,12 +29,18 @@ export function getDbClient() {
       idle_timeout: 20,
       connect_timeout: 10,
       prepare: true,
+      transform: {
+        undefined: null,
+      },
       types: {
         date: {
           to: 1184,
           from: [1082, 1083, 1114, 1184],
-          serialize: (x: Date) => x.toISOString(),
-          parse: (x: string) => new Date(x),
+          serialize: (x: Date | string) => {
+            if (typeof x === 'string') return x;
+            return x.toISOString();
+          },
+          parse: (x: string) => x,
         },
       },
     });

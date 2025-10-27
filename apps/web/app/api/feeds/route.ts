@@ -41,9 +41,10 @@ export async function GET(request: Request) {
 
     const twoWeeksAgo = new Date();
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    const twoWeeksAgoISO = twoWeeksAgo.toISOString();
 
     const conditions = [
-      gt(feeds.publishedAt, twoWeeksAgo.toISOString())
+      gt(feeds.publishedAt, twoWeeksAgoISO)
     ];
 
     if (sourceId) {
@@ -93,7 +94,7 @@ export async function GET(request: Request) {
     }));
 
     const nextCursor = hasMore && sanitizedItems.length > 0
-      ? `${new Date(sanitizedItems[sanitizedItems.length - 1].publishedAt).toISOString()}_${sanitizedItems[sanitizedItems.length - 1].id}`
+      ? `${sanitizedItems[sanitizedItems.length - 1].publishedAt}_${sanitizedItems[sanitizedItems.length - 1].id}`
       : null;
 
     return NextResponse.json({
