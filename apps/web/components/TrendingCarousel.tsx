@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useRef, useCallback, memo } from 'react';
@@ -100,13 +99,13 @@ export default function TrendingCarousel({ feeds }: { feeds: FeedItem[] }) {
   const autoScroll = useCallback(() => {
     if (scrollRef.current && isAutoScrolling && !isPaused) {
       const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-      
+
       if (scrollLeft >= scrollWidth - clientWidth - 10) {
         scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
       } else {
         scrollRef.current.scrollBy({ left: 1, behavior: 'auto' });
       }
-      
+
       rafRef.current = requestAnimationFrame(autoScroll);
     }
   }, [isAutoScrolling, isPaused]);
@@ -124,7 +123,7 @@ export default function TrendingCarousel({ feeds }: { feeds: FeedItem[] }) {
     if (isAutoScrolling && !isPaused) {
       rafRef.current = requestAnimationFrame(autoScroll);
     }
-    
+
     return () => {
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
