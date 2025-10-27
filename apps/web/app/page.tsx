@@ -1,10 +1,12 @@
 
-import { Suspense } from 'react';
+'use client';
+
+import { Suspense, useState } from 'react';
 import { Logo } from '@/components/Logo';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Button } from '@/components/ui/button';
 import { Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { AuthModal } from '@/components/auth/SignInModal';
 
 async function getSpotlightFeeds() {
   try {
@@ -164,8 +166,11 @@ async function NewsGrid() {
 }
 
 export default function HomePage() {
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-background">
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
       <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
@@ -182,10 +187,13 @@ export default function HomePage() {
             </Link>
           </nav>
 
-          <Button size="sm" className="gap-2">
+          <button 
+            onClick={() => setAuthModalOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
             <Users className="w-4 h-4" />
             Login / Sign Up
-          </Button>
+          </button>
         </div>
       </header>
 
