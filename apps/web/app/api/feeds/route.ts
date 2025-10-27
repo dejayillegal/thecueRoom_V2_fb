@@ -1,7 +1,8 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
 import { feeds, sources } from '@thecueroom/db/schema';
-import { desc, eq, and, lt, sql } from 'drizzle-orm';
+import { desc, eq, and, sql } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +13,6 @@ export async function GET(request: NextRequest) {
     const sourceId = searchParams.get('source');
     const limit = parseInt(searchParams.get('limit') || '20');
     const cursor = searchParams.get('cursor');
-    const q = searchParams.get('q');
 
     const db = getDbClient();
 
@@ -39,10 +39,11 @@ export async function GET(request: NextRequest) {
 
     const conditions = [];
     
-    // Only show feeds from the last 2 weeks
     const twoWeeksAgo = new Date();
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-    conditions.push(sql`${feeds.publishedAt} >= ${twoWeeksAgo}`);
+    const twoWeeksAgoISO = twoWeeksAgo.toISOString();
+    
+    conditions.push(sql`${feeds.publishedAt} >= ${twoWeeksAgoISO}`);
     
     if (sourceId) {
       conditions.push(eq(feeds.sourceId, sourceId));
@@ -54,9 +55,8 @@ export async function GET(request: NextRequest) {
     
     if (cursor) {
       const [timestamp, id] = cursor.split('_');
-      const cursorDate = new Date(timestamp);
       conditions.push(
-        sql`(${feeds.publishedAt}, ${feeds.id}) < (${cursorDate}, ${id})`
+        sql`(${feeds.publishedAt}, ${feeds.id}) < (${timestamp}, ${id})`
       );
     }
 
@@ -71,7 +71,6 @@ export async function GET(request: NextRequest) {
     const hasMore = results.length > limit;
     const items = hasMore ? results.slice(0, -1) : results;
     
-    // Fix broken images with fallback
     const itemsWithValidImages = items.map(item => ({
       ...item,
       image: item.image && item.image !== '/placeholder.jpg' 
@@ -90,6 +89,8 @@ export async function GET(request: NextRequest) {
     }, {
       headers: {
         'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+        'X-Cache-Age': '60',
+        'X-Feeds-Count': items.length.toString(),
       },
     });
   } catch (error) {

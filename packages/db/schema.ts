@@ -1,3 +1,4 @@
+
 import { pgTable, text, timestamp, jsonb, integer, boolean, uuid, index, varchar } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
@@ -32,6 +33,14 @@ export const sources = pgTable('sources', {
   config: jsonb('config').$type<any>(),
   enabled: boolean('enabled').notNull().default(true),
   lastFetchedAt: timestamp('last_fetched_at'),
+  lastSuccessAt: timestamp('last_success_at'),
+  etag: text('etag'),
+  lastModified: text('last_modified'),
+  consecutiveFailures: integer('consecutive_failures').notNull().default(0),
+  lastStatusCode: integer('last_status_code'),
+  circuitOpenUntil: timestamp('circuit_open_until'),
+  minIntervalMs: integer('min_interval_ms').notNull().default(600000),
+  averageFetchTime: integer('average_fetch_time'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
@@ -52,6 +61,21 @@ export const feeds = pgTable('feeds', {
   publishedAtIdx: index('feeds_published_at_idx').on(table.publishedAt),
   sourcePublishedIdx: index('feeds_source_published_idx').on(table.sourceId, table.publishedAt),
   contentHashIdx: index('feeds_content_hash_idx').on(table.contentHash),
+}));
+
+export const fetchLogs = pgTable('fetch_logs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  sourceId: uuid('source_id').notNull().references(() => sources.id, { onDelete: 'cascade' }),
+  startedAt: timestamp('started_at').notNull(),
+  finishedAt: timestamp('finished_at'),
+  status: text('status').notNull(),
+  httpStatus: integer('http_status'),
+  itemsProcessed: integer('items_processed').notNull().default(0),
+  itemsNew: integer('items_new').notNull().default(0),
+  errorMessage: text('error_message'),
+}, (table) => ({
+  sourceIdIdx: index('fetch_logs_source_id_idx').on(table.sourceId),
+  startedAtIdx: index('fetch_logs_started_at_idx').on(table.startedAt),
 }));
 
 export const spotlightItems = pgTable('spotlight_items', {

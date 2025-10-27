@@ -1,7 +1,8 @@
+
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import Parser from 'rss-parser';
-import { feeds, sources } from '../packages/db/schema';
+import { feeds, sources, fetchLogs } from '../packages/db/schema';
 import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
 import { extractImageFromPage, scrapeFeed } from './lib/scraper';
@@ -14,10 +15,10 @@ if (!connectionString) {
 }
 
 const client = postgres(connectionString);
-const db = drizzle(client, { schema: { feeds, sources } });
+const db = drizzle(client, { schema: { feeds, sources, fetchLogs } });
 
 const parser = new Parser({
-  timeout: 30000,
+  timeout: 10000,
   headers: {
     'User-Agent': 'thecueRoom/2.0 Feed Aggregator (contact@thecueroom.com)',
     'Accept': 'application/rss+xml, application/xml, text/xml, */*',
@@ -30,6 +31,9 @@ const parser = new Parser({
     ],
   },
 });
+
+const CIRCUIT_THRESHOLD = 3;
+const COOLDOWN_BASE_MS = 10 * 60 * 1000;
 
 function generateHash(title: string, link: string): string {
   return crypto
@@ -76,11 +80,9 @@ async function extractImageAdvanced(item: any, baseUrl: string, itemLink: string
       }
     }
 
-    if (itemLink) {
-      console.log(`   Attempting to extract image from article: ${itemLink.substring(0, 60)}...`);
+    if (itemLink && Math.random() < 0.3) {
       const extractedImage = await extractImageFromPage(itemLink);
       if (extractedImage) {
-        console.log(`   ✓ Extracted image from article page`);
         return extractedImage;
       }
     }
@@ -127,10 +129,42 @@ function extractTags(item: any, sourceTags: string[]): string[] {
 
 async function ingestSourceRSS(source: any, retryCount = 0): Promise<{ imported: number; skipped: number; error?: string }> {
   const MAX_RETRIES = 3;
-  const RETRY_DELAY = 2000;
+  const RETRY_DELAYS = [2000, 4000, 8000];
+  const startTime = Date.now();
+  const logId = crypto.randomUUID();
+
+  await db.insert(fetchLogs).values({
+    id: logId,
+    sourceId: source.id,
+    startedAt: new Date(),
+    status: 'running',
+    httpStatus: null,
+    itemsProcessed: 0,
+    itemsNew: 0,
+  });
 
   try {
+    if (source.circuitOpenUntil && new Date(source.circuitOpenUntil) > new Date()) {
+      console.log(`⏸️  ${source.name}: Circuit open, skipping`);
+      await db.update(fetchLogs).set({
+        finishedAt: new Date(),
+        status: 'skipped_circuit',
+      }).where(eq(fetchLogs.id, logId));
+      return { imported: 0, skipped: 0 };
+    }
+
     console.log(`📥 Fetching RSS: ${source.name}`);
+
+    const headers: Record<string, string> = {
+      'User-Agent': 'thecueRoom/2.0 Feed Aggregator',
+    };
+    
+    if (source.etag) {
+      headers['If-None-Match'] = source.etag;
+    }
+    if (source.lastModified) {
+      headers['If-Modified-Since'] = source.lastModified;
+    }
 
     const feed = await parser.parseURL(source.url);
     const baseUrl = new URL(source.url).origin;
@@ -194,29 +228,86 @@ async function ingestSourceRSS(source: any, retryCount = 0): Promise<{ imported:
       imported++;
     }
 
+    const fetchTime = Date.now() - startTime;
+    const newAverage = source.averageFetchTime 
+      ? Math.floor((source.averageFetchTime + fetchTime) / 2)
+      : fetchTime;
+
     await db
       .update(sources)
-      .set({ lastFetchedAt: new Date() })
+      .set({ 
+        lastFetchedAt: new Date(),
+        lastSuccessAt: new Date(),
+        consecutiveFailures: 0,
+        lastStatusCode: 200,
+        averageFetchTime: newAverage,
+        circuitOpenUntil: null,
+      })
       .where(eq(sources.id, source.id));
 
-    console.log(`✅ ${source.name}: ${imported} new, ${skipped} duplicates`);
+    await db.update(fetchLogs).set({
+      finishedAt: new Date(),
+      status: 'success',
+      httpStatus: 200,
+      itemsProcessed: items.length,
+      itemsNew: imported,
+    }).where(eq(fetchLogs.id, logId));
+
+    console.log(`✅ ${source.name}: ${imported} new, ${skipped} duplicates (${fetchTime}ms)`);
     
     return { imported, skipped };
 
   } catch (error: any) {
-    if (retryCount < MAX_RETRIES) {
-      console.log(`⚠️  ${source.name}: Retry ${retryCount + 1}/${MAX_RETRIES} in ${RETRY_DELAY}ms...`);
-      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retryCount + 1)));
+    if (retryCount < MAX_RETRIES && (error.code === 'ETIMEDOUT' || error.statusCode >= 500)) {
+      const delay = RETRY_DELAYS[retryCount];
+      console.log(`⚠️  ${source.name}: Retry ${retryCount + 1}/${MAX_RETRIES} in ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
       return ingestSourceRSS(source, retryCount + 1);
     }
 
     const errorMsg = error.message || String(error);
+    const statusCode = error.statusCode || null;
+    const newFailures = (source.consecutiveFailures || 0) + 1;
+    
+    let circuitOpenUntil = null;
+    if (newFailures >= CIRCUIT_THRESHOLD) {
+      const cooldown = COOLDOWN_BASE_MS * Math.pow(2, newFailures - CIRCUIT_THRESHOLD);
+      circuitOpenUntil = new Date(Date.now() + cooldown);
+    }
+
+    await db.update(sources).set({
+      lastFetchedAt: new Date(),
+      consecutiveFailures: newFailures,
+      lastStatusCode: statusCode,
+      circuitOpenUntil,
+    }).where(eq(sources.id, source.id));
+
+    await db.update(fetchLogs).set({
+      finishedAt: new Date(),
+      status: 'error',
+      httpStatus: statusCode,
+      errorMessage: errorMsg.slice(0, 500),
+    }).where(eq(fetchLogs.id, logId));
+
     console.error(`❌ ${source.name}: ${errorMsg}`);
     return { imported: 0, skipped: 0, error: errorMsg };
   }
 }
 
 async function ingestSourceScrape(source: any): Promise<{ imported: number; skipped: number; error?: string }> {
+  const startTime = Date.now();
+  const logId = crypto.randomUUID();
+
+  await db.insert(fetchLogs).values({
+    id: logId,
+    sourceId: source.id,
+    startedAt: new Date(),
+    status: 'running',
+    httpStatus: null,
+    itemsProcessed: 0,
+    itemsNew: 0,
+  });
+
   try {
     console.log(`🕷️  Scraping: ${source.name}`);
 
@@ -254,17 +345,45 @@ async function ingestSourceScrape(source: any): Promise<{ imported: number; skip
       imported++;
     }
 
+    const fetchTime = Date.now() - startTime;
+
     await db
       .update(sources)
-      .set({ lastFetchedAt: new Date() })
+      .set({ 
+        lastFetchedAt: new Date(),
+        lastSuccessAt: new Date(),
+        consecutiveFailures: 0,
+        averageFetchTime: fetchTime,
+      })
       .where(eq(sources.id, source.id));
 
-    console.log(`✅ ${source.name}: ${imported} new, ${skipped} duplicates (scraped)`);
+    await db.update(fetchLogs).set({
+      finishedAt: new Date(),
+      status: 'success',
+      httpStatus: 200,
+      itemsProcessed: scrapedItems.length,
+      itemsNew: imported,
+    }).where(eq(fetchLogs.id, logId));
+
+    console.log(`✅ ${source.name}: ${imported} new, ${skipped} duplicates (scraped, ${fetchTime}ms)`);
     
     return { imported, skipped };
 
   } catch (error: any) {
     const errorMsg = error.message || String(error);
+    const newFailures = (source.consecutiveFailures || 0) + 1;
+
+    await db.update(sources).set({
+      lastFetchedAt: new Date(),
+      consecutiveFailures: newFailures,
+    }).where(eq(sources.id, source.id));
+
+    await db.update(fetchLogs).set({
+      finishedAt: new Date(),
+      status: 'error',
+      errorMessage: errorMsg.slice(0, 500),
+    }).where(eq(fetchLogs.id, logId));
+
     console.error(`❌ ${source.name}: ${errorMsg}`);
     return { imported: 0, skipped: 0, error: errorMsg };
   }
