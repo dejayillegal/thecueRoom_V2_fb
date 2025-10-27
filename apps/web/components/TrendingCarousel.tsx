@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useCallback, memo } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import Link from 'next/link';
 import { OptimizedImage } from './OptimizedImage';
 import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
