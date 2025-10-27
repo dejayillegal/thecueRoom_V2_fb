@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, memo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
@@ -15,9 +16,62 @@ export interface FeedItem {
   tags: string[];
 }
 
+const TrendingCard = memo(({ feed }: { feed: FeedItem }) => {
+  const [imgSrc, setImgSrc] = useState(feed.image);
+
+  return (
+    <Link
+      href={feed.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex-shrink-0 w-72 bg-card rounded-lg overflow-hidden border border-border hover:border-primary transition-colors group/card"
+    >
+      <div className="relative h-40">
+        <Image
+          src={imgSrc}
+          alt={feed.title}
+          fill
+          sizes="288px"
+          loading="lazy"
+          quality={75}
+          className="object-cover group-hover/card:scale-105 transition-transform"
+          onError={() => {
+            setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity">
+          <div className="absolute bottom-2 left-2 right-2">
+            <div className="text-xs font-medium text-white drop-shadow-lg">
+              {feed.source}
+            </div>
+            <div className="text-xs text-white/90 drop-shadow-lg">
+              {new Date(feed.publishedAt).toLocaleString('en-US', { 
+                month: 'short', 
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="p-4">
+        <h4 className="font-semibold text-sm line-clamp-2 group-hover/card:text-primary transition-colors">
+          {feed.title}
+        </h4>
+        <p className="text-xs text-muted-foreground mt-2">
+          {feed.source}
+        </p>
+      </div>
+    </Link>
+  );
+});
+
+TrendingCard.displayName = 'TrendingCard';
+
 export default function TrendingCarousel({ feeds }: { feeds: FeedItem[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const autoScrollRef = useRef<NodeJS.Timeout>();
+  const rafRef = useRef<number>();
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
@@ -32,40 +86,41 @@ export default function TrendingCarousel({ feeds }: { feeds: FeedItem[] }) {
   }, []);
 
   const autoScroll = useCallback(() => {
-    if (scrollRef.current && isAutoScrolling) {
+    if (scrollRef.current && isAutoScrolling && !isPaused) {
       const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
       
-      // If reached the end, reset to beginning
       if (scrollLeft >= scrollWidth - clientWidth - 10) {
         scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
       } else {
-        // Smooth continuous scroll (1px every 50ms = ~20px/second)
         scrollRef.current.scrollBy({ left: 1, behavior: 'auto' });
       }
+      
+      rafRef.current = requestAnimationFrame(autoScroll);
     }
-  }, [isAutoScrolling]);
+  }, [isAutoScrolling, isPaused]);
 
   useEffect(() => {
     checkScroll();
     const ref = scrollRef.current;
     if (ref) {
-      ref.addEventListener('scroll', checkScroll);
+      ref.addEventListener('scroll', checkScroll, { passive: true });
       return () => ref.removeEventListener('scroll', checkScroll);
     }
   }, [checkScroll]);
 
   useEffect(() => {
     if (isAutoScrolling && !isPaused) {
-      autoScrollRef.current = setInterval(autoScroll, 50);
-      return () => {
-        if (autoScrollRef.current) {
-          clearInterval(autoScrollRef.current);
-        }
-      };
+      rafRef.current = requestAnimationFrame(autoScroll);
     }
+    
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
   }, [isAutoScrolling, isPaused, autoScroll]);
 
-  const scroll = (direction: 'left' | 'right') => {
+  const scroll = useCallback((direction: 'left' | 'right') => {
     if (scrollRef.current) {
       const scrollAmount = 320;
       scrollRef.current.scrollBy({
@@ -73,21 +128,21 @@ export default function TrendingCarousel({ feeds }: { feeds: FeedItem[] }) {
         behavior: 'smooth',
       });
     }
-  };
+  }, []);
 
-  const toggleAutoScroll = () => {
+  const toggleAutoScroll = useCallback(() => {
     setIsPaused(!isPaused);
-  };
+  }, [isPaused]);
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = useCallback(() => {
     setIsPaused(true);
-  };
+  }, []);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     if (isAutoScrolling) {
       setIsPaused(false);
     }
-  };
+  }, [isAutoScrolling]);
 
   if (!feeds || feeds.length === 0) {
     return null;
@@ -138,54 +193,10 @@ export default function TrendingCarousel({ feeds }: { feeds: FeedItem[] }) {
       <div
         ref={scrollRef}
         className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {feeds.map((feed, index) => (
-          <Link
-            key={`${feed.url}-${index}`}
-            href={feed.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-shrink-0 w-72 bg-card rounded-lg overflow-hidden border border-border hover:border-primary transition-colors group/card"
-          >
-            <div className="relative h-40">
-              <Image
-                src={feed.image}
-                alt={feed.title}
-                fill
-                sizes="288px"
-                loading="lazy"
-                quality={80}
-                className="object-cover group-hover/card:scale-105 transition-transform"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`;
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity">
-                <div className="absolute bottom-2 left-2 right-2">
-                  <div className="text-xs font-medium text-white drop-shadow-lg">
-                    {feed.source}
-                  </div>
-                  <div className="text-xs text-white/90 drop-shadow-lg">
-                    {new Date(feed.publishedAt).toLocaleString('en-US', { 
-                      month: 'short', 
-                      day: 'numeric',
-                      hour: 'numeric',
-                      minute: '2-digit'
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="p-4">
-              <h4 className="font-semibold text-sm line-clamp-2 group-hover/card:text-primary transition-colors">
-                {feed.title}
-              </h4>
-              <p className="text-xs text-muted-foreground mt-2">
-                {feed.source}
-              </p>
-            </div>
-          </Link>
+          <TrendingCard key={`${feed.url}-${index}`} feed={feed} />
         ))}
       </div>
     </div>

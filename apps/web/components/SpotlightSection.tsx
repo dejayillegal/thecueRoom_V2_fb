@@ -1,48 +1,32 @@
 
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, memo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Users, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 import TrendingCarousel, { FeedItem } from './TrendingCarousel';
 
-function sanitizeImageUrl(url: string | null | undefined, title: string): string {
-  if (!url) {
-    return `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
-  }
-  
-  // Filter out YouTube embeds and invalid URLs
-  if (url.includes('youtube.com/embed') || url.includes('youtu.be')) {
-    return `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
-  }
-  
-  // Check if it's a valid image URL
-  const imageExtensions = /\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i;
-  if (!imageExtensions.test(url) && !url.includes('og:image') && !url.includes('twitter:image')) {
-    return `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
-  }
-  
-  return url;
-}
+const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
+  const [imgSrc, setImgSrc] = useState(feed.image);
 
-// Advanced trending algorithm - prioritizes recent + diversity
-function calculateTrendingScore(item: any, index: number): number {
-  const now = Date.now();
-  const publishedTime = new Date(item.publishedAt).getTime();
-  const ageInHours = (now - publishedTime) / (1000 * 60 * 60);
-  
-  // Recency score (decays over 48 hours)
-  const recencyScore = Math.max(0, 100 - (ageInHours / 48) * 100);
-  
-  // Diversity bonus (prefer varied sources)
-  const diversityBonus = index % 3 === 0 ? 20 : 0;
-  
-  // Tag richness (more tags = more engaging)
-  const tagScore = Math.min(30, (item.tags?.length || 0) * 5);
-  
-  return recencyScore + diversityBonus + tagScore;
-}
+  return (
+    <Image
+      src={imgSrc}
+      alt={feed.title}
+      fill
+      sizes="100vw"
+      priority
+      quality={85}
+      className="object-cover transition-opacity duration-700"
+      onError={() => {
+        setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
+      }}
+    />
+  );
+});
+
+SpotlightImage.displayName = 'SpotlightImage';
 
 export default function SpotlightSection({ 
   initialFeeds, 
@@ -57,6 +41,8 @@ export default function SpotlightSection({
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
   const autoPlayRef = useRef<NodeJS.Timeout>();
+  const refreshRef = useRef<NodeJS.Timeout>();
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const goToNext = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % currentFeeds.length);
@@ -82,83 +68,110 @@ export default function SpotlightSection({
 
   useEffect(() => {
     const refreshFeeds = async () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      
+      abortControllerRef.current = new AbortController();
+      
       try {
-        // Fetch spotlight feeds (top 8 for hero carousel)
-        const spotlightResponse = await fetch('/api/feeds?limit=8');
+        const [spotlightRes, trendingRes] = await Promise.all([
+          fetch('/api/feeds?limit=8', { 
+            signal: abortControllerRef.current.signal,
+            headers: { 'Accept': 'application/json' }
+          }),
+          fetch('/api/feeds?limit=32&offset=0', { 
+            signal: abortControllerRef.current.signal,
+            headers: { 'Accept': 'application/json' }
+          })
+        ]);
         
-        // Fetch trending feeds (16 items from offset 8)
-        const trendingResponse = await fetch('/api/feeds?limit=32&offset=0');
+        if (!spotlightRes.ok || !trendingRes.ok) return;
+
+        const [spotlightData, trendingData] = await Promise.all([
+          spotlightRes.json(),
+          trendingRes.json()
+        ]);
         
-        if (spotlightResponse.ok) {
-          const spotlightData = await spotlightResponse.json();
-          if (spotlightData.data && spotlightData.data.length > 0) {
-            const formattedFeeds = spotlightData.data.map((item: any) => ({
+        if (spotlightData.data && spotlightData.data.length > 0) {
+          const formattedFeeds = spotlightData.data.map((item: any) => ({
+            title: item.title,
+            url: item.link,
+            summary: item.summary || '',
+            image: item.image,
+            publishedAt: item.publishedAt,
+            source: item.source?.name || 'Unknown',
+            tags: item.tags || [],
+          }));
+          setCurrentFeeds(formattedFeeds);
+        }
+        
+        if (trendingData.data && trendingData.data.length > 0) {
+          const scoredItems = trendingData.data.map((item: any, index: number) => {
+            const now = Date.now();
+            const publishedTime = new Date(item.publishedAt).getTime();
+            const ageInHours = (now - publishedTime) / (1000 * 60 * 60);
+            
+            const recencyScore = Math.max(0, 100 - (ageInHours / 48) * 100);
+            const diversityBonus = index % 3 === 0 ? 20 : 0;
+            const tagScore = Math.min(30, (item.tags?.length || 0) * 5);
+            
+            return {
+              ...item,
+              trendingScore: recencyScore + diversityBonus + tagScore
+            };
+          });
+          
+          const topTrending = scoredItems
+            .sort((a: any, b: any) => b.trendingScore - a.trendingScore)
+            .slice(0, 16)
+            .map((item: any) => ({
               title: item.title,
               url: item.link,
               summary: item.summary || '',
-              image: sanitizeImageUrl(item.image, item.title),
+              image: item.image,
               publishedAt: item.publishedAt,
               source: item.source?.name || 'Unknown',
               tags: item.tags || [],
             }));
-            setCurrentFeeds(formattedFeeds);
-          }
+          
+          setCurrentTrending(topTrending);
         }
-        
-        if (trendingResponse.ok) {
-          const trendingData = await trendingResponse.json();
-          if (trendingData.data && trendingData.data.length > 0) {
-            // Apply trending algorithm
-            const scoredItems = trendingData.data.map((item: any, index: number) => ({
-              ...item,
-              trendingScore: calculateTrendingScore(item, index)
-            }));
-            
-            // Sort by trending score and take top 16
-            const topTrending = scoredItems
-              .sort((a: any, b: any) => b.trendingScore - a.trendingScore)
-              .slice(0, 16)
-              .map((item: any) => ({
-                title: item.title,
-                url: item.link,
-                summary: item.summary || '',
-                image: sanitizeImageUrl(item.image, item.title),
-                publishedAt: item.publishedAt,
-                source: item.source?.name || 'Unknown',
-                tags: item.tags || [],
-              }));
-            
-            setCurrentTrending(topTrending);
-          }
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          console.error('Failed to refresh feeds:', error);
         }
-      } catch (error) {
-        console.error('Failed to refresh feeds:', error);
       }
     };
 
-    // Initial refresh
-    refreshFeeds();
+    refreshRef.current = setInterval(refreshFeeds, 3600000);
     
-    // Refresh every hour
-    const interval = setInterval(refreshFeeds, 3600000);
-    return () => clearInterval(interval);
+    return () => {
+      if (refreshRef.current) {
+        clearInterval(refreshRef.current);
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, []);
 
   useEffect(() => {
-    if (isAutoPlaying && currentFeeds.length > 1) {
+    if (isAutoPlaying && currentFeeds.length > 1 && !isPaused) {
       autoPlayRef.current = setInterval(goToNext, 5000);
-      return () => {
-        if (autoPlayRef.current) {
-          clearInterval(autoPlayRef.current);
-        }
-      };
     }
-  }, [isAutoPlaying, goToNext, currentFeeds.length]);
+    
+    return () => {
+      if (autoPlayRef.current) {
+        clearInterval(autoPlayRef.current);
+      }
+    };
+  }, [isAutoPlaying, isPaused, goToNext, currentFeeds.length]);
 
   if (!currentFeeds || currentFeeds.length === 0) {
     return (
       <div className="relative h-[60vh] bg-card rounded-lg flex items-center justify-center border border-border">
-        <p className="text-muted-foreground">No spotlight feeds available yet. Run the ingestion script to populate feeds.</p>
+        <p className="text-muted-foreground">No spotlight feeds available yet.</p>
       </div>
     );
   }
@@ -177,20 +190,7 @@ export default function SpotlightSection({
 
       <div className="relative h-[50vh] md:h-[60vh] bg-card rounded-xl overflow-hidden border border-border shadow-lg group/spotlight">
         <div className="relative w-full h-full">
-          <Image
-            key={currentFeed.url}
-            src={currentFeed.image}
-            alt={currentFeed.title}
-            fill
-            sizes="100vw"
-            priority
-            quality={85}
-            className="object-cover transition-opacity duration-700"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = `/api/og-fallback?title=${encodeURIComponent(currentFeed.title.slice(0, 120))}`;
-            }}
-          />
+          <SpotlightImage feed={currentFeed} />
         </div>
         
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />

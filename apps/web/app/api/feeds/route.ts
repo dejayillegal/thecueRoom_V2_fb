@@ -1,9 +1,15 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
 import { feeds, sources } from '@thecueroom/db/schema';
-import { desc, eq, and, sql } from 'drizzle-orm';
+import { desc, eq, and, sql, gt } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+export const maxDuration = 10;
+
+const CACHE_TTL = 60;
+const ITEMS_PER_PAGE = 24;
 
 function sanitizeImageUrl(url: string | null, title: string): string {
   if (!url) {
@@ -27,39 +33,18 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const sourceId = searchParams.get('source');
-    const limit = Math.min(100, parseInt(searchParams.get('limit') || '24', 10));
+    const limit = Math.min(100, parseInt(searchParams.get('limit') || String(ITEMS_PER_PAGE), 10));
     const cursor = searchParams.get('cursor');
+    const offset = parseInt(searchParams.get('offset') || '0', 10);
 
     const db = getDbClient();
 
-    let query = db
-      .select({
-        id: feeds.id,
-        title: feeds.title,
-        summary: feeds.summary,
-        link: feeds.link,
-        image: feeds.image,
-        tags: feeds.tags,
-        publishedAt: feeds.publishedAt,
-        createdAt: feeds.createdAt,
-        source: {
-          id: sources.id,
-          name: sources.name,
-          url: sources.url,
-          tags: sources.tags,
-        },
-      })
-      .from(feeds)
-      .leftJoin(sources, eq(feeds.sourceId, sources.id))
-      .$dynamic();
-
-    const conditions = [];
-
     const twoWeeksAgo = new Date();
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-    const twoWeeksAgoISO = twoWeeksAgo.toISOString();
 
-    conditions.push(sql`${feeds.publishedAt} >= ${twoWeeksAgoISO}`);
+    const conditions = [
+      gt(feeds.publishedAt, twoWeeksAgo.toISOString())
+    ];
 
     if (sourceId) {
       conditions.push(eq(feeds.sourceId, sourceId));
@@ -76,13 +61,28 @@ export async function GET(request: Request) {
       );
     }
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-
-    const results = await query
+    const query = db
+      .select({
+        id: feeds.id,
+        title: feeds.title,
+        summary: feeds.summary,
+        link: feeds.link,
+        image: feeds.image,
+        tags: feeds.tags,
+        publishedAt: feeds.publishedAt,
+        source: {
+          id: sources.id,
+          name: sources.name,
+        },
+      })
+      .from(feeds)
+      .leftJoin(sources, eq(feeds.sourceId, sources.id))
+      .where(and(...conditions))
       .orderBy(desc(feeds.publishedAt), desc(feeds.id))
-      .limit(limit + 1);
+      .limit(limit + 1)
+      .offset(offset);
+
+    const results = await query;
 
     const hasMore = results.length > limit;
     const items = hasMore ? results.slice(0, -1) : results;
@@ -102,9 +102,10 @@ export async function GET(request: Request) {
       hasMore,
     }, {
       headers: {
-        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
-        'X-Cache-Age': '60',
-        'X-Feeds-Count': sanitizedItems.length.toString(),
+        'Cache-Control': `public, s-maxage=${CACHE_TTL}, stale-while-revalidate=${CACHE_TTL * 2}`,
+        'CDN-Cache-Control': `public, s-maxage=${CACHE_TTL}`,
+        'Vercel-CDN-Cache-Control': `public, s-maxage=${CACHE_TTL}`,
+        'X-Content-Type-Options': 'nosniff',
       },
     });
   } catch (error) {
