@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
 import { feeds, sources } from '@thecueroom/db/schema';
-import { desc, eq, and, gte, sql } from 'drizzle-orm';
+import { desc, eq, and, lt, sql } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
           id: sources.id,
           name: sources.name,
           url: sources.url,
+          tags: sources.tags,
         },
       })
       .from(feeds)
@@ -42,8 +43,16 @@ export async function GET(request: NextRequest) {
       conditions.push(eq(feeds.sourceId, sourceId));
     }
     
+    if (category) {
+      conditions.push(sql`${sources.tags} @> ARRAY[${category}]::text[]`);
+    }
+    
     if (cursor) {
-      conditions.push(gte(feeds.publishedAt, new Date(cursor)));
+      const [timestamp, id] = cursor.split('_');
+      const cursorDate = new Date(timestamp);
+      conditions.push(
+        sql`(${feeds.publishedAt}, ${feeds.id}) < (${cursorDate}, ${id})`
+      );
     }
 
     if (conditions.length > 0) {
@@ -51,13 +60,13 @@ export async function GET(request: NextRequest) {
     }
 
     const results = await query
-      .orderBy(desc(feeds.publishedAt))
+      .orderBy(desc(feeds.publishedAt), desc(feeds.id))
       .limit(limit + 1);
 
     const hasMore = results.length > limit;
     const items = hasMore ? results.slice(0, -1) : results;
     const nextCursor = hasMore && items.length > 0
-      ? items[items.length - 1].publishedAt.toISOString()
+      ? `${items[items.length - 1].publishedAt.toISOString()}_${items[items.length - 1].id}`
       : null;
 
     return NextResponse.json({
