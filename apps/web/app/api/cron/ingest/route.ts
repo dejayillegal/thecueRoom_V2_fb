@@ -1,25 +1,30 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { ingestFeeds } from '../../../../../scripts/ingest-feeds';
+import { runEnhancedIngestion } from '../../../../../scripts/enhanced-ingest';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 300; // 5 minutes max execution time
+export const maxDuration = 300;
+export const runtime = 'nodejs';
 
-// Track last run time
 let lastRunTime: string | null = null;
 let isRunning = false;
 
 export async function GET(request: NextRequest) {
   try {
-    // Authentication check
-    const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
     
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    if (!cronSecret) {
+      return NextResponse.json({ 
+        error: 'Server misconfigured: CRON_SECRET environment variable is required' 
+      }, { status: 500 });
+    }
+    
+    const authHeader = request.headers.get('authorization');
+    
+    if (authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Prevent concurrent runs
     if (isRunning) {
       return NextResponse.json({ 
         error: 'Feed ingestion already in progress',
@@ -30,17 +35,18 @@ export async function GET(request: NextRequest) {
     isRunning = true;
     const startTime = new Date();
     
-    console.log('Starting automated feed ingestion...');
-    await ingestFeeds();
+    console.log('🚀 Starting automated enhanced feed ingestion...');
+    const result = await runEnhancedIngestion();
     
     lastRunTime = startTime.toISOString();
     isRunning = false;
     
     return NextResponse.json({ 
       success: true, 
-      message: 'Feed ingestion completed',
+      message: 'Enhanced feed ingestion completed',
       timestamp: startTime.toISOString(),
-      duration: Date.now() - startTime.getTime()
+      duration: Date.now() - startTime.getTime(),
+      stats: result
     });
   } catch (error) {
     isRunning = false;
@@ -53,11 +59,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Status endpoint
 export async function POST(request: NextRequest) {
-  return NextResponse.json({
-    isRunning,
-    lastRun: lastRunTime,
-    status: isRunning ? 'running' : 'idle'
-  });
+  return GET(request);
 }
