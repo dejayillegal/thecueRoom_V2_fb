@@ -212,8 +212,6 @@ async function NewsSection() {
   );
 }
 
-import TrendingCarousel from '@/components/TrendingCarousel';
-
 export default function HomePage() {
   return (
     <main className="min-h-screen">
