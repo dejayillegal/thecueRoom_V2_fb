@@ -1,0 +1,22 @@
+{
+  "name": "@thecueroom/db",
+  "version": "2.0.0",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "scripts": {
+    "migrate": "drizzle-kit push",
+    "migrate:generate": "drizzle-kit generate",
+    "studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.36.4",
+    "@supabase/supabase-js": "^2.47.10",
+    "postgres": "^3.4.4",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.28.1",
+    "@types/node": "^20.17.10",
+    "typescript": "^5.7.2"
+  }
+}

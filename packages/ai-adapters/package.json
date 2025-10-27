@@ -1,0 +1,14 @@
+{
+  "name": "@thecueroom/ai-adapters",
+  "version": "2.0.0",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "dependencies": {
+    "openai": "^4.76.0",
+    "canvas": "^2.11.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.10",
+    "typescript": "^5.7.2"
+  }
+}
