@@ -41,31 +41,42 @@ export async function GET(request: NextRequest) {
     if (isRunning) {
       return NextResponse.json({ 
         error: 'Feed ingestion already in progress',
-        lastRun: lastRunTime
+        lastRun: lastRunTime,
+        status: 'running'
       }, { status: 429 });
     }
 
     isRunning = true;
     const startTime = new Date();
     
+    // Start ingestion in background - don't await
     console.log('🚀 Starting automated enhanced feed ingestion...');
-    const result = await runEnhancedIngestion();
+    runEnhancedIngestion()
+      .then((result) => {
+        lastRunTime = startTime.toISOString();
+        isRunning = false;
+        console.log('✅ Feed ingestion completed successfully:', {
+          duration: Date.now() - startTime.getTime(),
+          stats: result
+        });
+      })
+      .catch((error) => {
+        isRunning = false;
+        console.error('❌ Feed ingestion failed:', error);
+      });
     
-    lastRunTime = startTime.toISOString();
-    isRunning = false;
-    
+    // Respond immediately so cron doesn't timeout
     return NextResponse.json({ 
       success: true, 
-      message: 'Enhanced feed ingestion completed',
+      message: 'Feed ingestion started in background',
       timestamp: startTime.toISOString(),
-      duration: Date.now() - startTime.getTime(),
-      stats: result
+      status: 'started'
     });
   } catch (error) {
     isRunning = false;
     console.error('Feed ingestion error:', error);
     return NextResponse.json({ 
-      error: 'Feed ingestion failed',
+      error: 'Feed ingestion failed to start',
       message: error instanceof Error ? error.message : 'Unknown error',
       lastRun: lastRunTime
     }, { status: 500 });
