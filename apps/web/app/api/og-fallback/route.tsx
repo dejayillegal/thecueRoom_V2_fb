@@ -1,3 +1,4 @@
+
 import { ImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
 
@@ -6,7 +7,7 @@ export const runtime = 'edge';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const title = searchParams.get('title') || 'thecueRoom';
+    const title = searchParams.get('title') || 'Music News';
 
     const truncatedTitle = title.length > 100 ? title.substring(0, 97) + '...' : title;
 
@@ -25,14 +26,27 @@ export async function GET(request: NextRequest) {
             position: 'relative',
           }}
         >
+          {/* Gradient overlays matching theme */}
           <div
             style={{
               position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.1) 0%, transparent 50%)',
+              top: '10%',
+              left: '20%',
+              width: '400px',
+              height: '400px',
+              background: 'radial-gradient(circle, rgba(215, 255, 60, 0.15) 0%, transparent 70%)',
+              filter: 'blur(80px)',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '10%',
+              right: '20%',
+              width: '400px',
+              height: '400px',
+              background: 'radial-gradient(circle, rgba(155, 92, 255, 0.15) 0%, transparent 70%)',
+              filter: 'blur(80px)',
             }}
           />
           
@@ -44,25 +58,12 @@ export async function GET(request: NextRequest) {
               justifyContent: 'center',
               padding: '60px',
               maxWidth: '90%',
+              zIndex: 1,
             }}
           >
             <div
               style={{
-                fontSize: 48,
-                fontWeight: 'bold',
-                background: 'linear-gradient(90deg, #a3e635 0%, #84cc16 100%)',
-                backgroundClip: 'text',
-                color: 'transparent',
-                marginBottom: '30px',
-                textAlign: 'center',
-              }}
-            >
-              thecueRoom
-            </div>
-            
-            <div
-              style={{
-                fontSize: 32,
+                fontSize: 36,
                 color: '#e5e5e5',
                 textAlign: 'center',
                 lineHeight: 1.4,
@@ -74,16 +75,17 @@ export async function GET(request: NextRequest) {
             </div>
           </div>
 
+          {/* Decorative line accents */}
           <div
             style={{
               position: 'absolute',
-              bottom: 30,
-              fontSize: 18,
-              color: '#737373',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: '4px',
+              background: 'linear-gradient(90deg, #D7FF3C 0%, #9B5CFF 100%)',
             }}
-          >
-            Music • Culture • Technology
-          </div>
+          />
         </div>
       ),
       {

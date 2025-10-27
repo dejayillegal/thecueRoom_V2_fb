@@ -9,7 +9,7 @@ export function AuthButton() {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)}>Sign In</Button>
+      <Button onClick={() => setOpen(true)}>Sign In / Sign Up</Button>
       <AuthModal open={open} onOpenChange={setOpen} />
     </>
   );

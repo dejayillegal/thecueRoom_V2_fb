@@ -227,9 +227,6 @@ export default function HomePage() {
           </Link>
 
           <nav className="flex items-center gap-6">
-            <Link href="/feeds" className="hover:text-primary transition-colors">
-              Feeds
-            </Link>
             <AuthButton />
           </nav>
         </div>
