@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback, memo } from 'react';
-import Image from 'next/image';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import Link from 'next/link';
+import { OptimizedImage } from './OptimizedImage';
 import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 
 export interface FeedItem {
@@ -40,17 +40,15 @@ const TrendingCard = memo(({ feed, index }: { feed: FeedItem; index: number }) =
       className="flex-shrink-0 w-72 bg-card rounded-lg overflow-hidden border border-border hover:border-primary transition-colors group/card"
     >
       <div className="relative h-40">
-        <Image
+        <OptimizedImage
           key={feedKey}
           src={imgSrc}
           alt={feed.title}
-          fill
-          sizes="288px"
-          loading="lazy"
           quality={75}
           className="object-cover group-hover/card:scale-105 transition-transform"
           onError={handleError}
           unoptimized={imgSrc.startsWith('/api/og-fallback')}
+          fallbackSrc={`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity">
           <div className="absolute bottom-2 left-2 right-2">

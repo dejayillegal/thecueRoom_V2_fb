@@ -2,8 +2,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
+import { OptimizedImage } from './OptimizedImage';
 
 interface FeedItem {
   id: string;
@@ -17,37 +17,18 @@ interface FeedItem {
 }
 
 const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date: Date) => string }) => {
-  const feedKey = `${feed.id}-${feed.image}`;
-  const [imgSrc, setImgSrc] = useState(feed.image || `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
-  const [hasError, setHasError] = useState(false);
-
-  useEffect(() => {
-    setImgSrc(feed.image || `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
-    setHasError(false);
-  }, [feedKey]);
-
-  const handleError = useCallback(() => {
-    if (!hasError && feed.image) {
-      setHasError(true);
-      setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
-    }
-  }, [hasError, feed.image, feed.title]);
-
   return (
     <article className="bg-card rounded-lg overflow-hidden border border-border hover:border-primary/50 transition-all group">
       <Link href={feed.url} target="_blank" rel="noopener noreferrer">
         <div className="relative h-48 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
-          <Image
-            key={feedKey}
-            src={imgSrc}
+          <OptimizedImage
+            src={feed.image || `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`}
             alt={feed.title}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 50vw"
             loading="lazy"
             quality={75}
-            onError={handleError}
-            unoptimized={imgSrc.startsWith('/api/og-fallback')}
           />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
           <div className="absolute bottom-2 left-2 right-2">
@@ -199,8 +180,8 @@ export default function NewsSection() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[...Array(9)].map((_, i) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {[...Array(6)].map((_, i) => (
           <article key={i} className="bg-card rounded-lg overflow-hidden border border-border">
             <div className="relative h-48 bg-muted animate-pulse" />
             <div className="p-5 space-y-3">
@@ -229,7 +210,7 @@ export default function NewsSection() {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {newsFeeds.map((feed) => (
           <FeedCard key={feed.id} feed={feed} formatDate={formatDate} />
         ))}

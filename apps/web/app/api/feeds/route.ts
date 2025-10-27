@@ -12,20 +12,62 @@ const CACHE_TTL = 60;
 const ITEMS_PER_PAGE = 24;
 
 function sanitizeImageUrl(url: string | null, title: string): string {
-  if (!url) {
+  if (!url || url.trim() === '') {
     return `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
   }
 
-  if (url.includes('youtube.com/embed') || url.includes('youtu.be')) {
+  const trimmedUrl = url.trim();
+
+  // Filter out video embeds
+  if (trimmedUrl.includes('youtube.com/embed') || trimmedUrl.includes('youtu.be') || trimmedUrl.includes('vimeo.com')) {
     return `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
   }
 
-  const imageExtensions = /\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i;
-  if (!imageExtensions.test(url) && !url.includes('og:image') && !url.includes('twitter:image')) {
+  // Validate URL format
+  try {
+    const urlObj = new URL(trimmedUrl);
+    
+    // Check for data URIs
+    if (urlObj.protocol === 'data:') {
+      return trimmedUrl;
+    }
+
+    // Only allow http/https protocols
+    if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') {
+      return `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
+    }
+
+    // Check for common image hosting domains (always valid)
+    const trustedDomains = [
+      'i0.wp.com', 'i1.wp.com', 'i2.wp.com', 'i3.wp.com',
+      'images.ctfassets.net', 'cdn.sanity.io', 'cloudinary.com',
+      'imgur.com', 'i.imgur.com',
+      'preview.redd.it', 'i.redd.it', 'external-preview.redd.it'
+    ];
+    
+    if (trustedDomains.some(domain => urlObj.hostname.includes(domain))) {
+      return trimmedUrl;
+    }
+
+    // Validate image file extensions
+    const imageExtensions = /\.(jpg|jpeg|png|gif|webp|svg|avif|bmp)(\?.*)?$/i;
+    const pathname = urlObj.pathname.toLowerCase();
+    
+    if (imageExtensions.test(pathname)) {
+      return trimmedUrl;
+    }
+
+    // Check if URL path suggests it's an image endpoint
+    if (pathname.includes('/image') || pathname.includes('/img') || pathname.includes('/photo') || pathname.includes('/media')) {
+      return trimmedUrl;
+    }
+
+    // If all else fails, return fallback
+    return `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
+  } catch (e) {
+    // Invalid URL format
     return `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
   }
-
-  return url;
 }
 
 export async function GET(request: Request) {
