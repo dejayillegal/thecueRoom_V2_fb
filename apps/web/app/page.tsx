@@ -1,11 +1,13 @@
+
 'use client';
 
 import { Suspense, useState, useEffect, useRef, useCallback } from 'react';
 import { Logo } from '@/components/Logo';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { AuthButton } from '@/components/auth/AuthButton';
+import SpotlightSection from '@/components/SpotlightSection';
 
 interface FeedItem {
   id: string;
@@ -21,13 +23,65 @@ interface FeedItem {
   } | null;
 }
 
-import SpotlightSection from '@/components/SpotlightSection';
+function SpotlightSkeleton() {
+  return (
+    <div className="relative">
+      <div className="flex items-center justify-between mb-6">
+        <div className="h-8 w-32 bg-muted animate-pulse rounded" />
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-muted animate-pulse rounded" />
+          <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+        </div>
+      </div>
+
+      <div className="relative h-[50vh] md:h-[60vh] bg-muted animate-pulse rounded-xl overflow-hidden border border-border" />
+
+      <div className="mt-6 md:mt-8">
+        <div className="h-7 w-40 bg-muted animate-pulse rounded mb-4" />
+        <div className="flex gap-4 overflow-hidden">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="flex-shrink-0 w-72 bg-card rounded-lg overflow-hidden border border-border">
+              <div className="h-40 bg-muted animate-pulse" />
+              <div className="p-4 space-y-2">
+                <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
+                <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NewsSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {[...Array(9)].map((_, i) => (
+        <article key={i} className="bg-card rounded-lg overflow-hidden border border-border">
+          <div className="relative h-48 bg-muted animate-pulse" />
+          <div className="p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="h-3 w-20 bg-muted animate-pulse rounded" />
+              <div className="h-3 w-16 bg-muted animate-pulse rounded" />
+            </div>
+            <div className="h-5 bg-muted animate-pulse rounded w-full" />
+            <div className="h-5 bg-muted animate-pulse rounded w-4/5" />
+            <div className="h-4 bg-muted animate-pulse rounded w-full" />
+            <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
 
 function NewsSection() {
   const [newsFeeds, setNewsFeeds] = useState<FeedItem[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const observerTarget = useRef<HTMLDivElement>(null);
 
   const formatDate = (date: Date) => {
@@ -44,10 +98,15 @@ function NewsSection() {
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  const loadNewsFeeds = useCallback(async () => {
-    if (isLoading || !hasMore) return;
+  const loadNewsFeeds = useCallback(async (isInitial = false) => {
+    if (!isInitial && (isLoadingMore || !hasMore)) return;
     
-    setIsLoading(true);
+    if (isInitial) {
+      setIsLoading(true);
+    } else {
+      setIsLoadingMore(true);
+    }
+
     try {
       const params = new URLSearchParams({ limit: '24' });
       if (cursor) params.append('cursor', cursor);
@@ -56,26 +115,32 @@ function NewsSection() {
       const data = await response.json();
       
       if (data.data && Array.isArray(data.data)) {
-        setNewsFeeds(prev => [...prev, ...data.data]);
+        setNewsFeeds(prev => isInitial ? data.data : [...prev, ...data.data]);
         setCursor(data.nextCursor);
         setHasMore(data.hasMore);
       }
     } catch (error) {
       console.error('Failed to load news feeds:', error);
     } finally {
-      setIsLoading(false);
+      if (isInitial) {
+        setIsLoading(false);
+      } else {
+        setIsLoadingMore(false);
+      }
     }
-  }, [cursor, hasMore, isLoading]);
+  }, [cursor, hasMore, isLoadingMore]);
 
   useEffect(() => {
-    loadNewsFeeds();
+    loadNewsFeeds(true);
   }, []);
 
   useEffect(() => {
+    if (isLoading) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoading) {
-          loadNewsFeeds();
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          loadNewsFeeds(false);
         }
       },
       { threshold: 0.1, rootMargin: '200px' }
@@ -86,9 +151,13 @@ function NewsSection() {
     }
 
     return () => observer.disconnect();
-  }, [hasMore, isLoading, loadNewsFeeds]);
+  }, [hasMore, isLoadingMore, loadNewsFeeds, isLoading]);
 
-  if (newsFeeds.length === 0 && !isLoading) {
+  if (isLoading) {
+    return <NewsSkeleton />;
+  }
+
+  if (newsFeeds.length === 0) {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">No news feeds available yet.</p>
@@ -112,6 +181,7 @@ function NewsSection() {
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                   <div className="absolute bottom-2 left-2 right-2">
@@ -162,7 +232,7 @@ function NewsSection() {
       </div>
 
       <div ref={observerTarget} className="h-20 flex items-center justify-center mt-8">
-        {isLoading && (
+        {isLoadingMore && (
           <div className="flex items-center gap-2 text-muted-foreground">
             <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             <span>Loading more feeds...</span>
@@ -233,7 +303,7 @@ export default function HomePage() {
       <div className="container mx-auto px-4 py-8">
         <section className="mb-12">
           {isLoadingSpotlight ? (
-            <div className="relative h-[60vh] bg-muted animate-pulse rounded-lg" />
+            <SpotlightSkeleton />
           ) : (
             <SpotlightSection initialFeeds={spotlightFeeds} initialTrending={trendingFeeds} />
           )}

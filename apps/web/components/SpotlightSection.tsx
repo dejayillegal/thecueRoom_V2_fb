@@ -74,6 +74,7 @@ export default function SpotlightSection({
           fill
           sizes="100vw"
           priority
+          quality={85}
           className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />

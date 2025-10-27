@@ -91,6 +91,8 @@ export default function TrendingCarousel({ feeds }: { feeds: FeedItem[] }) {
                 alt={feed.title}
                 fill
                 sizes="288px"
+                loading="lazy"
+                quality={80}
                 className="object-cover group-hover/card:scale-105 transition-transform"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity">
