@@ -6,7 +6,20 @@ settings:
 
 importers:
 
-  .: {}
+  .:
+    dependencies:
+      class-variance-authority:
+        specifier: ^0.7.1
+        version: 0.7.1
+      drizzle-orm:
+        specifier: ^0.36.4
+        version: 0.36.4(@types/react@19.2.2)(postgres@3.4.7)(react@19.2.0)
+      postgres:
+        specifier: ^3.4.7
+        version: 3.4.7
+      rss-parser:
+        specifier: 3.12.0
+        version: 3.12.0
 
   apps/web:
     dependencies:

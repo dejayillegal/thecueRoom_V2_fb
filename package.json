@@ -20,6 +20,9 @@
     "pnpm": ">=8.0.0"
   },
   "dependencies": {
-    "class-variance-authority": "^0.7.1"
+    "class-variance-authority": "^0.7.1",
+    "drizzle-orm": "^0.36.4",
+    "postgres": "^3.4.7",
+    "rss-parser": "3.12.0"
   }
 }
