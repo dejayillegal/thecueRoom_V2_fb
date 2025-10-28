@@ -38,7 +38,7 @@ export default function IndiaGigsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-[#0a0a0a]">
       <div className="max-w-[1400px] mx-auto p-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-white mb-2">India Gigs</h1>

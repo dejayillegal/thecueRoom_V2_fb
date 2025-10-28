@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Suspense, useState, useEffect, useRef, useCallback } from 'react';
@@ -33,15 +32,15 @@ export default function FeedsPage() {
 
   const loadFeeds = useCallback(async () => {
     if (isLoading || !hasMore) return;
-    
+
     setIsLoading(true);
     try {
       const params = new URLSearchParams({ limit: '20' });
       if (cursor) params.append('cursor', cursor);
-      
+
       const response = await fetch(`/api/feeds?${params}`);
       const data = await response.json();
-      
+
       if (data.data && Array.isArray(data.data)) {
         setFeeds(prev => [...prev, ...data.data]);
         setCursor(data.nextCursor);
@@ -90,9 +89,9 @@ export default function FeedsPage() {
   };
 
   return (
-    <main className="min-h-screen">
+    <div className="min-h-screen bg-[#0a0a0a]">
       <div className="grain-overlay" />
-      
+
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
@@ -101,7 +100,7 @@ export default function FeedsPage() {
               thecueRoom
             </span>
           </Link>
-          
+
           <nav className="flex items-center gap-4 text-sm">
             <Link href="/ai/cover-art" className="hover:text-primary transition-colors">
               AI Studio
@@ -139,7 +138,7 @@ export default function FeedsPage() {
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                   </div>
-                  
+
                   <div className="p-5 space-y-3">
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span className="font-medium text-primary">
@@ -147,17 +146,17 @@ export default function FeedsPage() {
                       </span>
                       <span>{formatDate(feed.publishedAt)}</span>
                     </div>
-                    
+
                     <h3 className="text-lg font-semibold line-clamp-2 group-hover:text-primary transition-colors">
                       {feed.title}
                     </h3>
-                    
+
                     {feed.summary && (
                       <p className="text-sm text-muted-foreground line-clamp-3">
                         {feed.summary}
                       </p>
                     )}
-                    
+
                     {feed.tags && feed.tags.length > 0 && (
                       <div className="flex flex-wrap gap-2 pt-2">
                         {feed.tags.slice(0, 3).map((tag, idx) => (
@@ -192,6 +191,6 @@ export default function FeedsPage() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

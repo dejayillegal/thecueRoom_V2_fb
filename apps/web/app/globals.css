@@ -96,7 +96,7 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
-  
+
   /* Smooth transitions */
   .transition-margin {
     transition-property: margin;
@@ -181,5 +181,45 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #333333;
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #444444;
+  }
+
+  @keyframes scroll-slow {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(-10%);
+    }
+  }
+
+  .animate-scroll-slow {
+    animation: scroll-slow 20s linear infinite;
+  }
+
+  .animate-scroll-slow:hover {
+    animation-play-state: paused;
   }
 }

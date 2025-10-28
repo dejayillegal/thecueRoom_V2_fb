@@ -49,9 +49,9 @@ export const DashboardContent = memo(function DashboardContent({ user }: Dashboa
         const res = await fetch('/api/feeds?limit=3', {
           signal: controller.signal,
         });
-        
+
         if (!res.ok) throw new Error('Failed to fetch');
-        
+
         const data = await res.json();
         if (mounted && data.data) {
           setSpotlightFeeds(data.data.slice(0, 3));
