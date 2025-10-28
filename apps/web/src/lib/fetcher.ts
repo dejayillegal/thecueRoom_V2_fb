@@ -2,26 +2,38 @@ const DEFAULT_TIMEOUT = 10000;
 
 export async function fetcher<T>(
   url: string,
-  options: RequestInit & { timeout?: number } = {}
+  options: RequestInit & { timeout?: number; retries?: number } = {}
 ): Promise<T> {
-  const { timeout = DEFAULT_TIMEOUT, ...fetchOptions } = options;
+  const { timeout = 5000, retries = 2, ...fetchOptions } = options;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-  try {
-    const response = await fetch(url, {
-      ...fetchOptions,
-      signal: controller.signal,
-    });
+  let lastError: Error | null = null;
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const response = await fetch(url, {
+        ...fetchOptions,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      lastError = error as Error;
+      if (i < retries) {
+        await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
+      }
     }
-
-    return response.json();
-  } finally {
-    clearTimeout(timeoutId);
   }
+
+  clearTimeout(timeoutId);
+  throw lastError || new Error('Fetch failed');
 }
 
 export async function fetchParallel<T>(

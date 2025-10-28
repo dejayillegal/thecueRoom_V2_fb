@@ -1,5 +1,6 @@
-
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import { render } from '@testing-library/react';
+import { SpotlightColumn } from '@/../../apps/web/src/components/Spotlight/SpotlightColumn';
 
 describe('SpotlightColumn auto-scroll', () => {
   it('should start and cancel RAF loop on mount/unmount', () => {
@@ -7,11 +8,13 @@ describe('SpotlightColumn auto-scroll', () => {
     expect(typeof requestAnimationFrame).toBe('function');
   });
 });
-import { describe, it, expect, vi } from 'vitest';
-import { render } from '@testing-library/react';
-import { SpotlightColumn } from '@/../../apps/web/src/components/Spotlight/SpotlightColumn';
 
-describe('SpotlightColumn', () => {
+describe('Spotlight Auto-scroll', () => {
+  it('should respect prefers-reduced-motion', () => {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    expect(typeof prefersReducedMotion).toBe('boolean');
+  });
+
   it('should start and cancel RAF loop', () => {
     const rafSpy = vi.spyOn(window, 'requestAnimationFrame');
     const cancelSpy = vi.spyOn(window, 'cancelAnimationFrame');

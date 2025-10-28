@@ -1,13 +1,3 @@
-
-import { describe, it, expect } from 'vitest';
-
-describe('ImageWithFallback', () => {
-  it('should use fallback on error', () => {
-    // Mock test - would simulate onError event
-    const fallbackSrc = '/fallback-thumbnail.png';
-    expect(fallbackSrc).toBe('/fallback-thumbnail.png');
-  });
-});
 import { describe, it, expect } from 'vitest';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import { ImageWithFallback } from '@/../../apps/web/src/components/ImageWithFallback';

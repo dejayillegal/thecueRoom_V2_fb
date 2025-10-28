@@ -1,134 +1,46 @@
+import { useEffect, useRef, useState } from 'react';
 
-import { useEffect, useState } from 'react';
+let sharedSocket: WebSocket | null = null;
+let subscriberCount = 0;
 
-type SocketEventCallback = (data: any) => void;
-
-class SharedSocket {
-  private static instance: SharedSocket;
-  private listeners = new Map<string, Set<SocketEventCallback>>();
-  private ws: WebSocket | null = null;
-
-  private constructor() {
-    if (typeof window === 'undefined') return;
-
-    window.addEventListener('beforeunload', () => {
-      this.cleanup();
-    });
-  }
-
-  static getInstance(): SharedSocket {
-    if (!SharedSocket.instance) {
-      SharedSocket.instance = new SharedSocket();
-    }
-    return SharedSocket.instance;
-  }
-
-  subscribe(event: string, callback: SocketEventCallback) {
-    if (!this.listeners.has(event)) {
-      this.listeners.set(event, new Set());
-    }
-    this.listeners.get(event)!.add(callback);
-  }
-
-  unsubscribe(event: string, callback: SocketEventCallback) {
-    this.listeners.get(event)?.delete(callback);
-  }
-
-  private cleanup() {
-    if (this.ws) {
-      this.ws.close();
-      this.ws = null;
-    }
-  }
-}
-
-export function useSharedSocket(event: string, callback: SocketEventCallback) {
-  const [socket] = useState(() => SharedSocket.getInstance());
-
-  useEffect(() => {
-    socket.subscribe(event, callback);
-    return () => {
-      socket.unsubscribe(event, callback);
-    };
-  }, [event, callback, socket]);
-}
-import { useEffect, useState } from 'react';
-
-type SocketEvent = {
-  type: string;
-  data: unknown;
-};
-
-type EventCallback = (event: SocketEvent) => void;
-
-class SharedSocket {
-  private ws: WebSocket | null = null;
-  private listeners = new Set<EventCallback>();
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-
-  connect(url: string) {
-    if (this.ws?.readyState === WebSocket.OPEN) return;
-
-    this.ws = new WebSocket(url);
-
-    this.ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        this.listeners.forEach((cb) => cb(data));
-      } catch (err) {
-        console.error('WebSocket message parse error:', err);
-      }
-    };
-
-    this.ws.onclose = () => {
-      if (this.reconnectAttempts < this.maxReconnectAttempts) {
-        this.reconnectAttempts++;
-        setTimeout(() => this.connect(url), 2000 * this.reconnectAttempts);
-      }
-    };
-
-    this.ws.onerror = (err) => {
-      console.error('WebSocket error:', err);
-    };
-  }
-
-  subscribe(callback: EventCallback) {
-    this.listeners.add(callback);
-    return () => this.listeners.delete(callback);
-  }
-
-  disconnect() {
-    this.ws?.close();
-    this.ws = null;
-    this.listeners.clear();
-  }
-}
-
-const sharedSocket = new SharedSocket();
-
-export function useSharedSocket(url?: string) {
+export function useSharedSocket(url: string | null) {
   const [isConnected, setIsConnected] = useState(false);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
-    if (url) {
-      sharedSocket.connect(url);
+    if (!url) return;
+
+    subscriberCount++;
+
+    if (!sharedSocket || sharedSocket.readyState === WebSocket.CLOSED) {
+      sharedSocket = new WebSocket(url);
+
+      sharedSocket.onopen = () => setIsConnected(true);
+      sharedSocket.onclose = () => {
+        setIsConnected(false);
+        if (subscriberCount > 0) {
+          reconnectTimeoutRef.current = setTimeout(() => {
+            if (subscriberCount > 0) {
+              sharedSocket = new WebSocket(url);
+            }
+          }, 5000);
+        }
+      };
+    } else if (sharedSocket.readyState === WebSocket.OPEN) {
       setIsConnected(true);
     }
 
     return () => {
-      // Don't disconnect on component unmount, only on app unload
+      subscriberCount--;
+      if (subscriberCount === 0 && sharedSocket) {
+        sharedSocket.close();
+        sharedSocket = null;
+      }
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
     };
   }, [url]);
 
-  return {
-    subscribe: sharedSocket.subscribe.bind(sharedSocket),
-    isConnected,
-  };
-}
-
-if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', () => {
-    sharedSocket.disconnect();
-  });
+  return { socket: sharedSocket, isConnected };
 }

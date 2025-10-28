@@ -5,12 +5,12 @@
   "scripts": {
     "dev": "next dev -p 5000 -H 0.0.0.0",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 5000 -H 0.0.0.0",
     "lint": "next lint",
-    "test:unit": "vitest",
+    "test:unit": "vitest run",
     "test:e2e": "playwright test",
     "test": "pnpm test:unit && pnpm test:e2e",
-    "perf:baseline": "node ../../scripts/diag/run-lighthouse-local.js http://localhost:5000 --no-update --only-categories=performance,accessibility",
+    "perf:baseline": "node ../../scripts/diag/run-lighthouse-local.js http://localhost:5000",
     "check:leaks": "node ../../scripts/diag/check-memory.js"
   },
   "dependencies": {
