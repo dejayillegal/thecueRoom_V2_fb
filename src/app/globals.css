@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,31 +6,26 @@
 
 @layer base {
   :root {
-    --background: 240 0% 4.3%; /* #0B0B0B */
-    --foreground: 0 0% 91.8%; /* #EAEAEA */
-    --card: 240 0% 5.9%; /* #0F0F0F */
-    --card-foreground: 0 0% 91.8%; /* #EAEAEA */
-    --popover: 240 0% 5.9%; /* #0F0F0F */
-    --popover-foreground: 0 0% 91.8%; /* #EAEAEA */
-    --primary: 70 86% 51%; /* #D1E231 */
-    --primary-foreground: 0 0% 4.3%; /* #0B0B0B */
-    --secondary: 265 100% 68%; /* #9B5CFF */
-    --secondary-foreground: 0 0% 91.8%; /* #EAEAEA */
-    --muted: 240 0% 14.9%; /* #262626 */
-    --muted-foreground: 0 0% 62.2%; /* #9F9F9F */
-    --accent: 0 0% 10.2%; /* #1A1A1A */
-    --accent-foreground: 0 0% 91.8%; /* #EAEAEA */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 5.9%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 5.9%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 70 86% 51%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 265 100% 68%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 10.2%;
+    --muted-foreground: 0 0% 62.2%;
+    --accent: 0 0% 10.2%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%; /* #262626 */
-    --input: 0 0% 14.9%; /* #262626 */
-    --ring: 70 86% 51%; /* #D1E231 */
-    --surface: 240 0% 6.7%;
-    --sidebar-width: 256px;
-  }
-
-  .dark {
-    /* The app is dark-themed by default. See :root */
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 10.2%;
+    --input: 0 0% 10.2%;
+    --ring: 70 86% 51%;
+    --surface: 0 0% 5.9%;
   }
 }
 

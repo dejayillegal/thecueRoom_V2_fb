@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -11,25 +12,17 @@ import {
   Sparkles,
   MessageSquare,
   Music,
+  Calendar,
+  Search,
+  LogOut,
 } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import Logo from '@/components/logo';
 import { useUser } from '@/firebase/auth/use-user';
 import AuthRedirector from '@/components/AuthRedirector';
-import Image from 'next/image';
-import quickActions from '@/app/lib/placeholder-images.json';
-import { dashboardStats, communityUpdates, weeklyCurated } from '@/app/lib/placeholder-data';
-
 
 // --- Sidebar Component ---
 const mainNav = [
@@ -37,227 +30,267 @@ const mainNav = [
   { href: '/ai/cover-art', label: 'AI Cover Art', icon: MicVocal },
   { href: '/meme-generator', label: 'AI Meme', icon: Sparkles },
   { href: '/ai/epk', label: 'AI EPK Generator', icon: Newspaper },
-];
-const secondaryNav = [
-  { href: '/news', label: 'News', icon: Newspaper },
   { href: '/community', label: 'Community Forum', icon: MessageSquare },
   { href: '/music', label: 'Weekly Curated Music', icon: Music },
+  { href: '/news', label: 'News', icon: Newspaper },
+  { href: '/gigs', label: 'Gigs', icon: Calendar },
 ];
-const settingsNav = [{ href: '/settings', label: 'Settings', icon: Settings }];
 
-function Sidebar({ isCollapsed }: { isCollapsed: boolean }) {
+function Sidebar() {
   const pathname = usePathname();
-
-  const renderNav = (items: { href: string; label: string; icon: any }[]) =>
-    items.map((item) =>
-      isCollapsed ? (
-        <TooltipProvider key={item.label} delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link
-                href={item.href}
-                className={cn(
-                  'flex items-center justify-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-                  pathname === item.href && 'bg-primary/10 text-primary font-semibold'
-                )}
-              >
-                <item.icon className="h-5 w-5" />
-                <span className="sr-only">{item.label}</span>
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent side="right">{item.label}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      ) : (
-        <Link
-          key={item.label}
-          href={item.href}
-          className={cn(
-            'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-            pathname === item.href && 'sidebar-active'
-          )}
-        >
-          <item.icon className="h-4 w-4" />
-          {item.label}
-        </Link>
-      )
-    );
+  const { user } = useUser();
 
   return (
-    <div className={cn("hidden bg-card border-r md:flex flex-col", isCollapsed ? "w-20" : "w-64")}>
-        <div className="flex h-16 items-center px-4">
-            <Link href="/" className="flex items-center gap-2 font-semibold">
-                <Logo className="h-8 w-8" />
-                {!isCollapsed && <span className="">thecueRoom</span>}
+    <div className="w-64 bg-black border-r border-[#1a1a1a] flex flex-col h-screen fixed left-0 top-0">
+      <div className="flex h-16 items-center px-4 border-b border-[#1a1a1a]">
+        <Link href="/" className="flex items-center gap-2 font-semibold">
+          <Logo className="h-8 w-8" />
+          <span className="text-[#c8ff00]">thecueRoom</span>
+        </Link>
+      </div>
+      
+      <div className="flex-1 overflow-y-auto p-3">
+        <h3 className="px-3 pb-2 text-xs font-semibold uppercase text-gray-500">Navigation</h3>
+        <nav className="space-y-1">
+          {mainNav.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              className={cn(
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all',
+                pathname === item.href 
+                  ? 'bg-[#c8ff00] text-black font-semibold' 
+                  : 'text-gray-400 hover:text-white hover:bg-[#1a1a1a]'
+              )}
+            >
+              <item.icon className="h-4 w-4" />
+              {item.label}
             </Link>
-        </div>
-        <div className="flex-1 overflow-y-auto p-2 space-y-1">
-            <h3 className={cn("px-3 pb-2 text-xs font-semibold uppercase text-muted-foreground/80", isCollapsed && "hidden")}>Navigation</h3>
-            <nav className="grid items-start gap-1 text-sm font-medium">
-                {renderNav(mainNav)}
-            </nav>
-            <nav className="grid items-start gap-1 text-sm font-medium pt-4">
-                 {renderNav(secondaryNav)}
-            </nav>
-            <nav className="grid items-start gap-1 text-sm font-medium pt-4">
-                 {renderNav(settingsNav)}
-            </nav>
-        </div>
+          ))}
+        </nav>
+      </div>
+
+      <div className="p-3 border-t border-[#1a1a1a]">
+        <Link
+          href="/settings"
+          className={cn(
+            'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all',
+            pathname === '/settings' 
+              ? 'bg-[#c8ff00] text-black font-semibold' 
+              : 'text-gray-400 hover:text-white hover:bg-[#1a1a1a]'
+          )}
+        >
+          <Settings className="h-4 w-4" />
+          Settings
+        </Link>
+      </div>
+
+      <div className="p-4 border-t border-[#1a1a1a] text-xs text-gray-500">
+        © thecueRoom Underground Collective
+      </div>
     </div>
   );
 }
 
 // --- Header Component ---
 function Header() {
-  const router = useRouter();
-  const pathname = usePathname();
+  const { user } = useUser();
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b bg-background/95 px-6 sticky top-0 z-40 backdrop-blur-xl">
-        <nav className="hidden md:flex items-center gap-1">
-            <Button variant={pathname === '/dashboard' ? 'link' : 'ghost'} className={cn(pathname === '/dashboard' && "text-primary font-bold underline")} onClick={() => router.push('/dashboard')}>Dashboard</Button>
-            <Button variant="ghost" disabled>News</Button>
-            <Button variant="ghost" disabled>Community</Button>
-        </nav>
-        
-        <div className="flex items-center gap-2 ml-auto">
-            <Button variant="outline">Create</Button>
-            <Button variant="outline">Upgrade</Button>
-            <Button variant="default" className="bg-primary text-primary-foreground hover:bg-primary/90">Profile</Button>
+    <header className="h-16 border-b border-[#1a1a1a] bg-black px-6 flex items-center justify-between sticky top-0 z-40">
+      <div className="flex-1 max-w-xl">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search artists, gigs, news..."
+            className="w-full pl-10 pr-4 py-2 bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg text-sm text-gray-300 placeholder-gray-500 focus:outline-none focus:border-[#c8ff00]"
+          />
         </div>
+      </div>
+      
+      <div className="flex items-center gap-3 ml-4">
+        <Avatar className="h-8 w-8">
+          <AvatarImage src={user?.photoURL || undefined} />
+          <AvatarFallback className="bg-[#c8ff00] text-black text-xs font-bold">
+            {user?.email?.charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+      </div>
     </header>
   );
 }
 
 function DashboardContent() {
-    const { user } = useUser();
-    return (
-        <div className="max-w-7xl mx-auto space-y-8">
-            <div className="flex justify-between items-start">
-              <div>
-                  <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
-                  <p className="text-muted-foreground mt-1">Here's a quick overview of your activity</p>
-              </div>
-              <div className="text-sm text-muted-foreground bg-card px-3 py-1.5 rounded-md border">
-                Pro trial: 7 days left
-              </div>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                {dashboardStats.map((stat, index) => (
-                    <Card key={index} className="bg-card">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                            <span className="text-xs text-muted-foreground">Last 7 days</span>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-4xl font-bold">{stat.value}</div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
-
-            {/* Quick Actions */}
+  const { user } = useUser();
+  
+  return (
+    <div className="max-w-7xl mx-auto space-y-6">
+      {/* Verification Banner */}
+      <Card className="bg-gradient-to-r from-purple-900/20 to-purple-700/20 border-purple-500/30">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
             <div>
-                <h2 className="text-xl font-semibold tracking-tight mb-4">Quick actions</h2>
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                    {quickActions.dashboardQuickActions.map((action) => (
-                        <Card key={action.title} className="group overflow-hidden bg-card">
-                            <Link href={action.href}>
-                                <CardHeader className="flex flex-row items-center justify-between text-xs text-muted-foreground p-4">
-                                    <span>{action.href === '/community' ? 'Explore' : 'Start'}</span>
-                                    <span>{action.title}</span>
-                                </CardHeader>
-                                <CardContent className="p-0">
-                                <div className="relative h-40 w-full">
-                                    <Image 
-                                        src={action.image}
-                                        alt={action.title} 
-                                        fill 
-                                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                        data-ai-hint={action.hint}
-                                    />
-                                </div>
-                                </CardContent>
-                            </Link>
-                        </Card>
-                    ))}
-                </div>
+              <h2 className="text-xl font-bold text-white mb-1">Verification Pending</h2>
+              <p className="text-sm text-gray-400">Your account is under review. You'll be notified once approved.</p>
             </div>
-
-            <div className="grid gap-8 lg:grid-cols-3">
-                {/* Latest from the community */}
-                <div className="lg:col-span-2">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xl font-semibold tracking-tight">Latest from the community</h2>
-                        <Button variant="link" size="sm">View all</Button>
-                    </div>
-                    <Card className="bg-card">
-                        <CardContent className="p-0">
-                            <div className="divide-y divide-border">
-                                {communityUpdates.map((update, index) => (
-                                    <div key={index} className="flex items-center gap-4 p-4">
-                                        <Avatar>
-                                            <AvatarImage src={update.avatarUrl} alt={update.name} />
-                                            <AvatarFallback>{update.name.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex-1">
-                                            <p className="text-sm font-medium">{update.name}</p>
-                                            <p className="text-sm text-muted-foreground">{update.action}</p>
-                                        </div>
-                                        <p className="text-xs text-muted-foreground">{update.time}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Weekly curated music */}
-                <div className="lg:col-span-1">
-                    <div className="flex items-center justify-between mb-4">
-                         <h2 className="text-xl font-semibold tracking-tight">Weekly curated music</h2>
-                         <Button variant="link" size="sm">Open playlist</Button>
-                    </div>
-                    <Card className="bg-card overflow-hidden">
-                        <div className="relative h-48 w-full">
-                            <Image src={weeklyCurated.imageUrl} alt="Indie Spotlight" fill className="object-cover" />
-                        </div>
-                        <div className="p-4">
-                             <div className="flex items-center justify-between">
-                                <div>
-                                    <h3 className="font-semibold">{weeklyCurated.title}</h3>
-                                    <p className="text-sm text-muted-foreground">{weeklyCurated.description}</p>
-                                </div>
-                                <Button>Play</Button>
-                            </div>
-                        </div>
-                    </Card>
-                </div>
+            <div className="flex gap-3">
+              <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-[#1a1a1a]">
+                Sign Out
+              </Button>
+              <Button className="bg-[#c8ff00] text-black hover:bg-[#d4ff33]">
+                Contact Support
+              </Button>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Spotlight */}
+        <Card className="bg-[#0f0f0f] border-[#1a1a1a]">
+          <CardContent className="p-6">
+            <h2 className="text-lg font-bold text-white mb-4">Spotlight</h2>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <Music className="w-5 h-5 text-[#c8ff00] mt-1" />
+                <div>
+                  <div className="text-sm font-semibold text-white">Trending Artist</div>
+                  <div className="text-xs text-gray-500 mt-1">Fresh new spotlight from the underground.</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Gig Radar */}
+        <Card className="bg-[#0f0f0f] border-[#1a1a1a]">
+          <CardContent className="p-6">
+            <h2 className="text-lg font-bold text-white mb-4">Gig Radar</h2>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-[#1a1a1a] rounded-lg">
+                <div>
+                  <div className="text-sm font-semibold text-white">Bangalore Warehouse 03</div>
+                  <div className="text-xs text-gray-500">Fri • 11:30 PM</div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-[#1a1a1a] rounded-lg">
+                <div>
+                  <div className="text-sm font-semibold text-white">Basement House 12</div>
+                  <div className="text-xs text-gray-500">Sat • 10:00 PM</div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-[#1a1a1a] rounded-lg">
+                <div>
+                  <div className="text-sm font-semibold text-white">Secret Rooftop</div>
+                  <div className="text-xs text-gray-500">Sun • 7:00 PM</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Verification Status & Gig Radar (Right Column) */}
+        <div className="space-y-6">
+          <Card className="bg-[#0f0f0f] border-[#1a1a1a]">
+            <CardContent className="p-6">
+              <h2 className="text-lg font-bold text-white mb-4">Gig Radar</h2>
+              <div className="space-y-3">
+                <div className="p-3 bg-[#1a1a1a] rounded-lg">
+                  <div className="text-sm font-semibold text-white">Industrial Night</div>
+                  <div className="text-xs text-gray-500">Today</div>
+                </div>
+                <div className="p-3 bg-[#1a1a1a] rounded-lg">
+                  <div className="text-sm font-semibold text-white">Deep House Pop-up</div>
+                  <div className="text-xs text-gray-500">Tomorrow</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-[#0f0f0f] border-[#1a1a1a]">
+            <CardContent className="p-6">
+              <h2 className="text-lg font-bold text-white mb-4">Verification Status</h2>
+              <div className="flex items-center gap-2 text-sm text-gray-400">
+                <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                <span>Pending review</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-[#0f0f0f] border-[#1a1a1a]">
+            <CardContent className="p-6">
+              <h2 className="text-lg font-bold text-white mb-4">Curators</h2>
+              <div className="flex gap-2">
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback className="bg-[#2a2a2a] text-[#c8ff00] text-xs">C1</AvatarFallback>
+                </Avatar>
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback className="bg-[#2a2a2a] text-[#c8ff00] text-xs">C2</AvatarFallback>
+                </Avatar>
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback className="bg-[#2a2a2a] text-[#c8ff00] text-xs">C3</AvatarFallback>
+                </Avatar>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-    )
+      </div>
+
+      {/* Recent Activity */}
+      <Card className="bg-[#0f0f0f] border-[#1a1a1a]">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-white">Recent Activity</h2>
+            <div className="text-xs text-gray-500">Loading</div>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-start gap-3 p-3 bg-[#1a1a1a] rounded-lg">
+              <Avatar className="h-10 w-10">
+                <AvatarFallback className="bg-[#2a2a2a] text-[#c8ff00] text-xs">AM</AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-white">Ava Martinez</div>
+                <div className="text-xs text-gray-500">Queued update while verification completes</div>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-3 bg-[#1a1a1a] rounded-lg">
+              <Avatar className="h-10 w-10">
+                <AvatarFallback className="bg-[#2a2a2a] text-[#c8ff00] text-xs">SY</AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-white">System</div>
+                <div className="text-xs text-gray-500">Invite-only access enforced</div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Footer */}
+      <div className="text-right text-xs text-gray-600 pb-4">
+        Private beta
+      </div>
+    </div>
+  );
 }
 
 // --- Main Dashboard Page Component ---
 export default function DashboardPage({ children }: { children?: React.ReactNode }) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const pathname = usePathname();
-
   const isDashboardHome = pathname === '/dashboard';
 
   return (
-      <div className={cn("grid min-h-screen w-full bg-background", isSidebarCollapsed ? "md:grid-cols-[80px_1fr]" : "md:grid-cols-[256px_1fr]")}>
-        <AuthRedirector />
-        <Sidebar isCollapsed={isSidebarCollapsed} />
-        <div className="flex flex-col max-h-screen overflow-y-auto">
-          <Header />
-          <main className="flex-1 bg-background p-6 md:p-8">
-            {isDashboardHome ? <DashboardContent /> : children}
-          </main>
-        </div>
+    <div className="bg-black min-h-screen">
+      <AuthRedirector />
+      <Sidebar />
+      <div className="ml-64 flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-1 overflow-y-auto p-6">
+          {isDashboardHome ? <DashboardContent /> : children}
+        </main>
       </div>
+    </div>
   );
 }
