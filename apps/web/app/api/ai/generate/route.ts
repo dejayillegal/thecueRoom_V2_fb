@@ -37,8 +37,15 @@ async function getAuthenticatedUserId(): Promise<string | null> {
     }
 
     // Parse session to get user email or ID
-    // Adjust this based on your actual session structure
-    const sessionData = JSON.parse(sessionCookie.value);
+    let sessionData;
+    try {
+      sessionData = JSON.parse(sessionCookie.value);
+    } catch (parseError) {
+      // Cookie is not JSON, might be a simple string token
+      // Return null to fall back to demo user
+      return null;
+    }
+
     const userEmail = sessionData.email || sessionData.user?.email;
 
     if (!userEmail) {

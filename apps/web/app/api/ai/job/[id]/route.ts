@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db-client';
+import { getDbClient } from '@/lib/db-client';
 import { aiJobs } from '@thecueroom/db/schema';
 import { eq } from 'drizzle-orm';
 
@@ -12,6 +12,7 @@ export async function GET(
 ) {
   try {
     const { id: jobId } = await params;
+    const db = getDbClient();
 
     const [job] = await db
       .select()
