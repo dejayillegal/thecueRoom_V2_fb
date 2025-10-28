@@ -23,9 +23,22 @@ interface FeedItem {
   tags: string[];
 }
 
+const gigRadarItems = [
+  { title: 'Fabric London - Techno Night', date: 'Dec 28' },
+  { title: 'Printworks Finale', date: 'Jan 5' },
+  { title: 'Berghain Showcase', date: 'Jan 12' },
+];
+
 export const DashboardContent = memo(function DashboardContent({ user }: DashboardContentProps) {
   const [spotlightFeeds, setSpotlightFeeds] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const formatDate = useCallback((dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -35,8 +48,6 @@ export const DashboardContent = memo(function DashboardContent({ user }: Dashboa
       try {
         const res = await fetch('/api/feeds?limit=3', {
           signal: controller.signal,
-          cache: 'force-cache',
-          next: { revalidate: 300 }, // Cache for 5 minutes
         });
         
         if (!res.ok) throw new Error('Failed to fetch');
@@ -64,23 +75,8 @@ export const DashboardContent = memo(function DashboardContent({ user }: Dashboa
     };
   }, []);
 
-  const gigRadarItems = useMemo(() => [
-    { title: 'Fabric London - Techno Night', date: 'Dec 28' },
-    { title: 'Printworks Finale', date: 'Jan 5' },
-    { title: 'Berghain Showcase', date: 'Jan 12' },
-  ], []);
-
-
-
-  const formatDate = useCallback((dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric'
-    });
-  }, []);
-
   return (
-    <main className="ml-0 lg:ml-[258px] mt-[72px] min-h-screen bg-[#0b0b0b]">
+    <div className="min-h-screen bg-[#0b0b0b]">
       <div className="max-w-[1400px] mx-auto p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
           {/* Verification Pending Banner */}
@@ -233,6 +229,6 @@ export const DashboardContent = memo(function DashboardContent({ user }: Dashboa
           <p className="text-[11px] text-gray-600">Private beta</p>
         </div>
       </div>
-    </main>
+    </div>
   );
 });

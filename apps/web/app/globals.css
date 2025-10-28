@@ -8,20 +8,19 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Smooth scrolling with GPU acceleration */
+/* Smooth scrolling */
 .spotlight-scroll-container {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  perspective: 1000px;
+  overscroll-behavior: contain;
 }
 
-/* Optimize transitions */
-.transition-all,
-.transition-colors,
-.transition-transform {
-  will-change: transform, opacity;
+/* Only GPU accelerate when animating */
+.spotlight-scroll-container:hover,
+.transition-all:hover,
+.transition-colors:hover,
+.transition-transform:hover {
+  will-change: transform;
 }
 
 @layer base {

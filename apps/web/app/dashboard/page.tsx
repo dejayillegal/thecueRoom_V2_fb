@@ -1,35 +1,43 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, memo } from 'react';
 import { Sidebar } from '@/components/dashboard/Sidebar';
 import { Header } from '@/components/dashboard/Header';
 import { DashboardContent } from './dashboard-content';
 
-export default function DashboardPage() {
+// In production, this would come from session/auth
+const mockUser = {
+  name: 'Artist',
+  email: 'artist@example.com',
+  image: null,
+};
+
+export default memo(function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // Memoize toggle function to prevent unnecessary re-renders
   const handleSidebarToggle = useCallback(() => {
     setSidebarOpen(prev => !prev);
   }, []);
 
-  // In production, this would come from session/auth
-  const user = {
-    name: 'Artist',
-    email: 'artist@example.com',
-    image: null,
-  };
-
   return (
     <div className="min-h-screen bg-[#0b0b0b]">
-      <Header user={user} onSidebarToggle={handleSidebarToggle} />
+      <Header user={mockUser} onSidebarToggle={handleSidebarToggle} />
       <Sidebar
         isOpen={sidebarOpen}
         onToggle={handleSidebarToggle}
       />
-      <main className={`pt-[72px] min-h-screen transition-all duration-300 ${sidebarOpen ? 'lg:ml-[258px]' : 'ml-0'}`}>
-        <DashboardContent user={user} />
+      <main 
+        className={cn(
+          'min-h-screen pt-[72px] transition-[margin] duration-200 ease-in-out',
+          sidebarOpen ? 'lg:ml-[258px]' : 'lg:ml-0'
+        )}
+      >
+        <DashboardContent user={mockUser} />
       </main>
     </div>
   );
+});
+
+function cn(...classes: (string | boolean | undefined)[]) {
+  return classes.filter(Boolean).join(' ');
 }
