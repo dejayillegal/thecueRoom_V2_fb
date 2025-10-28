@@ -77,6 +77,15 @@
   }
 }
 
+@keyframes scroll {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-10%);
+  }
+}
+
 @layer base {
   :root {
     --background: 240 0% 4.3%;

@@ -79,7 +79,7 @@ export function DashboardContent({ user }: DashboardContentProps) {
       <div className="max-w-[1400px] mx-auto p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
           {/* Verification Pending Banner */}
-          <div className="lg:col-span-2 bg-[#0f0f0f] rounded-lg p-6 relative overflow-hidden hero-glow">
+          <div className="lg:col-span-3 bg-[#0f0f0f] rounded-lg p-6 relative overflow-hidden hero-glow">
             <div className="relative z-10">
               <div className="flex items-start gap-3 mb-4">
                 <AlertCircle className="text-[var(--tcr-accent)] mt-1" size={20} />
@@ -104,68 +104,72 @@ export function DashboardContent({ user }: DashboardContentProps) {
               </div>
             </div>
           </div>
-
-          {/* Verification Status */}
-          <div className="bg-[#0f0f0f] rounded-lg p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <Clock className="text-orange-400" size={18} />
-              <h3 className="text-[15px] font-semibold">Verification Status</h3>
-            </div>
-            <p className="text-[13px] text-gray-400 mb-3">Under review</p>
-            <div className="text-[11px] text-gray-500">
-              Estimated: 24-48 hours
-            </div>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
-          {/* Spotlight Card */}
-          <div className="bg-[#0f0f0f] rounded-lg p-5">
+          {/* Spotlight Card - Wide */}
+          <div className="lg:col-span-3 bg-[#0f0f0f] rounded-lg p-5">
             <div className="flex items-center gap-2 mb-4">
               <Sparkles className="text-[var(--tcr-accent)]" size={18} />
               <h3 className="text-[15px] font-semibold">Spotlight</h3>
             </div>
             {loading ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-16 bg-[#1a1a1a] rounded animate-pulse" />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="h-24 bg-[#1a1a1a] rounded animate-pulse" />
                 ))}
               </div>
             ) : spotlightFeeds.length > 0 ? (
-              <div className="space-y-3">
-                {spotlightFeeds.map((feed, i) => (
-                  <Link
-                    key={i}
-                    href={feed.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block group"
-                  >
-                    <div className="flex gap-2">
-                      {feed.image && (
-                        <div className="relative w-12 h-12 flex-shrink-0 rounded overflow-hidden">
-                          <Image
-                            src={feed.image}
-                            alt={feed.title}
-                            fill
-                            className="object-cover"
-                            unoptimized={feed.image.startsWith('/api/og-fallback')}
-                          />
+              <div 
+                className="overflow-y-auto max-h-[400px] scrollbar-hide"
+                style={{
+                  animation: 'scroll 30s linear infinite',
+                }}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {spotlightFeeds.map((feed, i) => (
+                    <Link
+                      key={i}
+                      href={feed.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block group bg-[#1a1a1a] rounded-lg overflow-hidden hover:bg-[#222222] transition-colors"
+                    >
+                      <div className="flex gap-3 p-3">
+                        {feed.image && (
+                          <div className="relative w-20 h-20 flex-shrink-0 rounded overflow-hidden bg-[#2a2a2a]">
+                            <Image
+                              src={feed.image}
+                              alt={feed.title}
+                              fill
+                              sizes="80px"
+                              className="object-cover"
+                              unoptimized={feed.image.startsWith('/api/og-fallback')}
+                            />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[13px] font-medium text-white line-clamp-2 group-hover:text-[var(--tcr-accent)] transition-colors mb-1">
+                            {feed.title}
+                          </div>
+                          <div className="text-[11px] text-gray-500">{feed.source}</div>
+                          {feed.publishedAt && (
+                            <div className="text-[10px] text-gray-600 mt-1">
+                              {new Date(feed.publishedAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric'
+                              })}
+                            </div>
+                          )}
                         </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[13px] font-medium text-white line-clamp-2 group-hover:text-[var(--tcr-accent)] transition-colors">
-                          {feed.title}
-                        </div>
-                        <div className="text-[11px] text-gray-500 mt-1">{feed.source}</div>
                       </div>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  ))}
+                </div>
               </div>
             ) : (
               <p className="text-[13px] text-gray-400 leading-relaxed">
-                Featured artists and trending tracks will appear here once your profile is verified.
+                Featured artists and trending tracks will appear here.
               </p>
             )}
           </div>
