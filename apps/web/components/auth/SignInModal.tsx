@@ -151,7 +151,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
           <X className="h-5 w-5" />
         </button>
 
-        <div className="grid md:grid-cols-[1fr_320px]"></div>
+        <div className="grid md:grid-cols-[1fr_320px]">
           {/* Left side - Auth form */}
           <div className="p-6 md:p-8 lg:p-10 max-h-[calc(90vh-4rem)] overflow-y-auto">
             <div className="mb-6 md:mb-8">
