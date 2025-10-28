@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, memo } from 'react';
 import { AlertCircle, Sparkles, Calendar } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,7 @@ interface FeedItem {
   tags: string[];
 }
 
-export function DashboardContent({ user }: DashboardContentProps) {
+export const DashboardContent = memo(function DashboardContent({ user }: DashboardContentProps) {
   const [spotlightFeeds, setSpotlightFeeds] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,7 +35,12 @@ export function DashboardContent({ user }: DashboardContentProps) {
       try {
         const res = await fetch('/api/feeds?limit=3', {
           signal: controller.signal,
+          cache: 'force-cache',
+          next: { revalidate: 300 }, // Cache for 5 minutes
         });
+        
+        if (!res.ok) throw new Error('Failed to fetch');
+        
         const data = await res.json();
         if (mounted && data.data) {
           setSpotlightFeeds(data.data.slice(0, 3));
@@ -124,14 +129,14 @@ export function DashboardContent({ user }: DashboardContentProps) {
               </div>
             ) : spotlightFeeds.length > 0 ? (
               <div className="relative h-[400px] overflow-hidden">
-                <div className="spotlight-scroll-container space-y-3 h-full overflow-y-auto scrollbar-hide will-change-scroll">
+                <div className="spotlight-scroll-container space-y-3 h-full overflow-y-auto scrollbar-hide">
                   {spotlightFeeds.map((feed, i) => (
                     <Link
                       key={`${feed.url}-${i}`}
                       href={feed.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block group bg-gradient-to-br from-[#1a1a1a] to-[#151515] rounded-lg overflow-hidden hover:from-[#222222] hover:to-[#1a1a1a] transition-all duration-300 border border-[#2a2a2a] hover:border-[var(--tcr-accent)]/30"
+                      className="block group bg-gradient-to-br from-[#1a1a1a] to-[#151515] rounded-lg overflow-hidden hover:from-[#222222] hover:to-[#1a1a1a] transition-colors duration-200 border border-[#2a2a2a] hover:border-[var(--tcr-accent)]/30"
                     >
                       <div className="flex gap-4 p-4">
                         {feed.image && (
@@ -141,16 +146,19 @@ export function DashboardContent({ user }: DashboardContentProps) {
                               alt={feed.title}
                               fill
                               sizes="112px"
-                              className="object-cover group-hover:scale-105 transition-transform duration-300"
+                              className="object-cover group-hover:scale-105 transition-transform duration-200"
                               unoptimized={feed.image.startsWith('/api/og-fallback')}
                               loading="lazy"
+                              quality={75}
+                              placeholder="blur"
+                              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                           </div>
                         )}
                         <div className="flex-1 min-w-0 flex flex-col justify-between">
                           <div>
-                            <div className="text-[14px] font-semibold text-white line-clamp-2 group-hover:text-[var(--tcr-accent)] transition-colors leading-snug mb-2">
+                            <div className="text-[14px] font-semibold text-white line-clamp-2 group-hover:text-[var(--tcr-accent)] transition-colors duration-200 leading-snug mb-2">
                               {feed.title}
                             </div>
                             <div className="flex items-center gap-2 text-[11px] text-gray-500">
@@ -227,4 +235,4 @@ export function DashboardContent({ user }: DashboardContentProps) {
       </div>
     </main>
   );
-}
+});
