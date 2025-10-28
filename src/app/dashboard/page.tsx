@@ -36,8 +36,8 @@ function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="w-[258px] h-screen fixed left-0 top-0 flex flex-col bg-[#0a0a0a] border-r-0">
-      <div className="flex h-[72px] items-center px-5 border-b-0">
+    <div className="w-[258px] h-screen fixed left-0 top-0 flex flex-col bg-black">
+      <div className="flex h-[72px] items-center px-5">
         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <div className="w-7 h-7 rounded-full bg-[#c8ff00] flex items-center justify-center">
             <span className="text-black text-sm font-bold">C</span>
@@ -74,7 +74,7 @@ function Sidebar() {
         </nav>
       </div>
 
-      <div className="px-4 pb-4 border-t-0">
+      <div className="px-4 pb-4">
         <Link
           href="/settings"
           className={cn(
@@ -89,7 +89,7 @@ function Sidebar() {
         </Link>
       </div>
 
-      <div className="px-4 py-3 border-t-0">
+      <div className="px-4 py-3">
         <p className="text-[10px] text-[#666666]">© thecueRoom Underground Collective</p>
       </div>
     </div>
@@ -100,8 +100,7 @@ function Header() {
   const { user } = useUser();
 
   return (
-    <header className="h-[72px] px-6 flex items-center justify-between bg-transparent relative border-b-0">
-      {/* Gradient background - purple and green on left corner */}
+    <header className="h-[72px] px-6 flex items-center justify-between bg-black relative">
       <div className="absolute inset-0 dashboard-header-gradient pointer-events-none" />
       
       <div className="flex-1 max-w-xl relative z-10">
@@ -116,9 +115,9 @@ function Header() {
       </div>
       
       <div className="flex items-center gap-3 ml-6 relative z-10">
-        <Avatar className="h-9 w-9 border-0 ring-0">
+        <Avatar className="h-9 w-9">
           <AvatarImage src={user?.photoURL || undefined} />
-          <AvatarFallback className="text-xs font-bold bg-[#c8ff00] text-black border-0">
+          <AvatarFallback className="text-xs font-bold bg-[#c8ff00] text-black">
             {user?.email?.charAt(0).toUpperCase() || 'U'}
           </AvatarFallback>
         </Avatar>
@@ -130,10 +129,10 @@ function Header() {
 function DashboardContent() {
   return (
     <div className="max-w-[1200px] mx-auto space-y-5">
-      {/* Top Section with Verification Pending and Gig Radar */}
+      {/* Top Section - Verification Pending and Gig Radar */}
       <div className="grid grid-cols-3 gap-5">
-        {/* Verification Pending Banner - spans 2 columns */}
-        <div className="col-span-2 dashboard-card p-6">
+        {/* Verification Pending - spans 2 columns */}
+        <div className="col-span-2 bg-[#0f0f0f] rounded-lg p-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-[18px] font-semibold text-white mb-1.5">Verification Pending</h2>
@@ -147,7 +146,7 @@ function DashboardContent() {
                 Sign Out
               </Button>
               <Button 
-                className="h-9 px-5 text-[13px] font-semibold bg-[#c8ff00] text-black hover:bg-[#d4ff33] border-0 shadow-none"
+                className="h-9 px-5 text-[13px] font-semibold bg-[#c8ff00] text-black hover:bg-[#d4ff33]"
               >
                 Contact Support
               </Button>
@@ -156,7 +155,7 @@ function DashboardContent() {
         </div>
 
         {/* Gig Radar - Right Column */}
-        <div className="dashboard-card p-5">
+        <div className="bg-[#0f0f0f] rounded-lg p-5">
           <h2 className="text-[15px] font-semibold text-white mb-4">Gig Radar</h2>
           <div className="space-y-3">
             <div>
@@ -171,10 +170,10 @@ function DashboardContent() {
         </div>
       </div>
 
-      {/* Three Column Grid */}
+      {/* Three Column Grid - Spotlight, Gig Radar, Verification Status */}
       <div className="grid grid-cols-3 gap-5">
         {/* Spotlight */}
-        <div className="dashboard-card p-5">
+        <div className="bg-[#0f0f0f] rounded-lg p-5">
           <h2 className="text-[15px] font-semibold text-white mb-4">Spotlight</h2>
           <div className="space-y-3">
             <div className="flex items-start gap-3">
@@ -188,7 +187,7 @@ function DashboardContent() {
         </div>
 
         {/* Gig Radar (Center) */}
-        <div className="dashboard-card p-5">
+        <div className="bg-[#0f0f0f] rounded-lg p-5">
           <h2 className="text-[15px] font-semibold text-white mb-4">Gig Radar</h2>
           <div className="space-y-2.5">
             <div className="p-3 rounded-md bg-black/40">
@@ -213,7 +212,7 @@ function DashboardContent() {
         </div>
 
         {/* Verification Status */}
-        <div className="dashboard-card p-5">
+        <div className="bg-[#0f0f0f] rounded-lg p-5">
           <h2 className="text-[15px] font-semibold text-white mb-4">Verification Status</h2>
           <div className="flex items-center gap-2.5">
             <div className="w-2 h-2 rounded-full bg-[#c8ff00]"></div>
@@ -223,7 +222,7 @@ function DashboardContent() {
       </div>
 
       {/* Recent Activity - Full Width */}
-      <div className="dashboard-card p-5">
+      <div className="bg-[#0f0f0f] rounded-lg p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-[15px] font-semibold text-white">Recent Activity</h2>
           <div className="text-[11px] flex items-center gap-2 text-[#666666]">
@@ -233,8 +232,8 @@ function DashboardContent() {
         </div>
         <div className="space-y-2.5">
           <div className="flex items-start gap-3 p-3 rounded-md bg-black/40">
-            <Avatar className="h-9 w-9 flex-shrink-0 border-0">
-              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00] border-0">
+            <Avatar className="h-9 w-9 flex-shrink-0">
+              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00]">
                 AM
               </AvatarFallback>
             </Avatar>
@@ -244,8 +243,8 @@ function DashboardContent() {
             </div>
           </div>
           <div className="flex items-start gap-3 p-3 rounded-md bg-black/40">
-            <Avatar className="h-9 w-9 flex-shrink-0 border-0">
-              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00] border-0">
+            <Avatar className="h-9 w-9 flex-shrink-0">
+              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00]">
                 SY
               </AvatarFallback>
             </Avatar>
@@ -257,21 +256,21 @@ function DashboardContent() {
         </div>
       </div>
 
-      {/* Bottom Section */}
+      {/* Bottom Section - Empty left, Curators right */}
       <div className="grid grid-cols-3 gap-5">
         <div className="col-span-2"></div>
         {/* Curators */}
-        <div className="dashboard-card p-5">
+        <div className="bg-[#0f0f0f] rounded-lg p-5">
           <h2 className="text-[15px] font-semibold text-white mb-4">Curators</h2>
           <div className="flex gap-2.5">
-            <Avatar className="h-10 w-10 border-0 ring-0">
-              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00] border-0">C1</AvatarFallback>
+            <Avatar className="h-10 w-10">
+              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00]">C1</AvatarFallback>
             </Avatar>
-            <Avatar className="h-10 w-10 border-0 ring-0">
-              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00] border-0">C2</AvatarFallback>
+            <Avatar className="h-10 w-10">
+              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00]">C2</AvatarFallback>
             </Avatar>
-            <Avatar className="h-10 w-10 border-0 ring-0">
-              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00] border-0">C3</AvatarFallback>
+            <Avatar className="h-10 w-10">
+              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00]">C3</AvatarFallback>
             </Avatar>
           </div>
         </div>
