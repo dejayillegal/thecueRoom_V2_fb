@@ -45,12 +45,14 @@ export function CoverArtStudio() {
         body: JSON.stringify({
           type: 'cover-art',
           prompt,
-          style,
-          artist,
-          release,
-          aspect,
-          resolution,
-          seed: seed || undefined,
+          params: {
+            style,
+            artist,
+            release,
+            aspect,
+            resolution,
+            seed: seed || undefined,
+          },
         }),
       });
 
