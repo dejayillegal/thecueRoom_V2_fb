@@ -26,13 +26,13 @@ import AuthRedirector from '@/components/AuthRedirector';
 
 const mainNav = [
   { href: '/dashboard', label: 'Dashboard', icon: Home },
-  { href: '/ai/cover-art', label: 'AI Cover Art', icon: Image },
-  { href: '/meme-generator', label: 'AI Meme', icon: MessageSquare },
-  { href: '/ai/epk', label: 'AI EPK Generator', icon: FileText },
-  { href: '/community', label: 'Community Forum', icon: Users },
-  { href: '/music', label: 'Weekly Curated Music', icon: Music },
-  { href: '/news', label: 'News', icon: Newspaper },
-  { href: '/gigs', label: 'Gigs', icon: Calendar },
+  { href: '/dashboard/ai-cover-art', label: 'AI Cover Art', icon: Image },
+  { href: '/dashboard/ai-meme', label: 'AI Meme', icon: MessageSquare },
+  { href: '/dashboard/ai-epk', label: 'AI EPK Generator', icon: FileText },
+  { href: '/dashboard/community', label: 'Community Forum', icon: Users },
+  { href: '/dashboard/music', label: 'Weekly Curated Music', icon: Music },
+  { href: '/dashboard/news', label: 'News', icon: Newspaper },
+  { href: '/dashboard/gigs', label: 'Gigs', icon: Calendar },
 ];
 
 function Sidebar() {
@@ -107,15 +107,15 @@ function Sidebar() {
         {/* Settings */}
         <div className="px-4 pb-4 border-t border-[#1a1a1a] pt-4">
           <Link
-            href="/settings"
+            href="/dashboard/settings"
             className={cn(
               'flex items-center gap-3 rounded-md px-3 py-2.5 text-[13px] transition-all',
-              pathname === '/settings' 
+              pathname === '/dashboard/settings' 
                 ? 'bg-[#D1FF3D] text-black font-semibold' 
                 : 'text-white hover:bg-[#1a1a1a] font-normal'
             )}
           >
-            <Settings className="h-[18px] w-[18px]" strokeWidth={pathname === '/settings' ? 2.5 : 2} />
+            <Settings className="h-[18px] w-[18px]" strokeWidth={pathname === '/dashboard/settings' ? 2.5 : 2} />
             Settings
           </Link>
         </div>

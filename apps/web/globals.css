@@ -1,0 +1,28 @@
+@media (prefers-reduced-motion: reduce) {
+  .tcr-chip, .tcr-chip-glow { transition: none; }
+}
+
+/* Spotlight vertical autoscroll */
+@keyframes spotlight-scroll {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+.spotlight-scroll-container {
+  animation: spotlight-scroll 30s linear infinite;
+  will-change: transform;
+}
+
+.spotlight-scroll-container:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spotlight-scroll-container {
+    animation: none;
+  }
+}
