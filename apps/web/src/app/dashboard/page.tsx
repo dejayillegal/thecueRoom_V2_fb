@@ -2,7 +2,6 @@
 'use client';
 
 import { lazy, Suspense } from 'react';
-import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import { SpotlightColumn } from '@/components/Dashboard/SpotlightColumn';
 import { RecentActivity } from '@/components/Dashboard/RecentActivity';
@@ -52,16 +51,16 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-[#0B0B0B]">
       {/* Hero Section */}
-      <div className="relative h-64 bg-gradient-to-r from-purple-900/20 to-blue-900/20 border-b border-[#1a1a1a]">
+      <div className="relative h-48 bg-gradient-to-r from-purple-900/20 to-blue-900/20 border-b border-[#1a1a1a]">
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-white mb-2">Welcome to thecueRoom</h1>
+            <h1 className="text-3xl font-bold text-white mb-2">Welcome to thecueRoom</h1>
             <p className="text-gray-400">Your music industry hub</p>
           </div>
         </div>
       </div>
 
-      <div className="p-6 space-y-6">
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Top Banner */}
         <Suspense fallback={<div className="h-24 bg-[#111111] rounded-lg animate-pulse" />}>
           <TopBanner />
