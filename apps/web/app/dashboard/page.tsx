@@ -21,27 +21,20 @@ export default memo(function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#0b0b0b]">
-      <Header 
-        user={mockUser} 
-        onSidebarToggle={handleSidebarToggle}
-        sidebarOpen={sidebarOpen}
-      />
       <Sidebar
         isOpen={sidebarOpen}
         onToggle={handleSidebarToggle}
       />
+      <Header 
+        user={mockUser}
+        sidebarOpen={sidebarOpen}
+      />
       <main 
-        className={cn(
-          'min-h-screen pt-[72px] transition-[margin] duration-300 ease-in-out',
-          sidebarOpen ? 'lg:ml-[258px]' : 'lg:ml-0'
-        )}
+        className="min-h-screen pt-[72px] transition-all duration-300 ease-in-out"
+        style={{ marginLeft: sidebarOpen ? '200px' : '60px' }}
       >
         <DashboardContent user={mockUser} />
       </main>
     </div>
   );
 });
-
-function cn(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(' ');
-}

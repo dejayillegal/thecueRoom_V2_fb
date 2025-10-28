@@ -13,7 +13,8 @@ import {
   Newspaper,
   Radar,
   Settings,
-  X
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -24,108 +25,103 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { href: '/dashboard', label: 'Home', icon: Home },
+  { href: '/dashboard', label: 'Dashboard', icon: Home },
   { href: '/ai/cover-art', label: 'AI Cover Art', icon: Image },
   { href: '/ai/meme-studio', label: 'AI Meme', icon: MessageSquare },
-  { href: '/ai/epk-generator', label: 'AI EPK Generator', icon: FileText },
+  { href: '/ai/epk-generator', label: 'AI EPK', icon: FileText },
   { href: '/community/forum', label: 'Community Forum', icon: Users },
-  { href: '/news', label: 'News', icon: Newspaper },
-  { href: '/gigs/india', label: 'Gig Radar', icon: Radar },
   { href: '/music/weekly', label: 'Weekly Curated Music', icon: Music },
+  { href: '/news', label: 'News', icon: Newspaper },
+  { href: '/gigs/india', label: 'Gigs', icon: Radar },
 ];
 
 export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <>
-      {/* Mobile overlay */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 lg:hidden"
-          onClick={onToggle}
-          aria-hidden="true"
-        />
+    <aside
+      className={cn(
+        'fixed left-0 top-0 h-screen bg-[#0b0b0b] border-r border-[#1a1a1a] flex flex-col z-40 transition-all duration-300 ease-in-out',
+        isOpen ? 'w-[200px]' : 'w-[60px]',
+        className
       )}
-
-      <aside
-        className={cn(
-          'fixed left-0 top-0 h-screen w-[258px] bg-[#0b0b0b] border-r border-[#1a1a1a] flex flex-col z-50',
-          'transition-transform duration-300 ease-in-out',
-          !isOpen && '-translate-x-full',
-          className
-        )}
-      >
-        {/* Sidebar Header */}
-        <div className="h-[72px] flex items-center justify-between px-5 border-b border-[#1a1a1a]">
+    >
+      {/* Sidebar Header */}
+      <div className="h-[72px] flex items-center justify-between px-4 border-b border-[#1a1a1a]">
+        {isOpen ? (
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-[var(--tcr-accent)] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-[var(--tcr-accent)] flex items-center justify-center">
               <span className="text-black text-sm font-bold">C</span>
             </div>
-            <span className="text-white text-[15px] font-semibold">thecueRoom</span>
+            <span className="text-white text-sm font-semibold">thecueRoom</span>
           </div>
-          <button 
-            className="lg:hidden p-1.5 rounded-md hover:bg-[#1a1a1a] transition-colors"
-            onClick={onToggle}
-            aria-label="Close sidebar"
-          >
-            <X className="w-5 h-5 text-gray-400" />
-          </button>
-        </div>
+        ) : (
+          <div className="w-8 h-8 rounded-full bg-[var(--tcr-accent)] flex items-center justify-center mx-auto">
+            <span className="text-black text-sm font-bold">C</span>
+          </div>
+        )}
+      </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 p-4 overflow-y-auto overscroll-contain scrollbar-hide">
+      {/* Navigation */}
+      <nav className="flex-1 py-4 px-2 overflow-y-auto overscroll-contain scrollbar-hide">
+        {isOpen && (
           <div className="mb-3 px-2">
-            <span className="text-[10px] font-semibold text-gray-600 uppercase tracking-wider">Menu</span>
+            <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Navigation</span>
           </div>
-          <ul className="space-y-0.5">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
+        )}
+        <ul className="space-y-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
 
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    onClick={() => {
-                      // Close sidebar on mobile after navigation
-                      if (window.innerWidth < 1024) {
-                        onToggle();
-                      }
-                    }}
-                    className={cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] transition-all duration-200',
-                      isActive 
-                        ? 'bg-[var(--tcr-accent)] text-black font-semibold shadow-sm' 
-                        : 'text-gray-300 hover:bg-[#1a1a1a] hover:text-white'
-                    )}
-                  >
-                    <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
-                    <span>{item.label}</span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={cn(
+                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] transition-all duration-200',
+                    isActive 
+                      ? 'bg-[var(--tcr-accent)] text-black font-medium' 
+                      : 'text-gray-400 hover:bg-[#1a1a1a] hover:text-white',
+                    !isOpen && 'justify-center'
+                  )}
+                  title={!isOpen ? item.label : undefined}
+                >
+                  <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+                  {isOpen && <span>{item.label}</span>}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
 
-        {/* Settings & Footer */}
-        <div className="p-4 border-t border-[#1a1a1a] space-y-3">
-          <Link
-            href="/settings"
-            className={cn(
-              'flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] transition-all duration-200',
-              pathname === '/settings'
-                ? 'bg-[var(--tcr-accent)] text-black font-semibold'
-                : 'text-gray-300 hover:bg-[#1a1a1a] hover:text-white'
-            )}
-          >
-            <Settings size={18} strokeWidth={pathname === '/settings' ? 2.5 : 2} />
-            <span>Settings</span>
-          </Link>
-          <p className="text-[10px] text-gray-600 px-3 leading-relaxed">© thecueRoom Underground Collective</p>
-        </div>
-      </aside>
-    </>
+      {/* Settings & Toggle */}
+      <div className="p-2 border-t border-[#1a1a1a] space-y-2">
+        <Link
+          href="/settings"
+          className={cn(
+            'flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] transition-all duration-200',
+            pathname === '/settings'
+              ? 'bg-[var(--tcr-accent)] text-black font-medium'
+              : 'text-gray-400 hover:bg-[#1a1a1a] hover:text-white',
+            !isOpen && 'justify-center'
+          )}
+          title={!isOpen ? 'Settings' : undefined}
+        >
+          <Settings size={18} strokeWidth={pathname === '/settings' ? 2.5 : 2} />
+          {isOpen && <span>Settings</span>}
+        </Link>
+        
+        {/* Toggle Button */}
+        <button
+          onClick={onToggle}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-gray-400 hover:bg-[#1a1a1a] hover:text-white transition-all duration-200"
+          aria-label={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+        >
+          {isOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
+        </button>
+      </div>
+    </aside>
   );
 });
