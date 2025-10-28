@@ -6,12 +6,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Settings,
-  LayoutGrid,
-  Newspaper,
+  Home,
   Image,
-  Sparkles,
   MessageSquare,
+  FileText,
+  Users,
   Music,
+  Newspaper,
   Calendar,
   Search,
 } from 'lucide-react';
@@ -22,11 +23,11 @@ import { useUser } from '@/firebase/auth/use-user';
 import AuthRedirector from '@/components/AuthRedirector';
 
 const mainNav = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutGrid },
+  { href: '/dashboard', label: 'Dashboard', icon: Home },
   { href: '/ai/cover-art', label: 'AI Cover Art', icon: Image },
-  { href: '/meme-generator', label: 'AI Meme', icon: Sparkles },
-  { href: '/ai/epk', label: 'AI EPK Generator', icon: Newspaper },
-  { href: '/community', label: 'Community Forum', icon: MessageSquare },
+  { href: '/meme-generator', label: 'AI Meme', icon: MessageSquare },
+  { href: '/ai/epk', label: 'AI EPK Generator', icon: FileText },
+  { href: '/community', label: 'Community Forum', icon: Users },
   { href: '/music', label: 'Weekly Curated Music', icon: Music },
   { href: '/news', label: 'News', icon: Newspaper },
   { href: '/gigs', label: 'Gigs', icon: Calendar },
@@ -36,8 +37,9 @@ function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="w-[258px] h-screen fixed left-0 top-0 flex flex-col bg-black">
-      <div className="flex h-[72px] items-center px-5">
+    <div className="w-[260px] h-screen fixed left-0 top-0 flex flex-col bg-black border-r border-[#1a1a1a]">
+      {/* Logo */}
+      <div className="flex h-16 items-center px-5 border-b border-[#1a1a1a]">
         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <div className="w-7 h-7 rounded-full bg-[#c8ff00] flex items-center justify-center">
             <span className="text-black text-sm font-bold">C</span>
@@ -46,6 +48,7 @@ function Sidebar() {
         </Link>
       </div>
       
+      {/* Navigation */}
       <div className="flex-1 overflow-y-auto px-4 pt-6">
         <div className="mb-3 px-2">
           <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#666666]">
@@ -74,7 +77,8 @@ function Sidebar() {
         </nav>
       </div>
 
-      <div className="px-4 pb-4">
+      {/* Settings */}
+      <div className="px-4 pb-4 border-t border-[#1a1a1a] pt-4">
         <Link
           href="/settings"
           className={cn(
@@ -89,7 +93,8 @@ function Sidebar() {
         </Link>
       </div>
 
-      <div className="px-4 py-3">
+      {/* Footer */}
+      <div className="px-4 py-3 border-t border-[#1a1a1a]">
         <p className="text-[10px] text-[#666666]">© thecueRoom Underground Collective</p>
       </div>
     </div>
@@ -100,21 +105,21 @@ function Header() {
   const { user } = useUser();
 
   return (
-    <header className="h-[72px] px-6 flex items-center justify-between bg-black relative">
-      <div className="absolute inset-0 dashboard-header-gradient pointer-events-none" />
-      
-      <div className="flex-1 max-w-xl relative z-10">
+    <header className="h-16 px-6 flex items-center justify-between bg-black border-b border-[#1a1a1a]">
+      {/* Search Bar */}
+      <div className="flex-1 max-w-xl">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#666666]" />
           <input
             type="text"
             placeholder="Search artists, gigs, news..."
-            className="w-full pl-10 pr-4 py-2.5 bg-[#1a1a1a]/60 border-0 rounded-lg text-[13px] text-white placeholder:text-[#666666] focus:outline-none focus:bg-[#1a1a1a]/80 transition-colors"
+            className="w-full pl-10 pr-4 py-2.5 bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg text-[13px] text-white placeholder:text-[#666666] focus:outline-none focus:border-[#333333] transition-colors"
           />
         </div>
       </div>
       
-      <div className="flex items-center gap-3 ml-6 relative z-10">
+      {/* User Avatar */}
+      <div className="flex items-center gap-3 ml-6">
         <Avatar className="h-9 w-9">
           <AvatarImage src={user?.photoURL || undefined} />
           <AvatarFallback className="text-xs font-bold bg-[#c8ff00] text-black">
@@ -128,14 +133,14 @@ function Header() {
 
 function DashboardContent() {
   return (
-    <div className="max-w-[1200px] mx-auto space-y-5">
-      {/* Top Section - Verification Pending and Gig Radar */}
+    <div className="max-w-[1400px] mx-auto space-y-5">
+      {/* Top Section - Verification Pending (2 cols) + Gig Radar (1 col) */}
       <div className="grid grid-cols-3 gap-5">
         {/* Verification Pending - spans 2 columns */}
-        <div className="col-span-2 bg-[#0f0f0f] rounded-lg p-6">
+        <div className="col-span-2 bg-gradient-to-r from-[#2a1a4a]/30 via-[#1a1a2a]/20 to-transparent rounded-lg p-6 border border-[#1a1a1a]">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-[18px] font-semibold text-white mb-1.5">Verification Pending</h2>
+              <h2 className="text-[20px] font-semibold text-white mb-1.5">Verification Pending</h2>
               <p className="text-[13px] text-[#999999]">Your account is under review. You'll be notified once approved.</p>
             </div>
             <div className="flex gap-3">
@@ -155,26 +160,26 @@ function DashboardContent() {
         </div>
 
         {/* Gig Radar - Right Column */}
-        <div className="bg-[#0f0f0f] rounded-lg p-5">
-          <h2 className="text-[15px] font-semibold text-white mb-4">Gig Radar</h2>
+        <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1a1a1a]">
+          <h2 className="text-[16px] font-semibold text-white mb-4">Gig Radar</h2>
           <div className="space-y-3">
             <div>
-              <div className="text-[13px] font-medium text-white">Industrial Night</div>
-              <div className="text-[11px] mt-1 text-[#666666]">Today</div>
+              <div className="text-[14px] font-medium text-white">Industrial Night</div>
+              <div className="text-[12px] mt-1 text-[#666666]">Today</div>
             </div>
             <div>
-              <div className="text-[13px] font-medium text-white">Deep House Pop-up</div>
-              <div className="text-[11px] mt-1 text-[#666666]">Tomorrow</div>
+              <div className="text-[14px] font-medium text-white">Deep House Pop-up</div>
+              <div className="text-[12px] mt-1 text-[#666666]">Tomorrow</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Three Column Grid - Spotlight, Gig Radar, Verification Status */}
+      {/* Three Column Grid - Spotlight, Gig Radar Details, Verification Status */}
       <div className="grid grid-cols-3 gap-5">
         {/* Spotlight */}
-        <div className="bg-[#0f0f0f] rounded-lg p-5">
-          <h2 className="text-[15px] font-semibold text-white mb-4">Spotlight</h2>
+        <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1a1a1a]">
+          <h2 className="text-[16px] font-semibold text-white mb-4">Spotlight</h2>
           <div className="space-y-3">
             <div className="flex items-start gap-3">
               <Music className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#c8ff00]" />
@@ -186,23 +191,23 @@ function DashboardContent() {
           </div>
         </div>
 
-        {/* Gig Radar (Center) */}
-        <div className="bg-[#0f0f0f] rounded-lg p-5">
-          <h2 className="text-[15px] font-semibold text-white mb-4">Gig Radar</h2>
+        {/* Gig Radar Details (Center) */}
+        <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1a1a1a]">
+          <h2 className="text-[16px] font-semibold text-white mb-4">Gig Radar</h2>
           <div className="space-y-2.5">
-            <div className="p-3 rounded-md bg-black/40">
+            <div className="p-3 rounded-md bg-black/60 border border-[#1a1a1a]">
               <div className="flex items-start justify-between gap-3">
                 <div className="text-[13px] font-medium text-white">Bangalore Warehouse 03</div>
                 <div className="text-[11px] text-[#999999] whitespace-nowrap">Fri • 11:30 PM</div>
               </div>
             </div>
-            <div className="p-3 rounded-md bg-black/40">
+            <div className="p-3 rounded-md bg-black/60 border border-[#1a1a1a]">
               <div className="flex items-start justify-between gap-3">
                 <div className="text-[13px] font-medium text-white">Basement House 12</div>
                 <div className="text-[11px] text-[#999999] whitespace-nowrap">Sat • 10:00 PM</div>
               </div>
             </div>
-            <div className="p-3 rounded-md bg-black/40">
+            <div className="p-3 rounded-md bg-black/60 border border-[#1a1a1a]">
               <div className="flex items-start justify-between gap-3">
                 <div className="text-[13px] font-medium text-white">Secret Rooftop</div>
                 <div className="text-[11px] text-[#999999] whitespace-nowrap">Sun • 7:00 PM</div>
@@ -212,26 +217,26 @@ function DashboardContent() {
         </div>
 
         {/* Verification Status */}
-        <div className="bg-[#0f0f0f] rounded-lg p-5">
-          <h2 className="text-[15px] font-semibold text-white mb-4">Verification Status</h2>
+        <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1a1a1a]">
+          <h2 className="text-[16px] font-semibold text-white mb-4">Verification Status</h2>
           <div className="flex items-center gap-2.5">
-            <div className="w-2 h-2 rounded-full bg-[#c8ff00]"></div>
+            <div className="w-2 h-2 rounded-full bg-[#c8ff00] animate-pulse"></div>
             <span className="text-[13px] text-[#999999]">Pending review</span>
           </div>
         </div>
       </div>
 
       {/* Recent Activity - Full Width */}
-      <div className="bg-[#0f0f0f] rounded-lg p-5">
+      <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1a1a1a]">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[15px] font-semibold text-white">Recent Activity</h2>
+          <h2 className="text-[16px] font-semibold text-white">Recent Activity</h2>
           <div className="text-[11px] flex items-center gap-2 text-[#666666]">
             <div className="w-3 h-3 border-2 border-[#666666] border-t-transparent rounded-full animate-spin"></div>
             Loading
           </div>
         </div>
         <div className="space-y-2.5">
-          <div className="flex items-start gap-3 p-3 rounded-md bg-black/40">
+          <div className="flex items-start gap-3 p-3 rounded-md bg-black/60 border border-[#1a1a1a]">
             <Avatar className="h-9 w-9 flex-shrink-0">
               <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00]">
                 AM
@@ -242,7 +247,7 @@ function DashboardContent() {
               <div className="text-[11px] mt-1 text-[#666666]">Queued update while verification completes</div>
             </div>
           </div>
-          <div className="flex items-start gap-3 p-3 rounded-md bg-black/40">
+          <div className="flex items-start gap-3 p-3 rounded-md bg-black/60 border border-[#1a1a1a]">
             <Avatar className="h-9 w-9 flex-shrink-0">
               <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00]">
                 SY
@@ -256,12 +261,13 @@ function DashboardContent() {
         </div>
       </div>
 
-      {/* Bottom Section - Empty left, Curators right */}
+      {/* Bottom Section - Empty left, Verification Status center, Curators right */}
       <div className="grid grid-cols-3 gap-5">
-        <div className="col-span-2"></div>
+        <div className="col-span-1"></div>
+        <div className="col-span-1"></div>
         {/* Curators */}
-        <div className="bg-[#0f0f0f] rounded-lg p-5">
-          <h2 className="text-[15px] font-semibold text-white mb-4">Curators</h2>
+        <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1a1a1a]">
+          <h2 className="text-[16px] font-semibold text-white mb-4">Curators</h2>
           <div className="flex gap-2.5">
             <Avatar className="h-10 w-10">
               <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00]">C1</AvatarFallback>
@@ -292,7 +298,7 @@ export default function DashboardPage({ children }: { children?: React.ReactNode
     <div className="bg-black min-h-screen">
       <AuthRedirector />
       <Sidebar />
-      <div className="ml-[258px] flex flex-col min-h-screen">
+      <div className="ml-[260px] flex flex-col min-h-screen">
         <Header />
         <main className="flex-1 p-6 overflow-y-auto">
           {isDashboardHome ? <DashboardContent /> : children}

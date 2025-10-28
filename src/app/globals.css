@@ -45,16 +45,6 @@
     .sidebar-active {
         @apply bg-primary text-primary-foreground font-semibold;
     }
-    
-    /* Dashboard Header Gradient */
-    .dashboard-header-gradient {
-        background: linear-gradient(90deg, 
-            rgba(155, 92, 255, 0.12) 0%, 
-            rgba(155, 92, 255, 0.08) 10%,
-            rgba(215, 255, 60, 0.08) 20%, 
-            transparent 40%
-        );
-    }
 }
 
 
