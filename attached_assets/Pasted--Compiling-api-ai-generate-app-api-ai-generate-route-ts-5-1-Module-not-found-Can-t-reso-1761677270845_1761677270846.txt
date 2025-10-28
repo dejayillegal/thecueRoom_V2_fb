@@ -1,0 +1,367 @@
+ ○ Compiling /api/ai/generate ...
+ ⨯ ./app/api/ai/generate/route.ts:5:1
+Module not found: Can't resolve '@/packages/db/schema'
+  3 | import { z } from 'zod';
+  4 | import { db } from '@/lib/db-client';
+> 5 | import { aiJobs } from '@/packages/db/schema';
+    | ^
+  6 |
+  7 | const generateSchema = z.object({
+  8 |   type: z.enum(['cover-art', 'meme', 'avatar']),
+
+https://nextjs.org/docs/messages/module-not-found
+ ⨯ ./app/api/ai/generate/route.ts:5:1
+Module not found: Can't resolve '@/packages/db/schema'
+  3 | import { z } from 'zod';
+  4 | import { db } from '@/lib/db-client';
+> 5 | import { aiJobs } from '@/packages/db/schema';
+    | ^
+  6 |
+  7 | const generateSchema = z.object({
+  8 |   type: z.enum(['cover-art', 'meme', 'avatar']),
+
+https://nextjs.org/docs/messages/module-not-found
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ⨯ ./app/api/ai/generate/route.ts:5:1
+Module not found: Can't resolve '@/packages/db/schema'
+  3 | import { z } from 'zod';
+  4 | import { db } from '@/lib/db-client';
+> 5 | import { aiJobs } from '@/packages/db/schema';
+    | ^
+  6 |
+  7 | const generateSchema = z.object({
+  8 |   type: z.enum(['cover-art', 'meme', 'avatar']),
+
+https://nextjs.org/docs/messages/module-not-found
+ ⨯ ./app/api/ai/generate/route.ts:5:1
+Module not found: Can't resolve '@/packages/db/schema'
+  3 | import { z } from 'zod';
+  4 | import { db } from '@/lib/db-client';
+> 5 | import { aiJobs } from '@/packages/db/schema';
+    | ^
+  6 |
+  7 | const generateSchema = z.object({
+  8 |   type: z.enum(['cover-art', 'meme', 'avatar']),
+
+https://nextjs.org/docs/messages/module-not-found
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ POST /api/ai/generate 500 in 26916ms
+ POST /api/ai/generate 500 in 173ms
+ GET /ai/cover-art 500 in 19175ms
+ GET /ai/cover-art 500 in 173ms
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET /ai/cover-art 500 in 5129ms
+ GET /ai/cover-art 500 in 85ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/home/runner/workspace/apps/web/.next/cache/webpack/client-development-fallback/0.pack.gz_' -> '/home/runner/workspace/apps/web/.next/cache/webpack/client-development-fallback/0.pack.gz'
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET /dashboard 500 in 423ms
+ GET /dashboard 500 in 118ms
