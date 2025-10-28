@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db-client';
-import { aiJobs } from '@/packages/db/schema';
+import { aiJobs } from '@thecueroom/db/schema';
 import { eq } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
