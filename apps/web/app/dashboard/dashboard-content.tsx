@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { AlertCircle, Sparkles, Calendar } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -65,11 +65,7 @@ export function DashboardContent({ user }: DashboardContentProps) {
     { title: 'Berghain Showcase', date: 'Jan 12' },
   ], []);
 
-  const curators = useMemo(() => [
-    { name: 'Maya', avatar: null },
-    { name: 'Jordan', avatar: null },
-    { name: 'Sam', avatar: null },
-  ], []);
+  
 
   const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -128,8 +124,8 @@ export function DashboardContent({ user }: DashboardContentProps) {
               </div>
             ) : spotlightFeeds.length > 0 ? (
               <div className="relative h-[400px] overflow-hidden">
-                <div className="spotlight-scroll-container space-y-3 h-full overflow-y-auto scrollbar-hide">
-                  {[...spotlightFeeds, ...spotlightFeeds].map((feed, i) => (
+                <div className="spotlight-scroll-container space-y-3 h-full overflow-y-auto scrollbar-hide will-change-scroll">
+                  {spotlightFeeds.map((feed, i) => (
                     <Link
                       key={`${feed.url}-${i}`}
                       href={feed.url}
@@ -208,40 +204,20 @@ export function DashboardContent({ user }: DashboardContentProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          {/* SoundCloud Player */}
-          <div className="bg-[#0f0f0f] rounded-lg p-5 border border-[#1a1a1a]">
-            <h3 className="text-[15px] font-semibold mb-4">Latest Mix</h3>
-            <div className="rounded-lg overflow-hidden bg-[#1a1a1a]">
-              <iframe
-                width="100%"
-                height="166"
-                scrolling="no"
-                frameBorder="no"
-                allow="autoplay"
-                src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1677969130&color=%23D1FF3D&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false"
-                title="SoundCloud player"
-                className="w-full"
-              />
-            </div>
-          </div>
-
-          {/* Curators */}
-          <div className="bg-[#0f0f0f] rounded-lg p-5 border border-[#1a1a1a]">
-            <h3 className="text-[15px] font-semibold mb-4">Curators</h3>
-            <div className="flex -space-x-2 mb-3">
-              {curators.map((curator, i) => (
-                <Avatar key={i} className="w-10 h-10 border-2 border-[#0f0f0f] ring-2 ring-[var(--tcr-accent)]/20">
-                  <AvatarImage src={curator.avatar || undefined} />
-                  <AvatarFallback className="bg-[var(--tcr-accent)] text-black text-sm font-semibold">
-                    {curator.name[0]}
-                  </AvatarFallback>
-                </Avatar>
-              ))}
-            </div>
-            <p className="text-[11px] text-gray-500">
-              {curators.length} active curators shaping the underground
-            </p>
+        {/* SoundCloud Player - Full Width */}
+        <div className="bg-[#0f0f0f] rounded-lg p-5 border border-[#1a1a1a]">
+          <h3 className="text-[15px] font-semibold mb-4">Latest Mix</h3>
+          <div className="rounded-lg overflow-hidden bg-[#1a1a1a]">
+            <iframe
+              width="100%"
+              height="166"
+              scrolling="no"
+              frameBorder="no"
+              allow="autoplay"
+              src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1677969130&color=%23D1FF3D&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false"
+              title="SoundCloud player"
+              className="w-full"
+            />
           </div>
         </div>
 

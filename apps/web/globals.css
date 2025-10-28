@@ -3,22 +3,20 @@
 }
 
 /* Spotlight vertical autoscroll */
-@keyframes spotlight-scroll {
-  0% {
-    transform: translateY(0);
-  }
-  100% {
-    transform: translateY(-50%);
-  }
-}
-
 .spotlight-scroll-container {
-  animation: spotlight-scroll 30s linear infinite;
-  will-change: transform;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 
-.spotlight-scroll-container:hover {
-  animation-play-state: paused;
+.spotlight-scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+.will-change-scroll {
+  will-change: scroll-position;
 }
 
 @media (prefers-reduced-motion: reduce) {
