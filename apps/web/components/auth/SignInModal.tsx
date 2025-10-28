@@ -135,15 +135,15 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto">
       {/* Blurred backdrop */}
       <div 
-        className="absolute inset-0 bg-black/65 backdrop-blur-md"
+        className="fixed inset-0 bg-black/65 backdrop-blur-md"
         onClick={handleCancel}
       />
       
       {/* Modal container */}
-      <div className="relative w-full max-w-4xl bg-[#0F0F0F] border border-[#262626] rounded-2xl overflow-hidden shadow-2xl">
+      <div className="relative w-full max-w-[920px] my-8 bg-[#0F0F0F] border border-[#262626] rounded-2xl overflow-hidden shadow-2xl">
         <button
           onClick={handleCancel}
           className="absolute top-4 right-4 z-10 text-muted-foreground hover:text-foreground transition-colors"
@@ -151,17 +151,17 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
           <X className="h-5 w-5" />
         </button>
 
-        <div className="grid md:grid-cols-[1fr_320px]">
+        <div className="grid md:grid-cols-[1fr_320px]"></div>
           {/* Left side - Auth form */}
-          <div className="p-8 md:p-10">
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-6">Sign In</h2>
+          <div className="p-6 md:p-8 lg:p-10 max-h-[calc(90vh-4rem)] overflow-y-auto">
+            <div className="mb-6 md:mb-8">
+              <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6">Sign In</h2>
               
               {/* Tabs */}
-              <div className="flex gap-2 mb-8">
+              <div className="flex gap-2 mb-6 md:mb-8">
                 <button
                   onClick={() => setView('signin')}
-                  className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-4 md:px-6 py-2 rounded-md text-xs md:text-sm font-medium transition-colors ${
                     view === 'signin'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-transparent text-foreground hover:bg-accent'
@@ -171,7 +171,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                 </button>
                 <button
                   onClick={() => setView('signup')}
-                  className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-4 md:px-6 py-2 rounded-md text-xs md:text-sm font-medium transition-colors ${
                     view === 'signup'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-transparent text-foreground hover:bg-accent'
@@ -181,7 +181,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                 </button>
                 <button
                   onClick={() => setView('forgot')}
-                  className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-4 md:px-6 py-2 rounded-md text-xs md:text-sm font-medium transition-colors ${
                     view === 'forgot'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-transparent text-foreground hover:bg-accent'
@@ -392,26 +392,26 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
           </div>
 
           {/* Right side - Info panel */}
-          <div className="bg-[#0B0B0B] border-l border-[#262626] p-8 md:p-10">
-            <h3 className="text-lg font-semibold mb-4">Welcome to thecueRoom</h3>
-            <p className="text-sm text-muted-foreground mb-6">
+          <div className="bg-[#0B0B0B] border-t md:border-t-0 md:border-l border-[#262626] p-6 md:p-8 lg:p-10">
+            <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Welcome to thecueRoom</h3>
+            <p className="text-xs md:text-sm text-muted-foreground mb-4 md:mb-6">
               Invite-first platform. Approved members get access to the gated dashboard.
             </p>
 
-            <ul className="space-y-3 mb-6">
-              <li className="flex items-start gap-2 text-sm">
+            <ul className="space-y-2 md:space-y-3 mb-4 md:mb-6">
+              <li className="flex items-start gap-2 text-xs md:text-sm">
                 <span className="w-1.5 h-1.5 bg-primary rounded-full mt-1.5 flex-shrink-0" />
                 <span className="text-muted-foreground">Reduced motion respected.</span>
               </li>
-              <li className="flex items-start gap-2 text-sm">
+              <li className="flex items-start gap-2 text-xs md:text-sm">
                 <span className="w-1.5 h-1.5 bg-primary rounded-full mt-1.5 flex-shrink-0" />
                 <span className="text-muted-foreground">WCAG AA contrast on dark.</span>
               </li>
-              <li className="flex items-start gap-2 text-sm">
+              <li className="flex items-start gap-2 text-xs md:text-sm">
                 <span className="w-1.5 h-1.5 bg-primary rounded-full mt-1.5 flex-shrink-0" />
                 <span className="text-muted-foreground">Scam-free, AI-verified community.</span>
               </li>
-              <li className="flex items-start gap-2 text-sm">
+              <li className="flex items-start gap-2 text-xs md:text-sm">
                 <span className="w-1.5 h-1.5 bg-primary rounded-full mt-1.5 flex-shrink-0" />
                 <span className="text-muted-foreground">
                   Access sections: Cover Art, Memes, News, Gigs.
@@ -419,7 +419,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
               </li>
             </ul>
 
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[10px] md:text-xs text-muted-foreground">
               By continuing you agree to our Terms and Privacy.
             </p>
           </div>
