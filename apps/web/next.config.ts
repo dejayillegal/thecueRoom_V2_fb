@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
     localPatterns: [
       {
         pathname: '/api/og-fallback',
-        search: '**',
+        search: '',
       },
     ],
     formats: ['image/avif', 'image/webp'],

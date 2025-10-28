@@ -149,6 +149,7 @@ export function DashboardContent({ user }: DashboardContentProps) {
                             alt={feed.title}
                             fill
                             className="object-cover"
+                            unoptimized={feed.image.startsWith('/api/og-fallback')}
                           />
                         </div>
                       )}
