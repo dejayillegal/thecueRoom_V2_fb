@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -24,13 +24,13 @@ export function Header() {
   );
 
   // Navigate on debounced query change
-  useCallback(() => {
+  useEffect(() => {
     if (debouncedQuery) {
       router.replace(`/dashboard?search=${encodeURIComponent(debouncedQuery)}`);
-    } else {
+    } else if (searchQuery === '') {
       router.replace('/dashboard');
     }
-  }, [debouncedQuery, router])();
+  }, [debouncedQuery, searchQuery, router]);
 
   return (
     <header className="sticky top-0 z-10 bg-[#0B0B0B] border-b border-[#1a1a1a] px-6 py-4">
