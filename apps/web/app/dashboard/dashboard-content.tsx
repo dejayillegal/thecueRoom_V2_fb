@@ -2,10 +2,10 @@
 
 import { useEffect, useState, useMemo, useCallback, memo } from 'react';
 import { SpotlightColumn } from '@/../../src/components/Spotlight/SpotlightColumn';
+import { ImageWithFallback } from '@/../../src/components/ImageWithFallback';
 import { AlertCircle, Sparkles, Calendar } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import Image from 'next/image';
 import Link from 'next/link';
 
 interface DashboardContentProps {
@@ -138,17 +138,13 @@ export const DashboardContent = memo(function DashboardContent({ user }: Dashboa
                       <div className="flex gap-4 p-4">
                         {feed.image && (
                           <div className="relative w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden bg-[#2a2a2a] ring-1 ring-white/5">
-                            <Image
+                            <ImageWithFallback
                               src={feed.image}
                               alt={feed.title}
                               fill
                               sizes="112px"
                               className="object-cover group-hover:scale-105 transition-transform duration-200"
-                              unoptimized={feed.image.startsWith('/api/og-fallback')}
-                              loading="lazy"
                               quality={75}
-                              placeholder="blur"
-                              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                           </div>

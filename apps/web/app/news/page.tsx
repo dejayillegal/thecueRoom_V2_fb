@@ -105,7 +105,7 @@ export default function NewsPage() {
                 <Card key={item.id} className="bg-[#111111] border-[#1a1a1a] overflow-hidden hover:border-[#333333] transition-colors">
                   <a href={item.url} target="_blank" rel="noopener noreferrer">
                     {item.image && (
-                      <div className="aspect-video bg-[#0a0a0a] relative">
+                      <div className="aspect-video bg-[#0a0a0a] relative overflow-hidden">
                         <ImageWithFallback
                           src={item.image}
                           alt={item.title}
@@ -113,6 +113,7 @@ export default function NewsPage() {
                           className="object-cover"
                           sizes="(max-width: 768px) 100vw, 50vw"
                           quality={75}
+                          fallbackSrc="/fallback-thumbnail.png"
                         />
                       </div>
                     )}

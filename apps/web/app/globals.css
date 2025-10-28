@@ -12,6 +12,10 @@ html {
   scroll-behavior: smooth;
 }
 
+body {
+  overscroll-behavior: contain;
+}
+
 /* Smooth scrolling with passive listeners */
 .spotlight-scroll-container {
   scroll-behavior: smooth;
