@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search, Filter } from 'lucide-react';
@@ -17,20 +18,30 @@ interface FeedItem {
   publishedAt: string;
 }
 
+let searchTimeout: NodeJS.Timeout;
+
 export default function NewsPage() {
   const [feeds, setFeeds] = useState<FeedItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Debounce search input
   useEffect(() => {
-    fetchFeeds();
-  }, [selectedTags, searchQuery]);
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 500);
 
-  const fetchFeeds = async () => {
+    return () => clearTimeout(searchTimeout);
+  }, [searchQuery]);
+
+  const fetchFeeds = useCallback(async () => {
     try {
+      setLoading(true);
       const params = new URLSearchParams();
-      if (searchQuery) params.set('search', searchQuery);
+      if (debouncedQuery) params.set('search', debouncedQuery);
       if (selectedTags.length) params.set('tags', selectedTags.join(','));
 
       const response = await fetch(`/api/feeds?${params}`);
@@ -41,7 +52,11 @@ export default function NewsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedTags, debouncedQuery]);
+
+  useEffect(() => {
+    fetchFeeds();
+  }, [fetchFeeds]);
 
   const allTags = ['techno', 'house', 'production', 'gear', 'events', 'interviews'];
 
@@ -62,7 +77,6 @@ export default function NewsPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Filters Sidebar */}
           <Card className="bg-[#111111] border-[#1a1a1a] p-4 h-fit">
             <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
               <Filter className="w-4 h-4" />
@@ -89,7 +103,6 @@ export default function NewsPage() {
             </div>
           </Card>
 
-          {/* Feed Grid */}
           <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
             {loading ? (
               <p className="text-gray-500 col-span-2">Loading...</p>
@@ -106,6 +119,9 @@ export default function NewsPage() {
                           alt={item.title}
                           fill
                           className="object-cover"
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          loading="lazy"
+                          quality={75}
                         />
                       </div>
                     )}

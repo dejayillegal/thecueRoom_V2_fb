@@ -125,7 +125,7 @@ export const DashboardContent = memo(function DashboardContent({ user }: Dashboa
               </div>
             ) : spotlightFeeds.length > 0 ? (
               <div className="relative h-[400px] overflow-hidden">
-                <div className="spotlight-scroll-container space-y-3 h-full overflow-y-auto scrollbar-hide">
+                <div className="spotlight-scroll-container space-y-3 h-full overflow-y-auto scrollbar-hide animate-scroll-slow">
                   {spotlightFeeds.map((feed, i) => (
                     <Link
                       key={`${feed.url}-${i}`}
