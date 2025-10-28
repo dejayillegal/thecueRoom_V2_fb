@@ -1,8 +1,7 @@
-
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import Parser from 'rss-parser';
-import { feeds, sources, fetchLogs } from '../packages/db/schema';
+import { feeds, sources, fetchLogs } from '@thecueroom/db/schema';
 import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
 import { extractImageFromPage, scrapeFeed } from './lib/scraper';
@@ -61,7 +60,7 @@ async function extractImageAdvanced(item: any, baseUrl: string, itemLink: string
     }
 
     const content = item.content || item['content:encoded'] || item.description || '';
-    
+
     const ogImageMatch = content.match(/property=["']og:image["'][^>]*content=["']([^"']+)["']/i);
     if (ogImageMatch && ogImageMatch[1] && ogImageMatch[1].startsWith('http')) {
       return ogImageMatch[1];
@@ -88,7 +87,7 @@ async function extractImageAdvanced(item: any, baseUrl: string, itemLink: string
 
 function cleanText(html: string): string {
   if (!html) return '';
-  
+
   return html
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
     .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
@@ -151,7 +150,7 @@ async function ingestSourceRSS(source: any, retryCount = 0): Promise<{ imported:
     const headers: Record<string, string> = {
       'User-Agent': 'thecueRoom/2.0 Feed Aggregator',
     };
-    
+
     if (source.etag) {
       headers['If-None-Match'] = source.etag;
     }
@@ -191,7 +190,7 @@ async function ingestSourceRSS(source: any, retryCount = 0): Promise<{ imported:
       const summary = cleanText(item.contentSnippet || item.summary || itemAny.description || '').slice(0, 500);
       const content = cleanText(item.content || item['content:encoded'] || '').slice(0, 5000);
       const tags = extractTags(item, source.tags || []);
-      
+
       let publishedAt: Date;
       try {
         publishedAt = new Date(item.isoDate || item.pubDate || Date.now());
@@ -247,7 +246,7 @@ async function ingestSourceRSS(source: any, retryCount = 0): Promise<{ imported:
     }).where(eq(fetchLogs.id, logId));
 
     console.log(`✅ ${source.name}: ${imported} new, ${skipped} duplicates (${fetchTime}ms)`);
-    
+
     return { imported, skipped };
 
   } catch (error: any) {
@@ -261,7 +260,7 @@ async function ingestSourceRSS(source: any, retryCount = 0): Promise<{ imported:
     const errorMsg = error.message || String(error);
     const statusCode = error.statusCode || null;
     const newFailures = (source.consecutiveFailures || 0) + 1;
-    
+
     let circuitOpenUntil = null;
     if (newFailures >= CIRCUIT_THRESHOLD) {
       const cooldown = COOLDOWN_BASE_MS * Math.pow(2, newFailures - CIRCUIT_THRESHOLD);
@@ -359,7 +358,7 @@ async function ingestSourceScrape(source: any): Promise<{ imported: number; skip
     }).where(eq(fetchLogs.id, logId));
 
     console.log(`✅ ${source.name}: ${imported} new, ${skipped} duplicates (scraped, ${fetchTime}ms)`);
-    
+
     return { imported, skipped };
 
   } catch (error: any) {
@@ -387,12 +386,12 @@ async function ingestSource(source: any) {
     return await ingestSourceScrape(source);
   } else {
     const rssResult = await ingestSourceRSS(source);
-    
+
     if (rssResult.error && source.config?.fallbackToScrape) {
       console.log(`   Falling back to scraping for ${source.name}...`);
       return await ingestSourceScrape(source);
     }
-    
+
     return rssResult;
   }
 }
@@ -408,18 +407,18 @@ async function ingestBatch(sources: any[], concurrency = 3) {
 
   for (let i = 0; i < sources.length; i += concurrency) {
     const batch = sources.slice(i, i + concurrency);
-    
+
     const batchResults = await Promise.allSettled(
       batch.map(source => ingestSource(source))
     );
 
     batchResults.forEach((result, index) => {
       const source = batch[index];
-      
+
       if (result.status === 'fulfilled') {
         results.totalImported += result.value.imported;
         results.totalSkipped += result.value.skipped;
-        
+
         if (result.value.error) {
           results.failed++;
           results.errors.push({ source: source.name, error: result.value.error });
@@ -457,7 +456,7 @@ export async function runEnhancedIngestion() {
   console.log(`📊 Processing ${allSources.length} sources with enhanced image extraction...\n`);
 
   const startTime = Date.now();
-  const results = await ingestBatch(allSources, 5);
+  const results = await ingestBatch(allSources, 8); // Changed BATCH_SIZE to 8
   const duration = ((Date.now() - startTime) / 1000).toFixed(2);
 
   console.log('\n============================================');
@@ -477,7 +476,7 @@ export async function runEnhancedIngestion() {
   }
 
   console.log('\n✨ Enhanced ingestion complete!\n');
-  
+
   return {
     success: true,
     ...results,
