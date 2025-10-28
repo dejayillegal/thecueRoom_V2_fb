@@ -20,3 +20,21 @@ describe('useSafeInterval', () => {
     expect(true).toBe(true);
   });
 });
+import { describe, it, expect, vi } from 'vitest';
+import { renderHook, waitFor } from '@testing-library/react';
+import { useSafeInterval, getGlobalIntervalCount } from '@/../../apps/web/src/hooks/use-safe-interval';
+
+describe('useSafeInterval', () => {
+  it('should cleanup intervals on unmount', async () => {
+    const callback = vi.fn();
+    const initialCount = getGlobalIntervalCount();
+
+    const { unmount } = renderHook(() => useSafeInterval(callback, 100));
+
+    await waitFor(() => expect(getGlobalIntervalCount()).toBe(initialCount + 1));
+
+    unmount();
+
+    await waitFor(() => expect(getGlobalIntervalCount()).toBe(initialCount));
+  });
+});

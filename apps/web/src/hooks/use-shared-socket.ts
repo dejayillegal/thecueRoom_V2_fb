@@ -52,3 +52,83 @@ export function useSharedSocket(event: string, callback: SocketEventCallback) {
     };
   }, [event, callback, socket]);
 }
+import { useEffect, useState } from 'react';
+
+type SocketEvent = {
+  type: string;
+  data: unknown;
+};
+
+type EventCallback = (event: SocketEvent) => void;
+
+class SharedSocket {
+  private ws: WebSocket | null = null;
+  private listeners = new Set<EventCallback>();
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 5;
+
+  connect(url: string) {
+    if (this.ws?.readyState === WebSocket.OPEN) return;
+
+    this.ws = new WebSocket(url);
+
+    this.ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        this.listeners.forEach((cb) => cb(data));
+      } catch (err) {
+        console.error('WebSocket message parse error:', err);
+      }
+    };
+
+    this.ws.onclose = () => {
+      if (this.reconnectAttempts < this.maxReconnectAttempts) {
+        this.reconnectAttempts++;
+        setTimeout(() => this.connect(url), 2000 * this.reconnectAttempts);
+      }
+    };
+
+    this.ws.onerror = (err) => {
+      console.error('WebSocket error:', err);
+    };
+  }
+
+  subscribe(callback: EventCallback) {
+    this.listeners.add(callback);
+    return () => this.listeners.delete(callback);
+  }
+
+  disconnect() {
+    this.ws?.close();
+    this.ws = null;
+    this.listeners.clear();
+  }
+}
+
+const sharedSocket = new SharedSocket();
+
+export function useSharedSocket(url?: string) {
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    if (url) {
+      sharedSocket.connect(url);
+      setIsConnected(true);
+    }
+
+    return () => {
+      // Don't disconnect on component unmount, only on app unload
+    };
+  }, [url]);
+
+  return {
+    subscribe: sharedSocket.subscribe.bind(sharedSocket),
+    isConnected,
+  };
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', () => {
+    sharedSocket.disconnect();
+  });
+}

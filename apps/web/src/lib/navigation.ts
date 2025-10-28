@@ -30,3 +30,33 @@ export function navigateTo(
     });
   }
 }
+import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+
+interface NavigateOptions {
+  replace?: boolean;
+  scroll?: boolean;
+  focusId?: string;
+}
+
+export function navigateTo(
+  router: AppRouterInstance,
+  path: string,
+  opts: NavigateOptions = {}
+) {
+  const { replace = false, scroll = true, focusId } = opts;
+
+  if (replace) {
+    router.replace(path, { scroll });
+  } else {
+    router.push(path, { scroll });
+  }
+
+  if (focusId) {
+    setTimeout(() => {
+      const el = document.getElementById(focusId);
+      if (el) {
+        el.focus({ preventScroll: !scroll });
+      }
+    }, 100);
+  }
+}

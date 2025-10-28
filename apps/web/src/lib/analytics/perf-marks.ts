@@ -34,3 +34,29 @@ export function getEntries(type?: string): PerformanceEntryList {
   if (typeof performance === 'undefined') return [];
   return performance.getEntriesByType(type || 'measure');
 }
+export function markStart(name: string): void {
+  if (typeof performance !== 'undefined' && performance.mark) {
+    performance.mark(`${name}-start`);
+  }
+}
+
+export function markEnd(name: string): number | null {
+  if (typeof performance !== 'undefined' && performance.mark && performance.measure) {
+    performance.mark(`${name}-end`);
+    try {
+      const measure = performance.measure(name, `${name}-start`, `${name}-end`);
+      return measure.duration;
+    } catch (err) {
+      return null;
+    }
+  }
+  return null;
+}
+
+export function clearMarks(name: string): void {
+  if (typeof performance !== 'undefined' && performance.clearMarks) {
+    performance.clearMarks(`${name}-start`);
+    performance.clearMarks(`${name}-end`);
+    performance.clearMeasures?.(name);
+  }
+}

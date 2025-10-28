@@ -121,7 +121,6 @@ function VirtualListComponent<T>({
         height: containerHeight,
         overflow: 'auto',
         position: 'relative',
-        willChange: 'auto',
       }}
       role="list"
     >

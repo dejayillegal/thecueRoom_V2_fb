@@ -36,3 +36,41 @@ export async function fetchParallel<T>(
     )
   );
 }
+export async function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+  timeout: number = 10000
+): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(id);
+    return response;
+  } catch (error) {
+    clearTimeout(id);
+    throw error;
+  }
+}
+
+export async function parallelFetch<T>(
+  urls: string[],
+  options?: RequestInit,
+  timeout?: number
+): Promise<Array<T | null>> {
+  const promises = urls.map(async (url) => {
+    try {
+      const response = await fetchWithTimeout(url, options, timeout);
+      return await response.json();
+    } catch (err) {
+      console.error(`Failed to fetch ${url}:`, err);
+      return null;
+    }
+  });
+
+  return Promise.all(promises);
+}
