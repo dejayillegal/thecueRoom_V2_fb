@@ -29,6 +29,7 @@
     "pnpm": ">=8.0.0"
   },
   "dependencies": {
+    "@radix-ui/react-switch": "^1.2.6",
     "@types/bcryptjs": "^2.4.6",
     "@types/pdfkit": "^0.17.3",
     "@types/qrcode": "^1.5.6",
