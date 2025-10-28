@@ -48,7 +48,7 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
       )}
     >
       {/* Sidebar Header */}
-      <div className="h-[72px] flex items-center justify-between px-4">
+      <div className="h-14 flex items-center justify-between px-4">
         {isOpen ? (
           <Link href="/" className="flex items-center gap-2">
             <Logo className="h-8 w-8" />
