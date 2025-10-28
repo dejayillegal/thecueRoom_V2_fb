@@ -81,9 +81,9 @@ export function CoverArtStudio() {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Left Column - Controls */}
-      <Card className="bg-[#111111] border-[#1a1a1a] p-6 space-y-6">
+    <div className="flex flex-col gap-6 max-w-4xl mx-auto">
+      {/* Controls Card */}
+      <Card className="bg-[#111111] border-[#1a1a1a] p-6 space-y-6 w-full">
         <div>
           <h2 className="text-lg font-semibold text-white mb-4">Create Cover Art</h2>
           

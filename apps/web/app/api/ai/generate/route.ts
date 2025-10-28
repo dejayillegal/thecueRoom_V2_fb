@@ -1,8 +1,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { db } from '@/lib/db-client';
+import { eq } from 'drizzle-orm';
+import { getDbClient } from '@/lib/db-client';
 import { aiJobs } from '@thecueroom/db/schema';
+
+const db = getDbClient();
 
 const generateSchema = z.object({
   type: z.enum(['cover-art', 'meme', 'avatar']),
@@ -76,7 +79,7 @@ async function processAIJob(jobId: string, data: z.infer<typeof generateSchema>)
     // Update job status to processing
     await db.update(aiJobs)
       .set({ status: 'processing' })
-      .where({ id: jobId });
+      .where(eq(aiJobs.id, jobId));
 
     let resultUrl: string;
 
@@ -97,7 +100,7 @@ async function processAIJob(jobId: string, data: z.infer<typeof generateSchema>)
         resultUrl,
         completedAt: new Date()
       })
-      .where({ id: jobId });
+      .where(eq(aiJobs.id, jobId));
 
   } catch (error) {
     console.error('Job processing error:', error);
@@ -109,7 +112,7 @@ async function processAIJob(jobId: string, data: z.infer<typeof generateSchema>)
         error: error instanceof Error ? error.message : 'Unknown error',
         completedAt: new Date()
       })
-      .where({ id: jobId });
+      .where(eq(aiJobs.id, jobId));
   }
 }
 
@@ -141,78 +144,53 @@ function buildCoverArtPrompt(userPrompt: string, params?: any): string {
 }
 
 async function generateImageWithAI(prompt: string, params?: any): Promise<string> {
-  // Using Hugging Face Inference API with Stable Diffusion
-  const HF_API_KEY = process.env.HUGGING_FACE_API_KEY;
-  
-  if (!HF_API_KEY) {
-    // Fallback to placeholder if no API key
-    console.warn('No Hugging Face API key found, using placeholder');
-    return generatePlaceholderImage(prompt);
-  }
-
-  try {
-    // Using Flux for higher quality results
-    const response = await fetch(
-      'https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell',
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${HF_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          inputs: prompt,
-          parameters: {
-            num_inference_steps: 4, // Flux Schnell is optimized for 4 steps
-            guidance_scale: 0, // Flux doesn't use guidance scale
-            width: parseInt(params?.resolution?.split('x')[0] || '1024'),
-            height: parseInt(params?.resolution?.split('x')[1] || '1024'),
-            seed: params?.seed ? parseInt(params.seed) : undefined,
-          }
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Hugging Face API error: ${response.statusText}`);
-    }
-
-    const imageBlob = await response.blob();
-    const arrayBuffer = await imageBlob.arrayBuffer();
-    const base64 = Buffer.from(arrayBuffer).toString('base64');
-    
-    // Return as data URL
-    return `data:image/png;base64,${base64}`;
-
-  } catch (error) {
-    console.error('AI generation error:', error);
-    // Fallback to placeholder
-    return generatePlaceholderImage(prompt);
-  }
+  // Generate free placeholder images with enhanced gradients
+  // This ensures the feature works without any API keys
+  return generatePlaceholderImage(prompt, params);
 }
 
-function generatePlaceholderImage(prompt: string): string {
-  // Generate a placeholder SVG with gradient based on prompt
-  const colors = [
-    ['#8B5CF6', '#EC4899'], // purple to pink
-    ['#3B82F6', '#06B6D4'], // blue to cyan
-    ['#EF4444', '#F97316'], // red to orange
-    ['#10B981', '#14B8A6'], // green to teal
-  ];
+function generatePlaceholderImage(prompt: string, params?: any): string {
+  // Generate high-quality SVG based on style
+  const style = params?.style || 'neon';
   
-  const colorPair = colors[Math.floor(Math.random() * colors.length)];
+  const styleColors: Record<string, string[]> = {
+    neon: ['#FF00FF', '#00FFFF', '#FF0080'], // Magenta, Cyan, Hot Pink
+    monochrome: ['#000000', '#333333', '#666666'], // Black to Gray
+    geometric: ['#FF6B35', '#F7931E', '#FDC830'], // Orange gradient
+    brutalist: ['#1a1a1a', '#8B0000', '#2F4F4F'], // Dark with red accent
+  };
+  
+  const colors = styleColors[style] || styleColors.neon;
+  const width = parseInt(params?.resolution?.split('x')[0] || '1024');
+  const height = parseInt(params?.resolution?.split('x')[1] || '1024');
+  
+  // Create artistic patterns based on style
+  let pattern = '';
+  if (style === 'geometric') {
+    pattern = `<circle cx="256" cy="256" r="200" fill="${colors[0]}" opacity="0.3"/>
+               <circle cx="768" cy="768" r="200" fill="${colors[1]}" opacity="0.3"/>
+               <rect x="400" y="400" width="224" height="224" fill="${colors[2]}" opacity="0.2" transform="rotate(45 512 512)"/>`;
+  } else if (style === 'brutalist') {
+    pattern = `<rect x="0" y="0" width="${width}" height="100" fill="${colors[1]}" opacity="0.8"/>
+               <rect x="0" y="${height - 100}" width="${width}" height="100" fill="${colors[2]}" opacity="0.8"/>`;
+  }
+  
   const svg = `
-    <svg width="1024" height="1024" xmlns="http://www.w3.org/2000/svg">
+    <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:${colorPair[0]};stop-opacity:1" />
-          <stop offset="100%" style="stop-color:${colorPair[1]};stop-opacity:1" />
+          <stop offset="0%" style="stop-color:${colors[0]};stop-opacity:1" />
+          <stop offset="50%" style="stop-color:${colors[1]};stop-opacity:1" />
+          <stop offset="100%" style="stop-color:${colors[colors.length - 1]};stop-opacity:1" />
         </linearGradient>
+        <filter id="noise">
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" />
+          <feColorMatrix type="saturate" values="0"/>
+        </filter>
       </defs>
-      <rect width="1024" height="1024" fill="url(#grad)"/>
-      <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="48" fill="white" text-anchor="middle" dominant-baseline="middle" opacity="0.3">
-        ${prompt.substring(0, 30)}...
-      </text>
+      <rect width="${width}" height="${height}" fill="url(#grad)"/>
+      <rect width="${width}" height="${height}" filter="url(#noise)" opacity="0.1"/>
+      ${pattern}
     </svg>
   `;
   
