@@ -1,117 +1,103 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Logo } from '@/components/Logo';
-import { cn } from '@/lib/utils';
 import { 
-  Home, 
-  Image, 
-  MessageSquare, 
-  Newspaper, 
+  LayoutDashboard, 
+  Radar, 
+  Sparkles, 
   Calendar,
-  CheckCircle,
   Settings,
-  Sparkles
+  Menu,
+  X
 } from 'lucide-react';
-
-const navigationItems = [
-  { name: 'Home', href: '/dashboard', icon: Home },
-  { name: 'Cover Art', href: '/dashboard/cover-art', icon: Image },
-  { name: 'Memes', href: '/dashboard/memes', icon: MessageSquare },
-  { name: 'News', href: '/dashboard/news', icon: Newspaper },
-  { name: 'Gigs', href: '/dashboard/gigs', icon: Calendar },
-];
-
-const adminItems = [
-  { name: 'Verification', href: '/dashboard/verification', icon: CheckCircle },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-];
+import { cn } from '@/lib/utils';
 
 interface SidebarProps {
-  userRole?: string;
+  className?: string;
 }
 
-export function Sidebar({ userRole }: SidebarProps) {
+export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(false);
+
+  const navItems = [
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/dashboard/gigs', label: 'Gig Radar', icon: Radar },
+    { href: '/dashboard/spotlight', label: 'Spotlight', icon: Sparkles },
+    { href: '/dashboard/events', label: 'Events', icon: Calendar },
+  ];
 
   return (
-    <aside className="w-56 bg-[#0a1a0a] border-r border-[#1a2a1a] flex flex-col">
-      <div className="p-4 border-b border-[#1a2a1a]">
-        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <Logo className="w-6 h-6" />
-          <span className="text-base font-bold text-[#c8ff00]">thecueRoom</span>
-        </Link>
-      </div>
+    <>
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-[#0b0b0b] border border-[#1a1a1a] rounded-md"
+        aria-label="Toggle sidebar"
+      >
+        {collapsed ? <Menu size={20} /> : <X size={20} />}
+      </button>
 
-      <nav className="flex-1 p-4 space-y-6">
-        <div>
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-            Navigation
-          </h3>
-          <div className="space-y-1">
-            {navigationItems.map((item) => {
+      <aside
+        data-collapsed={collapsed}
+        className={cn(
+          'fixed left-0 top-0 h-screen w-[258px] bg-[rgb(11,11,11)] border-r border-[#1a1a1a] flex flex-col transition-transform duration-300',
+          collapsed && 'max-lg:-translate-x-full',
+          className
+        )}
+      >
+        <div className="p-6 border-b border-[#1a1a1a]">
+          <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+            <svg width="32" height="32" viewBox="0 0 1000 1000" aria-label="thecueRoom logo">
+              <circle cx="500" cy="500" r="400" fill="#D1FF3D" />
+              <path d="M500 200 L700 500 L500 800 L300 500 Z" fill="#000" />
+            </svg>
+            <span className="font-semibold text-[15px]">thecueRoom</span>
+          </Link>
+        </div>
+
+        <nav className="flex-1 p-4 overflow-y-auto">
+          <div className="mb-3">
+            <p className="text-[11px] uppercase tracking-wider text-gray-500 px-3 mb-2">Navigation</p>
+          </div>
+
+          <ul className="space-y-1">
+            {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
-              
+
               return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
-                    isActive 
-                      ? "bg-[#1a2a1a] text-[#c8ff00]" 
-                      : "text-gray-400 hover:bg-[#1a2a1a] hover:text-gray-200"
-                  )}
-                >
-                  <Icon className="w-4 h-4" />
-                  {item.name}
-                </Link>
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      'flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] transition-all',
+                      isActive 
+                        ? 'bg-[var(--tcr-accent)] text-black font-semibold' 
+                        : 'text-gray-300 hover:bg-[#1a1a1a]'
+                    )}
+                  >
+                    <Icon size={16} />
+                    <span>{item.label}</span>
+                  </Link>
+                </li>
               );
             })}
-          </div>
-        </div>
+          </ul>
+        </nav>
 
-        <div>
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-            Admin
-          </h3>
-          <div className="space-y-1">
-            {adminItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
-                    isActive 
-                      ? "bg-[#1a2a1a] text-[#c8ff00]" 
-                      : "text-gray-400 hover:bg-[#1a2a1a] hover:text-gray-200"
-                  )}
-                >
-                  <Icon className="w-4 h-4" />
-                  {item.name}
-                </Link>
-              );
-            })}
-          </div>
+        <div className="p-4 border-t border-[#1a1a1a]">
+          <Link
+            href="/settings"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] text-gray-300 hover:bg-[#1a1a1a] transition-all mb-3"
+          >
+            <Settings size={16} />
+            <span>Settings</span>
+          </Link>
+          <p className="text-[11px] text-gray-600 px-3">© 2025 thecueRoom</p>
         </div>
-      </nav>
-
-      <div className="p-4 space-y-2 border-t border-[#1a2a1a]">
-        <div className="flex items-center gap-2 px-3 py-2 bg-[#1a2a1a] rounded text-xs text-gray-400">
-          <div className="w-2 h-2 rounded-full bg-amber-500" />
-          Invite-only
-        </div>
-        <div className="flex items-center gap-2 px-3 py-2 bg-[#1a2a1a] rounded text-xs text-gray-400">
-          <Sparkles className="w-3 h-3" />
-          AI Tools Enabled
-        </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }

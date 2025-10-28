@@ -1,66 +1,35 @@
-
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import DashboardPage from '../src/app/dashboard/page';
+import DashboardPage from '../apps/web/app/dashboard/page';
 
-// Mock the auth hook
-vi.mock('../src/firebase/auth/use-user', () => ({
-  useUser: () => ({
-    user: {
-      email: 'test@example.com',
-      photoURL: null,
-    },
-  }),
-}));
-
-// Mock next/navigation
+// Mock Next.js navigation
 vi.mock('next/navigation', () => ({
   usePathname: () => '/dashboard',
 }));
 
-// Mock AuthRedirector
-vi.mock('../src/components/AuthRedirector', () => ({
-  default: () => null,
-}));
-
-describe('DashboardPage', () => {
+describe('Dashboard Page', () => {
   it('renders all key dashboard elements', () => {
     render(<DashboardPage />);
-    
+
     // Check for logo
-    expect(screen.getByText('thecueRoom')).toBeInTheDocument();
-    
+    expect(screen.getByLabelText(/thecueRoom logo/i)).toBeInTheDocument();
+
     // Check for search input
-    expect(screen.getByPlaceholderText('Search artists, gigs, news...')).toBeInTheDocument();
-    
-    // Check for Verification Pending section
-    expect(screen.getByText('Verification Pending')).toBeInTheDocument();
-    expect(screen.getByText("Your account is under review. You'll be notified once approved.")).toBeInTheDocument();
-    
-    // Check for Gig Radar cards
-    const gigRadarHeaders = screen.getAllByText('Gig Radar');
-    expect(gigRadarHeaders.length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('Industrial Night')).toBeInTheDocument();
-    expect(screen.getByText('Deep House Pop-up')).toBeInTheDocument();
-    
+    expect(screen.getByPlaceholderText(/Search artists, gigs, news/i)).toBeInTheDocument();
+
+    // Check for Verification Pending header
+    expect(screen.getByText(/Verification Pending/i)).toBeInTheDocument();
+
+    // Check for Gig Radar card
+    expect(screen.getByText(/Gig Radar/i)).toBeInTheDocument();
+
     // Check for Spotlight card
-    expect(screen.getByText('Spotlight')).toBeInTheDocument();
-    expect(screen.getByText('🎵 Trending Artist')).toBeInTheDocument();
-    
-    // Check for Recent Activity
-    expect(screen.getByText('Recent Activity')).toBeInTheDocument();
-    expect(screen.getByText('Ava Martinez')).toBeInTheDocument();
-    expect(screen.getByText('System')).toBeInTheDocument();
-    
-    // Check for action buttons
-    expect(screen.getByText('Sign Out')).toBeInTheDocument();
-    expect(screen.getByText('Contact Support')).toBeInTheDocument();
-    
-    // Check for Curators section
-    expect(screen.getByText('Curators')).toBeInTheDocument();
-    
-    // Check for Private beta footer
-    expect(screen.getByText('Private beta')).toBeInTheDocument();
+    expect(screen.getByText(/Spotlight/i)).toBeInTheDocument();
+
+    // Check for Recent Activity items (should have at least 2)
+    expect(screen.getByText(/Recent Activity/i)).toBeInTheDocument();
+    expect(screen.getByText(/Alex Chen/i)).toBeInTheDocument();
+    expect(screen.getByText(/DJ Shadow/i)).toBeInTheDocument();
   });
 
   it('matches snapshot', () => {
