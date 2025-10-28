@@ -1,9 +1,9 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
   Settings,
   LayoutGrid,
@@ -14,7 +14,7 @@ import {
   Music,
   Calendar,
   Search,
-  LogOut,
+  Clock,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -38,7 +38,6 @@ const mainNav = [
 
 function Sidebar() {
   const pathname = usePathname();
-  const { user } = useUser();
 
   return (
     <div className="w-64 bg-black border-r border-[#1a1a1a] flex flex-col h-screen fixed left-0 top-0">
@@ -97,7 +96,7 @@ function Header() {
   const { user } = useUser();
 
   return (
-    <header className="h-16 border-b border-[#1a1a1a] bg-black px-6 flex items-center justify-between sticky top-0 z-40">
+    <header className="h-16 border-b border-[#1a1a1a] bg-black px-6 flex items-center justify-between">
       <div className="flex-1 max-w-xl">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -122,11 +121,9 @@ function Header() {
 }
 
 function DashboardContent() {
-  const { user } = useUser();
-  
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      {/* Verification Banner */}
+    <div className="space-y-4">
+      {/* Verification Banner - Full Width */}
       <Card className="bg-gradient-to-r from-purple-900/20 to-purple-700/20 border-purple-500/30">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
@@ -138,7 +135,7 @@ function DashboardContent() {
               <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-[#1a1a1a]">
                 Sign Out
               </Button>
-              <Button className="bg-[#c8ff00] text-black hover:bg-[#d4ff33]">
+              <Button className="bg-[#c8ff00] text-black hover:bg-[#d4ff33] font-semibold">
                 Contact Support
               </Button>
             </div>
@@ -146,91 +143,96 @@ function DashboardContent() {
         </CardContent>
       </Card>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Spotlight */}
-        <Card className="bg-[#0f0f0f] border-[#1a1a1a]">
-          <CardContent className="p-6">
-            <h2 className="text-lg font-bold text-white mb-4">Spotlight</h2>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <Music className="w-5 h-5 text-[#c8ff00] mt-1" />
-                <div>
-                  <div className="text-sm font-semibold text-white">Trending Artist</div>
-                  <div className="text-xs text-gray-500 mt-1">Fresh new spotlight from the underground.</div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Gig Radar */}
-        <Card className="bg-[#0f0f0f] border-[#1a1a1a]">
-          <CardContent className="p-6">
-            <h2 className="text-lg font-bold text-white mb-4">Gig Radar</h2>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-[#1a1a1a] rounded-lg">
-                <div>
-                  <div className="text-sm font-semibold text-white">Bangalore Warehouse 03</div>
-                  <div className="text-xs text-gray-500">Fri • 11:30 PM</div>
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-[#1a1a1a] rounded-lg">
-                <div>
-                  <div className="text-sm font-semibold text-white">Basement House 12</div>
-                  <div className="text-xs text-gray-500">Sat • 10:00 PM</div>
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-[#1a1a1a] rounded-lg">
-                <div>
-                  <div className="text-sm font-semibold text-white">Secret Rooftop</div>
-                  <div className="text-xs text-gray-500">Sun • 7:00 PM</div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Verification Status & Gig Radar (Right Column) */}
-        <div className="space-y-6">
+      {/* Main Grid - 3 Columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        {/* Left Column - Spotlight */}
+        <div className="lg:col-span-4">
           <Card className="bg-[#0f0f0f] border-[#1a1a1a]">
-            <CardContent className="p-6">
-              <h2 className="text-lg font-bold text-white mb-4">Gig Radar</h2>
+            <CardContent className="p-5">
+              <h2 className="text-base font-bold text-white mb-4">Spotlight</h2>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <Music className="w-5 h-5 text-[#c8ff00] mt-0.5 flex-shrink-0" />
+                  <div>
+                    <div className="text-sm font-semibold text-white">🎵 Trending Artist</div>
+                    <div className="text-xs text-gray-500 mt-1">Fresh new spotlight from the underground.</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Center Column - Gig Radar */}
+        <div className="lg:col-span-4">
+          <Card className="bg-[#0f0f0f] border-[#1a1a1a]">
+            <CardContent className="p-5">
+              <h2 className="text-base font-bold text-white mb-4">Gig Radar</h2>
               <div className="space-y-3">
                 <div className="p-3 bg-[#1a1a1a] rounded-lg">
-                  <div className="text-sm font-semibold text-white">Industrial Night</div>
-                  <div className="text-xs text-gray-500">Today</div>
+                  <div className="text-sm font-semibold text-white">Bangalore Warehouse 03</div>
+                  <div className="text-xs text-gray-500 mt-1">Fri • 11:30 PM</div>
                 </div>
                 <div className="p-3 bg-[#1a1a1a] rounded-lg">
-                  <div className="text-sm font-semibold text-white">Deep House Pop-up</div>
-                  <div className="text-xs text-gray-500">Tomorrow</div>
+                  <div className="text-sm font-semibold text-white">Basement House 12</div>
+                  <div className="text-xs text-gray-500 mt-1">Sat • 10:00 PM</div>
+                </div>
+                <div className="p-3 bg-[#1a1a1a] rounded-lg">
+                  <div className="text-sm font-semibold text-white">Secret Rooftop</div>
+                  <div className="text-xs text-gray-500 mt-1">Sun • 7:00 PM</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column - Verification Status */}
+        <div className="lg:col-span-4 space-y-4">
+          {/* Gig Radar Mini */}
+          <Card className="bg-[#0f0f0f] border-[#1a1a1a]">
+            <CardContent className="p-5">
+              <h2 className="text-base font-bold text-white mb-4">Gig Radar</h2>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-sm font-semibold text-white">Industrial Night</div>
+                    <div className="text-xs text-gray-500 mt-0.5">Today</div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-sm font-semibold text-white">Deep House Pop-up</div>
+                    <div className="text-xs text-gray-500 mt-0.5">Tomorrow</div>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
+          {/* Verification Status */}
           <Card className="bg-[#0f0f0f] border-[#1a1a1a]">
-            <CardContent className="p-6">
-              <h2 className="text-lg font-bold text-white mb-4">Verification Status</h2>
-              <div className="flex items-center gap-2 text-sm text-gray-400">
-                <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-                <span>Pending review</span>
+            <CardContent className="p-5">
+              <h2 className="text-base font-bold text-white mb-4">Verification Status</h2>
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-400">Pending review</span>
               </div>
             </CardContent>
           </Card>
 
+          {/* Curators */}
           <Card className="bg-[#0f0f0f] border-[#1a1a1a]">
-            <CardContent className="p-6">
-              <h2 className="text-lg font-bold text-white mb-4">Curators</h2>
+            <CardContent className="p-5">
+              <h2 className="text-base font-bold text-white mb-4">Curators</h2>
               <div className="flex gap-2">
                 <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-[#2a2a2a] text-[#c8ff00] text-xs">C1</AvatarFallback>
+                  <AvatarFallback className="bg-[#2a2a2a] text-[#c8ff00] text-xs font-bold">C1</AvatarFallback>
                 </Avatar>
                 <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-[#2a2a2a] text-[#c8ff00] text-xs">C2</AvatarFallback>
+                  <AvatarFallback className="bg-[#2a2a2a] text-[#c8ff00] text-xs font-bold">C2</AvatarFallback>
                 </Avatar>
                 <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-[#2a2a2a] text-[#c8ff00] text-xs">C3</AvatarFallback>
+                  <AvatarFallback className="bg-[#2a2a2a] text-[#c8ff00] text-xs font-bold">C3</AvatarFallback>
                 </Avatar>
               </div>
             </CardContent>
@@ -238,30 +240,33 @@ function DashboardContent() {
         </div>
       </div>
 
-      {/* Recent Activity */}
+      {/* Recent Activity - Full Width */}
       <Card className="bg-[#0f0f0f] border-[#1a1a1a]">
-        <CardContent className="p-6">
+        <CardContent className="p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-white">Recent Activity</h2>
-            <div className="text-xs text-gray-500">Loading</div>
+            <h2 className="text-base font-bold text-white">Recent Activity</h2>
+            <div className="text-xs text-gray-500 flex items-center gap-1">
+              <div className="animate-spin w-3 h-3 border-2 border-gray-500 border-t-transparent rounded-full"></div>
+              Loading
+            </div>
           </div>
           <div className="space-y-3">
             <div className="flex items-start gap-3 p-3 bg-[#1a1a1a] rounded-lg">
-              <Avatar className="h-10 w-10">
-                <AvatarFallback className="bg-[#2a2a2a] text-[#c8ff00] text-xs">AM</AvatarFallback>
+              <Avatar className="h-10 w-10 flex-shrink-0">
+                <AvatarFallback className="bg-[#2a2a2a] text-[#c8ff00] text-xs font-bold">AM</AvatarFallback>
               </Avatar>
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="text-sm font-semibold text-white">Ava Martinez</div>
-                <div className="text-xs text-gray-500">Queued update while verification completes</div>
+                <div className="text-xs text-gray-500 mt-0.5">Queued update while verification completes</div>
               </div>
             </div>
             <div className="flex items-start gap-3 p-3 bg-[#1a1a1a] rounded-lg">
-              <Avatar className="h-10 w-10">
-                <AvatarFallback className="bg-[#2a2a2a] text-[#c8ff00] text-xs">SY</AvatarFallback>
+              <Avatar className="h-10 w-10 flex-shrink-0">
+                <AvatarFallback className="bg-[#2a2a2a] text-[#c8ff00] text-xs font-bold">SY</AvatarFallback>
               </Avatar>
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="text-sm font-semibold text-white">System</div>
-                <div className="text-xs text-gray-500">Invite-only access enforced</div>
+                <div className="text-xs text-gray-500 mt-0.5">Invite-only access enforced</div>
               </div>
             </div>
           </div>
@@ -269,8 +274,8 @@ function DashboardContent() {
       </Card>
 
       {/* Footer */}
-      <div className="text-right text-xs text-gray-600 pb-4">
-        Private beta
+      <div className="flex justify-end pb-4">
+        <span className="text-xs text-gray-600">Private beta</span>
       </div>
     </div>
   );
@@ -287,7 +292,7 @@ export default function DashboardPage({ children }: { children?: React.ReactNode
       <Sidebar />
       <div className="ml-64 flex flex-col min-h-screen">
         <Header />
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 p-6 overflow-y-auto">
           {isDashboardHome ? <DashboardContent /> : children}
         </main>
       </div>
