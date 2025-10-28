@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     const { type, prompt, params, userId } = validationResult.data;
 
-    const jobId = await aiQueue.createJob(type, prompt, userId, params);
+    const jobId = await aiQueue.createJob({ type, prompt, userId, params });
 
     return NextResponse.json(
       { jobId },
