@@ -1,4 +1,7 @@
 
+// This file is deprecated. Use @/components/dashboard/Sidebar instead.
+// Keeping for backwards compatibility but should be removed.
+
 'use client';
 
 import { memo } from 'react';
