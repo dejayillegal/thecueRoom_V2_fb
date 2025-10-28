@@ -12,20 +12,24 @@ export function useSharedSocket(url: string | null) {
 
     subscriberCount++;
 
-    if (!sharedSocket || sharedSocket.readyState === WebSocket.CLOSED) {
-      sharedSocket = new WebSocket(url);
-
-      sharedSocket.onopen = () => setIsConnected(true);
-      sharedSocket.onclose = () => {
+    const attachHandlers = (socket: WebSocket) => {
+      socket.onopen = () => setIsConnected(true);
+      socket.onclose = () => {
         setIsConnected(false);
         if (subscriberCount > 0) {
           reconnectTimeoutRef.current = setTimeout(() => {
             if (subscriberCount > 0) {
               sharedSocket = new WebSocket(url);
+              attachHandlers(sharedSocket);
             }
           }, 5000);
         }
       };
+    };
+
+    if (!sharedSocket || sharedSocket.readyState === WebSocket.CLOSED) {
+      sharedSocket = new WebSocket(url);
+      attachHandlers(sharedSocket);
     } else if (sharedSocket.readyState === WebSocket.OPEN) {
       setIsConnected(true);
     }
