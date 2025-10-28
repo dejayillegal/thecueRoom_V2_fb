@@ -1,19 +1,21 @@
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 
-export function useDebounce<T>(value: T, delay: number): T {
+/**
+ * Debounces a value with cleanup on unmount
+ * @param value - The value to debounce
+ * @param delay - Delay in milliseconds (default: 300ms)
+ */
+export function useDebounce<T>(value: T, delay: number = 300): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
-  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   useEffect(() => {
-    timeoutRef.current = setTimeout(() => {
+    const handler = setTimeout(() => {
       setDebouncedValue(value);
     }, delay);
 
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      clearTimeout(handler);
     };
   }, [value, delay]);
 

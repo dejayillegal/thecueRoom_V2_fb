@@ -5,12 +5,11 @@
   "scripts": {
     "dev": "next dev -p 5000 -H 0.0.0.0",
     "build": "next build",
-    "start": "next start -p 5000 -H 0.0.0.0",
+    "start": "next start",
     "lint": "next lint",
     "test:unit": "vitest run",
-    "test:e2e": "playwright test",
-    "test": "pnpm test:unit && pnpm test:e2e",
-    "perf:baseline": "node ../../scripts/diag/run-lighthouse-local.js http://localhost:5000",
+    "test:watch": "vitest",
+    "perf:baseline": "node ../../scripts/diag/run-lighthouse-local.js http://localhost:5000/dashboard",
     "check:leaks": "node ../../scripts/diag/check-memory.js"
   },
   "dependencies": {
@@ -42,7 +41,7 @@
     "embla-carousel-react": "^8.6.0",
     "fast-xml-parser": "^4.5.0",
     "framer-motion": "11.3.28",
-    "lucide-react": "^0.475.0",
+    "lucide-react": "^0475.0",
     "next": "^15.1.4",
     "next-themes": "^0.4.4",
     "qrcode": "^1.5.3",

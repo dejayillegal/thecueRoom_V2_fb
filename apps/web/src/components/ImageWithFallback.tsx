@@ -1,63 +1,76 @@
 
 'use client';
 
-import React, { useState, memo } from 'react';
 import Image from 'next/image';
+import { useState } from 'react';
 
 interface ImageWithFallbackProps {
   src: string;
   alt: string;
-  fallbackSrc?: string;
   width?: number;
   height?: number;
   fill?: boolean;
+  className?: string;
   sizes?: string;
   quality?: number;
-  className?: string;
   priority?: boolean;
+  fallbackSrc?: string;
 }
 
-export const ImageWithFallback = memo(function ImageWithFallback({
+/**
+ * Optimized Image component with automatic fallback handling
+ * Implements lazy loading, CLS prevention, and error handling
+ */
+export function ImageWithFallback({
   src,
   alt,
-  fallbackSrc = '/fallback-thumbnail.png',
   width,
   height,
   fill = false,
+  className = '',
   sizes,
   quality = 75,
-  className = '',
   priority = false,
+  fallbackSrc = '/fallback-thumbnail.png',
 }: ImageWithFallbackProps) {
   const [imgSrc, setImgSrc] = useState(src);
-  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
 
-  const imageProps = fill
-    ? {
-        fill: true,
-        sizes: sizes || '100vw',
-        quality,
-      }
-    : {
-        width: width || 400,
-        height: height || 400,
-        quality,
-      };
+  const handleError = () => {
+    if (!hasError) {
+      setHasError(true);
+      setImgSrc(fallbackSrc);
+    }
+  };
 
-  return (
-    <div className={`relative ${fill ? '' : `w-[${width || 400}px] h-[${height || 400}px]`} ${className}`}>
-      {isLoading && (
-        <div className="absolute inset-0 bg-[#1a1a1a] animate-pulse" />
-      )}
+  if (fill) {
+    return (
       <Image
         src={imgSrc}
         alt={alt}
-        {...imageProps}
+        fill
+        className={className}
+        sizes={sizes}
+        quality={quality}
+        priority={priority}
+        onError={handleError}
         loading={priority ? 'eager' : 'lazy'}
-        onError={() => setImgSrc(fallbackSrc)}
-        onLoad={() => setIsLoading(false)}
-        className={fill ? 'object-cover' : className}
       />
-    </div>
+    );
+  }
+
+  return (
+    <Image
+      src={imgSrc}
+      alt={alt}
+      width={width || 400}
+      height={height || 300}
+      className={className}
+      sizes={sizes}
+      quality={quality}
+      priority={priority}
+      onError={handleError}
+      loading={priority ? 'eager' : 'lazy'}
+    />
   );
-});
+}

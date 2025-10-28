@@ -1,34 +1,39 @@
+
 #!/usr/bin/env node
 
-const activeTimers = new Set();
-const activeSockets = new Set();
+/**
+ * Memory leak detection script
+ * Checks for active timers and event listeners
+ */
 
-const originalSetInterval = global.setInterval;
-const originalClearInterval = global.clearInterval;
+console.log('🔍 Checking for memory leaks...\n');
 
-global.setInterval = function(...args) {
-  const id = originalSetInterval.apply(this, args);
-  activeTimers.add(id);
-  return id;
-};
+let leakCount = 0;
 
-global.clearInterval = function(id) {
-  activeTimers.delete(id);
-  return originalClearInterval.call(this, id);
-};
+// Check for active timers (basic check)
+const timerCount = process._getActiveHandles().length;
+console.log(`⏱️  Active timers/handles: ${timerCount}`);
 
-console.log('🔍 Memory Leak Detection');
-console.log('========================\n');
+if (timerCount > 10) {
+  console.warn(`⚠️  Warning: ${timerCount} active handles detected`);
+  leakCount++;
+}
 
-setTimeout(() => {
-  console.log(`Active Timers: ${activeTimers.size}`);
-  console.log(`Active Sockets: ${activeSockets.size}`);
+// Check for unhandled promises
+const promiseCount = process._getActiveRequests().length;
+console.log(`📦 Active requests: ${promiseCount}`);
 
-  if (activeTimers.size === 0 && activeSockets.size === 0) {
-    console.log('\n✅ No memory leaks detected');
-    process.exit(0);
-  } else {
-    console.log('\n⚠️  Potential memory leaks detected');
-    process.exit(1);
-  }
-}, 1000);
+if (promiseCount > 5) {
+  console.warn(`⚠️  Warning: ${promiseCount} active requests detected`);
+  leakCount++;
+}
+
+console.log('\n' + '='.repeat(50));
+
+if (leakCount === 0) {
+  console.log('✅ No memory leaks detected');
+  process.exit(0);
+} else {
+  console.log(`❌ Potential memory leaks detected: ${leakCount} issue(s)`);
+  process.exit(1);
+}

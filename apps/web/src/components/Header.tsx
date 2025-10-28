@@ -1,41 +1,50 @@
 
 'use client';
 
-import React, { useState, useCallback, useEffect, memo } from 'react';
+import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useRouter } from 'next/navigation';
 import { useDebounce } from '@/hooks/use-debounce';
 
-export const Header = memo(function Header() {
+/**
+ * Dashboard header with debounced search
+ * Uses router.replace to avoid polluting browser history
+ */
+export function Header() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedQuery = useDebounce(searchQuery, 300);
-  const router = useRouter();
 
-  useEffect(() => {
-    if (debouncedQuery.trim()) {
-      router.replace(`/news?search=${encodeURIComponent(debouncedQuery)}`);
-    } else if (searchQuery === '' && debouncedQuery === '') {
-      router.replace('/news');
+  const handleSearch = useCallback(
+    (value: string) => {
+      setSearchQuery(value);
+    },
+    []
+  );
+
+  // Navigate on debounced query change
+  useCallback(() => {
+    if (debouncedQuery) {
+      router.replace(`/dashboard?search=${encodeURIComponent(debouncedQuery)}`);
+    } else {
+      router.replace('/dashboard');
     }
-  }, [debouncedQuery, router, searchQuery]);
-
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  }, []);
+  }, [debouncedQuery, router])();
 
   return (
-    <header className="h-16 bg-[#0f0f0f] border-b border-[#1a1a1a] flex items-center justify-between px-6">
-      <div className="flex items-center gap-4 flex-1 max-w-xl">
-        <Search className="text-gray-500" size={20} />
-        <Input
-          value={searchQuery}
-          onChange={handleSearchChange}
-          placeholder="Search news, tracks, events..."
-          className="bg-[#1a1a1a] border-none text-white placeholder:text-gray-500"
-          aria-label="Search"
-        />
+    <header className="sticky top-0 z-10 bg-[#0B0B0B] border-b border-[#1a1a1a] px-6 py-4">
+      <div className="flex items-center gap-4">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            placeholder="Search..."
+            className="pl-10 bg-[#111111] border-[#1a1a1a] text-white"
+          />
+        </div>
       </div>
     </header>
   );
-});
+}

@@ -1,8 +1,16 @@
+
 import { useEffect, useRef } from 'react';
 
-export function useSafeInterval(callback: () => void, delay: number | null) {
-  const savedCallback = useRef(callback);
-  const intervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
+/**
+ * Safe interval hook that automatically cleans up on unmount
+ * @param callback - Function to call on interval
+ * @param delay - Delay in milliseconds (null to pause)
+ */
+export function useSafeInterval(
+  callback: () => void,
+  delay: number | null
+): void {
+  const savedCallback = useRef<() => void>();
 
   useEffect(() => {
     savedCallback.current = callback;
@@ -13,12 +21,10 @@ export function useSafeInterval(callback: () => void, delay: number | null) {
       return;
     }
 
-    intervalRef.current = setInterval(() => savedCallback.current(), delay);
+    const id = setInterval(() => {
+      savedCallback.current?.();
+    }, delay);
 
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
+    return () => clearInterval(id);
   }, [delay]);
 }
