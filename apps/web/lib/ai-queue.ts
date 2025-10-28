@@ -115,7 +115,7 @@ class AIQueue {
 
     try {
       await db.update(aiJobs)
-        .set({ status: 'processing' })
+        .set({ status: 'processing', progress: 10 })
         .where(eq(aiJobs.id, job.id));
 
       let resultUrl: string;
@@ -124,12 +124,17 @@ class AIQueue {
         resultUrl = getTestFixture();
         await new Promise(resolve => setTimeout(resolve, 100));
       } else {
-        const hasOpenAI = !!process.env.OPENAI_API_KEY;
-        const hasReplicate = !!process.env.REPLICATE_API_KEY;
+        const hasHuggingFace = !!process.env.HUGGINGFACE_KEY;
 
-        if (!hasOpenAI && !hasReplicate) {
-          resultUrl = generateFallbackSVG(job.type, job.prompt);
+        if (hasHuggingFace) {
+          try {
+            resultUrl = await this.generateWithHuggingFace(job.prompt, job.params);
+          } catch (hfError) {
+            console.warn('HuggingFace generation failed, using fallback:', hfError);
+            resultUrl = generateFallbackSVG(job.type, job.prompt);
+          }
         } else {
+          console.log('No HuggingFace API key, using free fallback generator');
           resultUrl = generateFallbackSVG(job.type, job.prompt);
         }
       }
@@ -138,6 +143,7 @@ class AIQueue {
         .set({
           status: 'completed',
           resultUrl,
+          progress: 100,
           completedAt: new Date(),
         })
         .where(eq(aiJobs.id, job.id));
@@ -153,6 +159,45 @@ class AIQueue {
         })
         .where(eq(aiJobs.id, job.id));
     }
+  }
+
+  private async generateWithHuggingFace(prompt: string, params?: Record<string, any>): Promise<string> {
+    const apiKey = process.env.HUGGINGFACE_KEY;
+    if (!apiKey) {
+      throw new Error('HUGGINGFACE_KEY not configured');
+    }
+
+    // Use Stable Diffusion XL model from HuggingFace
+    const modelId = 'stabilityai/stable-diffusion-xl-base-1.0';
+    const apiUrl = `https://api-inference.huggingface.co/models/${modelId}`;
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: prompt,
+        parameters: {
+          num_inference_steps: params?.steps || 30,
+          guidance_scale: params?.guidance || 7.5,
+          negative_prompt: params?.negativePrompt || 'blurry, low quality, distorted',
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HuggingFace API error: ${response.status} - ${errorText}`);
+    }
+
+    // HF returns image as blob
+    const imageBlob = await response.blob();
+    const arrayBuffer = await imageBlob.arrayBuffer();
+    const base64 = Buffer.from(arrayBuffer).toString('base64');
+    
+    return `data:image/png;base64,${base64}`;
   }
 }
 

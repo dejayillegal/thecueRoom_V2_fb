@@ -1,8 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { db } from '@/lib/db-client';
-import { aiJobs } from '@/packages/db/schema';
+import { aiQueue } from '@/lib/ai-queue';
 
 const generateSchema = z.object({
   type: z.enum(['cover-art', 'meme', 'avatar']),
@@ -35,24 +34,26 @@ export async function POST(request: NextRequest) {
       }, { status: 202 });
     }
 
-    // Create job in database
-    const jobId = crypto.randomUUID();
-    
-    await db.insert(aiJobs).values({
-      id: jobId,
-      userId: '00000000-0000-0000-0000-000000000000', // Replace with actual user ID from session
-      type: data.type,
-      prompt: data.prompt || JSON.stringify(data),
-      status: 'queued',
-      createdAt: new Date(),
-    });
+    // Build enhanced prompt
+    const enhancedPrompt = data.prompt || '';
+    const params = {
+      style: data.style,
+      aspect: data.aspect,
+      resolution: data.resolution,
+      seed: data.seed,
+    };
 
-    // Queue job for processing (implement queue worker separately)
-    // await queueAIJob(jobId, data);
+    // Create and queue job
+    const jobId = await aiQueue.createJob(
+      data.type,
+      enhancedPrompt,
+      '00000000-0000-0000-0000-000000000000', // Replace with actual user ID from session
+      params
+    );
 
     return NextResponse.json({
       jobId,
-      status: 'queued',
+      status: 'pending',
     }, { status: 202 });
 
   } catch (error) {

@@ -1,8 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db-client';
-import { aiJobs } from '@/packages/db/schema';
-import { eq } from 'drizzle-orm';
+import { aiQueue } from '@/lib/ai-queue';
 
 export async function GET(
   request: NextRequest,
@@ -23,7 +21,7 @@ export async function GET(
       });
     }
 
-    const [job] = await db.select().from(aiJobs).where(eq(aiJobs.id, jobId)).limit(1);
+    const job = await aiQueue.getJob(jobId);
 
     if (!job) {
       return NextResponse.json(
