@@ -15,6 +15,8 @@ import {
   Newspaper,
   Calendar,
   Search,
+  Menu,
+  X,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -35,69 +37,107 @@ const mainNav = [
 
 function Sidebar() {
   const pathname = usePathname();
+  const [collapsed, setCollapsed] = React.useState(false);
 
   return (
-    <div className="w-[260px] h-screen fixed left-0 top-0 flex flex-col bg-black border-r border-[#1a1a1a]">
-      {/* Logo */}
-      <div className="flex h-16 items-center px-5 border-b border-[#1a1a1a]">
-        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <div className="w-7 h-7 rounded-full bg-[#c8ff00] flex items-center justify-center">
-            <span className="text-black text-sm font-bold">C</span>
-          </div>
-          <span className="text-white text-[15px] font-semibold">thecueRoom</span>
-        </Link>
-      </div>
+    <>
+      {/* Mobile overlay */}
+      {collapsed && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+          onClick={() => setCollapsed(false)}
+        />
+      )}
       
-      {/* Navigation */}
-      <div className="flex-1 overflow-y-auto px-4 pt-6">
-        <div className="mb-3 px-2">
-          <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#666666]">
-            Navigation
-          </h3>
+      <div 
+        className={cn(
+          "fixed left-0 top-0 h-screen bg-[rgb(11,11,11)] border-r border-[#1a1a1a] flex flex-col transition-transform z-50",
+          "w-[258px]",
+          collapsed ? "-translate-x-full lg:translate-x-0" : "translate-x-0"
+        )}
+        data-collapsed={collapsed}
+        aria-label="Main navigation"
+      >
+        {/* Logo */}
+        <div className="flex h-[72px] items-center px-5 border-b border-[#1a1a1a] justify-between">
+          <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+            <div className="w-7 h-7 rounded-full bg-[#D1FF3D] flex items-center justify-center">
+              <span className="text-black text-sm font-bold">C</span>
+            </div>
+            <span className="text-white text-[15px] font-semibold">thecueRoom</span>
+          </Link>
+          <button 
+            className="lg:hidden text-white"
+            onClick={() => setCollapsed(true)}
+            aria-label="Close menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
-        <nav className="space-y-1 mt-3">
-          {mainNav.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.label}
-                href={item.href}
-                className={cn(
-                  'flex items-center gap-3 rounded-md px-3 py-2.5 text-[13px] transition-all',
-                  isActive 
-                    ? 'bg-[#c8ff00] text-black font-semibold' 
-                    : 'text-white hover:bg-[#1a1a1a] font-normal'
-                )}
-              >
-                <item.icon className="h-[18px] w-[18px]" strokeWidth={isActive ? 2.5 : 2} />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+        
+        {/* Navigation */}
+        <div className="flex-1 overflow-y-auto px-4 pt-6">
+          <div className="mb-3 px-2">
+            <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#666666]">
+              Navigation
+            </h3>
+          </div>
+          <nav className="space-y-1 mt-3">
+            {mainNav.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className={cn(
+                    'flex items-center gap-3 rounded-md px-3 py-2.5 text-[13px] transition-all relative',
+                    isActive 
+                      ? 'bg-[#D1FF3D] text-black font-semibold' 
+                      : 'text-white hover:bg-[#1a1a1a] font-normal'
+                  )}
+                >
+                  <item.icon className="h-[18px] w-[18px]" strokeWidth={isActive ? 2.5 : 2} />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Settings */}
+        <div className="px-4 pb-4 border-t border-[#1a1a1a] pt-4">
+          <Link
+            href="/settings"
+            className={cn(
+              'flex items-center gap-3 rounded-md px-3 py-2.5 text-[13px] transition-all',
+              pathname === '/settings' 
+                ? 'bg-[#D1FF3D] text-black font-semibold' 
+                : 'text-white hover:bg-[#1a1a1a] font-normal'
+            )}
+          >
+            <Settings className="h-[18px] w-[18px]" strokeWidth={pathname === '/settings' ? 2.5 : 2} />
+            Settings
+          </Link>
+        </div>
+
+        {/* Footer */}
+        <div className="px-4 py-3 border-t border-[#1a1a1a]">
+          <p className="text-[10px] text-[#666666]">© thecueRoom Underground Collective</p>
+        </div>
       </div>
 
-      {/* Settings */}
-      <div className="px-4 pb-4 border-t border-[#1a1a1a] pt-4">
-        <Link
-          href="/settings"
-          className={cn(
-            'flex items-center gap-3 rounded-md px-3 py-2.5 text-[13px] transition-all',
-            pathname === '/settings' 
-              ? 'bg-[#c8ff00] text-black font-semibold' 
-              : 'text-white hover:bg-[#1a1a1a] font-normal'
-          )}
-        >
-          <Settings className="h-[18px] w-[18px]" strokeWidth={pathname === '/settings' ? 2.5 : 2} />
-          Settings
-        </Link>
-      </div>
-
-      {/* Footer */}
-      <div className="px-4 py-3 border-t border-[#1a1a1a]">
-        <p className="text-[10px] text-[#666666]">© thecueRoom Underground Collective</p>
-      </div>
-    </div>
+      {/* Mobile hamburger */}
+      <button
+        className={cn(
+          "fixed top-5 left-5 z-30 lg:hidden bg-[rgb(11,11,11)] border border-[#1a1a1a] rounded-md p-2",
+          !collapsed && "hidden"
+        )}
+        onClick={() => setCollapsed(false)}
+        aria-label="Open menu"
+      >
+        <Menu className="w-5 h-5 text-white" />
+      </button>
+    </>
   );
 }
 
@@ -105,7 +145,7 @@ function Header() {
   const { user } = useUser();
 
   return (
-    <header className="h-16 px-6 flex items-center justify-between bg-black border-b border-[#1a1a1a]">
+    <header className="h-[72px] px-6 flex items-center justify-between bg-[rgb(17,17,17)] border-b border-[#1a1a1a]">
       {/* Search Bar */}
       <div className="flex-1 max-w-xl">
         <div className="relative">
@@ -114,6 +154,7 @@ function Header() {
             type="text"
             placeholder="Search artists, gigs, news..."
             className="w-full pl-10 pr-4 py-2.5 bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg text-[13px] text-white placeholder:text-[#666666] focus:outline-none focus:border-[#333333] transition-colors"
+            aria-label="Search"
           />
         </div>
       </div>
@@ -121,8 +162,8 @@ function Header() {
       {/* User Avatar */}
       <div className="flex items-center gap-3 ml-6">
         <Avatar className="h-9 w-9">
-          <AvatarImage src={user?.photoURL || undefined} />
-          <AvatarFallback className="text-xs font-bold bg-[#c8ff00] text-black">
+          <AvatarImage src={user?.photoURL || undefined} alt="User avatar" />
+          <AvatarFallback className="text-xs font-bold bg-[#D1FF3D] text-black">
             {user?.email?.charAt(0).toUpperCase() || 'U'}
           </AvatarFallback>
         </Avatar>
@@ -135,12 +176,13 @@ function DashboardContent() {
   return (
     <div className="max-w-[1400px] mx-auto space-y-5">
       {/* Top Section - Verification Pending (2 cols) + Gig Radar (1 col) */}
-      <div className="grid grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Verification Pending - spans 2 columns */}
-        <div className="col-span-2 bg-gradient-to-r from-[#2a1a4a]/30 via-[#1a1a2a]/20 to-transparent rounded-lg p-6 border border-[#1a1a1a]">
-          <div className="flex items-center justify-between">
+        <div className="lg:col-span-2 verification-banner rounded-lg p-6 border border-[#1a1a1a] relative overflow-hidden">
+          <div className="hero-glow"></div>
+          <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-[20px] font-semibold text-white mb-1.5">Verification Pending</h2>
+              <h2 className="text-[18px] font-semibold text-white mb-1.5">Verification Pending</h2>
               <p className="text-[13px] text-[#999999]">Your account is under review. You'll be notified once approved.</p>
             </div>
             <div className="flex gap-3">
@@ -151,7 +193,7 @@ function DashboardContent() {
                 Sign Out
               </Button>
               <Button 
-                className="h-9 px-5 text-[13px] font-semibold bg-[#c8ff00] text-black hover:bg-[#d4ff33]"
+                className="h-9 px-5 text-[13px] font-semibold bg-[#D1FF3D] text-black hover:bg-[#e7ff6f]"
               >
                 Contact Support
               </Button>
@@ -160,7 +202,7 @@ function DashboardContent() {
         </div>
 
         {/* Gig Radar - Right Column */}
-        <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1a1a1a]">
+        <div className="bg-[#0f0f0f] rounded-lg p-5 border border-[#1a1a1a]">
           <h2 className="text-[16px] font-semibold text-white mb-4">Gig Radar</h2>
           <div className="space-y-3">
             <div>
@@ -176,13 +218,13 @@ function DashboardContent() {
       </div>
 
       {/* Three Column Grid - Spotlight, Gig Radar Details, Verification Status */}
-      <div className="grid grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {/* Spotlight */}
-        <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1a1a1a]">
+        <div className="bg-[#0f0f0f] rounded-lg p-5 border border-[#1a1a1a]">
           <h2 className="text-[16px] font-semibold text-white mb-4">Spotlight</h2>
           <div className="space-y-3">
             <div className="flex items-start gap-3">
-              <Music className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#c8ff00]" />
+              <Music className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#D1FF3D]" />
               <div>
                 <div className="text-[13px] font-semibold text-white">🎵 Trending Artist</div>
                 <div className="text-[11px] mt-1 text-[#666666] leading-relaxed">Fresh new spotlight from the underground.</div>
@@ -192,7 +234,7 @@ function DashboardContent() {
         </div>
 
         {/* Gig Radar Details (Center) */}
-        <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1a1a1a]">
+        <div className="bg-[#0f0f0f] rounded-lg p-5 border border-[#1a1a1a]">
           <h2 className="text-[16px] font-semibold text-white mb-4">Gig Radar</h2>
           <div className="space-y-2.5">
             <div className="p-3 rounded-md bg-black/60 border border-[#1a1a1a]">
@@ -217,17 +259,17 @@ function DashboardContent() {
         </div>
 
         {/* Verification Status */}
-        <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1a1a1a]">
+        <div className="bg-[#0f0f0f] rounded-lg p-5 border border-[#1a1a1a]">
           <h2 className="text-[16px] font-semibold text-white mb-4">Verification Status</h2>
           <div className="flex items-center gap-2.5">
-            <div className="w-2 h-2 rounded-full bg-[#c8ff00] animate-pulse"></div>
+            <div className="w-2 h-2 rounded-full bg-[#D1FF3D] animate-pulse"></div>
             <span className="text-[13px] text-[#999999]">Pending review</span>
           </div>
         </div>
       </div>
 
       {/* Recent Activity - Full Width */}
-      <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1a1a1a]">
+      <div className="bg-[#0f0f0f] rounded-lg p-5 border border-[#1a1a1a]">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-[16px] font-semibold text-white">Recent Activity</h2>
           <div className="text-[11px] flex items-center gap-2 text-[#666666]">
@@ -238,7 +280,7 @@ function DashboardContent() {
         <div className="space-y-2.5">
           <div className="flex items-start gap-3 p-3 rounded-md bg-black/60 border border-[#1a1a1a]">
             <Avatar className="h-9 w-9 flex-shrink-0">
-              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00]">
+              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#D1FF3D]">
                 AM
               </AvatarFallback>
             </Avatar>
@@ -249,7 +291,7 @@ function DashboardContent() {
           </div>
           <div className="flex items-start gap-3 p-3 rounded-md bg-black/60 border border-[#1a1a1a]">
             <Avatar className="h-9 w-9 flex-shrink-0">
-              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00]">
+              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#D1FF3D]">
                 SY
               </AvatarFallback>
             </Avatar>
@@ -262,21 +304,21 @@ function DashboardContent() {
       </div>
 
       {/* Bottom Section - Empty left, Verification Status center, Curators right */}
-      <div className="grid grid-cols-3 gap-5">
-        <div className="col-span-1"></div>
-        <div className="col-span-1"></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="hidden lg:block"></div>
+        <div className="hidden lg:block"></div>
         {/* Curators */}
-        <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1a1a1a]">
+        <div className="bg-[#0f0f0f] rounded-lg p-5 border border-[#1a1a1a]">
           <h2 className="text-[16px] font-semibold text-white mb-4">Curators</h2>
           <div className="flex gap-2.5">
             <Avatar className="h-10 w-10">
-              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00]">C1</AvatarFallback>
+              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#D1FF3D]">C1</AvatarFallback>
             </Avatar>
             <Avatar className="h-10 w-10">
-              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00]">C2</AvatarFallback>
+              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#D1FF3D]">C2</AvatarFallback>
             </Avatar>
             <Avatar className="h-10 w-10">
-              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00]">C3</AvatarFallback>
+              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#D1FF3D]">C3</AvatarFallback>
             </Avatar>
           </div>
         </div>
@@ -295,10 +337,10 @@ export default function DashboardPage({ children }: { children?: React.ReactNode
   const isDashboardHome = pathname === '/dashboard';
 
   return (
-    <div className="bg-black min-h-screen">
+    <div className="bg-black min-h-screen grain-overlay">
       <AuthRedirector />
       <Sidebar />
-      <div className="ml-[260px] flex flex-col min-h-screen">
+      <div className="lg:ml-[258px] flex flex-col min-h-screen">
         <Header />
         <main className="flex-1 p-6 overflow-y-auto">
           {isDashboardHome ? <DashboardContent /> : children}

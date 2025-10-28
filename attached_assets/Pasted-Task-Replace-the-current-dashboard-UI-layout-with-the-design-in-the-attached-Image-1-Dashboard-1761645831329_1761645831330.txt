@@ -1,0 +1,84 @@
+Task: Replace the current dashboard UI & layout with the design in the attached "Image 1" (DashboardOverview). Remove the existing ugly dashboard look and implement a pixel-faithful, production-ready dashboard layout and styles that match the attached image.
+
+Rules & constraints (must follow exactly)
+1. Use the canonical logo file at `/apps/web/public/logo.svg` (do NOT edit or re-generate the logo).
+2. Tailwind utility classes must be used for layout; add small bespoke CSS in `global.css` only when Tailwind can't express a visual effect (halo gradients, grain overlay, neon ring). Keep CSS minimal and scoped.
+3. Brand color: use the project's canonical lime as `--tcr-accent: #D1FF3D` (do NOT change the canonical logo file color), purple accent `#873BBF`. Use `--surface: #111111` background tokens as in project preamble.
+4. Type sizes and spacing: match the attached image. Use `max-w-[1400px]` center column, fixed left sidebar width `258px`.
+5. Accessibility: preserve semantic HTML, keyboard focus styles, alt text on images, and color contrast (body text >= 4.5:1).
+6. Do not add any new third-party UI libraries — keep lucide-react, tailwind, and existing UI components only.
+7. Make a single commit with message: `ui(dashboard): replace dashboard layout with new neon panel design (image-1)`.
+8. Ensure the dashboard works on desktop at 1365×768 and 1440×900 (responsive down to 1024px). At narrow widths (<1024px) sidebar should collapse to a hamburger.
+9. Include automated snapshot test (Vitest + Testing Library) that renders DashboardPage and asserts presence of: logo, search input, "Verification Pending" header, "Gig Radar" card, "Spotlight" card, and two Recent Activity items.
+10. After edits, run `pnpm build` and `pnpm dev` sanity-check; the Replit agent must run these or report build errors.
+
+Files to update (replace these files exactly — do not create duplicates)
+- apps/web/src/app/dashboard/page.tsx (or the current DashboardPage file path in your repo)
+- apps/web/src/components/Sidebar.tsx (create/replace)
+- apps/web/src/components/Header.tsx (create/replace)
+- apps/web/src/app/dashboard/dashboard-content.tsx (create/replace)
+- apps/web/src/styles/global.css (append the new scoped CSS at end — do not remove existing tokens)
+- apps/web/package.json (ensure dev script tests are present; update `test` script to run vitest snapshot)
+- tests/dashboard.snapshot.test.tsx (new test file)
+
+Behavioral details & exact UI spec (implement precisely)
+- Overall layout:
+  - Fixed left sidebar: width 258px, full height, background `#0b0b0b` (use `bg-[rgb(11,11,11)]`), subtle right border `border-r border-[#1a1a1a]`.
+  - Header: fixed height 72px, dark surface `--surface`, search input centered left area, user avatar on right. Header has a thin bottom border `border-b border-[#1a1a1a]`.
+  - Content column: `ml-[258px]` and centered inner container `max-w-[1400px] mx-auto`.
+  - Spacing: sections are rounded (`rounded-lg`), deep surface `bg-[#0f0f0f]` and `border border-[#1a1a1a]` with subtle neon inner glow on selected/active elements.
+- Sidebar:
+  - Top: logo (use logo.svg), site name `thecueRoom` (font 15px semibold), on hover opacity 0.9.
+  - Section label "Navigation" small uppercase gray text.
+  - Menu items: icon + label, 13px text. Active item uses neon pill fill `bg-[var(--tcr-accent)] text-black font-semibold`.
+  - Footer: small copyright text and compact settings link above copyright.
+  - Collapse behavior: add aria attributes and a `data-collapsed` state toggled by a hamburger button (on narrow screens).
+- Header:
+  - Search: left region, large input with search icon; placeholder: "Search artists, gigs, news..."
+  - Avatar: right aligned; circle with image or initials; fallback background must use `--tcr-accent`.
+- Dashboard content:
+  - Top large banner card (col-span-2) for "Verification Pending" with:
+    - Title: 18px semibold white
+    - Body text: 13px muted #999999
+    - Buttons: Outline (Sign Out) and Neon (Contact Support) — neon uses `--tcr-accent` for background.
+    - Background: subtle diagonal gradient halo using `hero-glow` helper from global.css (append if missing).
+  - Right hand top card "Gig Radar" single column with list items (title + small date).
+  - Middle row: 3 cards: Spotlight, Gig Radar (compact), Verification Status — each card styled the same with subtle inner glass effect and borders.
+  - Recent Activity card (full width): header with spinner and two stacked activity rows. Each row includes an avatar, name, and small muted description.
+  - Curators card on bottom-right with 3 avatars.
+  - Footer: right aligned "Private beta" small muted text.
+- Visual polish:
+  - Add grain overlay from existing `grain-overlay` helper in global.css.
+  - Add `tcr-pill` and `tcr-chip` classes for neon micro-interactions already in global.css — use them.
+  - Use `fade-swap` transitions for hover effects.
+  - Use icons from `lucide-react` already present.
+- Performance:
+  - Do not block on data fetching when rendering. DashboardPage should show skeletons or cached placeholders; background fetch happens in client effect. For now the static seeded content can be used in the snapshot and server render.
+
+Code quality & tests
+- Add a small unit snapshot test `tests/dashboard.snapshot.test.tsx` that mounts the `DashboardPage` (with mocked `useUser` hook) and matches DOM snapshot for key elements. Use `vitest` + `@testing-library/react`.
+- Ensure strict TypeScript checks pass.
+
+Exact commit & run instructions (agent must do these steps at the end)
+1. Replace the files listed above with the new implementations.
+2. Run `pnpm -w -s tsc --noEmit` and `pnpm -w -s vitest run` (fix any TypeScript/test assertions).
+3. Commit changes: `git add -A && git commit -m "ui(dashboard): replace dashboard layout with new neon panel design (image-1)"`
+4. Run `pnpm --filter apps/web dev` and confirm server returns HTTP 200 on `/dashboard` and visually matches attached Image 1.
+5. If build fails, produce a short error log and attempt to auto-fix (prefer fixing imports or types). If auto-fix fails, include clear remediation steps in the commit message.
+
+Implementation hints for agent
+- Use React components for Sidebar/Header/DashboardContent and import in page. Keep components small and readable.
+- Use Tailwind `grid grid-cols-3 gap-5` for rows, and `col-span-2` for wider cards.
+- For neon active background use inline style: `style={{ background: 'linear-gradient(180deg, var(--tcr-accent), #c0ff3c)' }}` only if Tailwind utilities can't produce exact look.
+- Use `className={cn(...)} ` utility already in project for conditional classes.
+- For avatar fallbacks, use `AvatarFallback` component; ensure consistent neon background `bg-[var(--tcr-accent)] text-black`.
+- Keep all hard-coded hex colors only in the CSS snippet; prefer CSS variables otherwise.
+
+Deliver a final report in the Replit output:
+- Files changed and their paths.
+- `git show --name-status HEAD` output.
+- `pnpm -w -s tsc --noEmit` output (should be clean).
+- `pnpm -w -s vitest run` output (tests pass).
+- Local dev URL (e.g., `http://localhost:3000/dashboard`) and one screenshot capture of the dashboard rendered (if Replit supports it) or instructions to fetch screenshot.
+
+End of prompt.

@@ -84,8 +84,8 @@
 
 /* Brand accents (no global theme override) */
 :root {
-  --tcr-accent: #D7FF3C;
-  --tcr-accent-2: #9B5CFF;
+  --tcr-accent: #D1FF3D;
+  --tcr-accent-2: #873BBF;
 }
 
 /* TabsFilter glass + neon pill */
@@ -167,3 +167,8 @@ button:hover .tcr-tab-label::after { transform: translateX(120%); }
   font-size:12px; color:#D7FF3C; transition: color .12s ease, text-decoration-color .12s ease;
 }
 .tcr-hash:hover { color:#e7ff6f; text-decoration: underline; text-decoration-color: rgba(215,255,60,.6); }
+
+/* Dashboard verification banner gradient */
+.verification-banner {
+  background: linear-gradient(135deg, rgba(42,26,74,0.3) 0%, rgba(26,26,42,0.2) 50%, transparent 100%);
+}
