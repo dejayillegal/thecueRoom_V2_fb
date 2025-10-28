@@ -1,9 +1,10 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import { getDbClient } from '@/lib/db-client';
-import { aiJobs } from '@thecueroom/db/schema';
+import { aiJobs, users } from '@thecueroom/db/schema';
+import { cookies } from 'next/headers';
+import { aiQueue } from '@/lib/ai-queue';
 
 const db = getDbClient();
 
@@ -26,11 +27,69 @@ const generateSchema = z.object({
   }).optional(),
 });
 
+async function getAuthenticatedUserId(): Promise<string | null> {
+  try {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get('session');
+
+    if (!sessionCookie?.value) {
+      return null;
+    }
+
+    // Parse session to get user email or ID
+    // Adjust this based on your actual session structure
+    const sessionData = JSON.parse(sessionCookie.value);
+    const userEmail = sessionData.email || sessionData.user?.email;
+
+    if (!userEmail) {
+      return null;
+    }
+
+    // Look up user in database
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, userEmail))
+      .limit(1);
+
+    return user?.id || null;
+  } catch (error) {
+    console.error('Error getting authenticated user:', error);
+    return null;
+  }
+}
+
+async function getOrCreateDemoUser(): Promise<string> {
+  const demoEmail = 'demo@thecueroom.com';
+
+  // Try to find existing demo user
+  const [existingUser] = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, demoEmail))
+    .limit(1);
+
+  if (existingUser) {
+    return existingUser.id;
+  }
+
+  // Create demo user if it doesn't exist
+  const [newUser] = await db
+    .insert(users)
+    .values({
+      email: demoEmail,
+      role: 'user',
+    })
+    .returning();
+
+  return newUser.id;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const validationResult = generateSchema.safeParse(body);
-    
+
     if (!validationResult.success) {
       return NextResponse.json(
         { 
@@ -43,12 +102,28 @@ export async function POST(request: NextRequest) {
 
     const data = validationResult.data;
 
+    // Get authenticated user ID or use demo user for development
+    let userId = await getAuthenticatedUserId();
+
+    if (!userId) {
+      // For development/demo purposes, use or create a demo user
+      if (process.env.NODE_ENV === 'development') {
+        userId = await getOrCreateDemoUser();
+        console.log('Using demo user for AI job creation');
+      } else {
+        return NextResponse.json(
+          { error: 'Authentication required' },
+          { status: 401 }
+        );
+      }
+    }
+    
     // Create job in database
     const jobId = crypto.randomUUID();
-    
+
     await db.insert(aiJobs).values({
       id: jobId,
-      userId: '00000000-0000-0000-0000-000000000000', // Replace with actual user ID from session
+      userId: userId, // Use the obtained user ID
       type: data.type,
       prompt: data.prompt || '',
       status: 'queued',
@@ -86,7 +161,7 @@ async function processAIJob(jobId: string, data: z.infer<typeof generateSchema>)
     if (data.type === 'cover-art') {
       // Build enhanced prompt for cover art
       const enhancedPrompt = buildCoverArtPrompt(data.prompt || '', data.params);
-      
+
       // Generate image using AI model
       resultUrl = await generateImageWithAI(enhancedPrompt, data.params);
     } else {
@@ -104,7 +179,7 @@ async function processAIJob(jobId: string, data: z.infer<typeof generateSchema>)
 
   } catch (error) {
     console.error('Job processing error:', error);
-    
+
     // Update job with error
     await db.update(aiJobs)
       .set({ 
@@ -120,7 +195,7 @@ function buildCoverArtPrompt(userPrompt: string, params?: any): string {
   const style = params?.style || 'neon';
   const artist = params?.artist || '';
   const release = params?.release || '';
-  
+
   const styleDescriptions: Record<string, string> = {
     neon: 'vibrant neon colors, cyberpunk aesthetic, glowing accents',
     monochrome: 'black and white, high contrast, minimalist design',
@@ -130,16 +205,16 @@ function buildCoverArtPrompt(userPrompt: string, params?: any): string {
 
   let prompt = `Create a professional album cover art. ${userPrompt}. `;
   prompt += `Style: ${styleDescriptions[style] || styleDescriptions.neon}. `;
-  
+
   if (artist) {
     prompt += `Artist name: ${artist}. `;
   }
   if (release) {
     prompt += `Release title: ${release}. `;
   }
-  
+
   prompt += 'High quality, professional music industry standard, eye-catching design.';
-  
+
   return prompt;
 }
 
@@ -152,18 +227,18 @@ async function generateImageWithAI(prompt: string, params?: any): Promise<string
 function generatePlaceholderImage(prompt: string, params?: any): string {
   // Generate high-quality SVG based on style
   const style = params?.style || 'neon';
-  
+
   const styleColors: Record<string, string[]> = {
     neon: ['#FF00FF', '#00FFFF', '#FF0080'], // Magenta, Cyan, Hot Pink
     monochrome: ['#000000', '#333333', '#666666'], // Black to Gray
     geometric: ['#FF6B35', '#F7931E', '#FDC830'], // Orange gradient
     brutalist: ['#1a1a1a', '#8B0000', '#2F4F4F'], // Dark with red accent
   };
-  
+
   const colors = styleColors[style] || styleColors.neon;
   const width = parseInt(params?.resolution?.split('x')[0] || '1024');
   const height = parseInt(params?.resolution?.split('x')[1] || '1024');
-  
+
   // Create artistic patterns based on style
   let pattern = '';
   if (style === 'geometric') {
@@ -174,7 +249,7 @@ function generatePlaceholderImage(prompt: string, params?: any): string {
     pattern = `<rect x="0" y="0" width="${width}" height="100" fill="${colors[1]}" opacity="0.8"/>
                <rect x="0" y="${height - 100}" width="${width}" height="100" fill="${colors[2]}" opacity="0.8"/>`;
   }
-  
+
   const svg = `
     <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -193,7 +268,7 @@ function generatePlaceholderImage(prompt: string, params?: any): string {
       ${pattern}
     </svg>
   `;
-  
+
   const base64 = Buffer.from(svg).toString('base64');
   return `data:image/svg+xml;base64,${base64}`;
 }
