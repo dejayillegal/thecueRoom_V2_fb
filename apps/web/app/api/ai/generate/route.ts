@@ -168,6 +168,11 @@ async function processAIJob(jobId: string, data: z.infer<typeof generateSchema>)
     if (data.type === 'cover-art') {
       // Build enhanced prompt for cover art
       const enhancedPrompt = buildCoverArtPrompt(data.prompt || '', data.params);
+      
+      console.log('🎨 Enhanced Album Cover Prompt:');
+      console.log('━'.repeat(80));
+      console.log(enhancedPrompt);
+      console.log('━'.repeat(80));
 
       // Generate image using AI model
       resultUrl = await generateImageWithAI(enhancedPrompt, data.params);
@@ -202,29 +207,53 @@ function buildCoverArtPrompt(userPrompt: string, params?: any): string {
   const style = params?.style || 'neon';
   const artist = params?.artist || '';
   const release = params?.release || '';
+  const aspect = params?.aspect || '1:1';
+  const resolution = params?.resolution || '1024x1024';
 
   const styleDescriptions: Record<string, string> = {
-    neon: 'vibrant neon colors, cyberpunk aesthetic, glowing accents, futuristic electronic music vibe',
-    monochrome: 'black and white, high contrast, minimalist design, stark shadows, dramatic composition',
-    geometric: 'geometric shapes, abstract patterns, modern design, clean lines, symmetrical layout',
-    brutalist: 'bold typography, raw concrete textures, industrial aesthetic, urban underground feel'
+    neon: 'vibrant neon colors with electric blues, hot pinks, and acid greens, cyberpunk aesthetic with glowing accents, lens flares, chromatic aberration effects, futuristic electronic music vibe, synthwave inspiration, retro-futuristic elements',
+    monochrome: 'pure black and white with high contrast, minimalist Bauhaus-inspired design, stark shadows and dramatic lighting, clean geometric composition, brutally simple forms, Swiss design influence, deep blacks and crisp whites',
+    geometric: 'bold geometric shapes with precise angles, abstract mathematical patterns, Bauhaus and constructivist influence, modern Swiss design aesthetic, clean lines with perfect symmetry, isometric perspectives, op-art visual effects, structured color blocking',
+    brutalist: 'raw concrete textures with weathered surfaces, bold sans-serif typography, industrial warehouse aesthetic, exposed structures, urban decay elements, underground rave culture, stark architectural forms, gritty realistic materials, dystopian atmosphere'
   };
 
-  // Enhanced prompt for album cover art generation
-  let prompt = `Create a professional music album cover art in the style of modern electronic music releases. `;
-  prompt += `${userPrompt}. `;
-  prompt += `Visual style: ${styleDescriptions[style] || styleDescriptions.neon}. `;
-
-  if (artist) {
-    prompt += `Feature the artist name "${artist}" prominently. `;
+  // Build comprehensive album cover prompt
+  let prompt = `Create a professional, high-resolution album cover artwork for electronic music. `;
+  
+  // User's core concept
+  prompt += `Core concept: ${userPrompt}. `;
+  
+  // Style direction
+  prompt += `Visual style and aesthetic: ${styleDescriptions[style] || styleDescriptions.neon}. `;
+  
+  // Technical specs
+  prompt += `Format: Square album cover artwork, ${resolution} resolution, optimized for digital streaming platforms (Spotify, Bandcamp, Apple Music). `;
+  
+  // Artist/Release branding
+  if (artist || release) {
+    prompt += `Typography: `;
+    if (artist) {
+      prompt += `Artist name "${artist}" should be integrated into the design with bold, modern typography. `;
+    }
+    if (release) {
+      prompt += `Release title "${release}" should complement the artist name with clean, readable typography. `;
+    }
+  } else {
+    prompt += `IMPORTANT: No text or typography should be included in the image - pure visual artwork only. `;
   }
-  if (release) {
-    prompt += `Include the release title "${release}". `;
-  }
-
-  prompt += `The design should be suitable for a square album cover (1:1 aspect ratio), `;
-  prompt += `with a professional, eye-catching composition that works well for streaming platforms like Spotify and Bandcamp. `;
-  prompt += `High quality, music industry standard, visually compelling, no text unless specified in artist/release fields.`;
+  
+  // Design principles
+  prompt += `Design principles: Professional music industry standard, eye-catching composition that stands out in small thumbnails, `;
+  prompt += `strong focal point, balanced negative space, works in both color and grayscale, `;
+  prompt += `suitable for both digital and physical formats (vinyl, cassette, CD). `;
+  
+  // Mood and atmosphere
+  prompt += `Atmosphere: Underground electronic music scene, club-ready aesthetic, forward-thinking and contemporary, `;
+  prompt += `should evoke emotion and energy appropriate for late-night listening or dance floor moments. `;
+  
+  // Quality markers
+  prompt += `Quality: Studio-grade artwork, publication-ready, no watermarks, professional color grading, `;
+  prompt += `high detail and clarity, suitable for professional release on major platforms.`;
 
   return prompt;
 }
@@ -235,10 +264,17 @@ async function generateImageWithAI(prompt: string, params?: any): Promise<string
   
   if (hasGeminiKey) {
     try {
-      // Use Gemini Flash for image generation
+      console.log('🎨 Generating album cover with Gemini AI...');
+      console.log('Prompt:', prompt.substring(0, 150) + '...');
+      
+      // Use Gemini 2.0 Flash with image generation capabilities
       const { GoogleGenerativeAI } = await import('@google/generative-ai');
       const genAI = new GoogleGenerativeAI(hasGeminiKey);
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+      
+      // Use the imagen-3.0-generate-001 model for image generation
+      const model = genAI.getGenerativeModel({ 
+        model: 'imagen-3.0-generate-001'
+      });
 
       const result = await model.generateContent({
         contents: [{
@@ -258,14 +294,43 @@ async function generateImageWithAI(prompt: string, params?: any): Promise<string
       
       if (imageData && 'inlineData' in imageData) {
         const base64Data = imageData.inlineData.data;
-        return `data:${imageData.inlineData.mimeType};base64,${base64Data}`;
+        const imageUrl = `data:${imageData.inlineData.mimeType};base64,${base64Data}`;
+        console.log('✅ AI generation successful!');
+        return imageUrl;
+      } else {
+        console.log('⚠️ No image data in response, trying text generation with image prompt...');
+        
+        // Fallback: try text-to-image with Gemini 2.0 Flash
+        const flashModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+        const flashResult = await flashModel.generateContent({
+          contents: [{
+            role: 'user',
+            parts: [{ 
+              text: `Generate a high-quality album cover image based on this description: ${prompt}\n\nIMPORTANT: Create an actual image file, not a description.` 
+            }]
+          }]
+        });
+        
+        const flashResponse = flashResult.response;
+        const flashImageData = flashResponse.candidates?.[0]?.content?.parts?.[0];
+        
+        if (flashImageData && 'inlineData' in flashImageData) {
+          const base64Data = flashImageData.inlineData.data;
+          console.log('✅ Flash AI generation successful!');
+          return `data:${flashImageData.inlineData.mimeType};base64,${base64Data}`;
+        }
       }
     } catch (error) {
-      console.error('AI generation failed, falling back to placeholder:', error);
+      console.error('❌ AI generation failed:', error);
+      console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
     }
+  } else {
+    console.log('⚠️ No Gemini API key found - using placeholder');
+    console.log('💡 Add GOOGLE_API_KEY to Secrets to enable real AI generation');
   }
   
   // Fallback to enhanced placeholder
+  console.log('📦 Generating enhanced SVG placeholder...');
   return generatePlaceholderImage(prompt, params);
 }
 
