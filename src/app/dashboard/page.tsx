@@ -24,7 +24,6 @@ import Logo from '@/components/logo';
 import { useUser } from '@/firebase/auth/use-user';
 import AuthRedirector from '@/components/AuthRedirector';
 
-// --- Sidebar Component ---
 const mainNav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutGrid },
   { href: '/ai/cover-art', label: 'AI Cover Art', icon: MicVocal },
@@ -40,16 +39,16 @@ function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="w-64 bg-black border-r border-[#1a1a1a] flex flex-col h-screen fixed left-0 top-0">
-      <div className="flex h-16 items-center px-4 border-b border-[#1a1a1a]">
+    <div className="w-64 h-screen fixed left-0 top-0 flex flex-col" style={{ backgroundColor: 'rgb(0, 0, 0)', borderRight: '1px solid rgb(38, 38, 38)' }}>
+      <div className="flex h-16 items-center px-4" style={{ borderBottom: '1px solid rgb(38, 38, 38)' }}>
         <Link href="/" className="flex items-center gap-2 font-semibold">
           <Logo className="h-8 w-8" />
-          <span className="text-[#c8ff00]">thecueRoom</span>
+          <span style={{ color: 'rgb(200, 255, 0)' }}>thecueRoom</span>
         </Link>
       </div>
       
       <div className="flex-1 overflow-y-auto p-3">
-        <h3 className="px-3 pb-2 text-xs font-semibold uppercase text-gray-500">Navigation</h3>
+        <h3 className="px-3 pb-2 text-xs font-semibold uppercase" style={{ color: 'rgb(115, 115, 115)' }}>Navigation</h3>
         <nav className="space-y-1">
           {mainNav.map((item) => (
             <Link
@@ -58,9 +57,13 @@ function Sidebar() {
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all',
                 pathname === item.href 
-                  ? 'bg-[#c8ff00] text-black font-semibold' 
-                  : 'text-gray-400 hover:text-white hover:bg-[#1a1a1a]'
+                  ? 'font-semibold' 
+                  : 'hover:bg-[rgb(26,26,26)]'
               )}
+              style={pathname === item.href 
+                ? { backgroundColor: 'rgb(200, 255, 0)', color: 'rgb(0, 0, 0)' } 
+                : { color: 'rgb(156, 163, 175)' }
+              }
             >
               <item.icon className="h-4 w-4" />
               {item.label}
@@ -69,41 +72,50 @@ function Sidebar() {
         </nav>
       </div>
 
-      <div className="p-3 border-t border-[#1a1a1a]">
+      <div className="p-3" style={{ borderTop: '1px solid rgb(38, 38, 38)' }}>
         <Link
           href="/settings"
           className={cn(
             'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all',
             pathname === '/settings' 
-              ? 'bg-[#c8ff00] text-black font-semibold' 
-              : 'text-gray-400 hover:text-white hover:bg-[#1a1a1a]'
+              ? 'font-semibold' 
+              : 'hover:bg-[rgb(26,26,26)]'
           )}
+          style={pathname === '/settings' 
+            ? { backgroundColor: 'rgb(200, 255, 0)', color: 'rgb(0, 0, 0)' } 
+            : { color: 'rgb(156, 163, 175)' }
+          }
         >
           <Settings className="h-4 w-4" />
           Settings
         </Link>
       </div>
 
-      <div className="p-4 border-t border-[#1a1a1a] text-xs text-gray-500">
+      <div className="p-4 text-xs" style={{ borderTop: '1px solid rgb(38, 38, 38)', color: 'rgb(115, 115, 115)' }}>
         © thecueRoom Underground Collective
       </div>
     </div>
   );
 }
 
-// --- Header Component ---
 function Header() {
   const { user } = useUser();
 
   return (
-    <header className="h-16 border-b border-[#1a1a1a] bg-black px-6 flex items-center justify-between">
+    <header className="h-16 px-6 flex items-center justify-between" style={{ borderBottom: '1px solid rgb(38, 38, 38)', backgroundColor: 'rgb(0, 0, 0)' }}>
       <div className="flex-1 max-w-xl">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: 'rgb(115, 115, 115)' }} />
           <input
             type="text"
             placeholder="Search artists, gigs, news..."
-            className="w-full pl-10 pr-4 py-2 bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg text-sm text-gray-300 placeholder-gray-500 focus:outline-none focus:border-[#c8ff00]"
+            className="w-full pl-10 pr-4 py-2 rounded-lg text-sm focus:outline-none"
+            style={{ 
+              backgroundColor: 'rgb(15, 15, 15)', 
+              border: '1px solid rgb(42, 42, 42)',
+              color: 'rgb(209, 213, 219)',
+              caretColor: 'rgb(250, 250, 250)'
+            }}
           />
         </div>
       </div>
@@ -111,7 +123,7 @@ function Header() {
       <div className="flex items-center gap-3 ml-4">
         <Avatar className="h-8 w-8">
           <AvatarImage src={user?.photoURL || undefined} />
-          <AvatarFallback className="bg-[#c8ff00] text-black text-xs font-bold">
+          <AvatarFallback className="text-xs font-bold" style={{ backgroundColor: 'rgb(200, 255, 0)', color: 'rgb(0, 0, 0)' }}>
             {user?.email?.charAt(0).toUpperCase()}
           </AvatarFallback>
         </Avatar>
@@ -123,19 +135,19 @@ function Header() {
 function DashboardContent() {
   return (
     <div className="space-y-4">
-      {/* Verification Banner - Full Width */}
-      <Card className="bg-gradient-to-r from-purple-900/20 to-purple-700/20 border-purple-500/30">
+      {/* Verification Banner */}
+      <Card style={{ backgroundColor: 'rgb(15, 15, 15)', border: '1px solid rgb(38, 38, 38)' }}>
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold text-white mb-1">Verification Pending</h2>
-              <p className="text-sm text-gray-400">Your account is under review. You'll be notified once approved.</p>
+              <h2 className="text-xl font-bold mb-1" style={{ color: 'rgb(250, 250, 250)' }}>Verification Pending</h2>
+              <p className="text-sm" style={{ color: 'rgb(156, 163, 175)' }}>Your account is under review. You'll be notified once approved.</p>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-[#1a1a1a]">
+              <Button variant="outline" className="font-medium" style={{ borderColor: 'rgb(115, 115, 115)', color: 'rgb(209, 213, 219)', backgroundColor: 'transparent' }}>
                 Sign Out
               </Button>
-              <Button className="bg-[#c8ff00] text-black hover:bg-[#d4ff33] font-semibold">
+              <Button className="font-semibold" style={{ backgroundColor: 'rgb(200, 255, 0)', color: 'rgb(0, 0, 0)' }}>
                 Contact Support
               </Button>
             </div>
@@ -143,19 +155,19 @@ function DashboardContent() {
         </CardContent>
       </Card>
 
-      {/* Main Grid - 3 Columns */}
+      {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Left Column - Spotlight */}
+        {/* Spotlight */}
         <div className="lg:col-span-4">
-          <Card className="bg-[#0f0f0f] border-[#1a1a1a]">
+          <Card style={{ backgroundColor: 'rgb(15, 15, 15)', border: '1px solid rgb(38, 38, 38)' }}>
             <CardContent className="p-5">
-              <h2 className="text-base font-bold text-white mb-4">Spotlight</h2>
+              <h2 className="text-base font-bold mb-4" style={{ color: 'rgb(250, 250, 250)' }}>Spotlight</h2>
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
-                  <Music className="w-5 h-5 text-[#c8ff00] mt-0.5 flex-shrink-0" />
+                  <Music className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: 'rgb(200, 255, 0)' }} />
                   <div>
-                    <div className="text-sm font-semibold text-white">🎵 Trending Artist</div>
-                    <div className="text-xs text-gray-500 mt-1">Fresh new spotlight from the underground.</div>
+                    <div className="text-sm font-semibold" style={{ color: 'rgb(250, 250, 250)' }}>🎵 Trending Artist</div>
+                    <div className="text-xs mt-1" style={{ color: 'rgb(115, 115, 115)' }}>Fresh new spotlight from the underground.</div>
                   </div>
                 </div>
               </div>
@@ -163,76 +175,73 @@ function DashboardContent() {
           </Card>
         </div>
 
-        {/* Center Column - Gig Radar */}
+        {/* Gig Radar */}
         <div className="lg:col-span-4">
-          <Card className="bg-[#0f0f0f] border-[#1a1a1a]">
+          <Card style={{ backgroundColor: 'rgb(15, 15, 15)', border: '1px solid rgb(38, 38, 38)' }}>
             <CardContent className="p-5">
-              <h2 className="text-base font-bold text-white mb-4">Gig Radar</h2>
+              <h2 className="text-base font-bold mb-4" style={{ color: 'rgb(250, 250, 250)' }}>Gig Radar</h2>
               <div className="space-y-3">
-                <div className="p-3 bg-[#1a1a1a] rounded-lg">
-                  <div className="text-sm font-semibold text-white">Bangalore Warehouse 03</div>
-                  <div className="text-xs text-gray-500 mt-1">Fri • 11:30 PM</div>
+                <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgb(26, 26, 26)' }}>
+                  <div className="text-sm font-semibold" style={{ color: 'rgb(250, 250, 250)' }}>Bangalore Warehouse 03</div>
+                  <div className="text-xs mt-1" style={{ color: 'rgb(115, 115, 115)' }}>Fri • 11:30 PM</div>
                 </div>
-                <div className="p-3 bg-[#1a1a1a] rounded-lg">
-                  <div className="text-sm font-semibold text-white">Basement House 12</div>
-                  <div className="text-xs text-gray-500 mt-1">Sat • 10:00 PM</div>
+                <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgb(26, 26, 26)' }}>
+                  <div className="text-sm font-semibold" style={{ color: 'rgb(250, 250, 250)' }}>Basement House 12</div>
+                  <div className="text-xs mt-1" style={{ color: 'rgb(115, 115, 115)' }}>Sat • 10:00 PM</div>
                 </div>
-                <div className="p-3 bg-[#1a1a1a] rounded-lg">
-                  <div className="text-sm font-semibold text-white">Secret Rooftop</div>
-                  <div className="text-xs text-gray-500 mt-1">Sun • 7:00 PM</div>
+                <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgb(26, 26, 26)' }}>
+                  <div className="text-sm font-semibold" style={{ color: 'rgb(250, 250, 250)' }}>Secret Rooftop</div>
+                  <div className="text-xs mt-1" style={{ color: 'rgb(115, 115, 115)' }}>Sun • 7:00 PM</div>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Right Column - Verification Status */}
+        {/* Right Column */}
         <div className="lg:col-span-4 space-y-4">
-          {/* Gig Radar Mini */}
-          <Card className="bg-[#0f0f0f] border-[#1a1a1a]">
+          <Card style={{ backgroundColor: 'rgb(15, 15, 15)', border: '1px solid rgb(38, 38, 38)' }}>
             <CardContent className="p-5">
-              <h2 className="text-base font-bold text-white mb-4">Gig Radar</h2>
+              <h2 className="text-base font-bold mb-4" style={{ color: 'rgb(250, 250, 250)' }}>Gig Radar</h2>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-sm font-semibold text-white">Industrial Night</div>
-                    <div className="text-xs text-gray-500 mt-0.5">Today</div>
+                    <div className="text-sm font-semibold" style={{ color: 'rgb(250, 250, 250)' }}>Industrial Night</div>
+                    <div className="text-xs mt-0.5" style={{ color: 'rgb(115, 115, 115)' }}>Today</div>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-sm font-semibold text-white">Deep House Pop-up</div>
-                    <div className="text-xs text-gray-500 mt-0.5">Tomorrow</div>
+                    <div className="text-sm font-semibold" style={{ color: 'rgb(250, 250, 250)' }}>Deep House Pop-up</div>
+                    <div className="text-xs mt-0.5" style={{ color: 'rgb(115, 115, 115)' }}>Tomorrow</div>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Verification Status */}
-          <Card className="bg-[#0f0f0f] border-[#1a1a1a]">
+          <Card style={{ backgroundColor: 'rgb(15, 15, 15)', border: '1px solid rgb(38, 38, 38)' }}>
             <CardContent className="p-5">
-              <h2 className="text-base font-bold text-white mb-4">Verification Status</h2>
+              <h2 className="text-base font-bold mb-4" style={{ color: 'rgb(250, 250, 250)' }}>Verification Status</h2>
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-400">Pending review</span>
+                <Clock className="w-4 h-4" style={{ color: 'rgb(156, 163, 175)' }} />
+                <span className="text-sm" style={{ color: 'rgb(156, 163, 175)' }}>Pending review</span>
               </div>
             </CardContent>
           </Card>
 
-          {/* Curators */}
-          <Card className="bg-[#0f0f0f] border-[#1a1a1a]">
+          <Card style={{ backgroundColor: 'rgb(15, 15, 15)', border: '1px solid rgb(38, 38, 38)' }}>
             <CardContent className="p-5">
-              <h2 className="text-base font-bold text-white mb-4">Curators</h2>
+              <h2 className="text-base font-bold mb-4" style={{ color: 'rgb(250, 250, 250)' }}>Curators</h2>
               <div className="flex gap-2">
                 <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-[#2a2a2a] text-[#c8ff00] text-xs font-bold">C1</AvatarFallback>
+                  <AvatarFallback className="text-xs font-bold" style={{ backgroundColor: 'rgb(42, 42, 42)', color: 'rgb(200, 255, 0)' }}>C1</AvatarFallback>
                 </Avatar>
                 <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-[#2a2a2a] text-[#c8ff00] text-xs font-bold">C2</AvatarFallback>
+                  <AvatarFallback className="text-xs font-bold" style={{ backgroundColor: 'rgb(42, 42, 42)', color: 'rgb(200, 255, 0)' }}>C2</AvatarFallback>
                 </Avatar>
                 <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-[#2a2a2a] text-[#c8ff00] text-xs font-bold">C3</AvatarFallback>
+                  <AvatarFallback className="text-xs font-bold" style={{ backgroundColor: 'rgb(42, 42, 42)', color: 'rgb(200, 255, 0)' }}>C3</AvatarFallback>
                 </Avatar>
               </div>
             </CardContent>
@@ -240,54 +249,52 @@ function DashboardContent() {
         </div>
       </div>
 
-      {/* Recent Activity - Full Width */}
-      <Card className="bg-[#0f0f0f] border-[#1a1a1a]">
+      {/* Recent Activity */}
+      <Card style={{ backgroundColor: 'rgb(15, 15, 15)', border: '1px solid rgb(38, 38, 38)' }}>
         <CardContent className="p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-white">Recent Activity</h2>
-            <div className="text-xs text-gray-500 flex items-center gap-1">
-              <div className="animate-spin w-3 h-3 border-2 border-gray-500 border-t-transparent rounded-full"></div>
+            <h2 className="text-base font-bold" style={{ color: 'rgb(250, 250, 250)' }}>Recent Activity</h2>
+            <div className="text-xs flex items-center gap-1" style={{ color: 'rgb(115, 115, 115)' }}>
+              <div className="animate-spin w-3 h-3 border-2 rounded-full" style={{ borderColor: 'rgb(115, 115, 115)', borderTopColor: 'transparent' }}></div>
               Loading
             </div>
           </div>
           <div className="space-y-3">
-            <div className="flex items-start gap-3 p-3 bg-[#1a1a1a] rounded-lg">
+            <div className="flex items-start gap-3 p-3 rounded-lg" style={{ backgroundColor: 'rgb(26, 26, 26)' }}>
               <Avatar className="h-10 w-10 flex-shrink-0">
-                <AvatarFallback className="bg-[#2a2a2a] text-[#c8ff00] text-xs font-bold">AM</AvatarFallback>
+                <AvatarFallback className="text-xs font-bold" style={{ backgroundColor: 'rgb(42, 42, 42)', color: 'rgb(200, 255, 0)' }}>AM</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-white">Ava Martinez</div>
-                <div className="text-xs text-gray-500 mt-0.5">Queued update while verification completes</div>
+                <div className="text-sm font-semibold" style={{ color: 'rgb(250, 250, 250)' }}>Ava Martinez</div>
+                <div className="text-xs mt-0.5" style={{ color: 'rgb(115, 115, 115)' }}>Queued update while verification completes</div>
               </div>
             </div>
-            <div className="flex items-start gap-3 p-3 bg-[#1a1a1a] rounded-lg">
+            <div className="flex items-start gap-3 p-3 rounded-lg" style={{ backgroundColor: 'rgb(26, 26, 26)' }}>
               <Avatar className="h-10 w-10 flex-shrink-0">
-                <AvatarFallback className="bg-[#2a2a2a] text-[#c8ff00] text-xs font-bold">SY</AvatarFallback>
+                <AvatarFallback className="text-xs font-bold" style={{ backgroundColor: 'rgb(42, 42, 42)', color: 'rgb(200, 255, 0)' }}>SY</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-white">System</div>
-                <div className="text-xs text-gray-500 mt-0.5">Invite-only access enforced</div>
+                <div className="text-sm font-semibold" style={{ color: 'rgb(250, 250, 250)' }}>System</div>
+                <div className="text-xs mt-0.5" style={{ color: 'rgb(115, 115, 115)' }}>Invite-only access enforced</div>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Footer */}
       <div className="flex justify-end pb-4">
-        <span className="text-xs text-gray-600">Private beta</span>
+        <span className="text-xs" style={{ color: 'rgb(115, 115, 115)' }}>Private beta</span>
       </div>
     </div>
   );
 }
 
-// --- Main Dashboard Page Component ---
 export default function DashboardPage({ children }: { children?: React.ReactNode }) {
   const pathname = usePathname();
   const isDashboardHome = pathname === '/dashboard';
 
   return (
-    <div className="bg-black min-h-screen">
+    <div style={{ backgroundColor: 'rgb(0, 0, 0)', minHeight: '100vh' }}>
       <AuthRedirector />
       <Sidebar />
       <div className="ml-64 flex flex-col min-h-screen">
