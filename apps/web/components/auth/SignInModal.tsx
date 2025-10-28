@@ -1,7 +1,8 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,12 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,18 +139,19 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     onOpenChange(false);
   };
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto">
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto" style={{ position: 'fixed' }}>
       {/* Blurred backdrop */}
       <div 
         className="fixed inset-0 bg-black/65 backdrop-blur-md"
         onClick={handleCancel}
+        style={{ position: 'fixed' }}
       />
       
       {/* Modal container */}
-      <div className="relative w-full max-w-[920px] my-8 bg-[#0F0F0F] border border-[#262626] rounded-2xl overflow-hidden shadow-2xl">
+      <div className="relative w-full max-w-[920px] my-auto bg-[#0F0F0F] border border-[#262626] rounded-2xl overflow-hidden shadow-2xl" style={{ zIndex: 10000 }}>
         <button
           onClick={handleCancel}
           className="absolute top-4 right-4 z-10 text-muted-foreground hover:text-foreground transition-colors"
@@ -427,4 +435,6 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
       </div>
     </div>
   );
+
+  return mounted ? createPortal(modalContent, document.body) : null;
 }
