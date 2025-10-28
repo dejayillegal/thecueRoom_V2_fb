@@ -1,122 +1,217 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
+
 import Parser from 'rss-parser';
-import Bottleneck from 'bottleneck';
-import cron from 'node-cron';
-import pino from 'pino';
-import { sources, feeds, fetchLogs } from '../db/schema';
-import { eq, and, lt, sql } from 'drizzle-orm';
+import pLimit from 'p-limit';
+import { getDbClient } from '@thecueroom/db/client';
+import { feeds, sources } from '@thecueroom/db/schema';
+import { eq, and, gt } from 'drizzle-orm';
 import crypto from 'crypto';
-import got from 'got';
-
-const logger = pino({
-  level: process.env.LOG_LEVEL || 'info',
-  transport: {
-    target: 'pino-pretty',
-    options: {
-      colorize: true,
-      translateTime: 'HH:MM:ss Z',
-      ignore: 'pid,hostname',
-    },
-  },
-});
-
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-  logger.error('DATABASE_URL environment variable is required');
-  process.exit(1);
-}
-
-const client = postgres(connectionString, {
-  max: 10,
-  idle_timeout: 20,
-  connect_timeout: 10,
-});
-const db = drizzle(client, { schema: { sources, feeds, fetchLogs } });
-
-const CIRCUIT_THRESHOLD = parseInt(process.env.CIRCUIT_THRESHOLD || '3');
-const COOLDOWN_BASE_MS = 10 * 60 * 1000; // 10 minutes
-const STARTUP_PARALLELISM = parseInt(process.env.STARTUP_PARALLELISM || '20');
-const STEADY_PARALLELISM = parseInt(process.env.STEADY_PARALLELISM || '3');
-const MAX_ITEMS_PER_FEED = 50;
-
-const limiterGroups = new Bottleneck.Group({
-  maxConcurrent: 2,
-  minTime: 500,
-});
-
-interface FetchResult {
-  sourceId: string;
-  success: boolean;
-  itemsAdded: number;
-  status: string;
-  errorMessage?: string;
-}
 
 const parser = new Parser({
-  timeout: 10000,
-  headers: {
-    'User-Agent': 'thecueRoom/2.0 Feed Aggregator',
-    'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+  timeout: 15000,
+  headers: { 
+    'User-Agent': 'Mozilla/5.0 (compatible; thecueRoom/2.0; +https://thecueroom.com)',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
   },
   customFields: {
     item: [
       ['media:content', 'media:content'],
       ['media:thumbnail', 'media:thumbnail'],
+      ['enclosure', 'enclosure'],
       ['content:encoded', 'content:encoded'],
     ],
   },
 });
+
+const IMAGE_TIMEOUT = 8000;
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+
+interface ImageExtractionResult {
+  url: string | null;
+  source: 'enclosure' | 'media' | 'og' | 'twitter' | 'content' | 'page-scrape' | 'fallback';
+}
+
+async function validateImageUrl(url: string): Promise<boolean> {
+  if (!url || typeof url !== 'string') return false;
+  
+  try {
+    const urlObj = new URL(url);
+    
+    // Only allow http/https
+    if (!['http:', 'https:'].includes(urlObj.protocol)) return false;
+    
+    // Block video embeds
+    if (url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com')) {
+      return false;
+    }
+    
+    // Validate with HEAD request
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), IMAGE_TIMEOUT);
+    
+    const response = await fetch(url, {
+      method: 'HEAD',
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; thecueRoom/2.0; +https://thecueroom.com)',
+      },
+    }).catch(() => null);
+    
+    clearTimeout(timeout);
+    
+    if (!response || !response.ok) return false;
+    
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.startsWith('image/')) return false;
+    
+    const contentLength = response.headers.get('content-length');
+    if (contentLength && parseInt(contentLength) > MAX_IMAGE_SIZE) return false;
+    
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function extractImageFromPage(pageUrl: string): Promise<string | null> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    
+    const response = await fetch(pageUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; thecueRoom/2.0; +https://thecueroom.com)',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      },
+      signal: controller.signal,
+    }).catch(() => null);
+    
+    clearTimeout(timeout);
+    
+    if (!response || !response.ok) return null;
+    
+    const html = await response.text();
+    
+    // Try og:image
+    const ogMatch = html.match(/<meta\s+property=["']og:image["'][^>]*content=["']([^"']+)["']/i);
+    if (ogMatch?.[1]) {
+      const ogUrl = ogMatch[1].startsWith('http') ? ogMatch[1] : new URL(ogMatch[1], pageUrl).href;
+      if (await validateImageUrl(ogUrl)) return ogUrl;
+    }
+    
+    // Try twitter:image
+    const twitterMatch = html.match(/<meta\s+name=["']twitter:image["'][^>]*content=["']([^"']+)["']/i);
+    if (twitterMatch?.[1]) {
+      const twitterUrl = twitterMatch[1].startsWith('http') ? twitterMatch[1] : new URL(twitterMatch[1], pageUrl).href;
+      if (await validateImageUrl(twitterUrl)) return twitterUrl;
+    }
+    
+    // Try first img in article/main content
+    const imgMatch = html.match(/<(?:article|main|div[^>]*class=["'][^"']*(?:post|entry|article|content)[^"']*["'])[^>]*>[\s\S]*?<img[^>]+src=["']([^"']+)["']/i);
+    if (imgMatch?.[1]) {
+      const imgUrl = imgMatch[1].startsWith('http') ? imgMatch[1] : new URL(imgMatch[1], pageUrl).href;
+      if (await validateImageUrl(imgUrl)) return imgUrl;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error(`Page scrape failed for ${pageUrl}:`, error);
+    return null;
+  }
+}
+
+async function extractImageAdvanced(item: any, baseUrl: string, itemLink: string): Promise<ImageExtractionResult> {
+  const makeAbsolute = (url: string) => {
+    try {
+      return url.startsWith('http') ? url : new URL(url, baseUrl).href;
+    } catch {
+      return null;
+    }
+  };
+
+  // 1. Try enclosure (RSS standard)
+  if (item.enclosure?.url) {
+    const encUrl = makeAbsolute(item.enclosure.url);
+    if (encUrl && /\.(jpg|jpeg|png|gif|webp|avif)(\?.*)?$/i.test(encUrl)) {
+      if (await validateImageUrl(encUrl)) {
+        return { url: encUrl, source: 'enclosure' };
+      }
+    }
+  }
+
+  // 2. Try media:content (Media RSS)
+  if (item['media:content']?.$?.url) {
+    const mediaUrl = makeAbsolute(item['media:content'].$.url);
+    if (mediaUrl && await validateImageUrl(mediaUrl)) {
+      return { url: mediaUrl, source: 'media' };
+    }
+  }
+
+  // 3. Try media:thumbnail
+  if (item['media:thumbnail']?.$?.url) {
+    const thumbUrl = makeAbsolute(item['media:thumbnail'].$.url);
+    if (thumbUrl && await validateImageUrl(thumbUrl)) {
+      return { url: thumbUrl, source: 'media' };
+    }
+  }
+
+  // 4. Try explicit image field
+  if (item.image?.url) {
+    const imgUrl = makeAbsolute(item.image.url);
+    if (imgUrl && await validateImageUrl(imgUrl)) {
+      return { url: imgUrl, source: 'media' };
+    }
+  }
+
+  // 5. Extract from content/description
+  const content = item['content:encoded'] || item.content || item.description || '';
+  
+  if (content) {
+    // Try og:image in content
+    const ogMatch = content.match(/property=["']og:image["'][^>]*content=["']([^"']+)["']/i);
+    if (ogMatch?.[1]) {
+      const ogUrl = makeAbsolute(ogMatch[1]);
+      if (ogUrl && await validateImageUrl(ogUrl)) {
+        return { url: ogUrl, source: 'og' };
+      }
+    }
+
+    // Try twitter:image in content
+    const twitterMatch = content.match(/name=["']twitter:image["'][^>]*content=["']([^"']+)["']/i);
+    if (twitterMatch?.[1]) {
+      const twitterUrl = makeAbsolute(twitterMatch[1]);
+      if (twitterUrl && await validateImageUrl(twitterUrl)) {
+        return { url: twitterUrl, source: 'twitter' };
+      }
+    }
+
+    // Try img tags in content
+    const imgMatches = content.matchAll(/<img[^>]+src=["']([^"']+)["']/gi);
+    for (const match of imgMatches) {
+      const imgUrl = makeAbsolute(match[1]);
+      if (imgUrl && await validateImageUrl(imgUrl)) {
+        return { url: imgUrl, source: 'content' };
+      }
+    }
+  }
+
+  // 6. Scrape the actual page (last resort)
+  if (itemLink) {
+    console.log(`  🔍 Scraping page for image: ${itemLink.slice(0, 60)}...`);
+    const scrapedUrl = await extractImageFromPage(itemLink);
+    if (scrapedUrl) {
+      return { url: scrapedUrl, source: 'page-scrape' };
+    }
+  }
+
+  // 7. Fallback to generated image
+  return { url: null, source: 'fallback' };
+}
 
 function generateHash(title: string, link: string): string {
   return crypto
     .createHash('sha256')
     .update(`${title}|${link}`)
     .digest('hex');
-}
-
-function extractImage(item: any, baseUrl: string): string | null {
-  try {
-    if (item.enclosure?.url && item.enclosure.url.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-      return item.enclosure.url;
-    }
-
-    if (item['media:content']?.$?.url) {
-      return item['media:content'].$.url;
-    }
-
-    if (item['media:thumbnail']?.$?.url) {
-      return item['media:thumbnail'].$.url;
-    }
-
-    if (item.image?.url) {
-      return item.image.url;
-    }
-
-    const content = item.content || item['content:encoded'] || item.description || '';
-    
-    const ogImageMatch = content.match(/property=["']og:image["'][^>]*content=["']([^"']+)["']/i);
-    if (ogImageMatch && ogImageMatch[1] && ogImageMatch[1].startsWith('http')) {
-      return ogImageMatch[1];
-    }
-
-    const imgMatch = content.match(/<img[^>]+src=["']([^"']+)["']/i);
-    if (imgMatch && imgMatch[1]) {
-      const src = imgMatch[1];
-      if (src.startsWith('http')) {
-        return src;
-      }
-      try {
-        return new URL(src, baseUrl).href;
-      } catch {
-        return null;
-      }
-    }
-
-    return null;
-  } catch (error) {
-    return null;
-  }
 }
 
 function cleanText(html: string): string {
@@ -136,299 +231,166 @@ function cleanText(html: string): string {
     .trim();
 }
 
-async function fetchSource(source: any): Promise<FetchResult> {
-  const startTime = Date.now();
-  const logEntry = {
-    sourceId: source.id,
-    startedAt: new Date(),
-    status: 'pending',
-    httpStatus: null,
-    errorMessage: null,
-  };
-
+async function ingestSource(source: any) {
   try {
-    const now = new Date();
+    console.log(`📥 Fetching RSS: ${source.name}`);
+    const startTime = Date.now();
     
-    if (source.circuitOpenUntil && new Date(source.circuitOpenUntil) > now) {
-      logger.warn({ sourceId: source.id, name: source.name }, 'Circuit breaker open, skipping');
-      return {
-        sourceId: source.id,
-        success: false,
-        itemsAdded: 0,
-        status: 'SKIPPED_CIRCUIT',
-      };
-    }
+    const feed = await parser.parseURL(source.url);
+    const db = getDbClient();
 
-    if (source.lastFetchedAt) {
-      const minInterval = source.minIntervalMs || 600000; // 10 minutes default
-      const timeSinceLastFetch = now.getTime() - new Date(source.lastFetchedAt).getTime();
-      if (timeSinceLastFetch < minInterval) {
-        logger.debug({ sourceId: source.id, name: source.name }, 'Too soon to fetch again');
-        return {
-          sourceId: source.id,
-          success: false,
-          itemsAdded: 0,
-          status: 'SKIPPED_INTERVAL',
-        };
-      }
-    }
+    let imported = 0;
+    let skipped = 0;
+    const imageStats = {
+      enclosure: 0,
+      media: 0,
+      og: 0,
+      twitter: 0,
+      content: 0,
+      'page-scrape': 0,
+      fallback: 0,
+    };
 
-    const domain = new URL(source.url).hostname;
-    const limiter = limiterGroups.key(domain);
+    const limit = pLimit(3); // Process 3 items concurrently for image validation
 
-    const result = await limiter.schedule(async () => {
-      logger.info({ sourceId: source.id, name: source.name }, 'Fetching feed');
-
-      const requestOptions: any = {
-        timeout: {
-          request: 10000,
-        },
-        headers: {
-          'User-Agent': 'thecueRoom/2.0 Feed Aggregator',
-          'Accept': 'application/rss+xml, application/xml, text/xml, */*',
-        },
-        retry: {
-          limit: 3,
-          methods: ['GET'],
-          statusCodes: [408, 413, 429, 500, 502, 503, 504, 521, 522, 524],
-        },
-      };
-
-      if (source.etag) {
-        requestOptions.headers['If-None-Match'] = source.etag;
-      }
-      if (source.lastModified) {
-        requestOptions.headers['If-Modified-Since'] = source.lastModified;
-      }
-
-      let response;
-      try {
-        response = await got(source.url, requestOptions);
-      } catch (error: any) {
-        if (error.response?.statusCode === 304) {
-          logger.info({ sourceId: source.id }, 'Feed not modified (304)');
-          await db
-            .update(sources)
-            .set({ lastFetchedAt: now })
-            .where(eq(sources.id, source.id));
+    const promises = feed.items.slice(0, source.maxItems || 50).map(item =>
+      limit(async () => {
+        try {
+          const title = cleanText(item.title || '');
+          const link = item.link || '';
+          const summary = cleanText(item.contentSnippet || item.description || '').slice(0, 500);
           
-          return {
+          if (!title || !link) return;
+
+          const hash = generateHash(title, link);
+          
+          // Check for duplicates
+          const existing = await db
+            .select()
+            .from(feeds)
+            .where(and(eq(feeds.hash, hash), eq(feeds.sourceId, source.id)))
+            .limit(1);
+
+          if (existing.length > 0) {
+            skipped++;
+            return;
+          }
+
+          // Extract image with advanced validation
+          const imageResult = await extractImageAdvanced(item, source.url, link);
+          const imageUrl = imageResult.url || `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
+          
+          imageStats[imageResult.source]++;
+
+          let publishedAt: Date;
+          try {
+            publishedAt = item.pubDate ? new Date(item.pubDate) : new Date();
+          } catch {
+            publishedAt = new Date();
+          }
+
+          await db.insert(feeds).values({
+            title,
+            url: link,
+            summary,
+            image: imageUrl,
+            publishedAt,
             sourceId: source.id,
-            success: true,
-            itemsAdded: 0,
-            status: 'NOT_MODIFIED',
-          };
+            hash,
+            tags: source.tags || [],
+          });
+
+          imported++;
+        } catch (error) {
+          console.error(`  ❌ Error processing item: ${error}`);
         }
-        throw error;
-      }
-
-      logEntry.httpStatus = response.statusCode;
-
-      const feed = await parser.parseString(response.body);
-      const baseUrl = new URL(source.url).origin;
-
-      let itemsAdded = 0;
-      const itemsToProcess = feed.items.slice(0, MAX_ITEMS_PER_FEED);
-
-      for (const item of itemsToProcess) {
-        if (!item.title || !item.link) continue;
-
-        const hash = generateHash(item.title, item.link);
-        
-        const existing = await db
-          .select()
-          .from(feeds)
-          .where(eq(feeds.contentHash, hash))
-          .limit(1);
-
-        if (existing.length > 0) continue;
-
-        const image = extractImage(item, baseUrl);
-        const summary = cleanText(item.contentSnippet || item.summary || '').slice(0, 500);
-        const publishedAt = item.isoDate || item.pubDate || new Date().toISOString();
-
-        await db.insert(feeds).values({
-          sourceId: source.id,
-          title: item.title,
-          summary,
-          content: cleanText(item.content || item['content:encoded'] || ''),
-          link: item.link,
-          image,
-          tags: source.tags || [],
-          publishedAt: new Date(publishedAt),
-          contentHash: hash,
-        });
-
-        itemsAdded++;
-      }
-
-      const etag = response.headers.etag || null;
-      const lastModified = response.headers['last-modified'] || null;
-
-      await db
-        .update(sources)
-        .set({
-          lastFetchedAt: now,
-          lastSuccessAt: now,
-          consecutiveFailures: 0,
-          etag,
-          lastModified,
-          lastStatusCode: response.statusCode,
-        })
-        .where(eq(sources.id, source.id));
-
-      logger.info(
-        { sourceId: source.id, name: source.name, itemsAdded },
-        'Successfully fetched feed'
-      );
-
-      return {
-        sourceId: source.id,
-        success: true,
-        itemsAdded,
-        status: 'SUCCESS',
-      };
-    });
-
-    logEntry.status = 'success';
-    await db.insert(fetchLogs).values({
-      ...logEntry,
-      finishedAt: new Date(),
-    });
-
-    return result;
-  } catch (error: any) {
-    const duration = Date.now() - startTime;
-    const consecutiveFailures = (source.consecutiveFailures || 0) + 1;
-    
-    logger.error(
-      { sourceId: source.id, name: source.name, error: error.message, duration },
-      'Failed to fetch feed'
+      })
     );
 
-    let circuitOpenUntil = null;
-    if (consecutiveFailures >= CIRCUIT_THRESHOLD) {
-      const cooldownMs = COOLDOWN_BASE_MS * Math.pow(2, consecutiveFailures - CIRCUIT_THRESHOLD);
-      circuitOpenUntil = new Date(Date.now() + cooldownMs);
-      logger.warn(
-        { sourceId: source.id, circuitOpenUntil, consecutiveFailures },
-        'Circuit breaker triggered'
-      );
-    }
+    await Promise.all(promises);
 
-    await db
-      .update(sources)
-      .set({
-        lastFetchedAt: new Date(),
-        consecutiveFailures,
-        lastStatusCode: error.response?.statusCode || null,
-        circuitOpenUntil,
-      })
-      .where(eq(sources.id, source.id));
+    const duration = Date.now() - startTime;
+    
+    console.log(`✅ ${source.name}: ${imported} new, ${skipped} duplicates (${duration}ms)`);
+    console.log(`   📊 Image sources: ${Object.entries(imageStats).filter(([_, count]) => count > 0).map(([src, count]) => `${src}:${count}`).join(', ')}`);
 
-    logEntry.status = 'error';
-    logEntry.errorMessage = error.message;
-    await db.insert(fetchLogs).values({
-      ...logEntry,
-      finishedAt: new Date(),
-    });
-
-    return {
-      sourceId: source.id,
-      success: false,
-      itemsAdded: 0,
-      status: 'ERROR',
-      errorMessage: error.message,
-    };
+    return { success: true, imported, skipped };
+  } catch (error: any) {
+    console.error(`❌ ${source.name}: ${error.message}`);
+    return { success: false, error: error.message };
   }
 }
 
-async function fetchAllSources(parallelism: number = STEADY_PARALLELISM): Promise<void> {
-  logger.info({ parallelism }, 'Starting feed fetch cycle');
+export async function ingestBatch(sourcesToIngest: any[], concurrency: number = 5) {
+  const limit = pLimit(concurrency);
+  let totalImported = 0;
+  let totalSkipped = 0;
+  let successful = 0;
+  let failed = 0;
+  const errors: Array<{ source: string; error: string }> = [];
 
+  const promises = sourcesToIngest.map(source =>
+    limit(async () => {
+      const result = await ingestSource(source);
+      if (result.success) {
+        successful++;
+        totalImported += result.imported || 0;
+        totalSkipped += result.skipped || 0;
+      } else {
+        failed++;
+        errors.push({ source: source.name, error: result.error || 'Unknown error' });
+      }
+    })
+  );
+
+  await Promise.all(promises);
+
+  return { successful, failed, totalImported, totalSkipped, errors };
+}
+
+export async function runWorker() {
+  console.log('🚀 thecueRoom Enhanced Feed Ingestion\n');
+  console.log('============================================\n');
+
+  const db = getDbClient();
+  
   const allSources = await db
     .select()
     .from(sources)
     .where(eq(sources.enabled, true));
 
-  logger.info({ count: allSources.length }, 'Found enabled sources');
-
-  const batches: any[][] = [];
-  for (let i = 0; i < allSources.length; i += parallelism) {
-    batches.push(allSources.slice(i, i + parallelism));
+  if (allSources.length === 0) {
+    console.log('⚠️  No enabled sources found in database.');
+    return { success: false, message: 'No enabled sources' };
   }
 
-  let totalAdded = 0;
-  let totalSuccess = 0;
-  let totalFailed = 0;
-  let totalSkipped = 0;
+  console.log(`📊 Processing ${allSources.length} sources with enhanced image extraction...\n`);
 
-  for (const batch of batches) {
-    const results = await Promise.all(
-      batch.map(source => fetchSource(source))
-    );
+  const startTime = Date.now();
+  const results = await ingestBatch(allSources, 5);
+  const duration = ((Date.now() - startTime) / 1000).toFixed(2);
 
-    for (const result of results) {
-      totalAdded += result.itemsAdded;
-      if (result.success) {
-        totalSuccess++;
-      } else if (result.status.startsWith('SKIPPED')) {
-        totalSkipped++;
-      } else {
-        totalFailed++;
-      }
-    }
+  console.log('\n============================================');
+  console.log('📈 Ingestion Summary');
+  console.log('============================================');
+  console.log(`✅ Successful: ${results.successful}/${allSources.length}`);
+  console.log(`❌ Failed: ${results.failed}/${allSources.length}`);
+  console.log(`📝 Total items imported: ${results.totalImported}`);
+  console.log(`⏭️  Total duplicates skipped: ${results.totalSkipped}`);
+  console.log(`⏱️  Duration: ${duration}s`);
+
+  if (results.errors.length > 0) {
+    console.log('\n❌ Failed Sources:');
+    results.errors.forEach(({ source, error }) => {
+      console.log(`   - ${source}: ${error}`);
+    });
   }
 
-  logger.info(
-    { totalAdded, totalSuccess, totalFailed, totalSkipped },
-    'Feed fetch cycle complete'
-  );
-}
-
-async function startupFetch(): Promise<void> {
-  logger.info('Running startup fetch with high parallelism');
-  await fetchAllSources(STARTUP_PARALLELISM);
-}
-
-function scheduleJobs(): void {
-  cron.schedule('*/10 * * * *', async () => {
-    logger.debug('Running scheduled feed fetch (every 10 minutes)');
-    await fetchAllSources(STEADY_PARALLELISM);
-  });
-
-  cron.schedule('0 */6 * * *', async () => {
-    logger.debug('Running periodic cleanup (every 6 hours)');
-    
-    const result = await db
-      .update(sources)
-      .set({ circuitOpenUntil: null, consecutiveFailures: 0 })
-      .where(
-        and(
-          sql`${sources.circuitOpenUntil} IS NOT NULL`,
-          lt(sources.circuitOpenUntil, new Date())
-        )
-      );
-    
-    logger.info({ cleared: result.count }, 'Circuit breaker cleanup complete');
-  });
-
-  logger.info('Scheduled jobs initialized');
-}
-
-export async function startWorker(): Promise<void> {
-  logger.info('Starting background worker service');
-
-  await startupFetch();
-
-  scheduleJobs();
-
-  logger.info('Background worker running');
-}
-
-if (require.main === module) {
-  startWorker().catch((error) => {
-    logger.error({ error }, 'Worker crashed');
-    process.exit(1);
-  });
+  console.log('\n✨ Enhanced ingestion complete!\n');
+  
+  return {
+    success: true,
+    message: `Processed ${allSources.length} sources`,
+    results,
+  };
 }

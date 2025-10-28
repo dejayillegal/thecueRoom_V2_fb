@@ -18,9 +18,9 @@ function sanitizeImageUrl(url: string | null, title: string): string {
 
   const trimmedUrl = url.trim();
 
-  // Filter out video embeds
-  if (trimmedUrl.includes('youtube.com/embed') || trimmedUrl.includes('youtu.be') || trimmedUrl.includes('vimeo.com')) {
-    return `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
+  // If already a fallback URL, return as-is
+  if (trimmedUrl.startsWith('/api/og-fallback')) {
+    return trimmedUrl;
   }
 
   // Validate URL format
@@ -37,34 +37,10 @@ function sanitizeImageUrl(url: string | null, title: string): string {
       return `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
     }
 
-    // Check for common image hosting domains (always valid)
-    const trustedDomains = [
-      'i0.wp.com', 'i1.wp.com', 'i2.wp.com', 'i3.wp.com',
-      'images.ctfassets.net', 'cdn.sanity.io', 'cloudinary.com',
-      'imgur.com', 'i.imgur.com',
-      'preview.redd.it', 'i.redd.it', 'external-preview.redd.it'
-    ];
-    
-    if (trustedDomains.some(domain => urlObj.hostname.includes(domain))) {
-      return trimmedUrl;
-    }
+    // Trust the URL from database (already validated by worker)
+    return trimmedUrl;
 
-    // Validate image file extensions
-    const imageExtensions = /\.(jpg|jpeg|png|gif|webp|svg|avif|bmp)(\?.*)?$/i;
-    const pathname = urlObj.pathname.toLowerCase();
-    
-    if (imageExtensions.test(pathname)) {
-      return trimmedUrl;
-    }
-
-    // Check if URL path suggests it's an image endpoint
-    if (pathname.includes('/image') || pathname.includes('/img') || pathname.includes('/photo') || pathname.includes('/media')) {
-      return trimmedUrl;
-    }
-
-    // If all else fails, return fallback
-    return `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
-  } catch (e) {
+    } catch (e) {
     // Invalid URL format
     return `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
   }
