@@ -126,6 +126,7 @@ export async function GET(request: Request) {
       hasMore,
     }, {
       headers: {
+        'Content-Type': 'application/json',
         'Cache-Control': `public, s-maxage=${CACHE_TTL}, stale-while-revalidate=${CACHE_TTL * 2}`,
         'CDN-Cache-Control': `public, s-maxage=${CACHE_TTL}`,
         'Vercel-CDN-Cache-Control': `public, s-maxage=${CACHE_TTL}`,
@@ -138,7 +139,12 @@ export async function GET(request: Request) {
     console.error('Error details:', JSON.stringify(error, null, 2));
     return NextResponse.json(
       { error: 'Failed to fetch feeds', data: [], nextCursor: null, hasMore: false },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      }
     );
   }
 }

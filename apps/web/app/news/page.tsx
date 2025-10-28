@@ -36,11 +36,22 @@ export default function NewsPage() {
       if (debouncedQuery) params.set('search', debouncedQuery);
       if (selectedTags.length) params.set('tags', selectedTags.join(','));
 
-      const response = await fetch(`/api/feeds?${params}`);
+      const response = await fetch(`/api/feeds?${params.toString()}`);
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Expected JSON response');
+      }
+      
       const data = await response.json();
       setFeeds(data.data || []);
     } catch (error) {
       console.error('Failed to fetch feeds:', error);
+      setFeeds([]);
     } finally {
       setLoading(false);
     }
