@@ -1,0 +1,84 @@
+Task: Produce a production-quality fix for thecueRoom web app dashboard and feed pipeline.
+
+Goal (do this automatically, commit changes, and report results):
+- Fix memory leaks, remove long-lived listeners and timers, eliminate app hang / scroll lag.
+- Make search/filter inputs debounced and responsive (300ms).
+- Add virtualization for long lists (forum threads, feed lists) and lazy-load images.
+- Implement robust image fallback and progressive thumbnail loading.
+- Add/repair Next.js App Router API route at /app/api/music/weekly/route.ts that returns normalized weekly music items (TEST_MODE fallback when env missing).
+- Make Spotlight column vertically auto-scroll using requestAnimationFrame (respect prefers-reduced-motion and pause-on-hover).
+- Use a single shared socket/event subscription pattern (singleton hook) and avoid duplicate socket connects.
+- Offload heavy RSS/HTML parsing to a background worker (web worker on client; a background worker script on server if necessary).
+- Add simple in-memory LRU cache (TTL) for edge fetches.
+- Improve CSS for smooth scrolling and GPU-only animation where possible; ensure consistent dashboard background token `#0B0B0B`.
+- Add unit tests (Vitest) and E2E Playwright tests for the acceptance checks below.
+- Run typecheck, unit tests, and e2e tests; fix anything the tests reveal until green.
+- Commit with message: `fix(perf): memory leaks, virtualization, debounce, weekly API, image fallback, spotlight raf`.
+
+Constraints & style:
+- TypeScript strict mode must remain enabled; any added packages must be pinned to exact versions.
+- Do NOT add secrets. Use `.env.example` only; code must run in TEST_MODE when required env vars are missing.
+- No breaking changes to public routes or DB schema. Keep minimal, safe changes.
+- Keep UI style consistent with the existing dashboard: dark theme, lime accent. Use the canonical logo at apps/web/public/logo.svg unchanged.
+- Avoid blocking the main thread; use workers for heavy parsing.
+
+Files & modules to create or update (agent chooses exact code; these are required):
+- apps/web/src/components/Sidebar.tsx — memoized, no heavy listeners.
+- apps/web/src/components/Header.tsx — debounced search input (300ms) using router.replace.
+- apps/web/src/components/ImageWithFallback.tsx — progressive loading, onError fallback, lazy loading.
+- apps/web/src/components/VirtualList.tsx (or integrate react-window pinned version) — used by forum & feed lists.
+- apps/web/src/components/Spotlight/SpotlightColumn.tsx — vertical auto-scroll (RAF), pause on hover, respects reduced motion.
+- apps/web/src/hooks/use-debounce.ts, use-safe-interval.ts, use-event-listener.ts, use-shared-socket.ts — safe hooks with cleanup.
+- apps/web/src/app/api/music/weekly/route.ts — API route using AbortController, Zod input validation, in-memory LRU cache, TEST_MODE fixture fallback.
+- packages/edge/src/lib/cache.ts — small TTL LRU cache used by the API route.
+- apps/web/src/lib/fetcher.ts — fetch wrapper with timeout and retries, uses AbortController.
+- apps/web/src/workers/rssParser.worker.ts and scripts/server-worker.js (or similar) — background parsing for RSS/HTML.
+- scripts/diag/check-memory.js — script to detect number of active timers/sockets (used by CI).
+- tests (Vitest):
+  - tests/virtualization/virtual-list.test.ts
+  - tests/hooks/use-safe-interval.test.ts
+  - tests/components/image-with-fallback.test.ts
+  - tests/api/music-weekly.test.ts (TEST_MODE)
+  - tests/spotlight/auto-scroll.test.ts
+- e2e (Playwright):
+  - e2e/dashboard-load.spec.ts (landing + hero/logo visible)
+  - e2e/forum-scroll.spec.ts (scroll virtualization, no console errors)
+- Update apps/web/package.json scripts to include test:unit, test:e2e, perf:baseline, check:leaks.
+- Update .github/workflows/ci.yml to run: install, pnpm -w tsc --noEmit, lint, unit tests, Playwright tests, run scripts/diag/check-memory.js, and run an asset assembler check if present.
+
+Acceptance checks (must be produced in final agent message with logs):
+1. `pnpm -w tsc --noEmit` — exit 0, paste the output summary.
+2. `pnpm --filter apps/web test:unit` — all tests pass, paste summary.
+3. `pnpm --filter apps/web test:e2e` — Playwright tests pass, paste summary.
+4. `node scripts/diag/check-memory.js` — report shows no leaked timers/sockets after mounting/unmounting key components in a test scenario.
+5. Demonstrate the weekly API works in TEST_MODE:
+   - Run `node -e "require('./apps/web/app/api/music/weekly/route').testInvoke()"` or similar helper to show JSON output and schema.
+6. Show perf improvement evidence:
+   - Run `pnpm --filter apps/web perf:baseline` (or run Lighthouse CLI) and provide the performance / main-thread blocking time comparison vs prior baseline (or at least a current report).
+7. `git show --name-status HEAD` — show the commit created by agent.
+
+Behavioral instructions to agent:
+- If tests fail, fix code and re-run until all acceptance checks pass.
+- If any external feed cannot be accessed in CI, use TEST_MODE fixtures and clearly document which feeds were mocked.
+- Keep commits small and focused; produce one final commit for the whole change with the message requested.
+- In the final message, list:
+  - Files added/modified (full paths),
+  - The exact commands you ran and their outputs (typecheck + unit + e2e + memory check + perf),
+  - Any remaining manual steps for me (if unavoidable), and
+  - A brief one-paragraph summary of what caused the original problems and how you fixed them.
+
+Run commands the agent must execute and include outputs in message:
+- `pnpm -w install`
+- `pnpm -w tsc --noEmit`
+- `pnpm --filter apps/web test:unit`
+- `pnpm --filter apps/web test:e2e`
+- `node scripts/diag/check-memory.js`
+- `pnpm --filter apps/web perf:baseline` (or lighthouse CLI)
+- `git add -A && git commit -m "fix(perf): memory leaks, virtualization, debounce, weekly API, image fallback, spotlight raf" && git show --name-status HEAD`
+
+Deliver the final reply as:
+1) A short confirmation that all checks passed, with outputs pasted (or if something failed, the failing logs).
+2) A list of files changed.
+3) Short remediation notes and how to run locally.
+
+Do NOT ask me clarifying questions — just implement, test, commit, and report. Respect the constraints above and keep TypeScript strictness, no secrets, and the canonical logo unchanged.
