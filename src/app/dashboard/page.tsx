@@ -268,34 +268,7 @@ function DashboardContent() {
         </div>
       </div>
 
-      {/* Recent Activity - Full Width */}
-      <div className="bg-[#0f0f0f] rounded-lg p-5 border border-[#1a1a1a]">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[16px] font-semibold text-white">Recent Activity</h2>
-          <div className="text-[11px] flex items-center gap-2 text-[#666666]">
-            <div className="w-3 h-3 border-2 border-[#666666] border-t-transparent rounded-full animate-spin"></div>
-            Loading
-          </div>
-        </div>
-        <div className="space-y-2.5">
-          <div className="flex items-start gap-3 p-3 rounded-md bg-black/60 border border-[#1a1a1a]">
-            <Avatar className="h-9 w-9 flex-shrink-0">
-              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#D1FF3D]">
-                AM
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <div className="text-[13px] font-medium text-white">Ava Martinez</div>
-              <div className="text-[11px] mt-1 text-[#666666]">Queued update while verification completes</div>
-            </div>
-          </div>
-          <div className="flex items-start gap-3 p-3 rounded-md bg-black/60 border border-[#1a1a1a]">
-            <Avatar className="h-9 w-9 flex-shrink-0">
-              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#D1FF3D]">
-                SY
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
+       min-w-0">
               <div className="text-[13px] font-medium text-white">System</div>
               <div className="text-[11px] mt-1 text-[#666666]">Invite-only access enforced</div>
             </div>

@@ -172,3 +172,24 @@ button:hover .tcr-tab-label::after { transform: translateX(120%); }
 .verification-banner {
   background: linear-gradient(135deg, rgba(42,26,74,0.3) 0%, rgba(26,26,42,0.2) 50%, transparent 100%);
 }
+
+/* Performance optimizations */
+.hero-glow::before,
+.grain-overlay::before {
+  will-change: opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .hero-glow::before {
+    animation: none !important;
+  }
+}
