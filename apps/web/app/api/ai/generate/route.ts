@@ -151,8 +151,9 @@ async function generateImageWithAI(prompt: string, params?: any): Promise<string
   }
 
   try {
+    // Using Flux for higher quality results
     const response = await fetch(
-      'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0',
+      'https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell',
       {
         method: 'POST',
         headers: {
@@ -162,8 +163,8 @@ async function generateImageWithAI(prompt: string, params?: any): Promise<string
         body: JSON.stringify({
           inputs: prompt,
           parameters: {
-            num_inference_steps: 30,
-            guidance_scale: 7.5,
+            num_inference_steps: 4, // Flux Schnell is optimized for 4 steps
+            guidance_scale: 0, // Flux doesn't use guidance scale
             width: parseInt(params?.resolution?.split('x')[0] || '1024'),
             height: parseInt(params?.resolution?.split('x')[1] || '1024'),
             seed: params?.seed ? parseInt(params.seed) : undefined,
