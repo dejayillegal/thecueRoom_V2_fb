@@ -13,6 +13,7 @@ import {
   X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Logo } from '@/components/Logo';
 
 interface SidebarProps {
   className?: string;
@@ -49,10 +50,7 @@ export function Sidebar({ className }: SidebarProps) {
       >
         <div className="p-6 border-b border-[#1a1a1a]">
           <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-            <svg width="32" height="32" viewBox="0 0 1000 1000" aria-label="thecueRoom logo">
-              <circle cx="500" cy="500" r="400" fill="#D1FF3D" />
-              <path d="M500 200 L700 500 L500 800 L300 500 Z" fill="#000" />
-            </svg>
+            <Logo className="w-32 h-8" />
             <span className="font-semibold text-[15px]">thecueRoom</span>
           </Link>
         </div>

@@ -20,7 +20,7 @@ export function Header({ user }: HeaderProps) {
     .toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U';
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-[72px] bg-[var(--surface)] border-b border-[#1a1a1a] z-40 ml-0 lg:ml-[258px]">
+    <header className="fixed top-0 left-0 right-0 h-[72px] bg-[var(--surface)] z-40 ml-0 lg:ml-[258px]">
       <div className="h-full max-w-[1400px] mx-auto px-6 flex items-center justify-between">
         <div className="flex-1 max-w-md">
           <div className="relative">
