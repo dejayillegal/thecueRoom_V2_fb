@@ -456,7 +456,7 @@ export async function runEnhancedIngestion() {
   console.log(`📊 Processing ${allSources.length} sources with enhanced image extraction...\n`);
 
   const startTime = Date.now();
-  const results = await ingestBatch(allSources, 8); // Changed BATCH_SIZE to 8
+  const results = await ingestBatch(allSources, 10); // Changed BATCH_SIZE to 10
   const duration = ((Date.now() - startTime) / 1000).toFixed(2);
 
   console.log('\n============================================');
