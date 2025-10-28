@@ -21,46 +21,43 @@ import { cn } from '@/lib/utils';
 
 interface SidebarProps {
   className?: string;
+  isOpen: boolean;
+  onToggle: () => void;
 }
 
-export function Sidebar({ className }: SidebarProps) {
+export function Sidebar({ className, isOpen, onToggle }: SidebarProps) {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
 
   const navItems = [
     { href: '/dashboard', label: 'Home', icon: Home },
     { href: '/ai/cover-art', label: 'AI Cover Art', icon: Image },
-    { href: '/meme-generator', label: 'AI Meme', icon: MessageSquare },
-    { href: '/ai/epk', label: 'AI EPK Generator', icon: FileText },
-    { href: '/community', label: 'Community Forum', icon: Users },
+    { href: '/ai/meme-studio', label: 'AI Meme', icon: MessageSquare },
+    { href: '/ai/epk-generator', label: 'AI EPK Generator', icon: FileText },
+    { href: '/community/forum', label: 'Community Forum', icon: Users },
     { href: '/news', label: 'News', icon: Newspaper },
-    { href: '/gigs', label: 'Gig Radar', icon: Radar },
-    { href: '/music', label: 'Weekly Curated Music', icon: Music },
+    { href: '/gigs/india', label: 'Gig Radar', icon: Radar },
+    { href: '/music/weekly', label: 'Weekly Curated Music', icon: Music },
   ];
 
   return (
     <>
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-[#0b0b0b] border border-[#1a1a1a] rounded-md"
-        aria-label="Toggle sidebar"
-      >
-        {collapsed ? <Menu size={20} /> : <X size={20} />}
-      </button>
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+          onClick={onToggle}
+        />
+      )}
 
       <aside
-        data-collapsed={collapsed}
+        data-open={isOpen}
         className={cn(
-          'fixed left-0 top-0 h-screen w-[258px] bg-[rgb(11,11,11)] border-r border-[#1a1a1a] flex flex-col transition-transform duration-300',
-          collapsed && 'max-lg:-translate-x-full',
+          'fixed left-0 top-[72px] h-[calc(100vh-72px)] w-[258px] bg-[rgb(11,11,11)] border-r border-[#1a1a1a] flex flex-col transition-transform duration-300 z-30',
+          !isOpen && 'max-lg:-translate-x-full',
           className
         )}
       >
-        <div className="h-[72px] flex items-center px-5 border-b border-[#1a1a1a]">
-          <p className="text-[11px] uppercase tracking-wider text-gray-500">Navigation</p>
-        </div>
-
-        <nav className="flex-1 p-4 overflow-y-auto">
+        <nav className="flex-1 p-4 overflow-y-auto pt-6">
           <ul className="space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;

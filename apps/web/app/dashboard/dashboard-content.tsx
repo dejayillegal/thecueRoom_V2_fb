@@ -65,7 +65,7 @@ export function DashboardContent({ user }: DashboardContentProps) {
     { title: 'Berghain Showcase', date: 'Jan 12' },
   ], []);
 
-  
+
 
   const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {

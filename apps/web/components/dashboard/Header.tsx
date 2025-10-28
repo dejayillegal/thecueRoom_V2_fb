@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Search } from 'lucide-react';
+import { Search, Menu } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Logo } from '@/components/Logo';
 import Link from 'next/link';
@@ -12,9 +12,10 @@ interface HeaderProps {
     email?: string | null;
     image?: string | null;
   } | null;
+  onSidebarToggle?: () => void;
 }
 
-export function Header({ user }: HeaderProps) {
+export function Header({ user, onSidebarToggle }: HeaderProps) {
   const initials = user?.name
     ?.split(' ')
     .map(n => n[0])
@@ -22,12 +23,21 @@ export function Header({ user }: HeaderProps) {
     .toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U';
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-[72px] bg-[#0b0b0b] border-b border-[#1a1a1a] z-40">
+    <header className="fixed top-0 left-0 right-0 h-[72px] bg-[#0b0b0b] border-b border-[#1a1a1a] z-50">
       <div className="h-full px-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Logo className="w-8 h-8" />
+        <button
+          onClick={onSidebarToggle}
+          className="flex items-center gap-3 group hover:opacity-80 transition-opacity"
+          aria-label="Toggle sidebar"
+        >
+          <div className="relative">
+            <Logo className="w-8 h-8" />
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <Menu className="w-5 h-5 text-[var(--tcr-accent)]" />
+            </div>
+          </div>
           <span className="text-white text-[15px] font-medium">thecueRoom</span>
-        </div>
+        </button>
 
         <div className="flex-1 max-w-md mx-6">
           <div className="relative">
