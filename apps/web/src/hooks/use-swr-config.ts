@@ -1,23 +1,14 @@
 
-import { SWRConfiguration } from 'swr';
-
-export const defaultSWRConfig: SWRConfiguration = {
+export const swrConfig = {
   revalidateOnFocus: false,
   revalidateOnReconnect: false,
-  dedupingInterval: 5000,
   refreshInterval: 0,
+  dedupingInterval: 60000,
   shouldRetryOnError: false,
   errorRetryCount: 2,
-  errorRetryInterval: 3000,
+  errorRetryInterval: 5000,
+  suspense: false,
+  focusThrottleInterval: 60000,
 };
-import { SWRConfiguration } from 'swr';
 
-export const defaultSWRConfig: SWRConfiguration = {
-  revalidateOnFocus: false,
-  revalidateOnReconnect: false,
-  refreshInterval: 0,
-  dedupingInterval: 2000,
-  errorRetryCount: 3,
-  shouldRetryOnError: true,
-  fallbackData: undefined,
-};
+export default swrConfig;

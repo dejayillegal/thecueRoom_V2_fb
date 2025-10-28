@@ -1,53 +1,39 @@
-
-#!/usr/bin/env node
-
-const url = process.argv[2] || 'http://localhost:5000';
-
-console.log(`🔦 Running Lighthouse on ${url}...\n`);
-console.log('Performance Score: 85 (baseline)');
-console.log('Accessibility Score: 92 (baseline)');
-console.log('First Contentful Paint: 1.2s');
-console.log('Time to Interactive: 2.8s');
-console.log('Total Blocking Time: 180ms');
-console.log('\n✅ Lighthouse baseline complete');
 #!/usr/bin/env node
 
 const lighthouse = require('lighthouse');
 const chromeLauncher = require('chrome-launcher');
 
-async function runLighthouse() {
-  const url = process.argv[2] || 'http://localhost:5000';
-  
-  console.log(`🚀 Running Lighthouse on ${url}...\n`);
+async function runLighthouse(url) {
+  console.log(`🔍 Running Lighthouse on ${url}...`);
 
-  const chrome = await chromeLauncher.launch({ chromeFlags: ['--headless'] });
+  const chrome = await chromeLauncher.launch({
+    chromeFlags: ['--headless', '--no-sandbox']
+  });
+
   const options = {
     logLevel: 'info',
     output: 'json',
     onlyCategories: ['performance', 'accessibility'],
-    port: chrome.port,
+    port: chrome.port
   };
 
-  const runnerResult = await lighthouse(url, options);
+  try {
+    const runnerResult = await lighthouse(url, options);
+    const { lhr } = runnerResult;
 
-  await chrome.kill();
+    console.log('\n📊 Lighthouse Results:');
+    console.log(`Performance Score: ${lhr.categories.performance.score * 100}`);
+    console.log(`Accessibility Score: ${lhr.categories.accessibility.score * 100}`);
 
-  const { performance, accessibility } = runnerResult.lhr.categories;
+    await chrome.kill();
 
-  console.log('📊 Lighthouse Results:');
-  console.log(`  Performance: ${Math.round(performance.score * 100)}`);
-  console.log(`  Accessibility: ${Math.round(accessibility.score * 100)}\n`);
-
-  if (performance.score < 0.5) {
-    console.log('⚠️  Performance score is below 50%');
-    process.exit(1);
+    return lhr.categories.performance.score >= 0.7 ? 0 : 1;
+  } catch (error) {
+    console.error('❌ Lighthouse failed:', error.message);
+    await chrome.kill();
+    return 1;
   }
-
-  console.log('✅ Performance baseline passed!\n');
-  process.exit(0);
 }
 
-runLighthouse().catch(err => {
-  console.error('Lighthouse error:', err);
-  process.exit(1);
-});
+const url = process.argv[2] || 'http://localhost:5000';
+runLighthouse(url).then(code => process.exit(code));

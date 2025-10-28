@@ -12,11 +12,18 @@ html {
   scroll-behavior: smooth;
 }
 
-body {
-  overscroll-behavior: contain;
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
-/* Use composite-only properties for animations */
+body {
+  overscroll-behavior: contain;
+  background: #0B0B0B;
+}
+
+/* GPU-accelerated animations - composite-only properties */
 .hover-lift {
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
               opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -24,30 +31,18 @@ body {
 
 .hover-lift:hover {
   transform: translateY(-2px);
+  will-change: transform;
 }
 
-/* Smooth scrolling with passive listeners */
-.spotlight-scroll-container {
+.hover-lift:not(:hover) {
+  will-change: auto;
+}
+
+/* Smooth scrolling containers */
+.scroll-container {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  scroll-snap-type: y proximity;
-}
-
-/* GPU acceleration only when needed - composite-only properties */
-.hover-lift:hover {
-  transform: translateY(-2px);
-  will-change: transform, opacity;
-}
-
-.transition-lift {
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
-              opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Remove will-change after animation */
-.hover-lift:not(:hover) {
-  will-change: auto;
 }
 
 /* Reduce motion for accessibility */
@@ -58,10 +53,6 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  
-  .animate-scroll-slow {
-    animation: none !important;
-  }
 }
 
 @layer base {
@@ -70,20 +61,13 @@ body {
     --foreground: 0 0% 100%;
     --card: 0 0% 6%;
     --card-foreground: 0 0% 100%;
-    --popover: 0 0% 6%;
-    --popover-foreground: 0 0% 100%;
     --primary: 70 86% 51%;
     --primary-foreground: 0 0% 0%;
     --secondary: 265 100% 68%;
     --secondary-foreground: 0 0% 100%;
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 60%;
-    --accent: 70 86% 51%;
-    --accent-foreground: 0 0% 0%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
     --border: 0 0% 10%;
-    --input: 0 0% 10%;
     --ring: 70 86% 51%;
     --surface: 0 0% 6.7%;
     --tcr-accent: #D1FF3D;
@@ -212,7 +196,7 @@ body {
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-:root {
+::root {
   --tcr-accent: #D7FF3C;
   --tcr-accent-2: #9B5CFF;
 }

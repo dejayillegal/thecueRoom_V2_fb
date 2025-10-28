@@ -1,62 +1,31 @@
+'use client';
 
-import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
-
-interface NavigationOptions {
-  replace?: boolean;
-  scroll?: boolean;
-  focus?: boolean;
-}
-
-export function navigateTo(
-  router: AppRouterInstance,
-  path: string,
-  options: NavigationOptions = {}
+export function safeNavigate(
+  router: { push: (url: string) => void; replace: (url: string) => void },
+  url: string,
+  options: { replace?: boolean; scroll?: boolean } = {}
 ) {
-  const { replace = false, scroll = true, focus = true } = options;
+  const { replace = false, scroll = true } = options;
+
+  if (typeof window === 'undefined') return;
 
   if (replace) {
-    router.replace(path, { scroll });
+    router.replace(url);
   } else {
-    router.push(path, { scroll });
+    router.push(url);
   }
 
-  if (focus && typeof document !== 'undefined') {
-    // Focus management after navigation
-    requestAnimationFrame(() => {
-      const mainContent = document.querySelector('main');
-      if (mainContent instanceof HTMLElement) {
-        mainContent.focus({ preventScroll: true });
-      }
-    });
+  if (!scroll && typeof window !== 'undefined') {
+    window.history.scrollRestoration = 'manual';
   }
 }
-import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 
-interface NavigateOptions {
-  replace?: boolean;
-  scroll?: boolean;
-  focusId?: string;
-}
+export function preserveScroll(callback: () => void) {
+  if (typeof window === 'undefined') return callback();
 
-export function navigateTo(
-  router: AppRouterInstance,
-  path: string,
-  opts: NavigateOptions = {}
-) {
-  const { replace = false, scroll = true, focusId } = opts;
-
-  if (replace) {
-    router.replace(path, { scroll });
-  } else {
-    router.push(path, { scroll });
-  }
-
-  if (focusId) {
-    setTimeout(() => {
-      const el = document.getElementById(focusId);
-      if (el) {
-        el.focus({ preventScroll: !scroll });
-      }
-    }, 100);
-  }
+  const scrollPos = window.scrollY;
+  callback();
+  requestAnimationFrame(() => {
+    window.scrollTo(0, scrollPos);
+  });
 }

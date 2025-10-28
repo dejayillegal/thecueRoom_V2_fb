@@ -1,22 +1,24 @@
 
 'use client';
 
-import React, { useState, useCallback, memo } from 'react';
+import React, { useState, useCallback, useEffect, memo } from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
-import { useDebounce } from '@/../../src/hooks/use-debounce';
+import { useDebounce } from '@/hooks/use-debounce';
 
 export const Header = memo(function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedQuery = useDebounce(searchQuery, 300);
   const router = useRouter();
 
-  React.useEffect(() => {
-    if (debouncedQuery) {
+  useEffect(() => {
+    if (debouncedQuery.trim()) {
       router.replace(`/news?search=${encodeURIComponent(debouncedQuery)}`);
+    } else if (searchQuery === '' && debouncedQuery === '') {
+      router.replace('/news');
     }
-  }, [debouncedQuery, router]);
+  }, [debouncedQuery, router, searchQuery]);
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -31,6 +33,7 @@ export const Header = memo(function Header() {
           onChange={handleSearchChange}
           placeholder="Search news, tracks, events..."
           className="bg-[#1a1a1a] border-none text-white placeholder:text-gray-500"
+          aria-label="Search"
         />
       </div>
     </header>
