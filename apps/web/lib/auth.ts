@@ -1,19 +1,13 @@
-
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
+import { db } from '@thecueroom/db';
+import { users } from '@thecueroom/db/schema';
+import { eq } from 'drizzle-orm';
+import bcrypt from 'bcryptjs';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'your-secret-key-change-this-in-production'
 );
-
-const ADMIN_USERS = [
-  {
-    email: 'dejayillegal@gmail.com',
-    password: 'Closer@82', // In production, this should be hashed
-    uid: 'admin-001',
-    role: 'admin'
-  }
-];
 
 export interface UserData {
   uid: string;
@@ -41,17 +35,34 @@ export async function verifyToken(token: string): Promise<UserData | null> {
 }
 
 export async function authenticateUser(email: string, password: string): Promise<UserData | null> {
-  const user = ADMIN_USERS.find(u => u.email === email && u.password === password);
-  
-  if (!user) {
+  try {
+    const userRecords = await db.select().from(users).where(eq(users.email, email));
+    
+    if (userRecords.length === 0) {
+      return null;
+    }
+    
+    const user = userRecords[0];
+    
+    if (!user.passwordHash) {
+      return null;
+    }
+    
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+    
+    if (!isValid) {
+      return null;
+    }
+    
+    return {
+      uid: user.id,
+      email: user.email,
+      role: user.role
+    };
+  } catch (error) {
+    console.error('Authentication error:', error);
     return null;
   }
-  
-  return {
-    uid: user.uid,
-    email: user.email,
-    role: user.role
-  };
 }
 
 export async function getSession(): Promise<UserData | null> {

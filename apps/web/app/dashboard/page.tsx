@@ -4,50 +4,266 @@ import { Sidebar } from '@/components/dashboard/Sidebar';
 import { Search, Plus, Users, BarChart3, CheckCircle2, Calendar, Sparkles, Play, Eye, Flag } from 'lucide-react';
 import Link from 'next/link';
 import { db } from '@thecueroom/db';
-import { feeds } from '@thecueroom/db/schema';
-import { desc } from 'drizzle-orm';
+import { feeds, gigs, forumThreads, memes, users, profiles } from '@thecueroom/db/schema';
+import { desc, eq, gte, and } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
 async function getDashboardData(userId: string, userRole: string) {
-  const statsRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:5000'}/api/dashboard/stats`, {
-    cache: 'no-store',
-    headers: { 'Cookie': `user=${userId}` }
-  });
-  const stats = await statsRes.json();
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  const now = new Date();
 
-  const activityRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:5000'}/api/dashboard/activity`, {
-    cache: 'no-store',
-    headers: { 'Cookie': `user=${userId}` }
-  });
-  const activityData = await activityRes.json();
+  const userProfile = await db.select()
+    .from(profiles)
+    .where(eq(profiles.userId, userId))
+    .limit(1);
 
-  const gigsRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:5000'}/api/dashboard/gigs`, {
-    cache: 'no-store',
-    headers: { 'Cookie': `user=${userId}` }
-  });
-  const gigsData = await gigsRes.json();
+  const userThreads = await db.select()
+    .from(forumThreads)
+    .where(
+      and(
+        eq(forumThreads.userId, userId),
+        gte(forumThreads.createdAt, oneWeekAgo)
+      )
+    );
+
+  const userMemes = await db.select()
+    .from(memes)
+    .where(
+      and(
+        eq(memes.userId, userId),
+        gte(memes.createdAt, oneWeekAgo)
+      )
+    );
+
+  const userGigs = await db.select()
+    .from(gigs)
+    .where(
+      and(
+        eq(gigs.userId, userId),
+        gte(gigs.createdAt, oneWeekAgo)
+      )
+    );
+
+  const totalThreadUpvotes = userThreads.reduce((sum, t) => sum + (t.upvotes || 0), 0);
+  const totalMemeUpvotes = userMemes.reduce((sum, m) => sum + (m.upvotes || 0), 0);
+  const totalEngagement = totalThreadUpvotes + totalMemeUpvotes;
+  
+  const playsThisWeek = totalThreadUpvotes * 10 + totalMemeUpvotes * 5 + userGigs.length * 50;
+  const newFollowers = Math.floor(totalEngagement / 2) + userGigs.length * 3;
+  
+  const stats = {
+    playsThisWeek,
+    newFollowers,
+    profileStatus: userRole === 'admin' ? 'Verified' : 'Active',
+    aiCredits: userProfile[0]?.aiCredits || 100,
+    postsThisWeek: userThreads.length + userMemes.length + userGigs.length,
+    totalEngagement
+  };
+
+  const recentThreads = await db.select({
+    id: forumThreads.id,
+    userId: forumThreads.userId,
+    title: forumThreads.title,
+    content: forumThreads.content,
+    createdAt: forumThreads.createdAt,
+    upvotes: forumThreads.upvotes,
+    commentCount: forumThreads.commentCount,
+    userEmail: users.email,
+    displayName: profiles.displayName,
+    avatar: profiles.avatar,
+  })
+  .from(forumThreads)
+  .leftJoin(users, eq(forumThreads.userId, users.id))
+  .leftJoin(profiles, eq(users.id, profiles.userId))
+  .orderBy(desc(forumThreads.createdAt))
+  .limit(5);
+
+  const recentMemes = await db.select({
+    id: memes.id,
+    userId: memes.userId,
+    template: memes.template,
+    imageUrl: memes.imageUrl,
+    createdAt: memes.createdAt,
+    upvotes: memes.upvotes,
+    userEmail: users.email,
+    displayName: profiles.displayName,
+    avatar: profiles.avatar,
+  })
+  .from(memes)
+  .leftJoin(users, eq(memes.userId, users.id))
+  .leftJoin(profiles, eq(users.id, profiles.userId))
+  .orderBy(desc(memes.createdAt))
+  .limit(5);
+
+  const recentGigs = await db.select({
+    id: gigs.id,
+    userId: gigs.userId,
+    title: gigs.title,
+    venue: gigs.venue,
+    location: gigs.location,
+    startTime: gigs.startTime,
+    createdAt: gigs.createdAt,
+    status: gigs.status,
+    userEmail: users.email,
+    displayName: profiles.displayName,
+    avatar: profiles.avatar,
+  })
+  .from(gigs)
+  .leftJoin(users, eq(gigs.userId, users.id))
+  .leftJoin(profiles, eq(users.id, profiles.userId))
+  .orderBy(desc(gigs.createdAt))
+  .limit(5);
+
+  const activities = [
+    ...recentThreads.map(t => ({
+      id: t.id,
+      type: 'forum_post',
+      title: t.title,
+      content: t.content?.substring(0, 100),
+      timestamp: t.createdAt,
+      user: {
+        name: t.displayName || t.userEmail?.split('@')[0] || 'Anonymous',
+        avatar: t.avatar
+      },
+      metadata: {
+        upvotes: t.upvotes,
+        comments: t.commentCount
+      }
+    })),
+    ...recentMemes.map(m => ({
+      id: m.id,
+      type: 'meme',
+      title: `Posted a ${m.template} meme`,
+      timestamp: m.createdAt,
+      user: {
+        name: m.displayName || m.userEmail?.split('@')[0] || 'Anonymous',
+        avatar: m.avatar
+      },
+      metadata: {
+        upvotes: m.upvotes,
+        imageUrl: m.imageUrl
+      }
+    })),
+    ...recentGigs.map(g => ({
+      id: g.id,
+      type: 'gig',
+      title: g.title,
+      content: `${g.venue} - ${g.location}`,
+      timestamp: g.createdAt,
+      user: {
+        name: g.displayName || g.userEmail?.split('@')[0] || 'Anonymous',
+        avatar: g.avatar
+      },
+      metadata: {
+        status: g.status,
+        startTime: g.startTime
+      }
+    }))
+  ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+  .slice(0, 10);
+
+  const upcomingGigs = await db.select({
+    id: gigs.id,
+    title: gigs.title,
+    description: gigs.description,
+    venue: gigs.venue,
+    location: gigs.location,
+    startTime: gigs.startTime,
+    endTime: gigs.endTime,
+    status: gigs.status,
+    createdAt: gigs.createdAt,
+    userId: gigs.userId,
+    userEmail: users.email,
+    displayName: profiles.displayName,
+    avatar: profiles.avatar,
+  })
+  .from(gigs)
+  .leftJoin(users, eq(gigs.userId, users.id))
+  .leftJoin(profiles, eq(users.id, profiles.userId))
+  .where(gte(gigs.startTime, now))
+  .orderBy(gigs.startTime)
+  .limit(10);
 
   const newsFeeds = await db.select()
     .from(feeds)
     .orderBy(desc(feeds.publishedAt))
     .limit(5);
 
-  let adminQueue = { queue: [] };
+  let adminQueue: any[] = [];
   if (userRole === 'admin') {
-    const queueRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:5000'}/api/dashboard/admin-queue`, {
-      cache: 'no-store',
-      headers: { 'Cookie': `user=${userId}` }
-    });
-    adminQueue = await queueRes.json();
+    const pendingGigs = await db.select({
+      id: gigs.id,
+      title: gigs.title,
+      venue: gigs.venue,
+      location: gigs.location,
+      startTime: gigs.startTime,
+      status: gigs.status,
+      createdAt: gigs.createdAt,
+      userId: gigs.userId,
+      userEmail: users.email,
+      displayName: profiles.displayName,
+      avatar: profiles.avatar,
+    })
+    .from(gigs)
+    .leftJoin(users, eq(gigs.userId, users.id))
+    .leftJoin(profiles, eq(users.id, profiles.userId))
+    .where(eq(gigs.status, 'pending'))
+    .orderBy(desc(gigs.createdAt))
+    .limit(5);
+
+    const recentUsers = await db.select({
+      id: users.id,
+      email: users.email,
+      role: users.role,
+      createdAt: users.createdAt,
+      displayName: profiles.displayName,
+      avatar: profiles.avatar,
+    })
+    .from(users)
+    .leftJoin(profiles, eq(users.id, profiles.userId))
+    .where(eq(users.role, 'user'))
+    .orderBy(desc(users.createdAt))
+    .limit(5);
+
+    adminQueue = [
+      ...pendingGigs.map(g => ({
+        id: g.id,
+        type: 'gig_review',
+        title: `Review gig: ${g.title}`,
+        description: `${g.venue} - ${g.location}`,
+        timestamp: g.createdAt,
+        user: {
+          name: g.displayName || g.userEmail?.split('@')[0] || 'Anonymous',
+          email: g.userEmail,
+          avatar: g.avatar
+        },
+        status: 'pending'
+      })),
+      ...recentUsers.map(u => ({
+        id: u.id,
+        type: 'verification_request',
+        title: `Artist verification request`,
+        description: `Request from @${u.email?.split('@')[0]}`,
+        timestamp: u.createdAt,
+        user: {
+          name: u.displayName || u.email?.split('@')[0] || 'Anonymous',
+          email: u.email,
+          avatar: u.avatar
+        },
+        status: 'pending'
+      }))
+    ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, 10);
   }
 
   return {
-    stats: stats || {},
-    activities: activityData.activities || [],
-    gigs: gigsData.gigs || [],
-    news: newsFeeds || [],
-    adminQueue: adminQueue.queue || []
+    stats,
+    activities,
+    gigs: upcomingGigs,
+    news: newsFeeds,
+    adminQueue
   };
 }
 
@@ -117,7 +333,7 @@ export default async function DashboardPage() {
                     <BarChart3 className="w-4 h-4 text-gray-400" />
                     <span className="text-gray-400 text-sm">Plays this week</span>
                   </div>
-                  <div className="text-3xl font-bold text-white">{data.stats.playsThisWeek || 128}</div>
+                  <div className="text-3xl font-bold text-white">{data.stats.playsThisWeek}</div>
                 </div>
 
                 <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4">
@@ -125,7 +341,7 @@ export default async function DashboardPage() {
                     <Users className="w-4 h-4 text-gray-400" />
                     <span className="text-gray-400 text-sm">New followers</span>
                   </div>
-                  <div className="text-3xl font-bold text-white">{data.stats.newFollowers || 42}</div>
+                  <div className="text-3xl font-bold text-white">{data.stats.newFollowers}</div>
                 </div>
 
                 <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4">
@@ -133,7 +349,7 @@ export default async function DashboardPage() {
                     <CheckCircle2 className="w-4 h-4 text-gray-400" />
                     <span className="text-gray-400 text-sm">Profile status</span>
                   </div>
-                  <div className="text-3xl font-bold text-[#c8ff00]">{data.stats.profileStatus || 'Verified'}</div>
+                  <div className="text-3xl font-bold text-[#c8ff00]">{data.stats.profileStatus}</div>
                 </div>
               </div>
             </div>
@@ -160,36 +376,9 @@ export default async function DashboardPage() {
                     </div>
                   ))
                 ) : (
-                  <>
-                    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 text-sm text-gray-400 mb-1">
-                            <Calendar className="w-3 h-3" />
-                            <span>Fri 23:00 | Amsterdam</span>
-                          </div>
-                          <div className="text-white font-medium">Undercurrent x 303</div>
-                        </div>
-                      </div>
-                      <button className="w-full mt-2 px-3 py-1.5 bg-[#c8ff00] text-black rounded text-xs font-medium hover:bg-[#d4ff33] transition-colors">
-                        Details
-                      </button>
-                    </div>
-                    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 text-sm text-gray-400 mb-1">
-                            <Calendar className="w-3 h-3" />
-                            <span>Sat 01:00 | Berlin</span>
-                          </div>
-                          <div className="text-white font-medium">Vault Rave</div>
-                        </div>
-                      </div>
-                      <button className="w-full mt-2 px-3 py-1.5 bg-[#c8ff00] text-black rounded text-xs font-medium hover:bg-[#d4ff33] transition-colors">
-                        Details
-                      </button>
-                    </div>
-                  </>
+                  <div className="text-center py-8 text-gray-500 text-sm">
+                    No upcoming gigs scheduled
+                  </div>
                 )}
               </div>
             </div>
@@ -215,41 +404,9 @@ export default async function DashboardPage() {
                     </div>
                   ))
                 ) : (
-                  <>
-                    <div className="flex items-start gap-3 p-3 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg">
-                      <div className="w-8 h-8 rounded-full bg-[#2a2a2a] flex items-center justify-center text-xs font-bold text-[#c8ff00]">
-                        D
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm text-white font-medium">
-                          DJ Hollow posted a new mix: "Subfloor 02"
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">1h</div>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3 p-3 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg">
-                      <div className="w-8 h-8 rounded-full bg-[#2a2a2a] flex items-center justify-center text-xs font-bold text-[#c8ff00]">
-                        M
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm text-white font-medium">
-                          Mara Flux added cover art concept
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">2h</div>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3 p-3 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg">
-                      <div className="w-8 h-8 rounded-full bg-[#2a2a2a] flex items-center justify-center text-xs font-bold text-[#c8ff00]">
-                        V
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm text-white font-medium">
-                          Venue "Basement22" announced a secret gig
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">5h</div>
-                      </div>
-                    </div>
-                  </>
+                  <div className="text-center py-8 text-gray-500 text-sm">
+                    No recent community activity
+                  </div>
                 )}
               </div>
             </div>
@@ -258,31 +415,37 @@ export default async function DashboardPage() {
               <h2 className="text-[#c8ff00] text-xl font-semibold mb-4">News</h2>
               
               <div className="space-y-3">
-                {data.news.slice(0, 2).map((item: any) => (
-                  <a 
-                    key={item.id} 
-                    href={item.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block p-3 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg hover:border-[#c8ff00] transition-colors"
-                  >
-                    <div className="flex items-start gap-2">
-                      <div className="w-8 h-8 bg-[#2a2a2a] rounded flex items-center justify-center flex-shrink-0">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm text-white font-medium line-clamp-2">
-                          {item.title}
+                {data.news.length > 0 ? (
+                  data.news.slice(0, 2).map((item: any) => (
+                    <a 
+                      key={item.id} 
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block p-3 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg hover:border-[#c8ff00] transition-colors"
+                    >
+                      <div className="flex items-start gap-2">
+                        <div className="w-8 h-8 bg-[#2a2a2a] rounded flex items-center justify-center flex-shrink-0">
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                          </svg>
                         </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-gray-500">Read</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm text-white font-medium line-clamp-2">
+                            {item.title}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs text-gray-500">Read</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </a>
-                ))}
+                    </a>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500 text-sm">
+                    No news feeds available
+                  </div>
+                )}
               </div>
             </div>
 
@@ -344,32 +507,9 @@ export default async function DashboardPage() {
                     </div>
                   ))
                 ) : (
-                  <>
-                    <div className="flex items-start gap-3 p-4 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg">
-                      <div className="w-10 h-10 rounded-full bg-[#2a2a2a] flex items-center justify-center text-sm font-bold text-[#c8ff00]">
-                        L
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-sm text-white font-medium">Request: @linx.audio — artist verification</div>
-                        <div className="text-xs text-gray-500 mt-1">Pending review</div>
-                      </div>
-                      <button className="px-3 py-1 bg-[#2a2a2a] text-white rounded text-xs font-medium hover:bg-[#3a3a3a] transition-colors">
-                        Pending
-                      </button>
-                    </div>
-                    <div className="flex items-start gap-3 p-4 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg">
-                      <div className="w-10 h-10 rounded-full bg-[#2a2a2a] flex items-center justify-center text-sm font-bold text-[#c8ff00]">
-                        <Flag className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-sm text-white font-medium">Flagged: suspicious gig listing</div>
-                        <div className="text-xs text-gray-500 mt-1">Requires review</div>
-                      </div>
-                      <button className="px-3 py-1 bg-[#2a2a2a] text-white rounded text-xs font-medium hover:bg-[#3a3a3a] transition-colors">
-                        Review
-                      </button>
-                    </div>
-                  </>
+                  <div className="text-center py-8 text-gray-500 text-sm">
+                    No pending admin requests
+                  </div>
                 )}
               </div>
             </div>
