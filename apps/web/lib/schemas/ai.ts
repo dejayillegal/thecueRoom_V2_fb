@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 
 export const aiJobTypeSchema = z.enum(['cover-art', 'meme', 'epk', 'avatar']);
@@ -20,6 +21,7 @@ export const aiJobResponseSchema = z.object({
   resultUrl: z.string().url().optional().nullable(),
   error: z.string().optional().nullable(),
   retryCount: z.number().int().min(0),
+  progress: z.number().min(0).max(100).optional(),
   createdAt: z.string().datetime(),
   completedAt: z.string().datetime().optional().nullable(),
 });
