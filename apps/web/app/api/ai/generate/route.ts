@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db-client';
-import { aiJobs } from '@/packages/db/schema';
+import { aiJobs } from '@thecueroom/db/schema';
 
 const generateSchema = z.object({
   type: z.enum(['cover-art', 'meme', 'avatar']),
