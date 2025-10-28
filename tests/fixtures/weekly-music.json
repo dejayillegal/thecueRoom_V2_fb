@@ -1,0 +1,25 @@
+
+{
+  "items": [
+    {
+      "id": "1",
+      "title": "Deep Underground",
+      "artist": "Test Artist",
+      "image": "https://picsum.photos/seed/track1/400/400",
+      "link": "https://bandcamp.com/track/test",
+      "source": "bandcamp",
+      "publishedAt": "2025-01-01T00:00:00Z",
+      "tags": ["techno", "deep"]
+    },
+    {
+      "id": "2",
+      "title": "Warehouse Vibes",
+      "artist": "Another Artist",
+      "image": "https://picsum.photos/seed/track2/400/400",
+      "link": "https://soundcloud.com/track/test",
+      "source": "soundcloud",
+      "publishedAt": "2025-01-02T00:00:00Z",
+      "tags": ["house", "underground"]
+    }
+  ]
+}

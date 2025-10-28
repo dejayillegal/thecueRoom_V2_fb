@@ -12,7 +12,7 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Smooth scrolling */
+/* Smooth scrolling with passive listeners */
 .spotlight-scroll-container {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
@@ -20,12 +20,20 @@ html {
   scroll-snap-type: y proximity;
 }
 
-/* Only GPU accelerate when animating */
-.spotlight-scroll-container:hover,
-.transition-all:hover,
-.transition-colors:hover,
-.transition-transform:hover {
-  will-change: transform;
+/* GPU acceleration only when needed - composite-only properties */
+.hover-lift:hover {
+  transform: translateY(-2px);
+  will-change: transform, opacity;
+}
+
+.transition-lift {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Remove will-change after animation */
+.hover-lift:not(:hover) {
+  will-change: auto;
 }
 
 /* Reduce motion for accessibility */

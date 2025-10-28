@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Play, Plus } from 'lucide-react';
-import Image from 'next/image';
+import { ImageWithFallback } from '@/../../src/components/ImageWithFallback';
 
 interface Track {
   id: string;
@@ -21,13 +21,12 @@ const TrackCard = memo(({ track }: { track: Track }) => (
   <Card className="bg-[#111111] border-[#1a1a1a] overflow-hidden hover:border-[#D1FF3D]/30 transition-all duration-200">
     {track.imageUrl && (
       <div className="aspect-square bg-[#0a0a0a] relative">
-        <Image
+        <ImageWithFallback
           src={track.imageUrl}
           alt={track.title}
           fill
           className="object-cover"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          loading="lazy"
           quality={75}
         />
       </div>

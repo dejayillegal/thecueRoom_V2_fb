@@ -1,11 +1,12 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search, Filter } from 'lucide-react';
-import Image from 'next/image';
+import { ImageWithFallback } from '@/../../src/components/ImageWithFallback';
+import { useDebounce } from '@/../../src/hooks/use-debounce';
 
 interface FeedItem {
   id: string;
@@ -23,19 +24,10 @@ let searchTimeout: NodeJS.Timeout;
 export default function NewsPage() {
   const [feeds, setFeeds] = useState<FeedItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Debounce search input
-  useEffect(() => {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-      setDebouncedQuery(searchQuery);
-    }, 500);
-
-    return () => clearTimeout(searchTimeout);
-  }, [searchQuery]);
+  
+  const debouncedQuery = useDebounce(searchQuery, 300);
 
   const fetchFeeds = useCallback(async () => {
     try {
@@ -114,13 +106,12 @@ export default function NewsPage() {
                   <a href={item.url} target="_blank" rel="noopener noreferrer">
                     {item.image && (
                       <div className="aspect-video bg-[#0a0a0a] relative">
-                        <Image
+                        <ImageWithFallback
                           src={item.image}
                           alt={item.title}
                           fill
                           className="object-cover"
                           sizes="(max-width: 768px) 100vw, 50vw"
-                          loading="lazy"
                           quality={75}
                         />
                       </div>

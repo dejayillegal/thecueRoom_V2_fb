@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo, useCallback, memo } from 'react';
+import { SpotlightColumn } from '@/../../src/components/Spotlight/SpotlightColumn';
 import { AlertCircle, Sparkles, Calendar } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -124,8 +125,8 @@ export const DashboardContent = memo(function DashboardContent({ user }: Dashboa
                 ))}
               </div>
             ) : spotlightFeeds.length > 0 ? (
-              <div className="relative h-[400px] overflow-hidden">
-                <div className="spotlight-scroll-container space-y-3 h-full overflow-y-auto scrollbar-hide animate-scroll-slow">
+              <SpotlightColumn speed={20} className="h-[400px]">
+                <div className="space-y-3 p-1">
                   {spotlightFeeds.map((feed, i) => (
                     <Link
                       key={`${feed.url}-${i}`}
@@ -182,8 +183,7 @@ export const DashboardContent = memo(function DashboardContent({ user }: Dashboa
                     </Link>
                   ))}
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#0f0f0f] to-transparent pointer-events-none" />
-              </div>
+              </SpotlightColumn>
             ) : (
               <p className="text-[13px] text-gray-400 leading-relaxed">
                 Featured artists and trending tracks will appear here.

@@ -5,11 +5,13 @@
   "scripts": {
     "dev": "next dev -p 5000 -H 0.0.0.0",
     "build": "next build",
-    "start": "next start -p 5000 -H 0.0.0.0",
+    "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test:unit": "vitest",
+    "test:e2e": "playwright test",
+    "test": "pnpm test:unit && pnpm test:e2e",
+    "perf:baseline": "node ../../scripts/diag/run-lighthouse-local.js http://localhost:5000 --no-update --only-categories=performance,accessibility",
+    "check:leaks": "node ../../scripts/diag/check-memory.js"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.3",

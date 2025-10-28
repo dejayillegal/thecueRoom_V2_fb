@@ -25,7 +25,7 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://picsum.photos" />
       </head>
-      <body className={`${inter.className} antialiased bg-[#0a0a0a]`} suppressHydrationWarning>
+      <body className={`${inter.className} antialiased`} style={{ background: '#0B0B0B' }} suppressHydrationWarning>
         {children}
       </body>
     </html>
