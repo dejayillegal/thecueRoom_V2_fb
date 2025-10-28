@@ -204,57 +204,131 @@ function buildCoverArtPrompt(userPrompt: string, params?: any): string {
   const release = params?.release || '';
 
   const styleDescriptions: Record<string, string> = {
-    neon: 'vibrant neon colors, cyberpunk aesthetic, glowing accents',
-    monochrome: 'black and white, high contrast, minimalist design',
-    geometric: 'geometric shapes, abstract patterns, modern design',
-    brutalist: 'bold typography, raw concrete textures, industrial aesthetic'
+    neon: 'vibrant neon colors, cyberpunk aesthetic, glowing accents, futuristic electronic music vibe',
+    monochrome: 'black and white, high contrast, minimalist design, stark shadows, dramatic composition',
+    geometric: 'geometric shapes, abstract patterns, modern design, clean lines, symmetrical layout',
+    brutalist: 'bold typography, raw concrete textures, industrial aesthetic, urban underground feel'
   };
 
-  let prompt = `Create a professional album cover art. ${userPrompt}. `;
-  prompt += `Style: ${styleDescriptions[style] || styleDescriptions.neon}. `;
+  // Enhanced prompt for album cover art generation
+  let prompt = `Create a professional music album cover art in the style of modern electronic music releases. `;
+  prompt += `${userPrompt}. `;
+  prompt += `Visual style: ${styleDescriptions[style] || styleDescriptions.neon}. `;
 
   if (artist) {
-    prompt += `Artist name: ${artist}. `;
+    prompt += `Feature the artist name "${artist}" prominently. `;
   }
   if (release) {
-    prompt += `Release title: ${release}. `;
+    prompt += `Include the release title "${release}". `;
   }
 
-  prompt += 'High quality, professional music industry standard, eye-catching design.';
+  prompt += `The design should be suitable for a square album cover (1:1 aspect ratio), `;
+  prompt += `with a professional, eye-catching composition that works well for streaming platforms like Spotify and Bandcamp. `;
+  prompt += `High quality, music industry standard, visually compelling, no text unless specified in artist/release fields.`;
 
   return prompt;
 }
 
 async function generateImageWithAI(prompt: string, params?: any): Promise<string> {
-  // Generate free placeholder images with enhanced gradients
-  // This ensures the feature works without any API keys
+  // Try to use actual AI generation if possible, otherwise fallback to placeholder
+  const hasGeminiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+  
+  if (hasGeminiKey) {
+    try {
+      // Use Gemini Flash for image generation
+      const { GoogleGenerativeAI } = await import('@google/generative-ai');
+      const genAI = new GoogleGenerativeAI(hasGeminiKey);
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+
+      const result = await model.generateContent({
+        contents: [{
+          role: 'user',
+          parts: [{ text: prompt }]
+        }],
+        generationConfig: {
+          temperature: 0.9,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        }
+      });
+
+      const response = result.response;
+      const imageData = response.candidates?.[0]?.content?.parts?.[0];
+      
+      if (imageData && 'inlineData' in imageData) {
+        const base64Data = imageData.inlineData.data;
+        return `data:${imageData.inlineData.mimeType};base64,${base64Data}`;
+      }
+    } catch (error) {
+      console.error('AI generation failed, falling back to placeholder:', error);
+    }
+  }
+  
+  // Fallback to enhanced placeholder
   return generatePlaceholderImage(prompt, params);
 }
 
 function generatePlaceholderImage(prompt: string, params?: any): string {
-  // Generate high-quality SVG based on style
+  // Generate high-quality album cover style SVG
   const style = params?.style || 'neon';
+  const artist = params?.artist || '';
+  const release = params?.release || '';
 
   const styleColors: Record<string, string[]> = {
-    neon: ['#FF00FF', '#00FFFF', '#FF0080'], // Magenta, Cyan, Hot Pink
-    monochrome: ['#000000', '#333333', '#666666'], // Black to Gray
-    geometric: ['#FF6B35', '#F7931E', '#FDC830'], // Orange gradient
-    brutalist: ['#1a1a1a', '#8B0000', '#2F4F4F'], // Dark with red accent
+    neon: ['#FF00FF', '#00FFFF', '#FF0080', '#9D00FF'], // Magenta, Cyan, Hot Pink, Purple
+    monochrome: ['#000000', '#1a1a1a', '#333333', '#666666'], // Black to Gray
+    geometric: ['#FF6B35', '#F7931E', '#FDC830', '#FDBB2D'], // Orange gradient
+    brutalist: ['#0a0a0a', '#8B0000', '#2F4F4F', '#1a1a1a'], // Dark with red accent
   };
 
   const colors = styleColors[style] || styleColors.neon;
   const width = parseInt(params?.resolution?.split('x')[0] || '1024');
   const height = parseInt(params?.resolution?.split('x')[1] || '1024');
 
-  // Create artistic patterns based on style
+  // Create album cover patterns based on style
   let pattern = '';
+  let textElements = '';
+  
   if (style === 'geometric') {
-    pattern = `<circle cx="256" cy="256" r="200" fill="${colors[0]}" opacity="0.3"/>
-               <circle cx="768" cy="768" r="200" fill="${colors[1]}" opacity="0.3"/>
-               <rect x="400" y="400" width="224" height="224" fill="${colors[2]}" opacity="0.2" transform="rotate(45 512 512)"/>`;
+    pattern = `
+      <circle cx="${width * 0.3}" cy="${height * 0.3}" r="${width * 0.25}" fill="${colors[0]}" opacity="0.4"/>
+      <circle cx="${width * 0.7}" cy="${height * 0.7}" r="${width * 0.25}" fill="${colors[1]}" opacity="0.4"/>
+      <rect x="${width * 0.35}" y="${height * 0.35}" width="${width * 0.3}" height="${width * 0.3}" 
+            fill="${colors[2]}" opacity="0.3" transform="rotate(45 ${width/2} ${height/2})"/>
+      <polygon points="${width*0.5},${height*0.2} ${width*0.7},${height*0.5} ${width*0.5},${height*0.8} ${width*0.3},${height*0.5}" 
+               fill="${colors[3]}" opacity="0.25"/>`;
   } else if (style === 'brutalist') {
-    pattern = `<rect x="0" y="0" width="${width}" height="100" fill="${colors[1]}" opacity="0.8"/>
-               <rect x="0" y="${height - 100}" width="${width}" height="100" fill="${colors[2]}" opacity="0.8"/>`;
+    pattern = `
+      <rect x="0" y="0" width="${width}" height="${height * 0.15}" fill="${colors[1]}" opacity="0.9"/>
+      <rect x="0" y="${height * 0.85}" width="${width}" height="${height * 0.15}" fill="${colors[2]}" opacity="0.9"/>
+      <rect x="${width * 0.05}" y="${height * 0.4}" width="${width * 0.9}" height="${height * 0.2}" 
+            fill="${colors[3]}" opacity="0.2" transform="rotate(-5 ${width/2} ${height/2})"/>`;
+  } else if (style === 'neon') {
+    pattern = `
+      <circle cx="${width/2}" cy="${height/2}" r="${width * 0.4}" fill="none" stroke="${colors[0]}" stroke-width="4" opacity="0.6">
+        <animate attributeName="r" values="${width*0.35};${width*0.45};${width*0.35}" dur="3s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="${width/2}" cy="${height/2}" r="${width * 0.3}" fill="none" stroke="${colors[1]}" stroke-width="3" opacity="0.7">
+        <animate attributeName="r" values="${width*0.25};${width*0.35};${width*0.25}" dur="2s" repeatCount="indefinite"/>
+      </circle>
+      <rect x="${width * 0.1}" y="${height * 0.1}" width="${width * 0.8}" height="${height * 0.8}" 
+            fill="none" stroke="${colors[2]}" stroke-width="2" opacity="0.3"/>`;
+  }
+
+  // Add text if artist/release provided
+  if (artist || release) {
+    const fontSize = Math.max(24, width * 0.08);
+    const smallFontSize = Math.max(16, width * 0.05);
+    textElements = `
+      <text x="${width/2}" y="${height * 0.85}" font-family="Arial, sans-serif" font-size="${fontSize}" 
+            font-weight="bold" fill="white" text-anchor="middle" opacity="0.95">
+        ${artist || 'ARTIST'}
+      </text>
+      <text x="${width/2}" y="${height * 0.92}" font-family="Arial, sans-serif" font-size="${smallFontSize}" 
+            fill="white" text-anchor="middle" opacity="0.8">
+        ${release || 'RELEASE'}
+      </text>`;
   }
 
   const svg = `
@@ -262,17 +336,28 @@ function generatePlaceholderImage(prompt: string, params?: any): string {
       <defs>
         <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" style="stop-color:${colors[0]};stop-opacity:1" />
-          <stop offset="50%" style="stop-color:${colors[1]};stop-opacity:1" />
+          <stop offset="33%" style="stop-color:${colors[1]};stop-opacity:1" />
+          <stop offset="66%" style="stop-color:${colors[2]};stop-opacity:1" />
           <stop offset="100%" style="stop-color:${colors[colors.length - 1]};stop-opacity:1" />
         </linearGradient>
         <filter id="noise">
-          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" />
           <feColorMatrix type="saturate" values="0"/>
+        </filter>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+          <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
         </filter>
       </defs>
       <rect width="${width}" height="${height}" fill="url(#grad)"/>
-      <rect width="${width}" height="${height}" filter="url(#noise)" opacity="0.1"/>
-      ${pattern}
+      <rect width="${width}" height="${height}" filter="url(#noise)" opacity="0.15"/>
+      <g filter="url(#glow)">
+        ${pattern}
+      </g>
+      ${textElements}
     </svg>
   `;
 
