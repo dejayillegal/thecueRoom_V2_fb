@@ -1,0 +1,24 @@
+[
+  {
+    "id": "test-feed-1",
+    "title": "Test Music News Article",
+    "summary": "This is a test summary for a music news article",
+    "content": "Full content of the test music news article",
+    "link": "https://example.com/test-article-1",
+    "image": "https://example.com/test-image-1.jpg",
+    "tags": ["techno", "producer"],
+    "publishedAt": "2025-01-15T10:00:00Z",
+    "source": "Test Source"
+  },
+  {
+    "id": "test-feed-2",
+    "title": "Another Test Article",
+    "summary": "Second test summary",
+    "content": "Second test article content",
+    "link": "https://example.com/test-article-2",
+    "image": "https://example.com/test-image-2.jpg",
+    "tags": ["house", "festival"],
+    "publishedAt": "2025-01-16T12:00:00Z",
+    "source": "Test Source"
+  }
+]

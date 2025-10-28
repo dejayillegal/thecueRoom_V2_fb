@@ -1,0 +1,26 @@
+[
+  {
+    "id": "thread-1",
+    "userId": "user-1",
+    "title": "Test Forum Thread",
+    "content": "This is a test forum thread content",
+    "tags": ["production", "tips"],
+    "upvotes": 5,
+    "commentCount": 3,
+    "isPinned": false,
+    "isLocked": false,
+    "createdAt": "2025-01-15T10:00:00Z"
+  },
+  {
+    "id": "thread-2",
+    "userId": "user-2",
+    "title": "Another Test Thread",
+    "content": "Another test thread content",
+    "tags": ["collaboration"],
+    "upvotes": 10,
+    "commentCount": 7,
+    "isPinned": true,
+    "isLocked": false,
+    "createdAt": "2025-01-16T11:00:00Z"
+  }
+]

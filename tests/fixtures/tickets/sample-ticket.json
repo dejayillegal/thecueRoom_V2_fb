@@ -1,0 +1,12 @@
+{
+  "ticketId": "test-ticket-123",
+  "eventSlug": "test-event",
+  "eventTitle": "Test Event",
+  "venue": "Test Venue",
+  "location": "Mumbai, India",
+  "startTime": "2025-02-01T20:00:00Z",
+  "seat": "GA",
+  "issuedAt": "2025-01-20T10:00:00Z",
+  "qrCode": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+  "hmac": "test-hmac-signature"
+}

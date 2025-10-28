@@ -1,0 +1,20 @@
+[
+  {
+    "title": "Test Album Release",
+    "artist": "Test Artist",
+    "url": "https://testartist.bandcamp.com/album/test-album",
+    "image": "https://example.com/album-art.jpg",
+    "description": "Test album description",
+    "tags": ["electronic", "experimental"],
+    "releaseDate": "2025-01-10"
+  },
+  {
+    "title": "Another Test Release",
+    "artist": "Another Test Artist",
+    "url": "https://anotherartist.bandcamp.com/album/another-album",
+    "image": "https://example.com/album-art-2.jpg",
+    "description": "Another test album",
+    "tags": ["techno", "ambient"],
+    "releaseDate": "2025-01-12"
+  }
+]

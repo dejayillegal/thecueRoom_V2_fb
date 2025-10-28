@@ -1,0 +1,162 @@
+Task: Implement these pages/features for thecueRoom in the existing Next.js/Tailwind monorepo (apps/web) and backend API surface (apps/web/api or packages/edge), matching the dashboard style and layout in the attached images: 
+
+  • AI Cover Art Studio
+  • AI Meme Studio
+  • AI EPK Generator
+  • Community Forum (invite-only artist community)
+  • News (feed aggregator with advanced filters/tags)
+  • Weekly Curated Music (Bandcamp / Discogs / SoundCloud / Mixcloud / Beatport)
+  • AI Avatar Generator (project-themed)
+  • India Gigs + ticketing (aggregate ticket links & "free ticket" flow)
+  • Lightweight AI Ticketing (create QR-based free tickets, downloadable PDF)
+  
+Important constraints (follow exactly)
+1. Visual/UX: All pages must reuse the dashboard layout (Sidebar, Header, content container) and the design tokens from global.css:
+   - background `#0B0B0B`, surface `#111111`, lime accent `--tcr-accent: #D1FF3D`, purple `#873BBF`.
+   - Sidebar fixed 258px, header 72px, inner content max-width 1400px.
+   - Use logo `/apps/web/public/logo.svg` verbatim.
+   - Reuse existing components (Avatar, Button, Card) or create new small components under `src/components/*` that follow existing patterns.
+   - Keep accessibility (semantic HTML, ARIA, alt text). Color contrast must meet WCAG AA for text.
+
+2. File paths to create/replace (agent must modify these exact locations)
+   - apps/web/src/app/ai/cover-art/page.tsx
+   - apps/web/src/app/ai/meme-studio/page.tsx
+   - apps/web/src/app/ai/epk-generator/page.tsx
+   - apps/web/src/app/community/forum/page.tsx
+   - apps/web/src/app/news/page.tsx
+   - apps/web/src/app/music/weekly/page.tsx
+   - apps/web/src/app/gigs/india/page.tsx
+   - apps/web/src/app/tickets/free/page.tsx
+   - apps/web/src/components/AI* components:
+     - apps/web/src/components/AI/CoverArtStudio.tsx
+     - apps/web/src/components/AI/MemeStudio.tsx
+     - apps/web/src/components/AI/EPKEditor.tsx
+     - apps/web/src/components/AI/AvatarGenerator.tsx
+   - apps/web/src/lib/feeds/spotlight-sources.ts (merge with your existing list)
+   - packages/edge/ (or apps/web/api) endpoints:
+     - packages/edge/api/ai/generate (POST) — orchestrates model selection + returns job id
+     - packages/edge/api/ai/job/[id] (GET) — job status + result
+     - packages/edge/api/feeds/refresh (POST) — manual refresh trigger
+     - packages/edge/api/gigs/india (GET) — aggregate India gigs JSON
+     - packages/edge/api/tickets/create (POST) — create free ticket (returns PDF/QR)
+   - tests/ files:
+     - tests/pages/cover-art.test.tsx
+     - tests/pages/forum.test.tsx
+     - tests/feeds.ingest.test.ts (mocked)
+
+3. API & AI model choices (free-first, optional paid fallbacks)
+   - Prefer free/open-source inference:
+     a) **Hugging Face Inference API** (optional) — use only if HF_API_TOKEN provided.
+     b) **Local server fallback**: provide a Python "model worker" dockerfile + script using HuggingFace diffusers / xformers for image generation and basic Stable Diffusion XL or lightweight SD-1.5 for local dev. This is invoked by the edge API when `LOCAL_DIFFUSERS=true`. Include a `scripts/setup-local-model.sh` that sets up a small CPU-only runner (with instructions).
+     c) For meme text overlays and EPK PDFs, use server-side Node.js libraries (sharp, html-pdf or puppeteer) — both free.
+   - For avatar generation: use a small open-source face stylizer model (stable-diffusion based or simple SVG avatar generator). Provide a pure-JS fallback that composes shapes + color accent if models are unavailable.
+   - For music metadata aggregation: use public RSS, Bandcamp tag RSS, Discogs RSS, Mixcloud oEmbed/feeds, SoundCloud oEmbed (no client secret required for simple oEmbed), Beatport scraping fallback. Respect robots.txt, timeouts, circuit breaker logic (like your ingest flow).
+   - For ticketing: implement a free-ticket flow:
+     - create UUID ticket
+     - generate QR PNG with `qrcode` package
+     - compose PDF ticket via `puppeteer` or `pdfkit` (server-side)
+     - store ticket metadata in DB (sqlite or Supabase table — use packages/db)
+   - All external calls must support `TEST_MODE=true` to use fixtures and not call remote services.
+
+4. Behavior & UX details per page (exact)
+   - AI Cover Art Studio:
+     - Left column: Prompt input (textarea), style presets (Neon Accent, Monochrome, Geometric, Brutalist), artist / release inputs, aspect and resolution selectors, seed input, Generate & Reset buttons.
+     - Middle column: Preview panel (job queue), Variations & Download buttons.
+     - Right column: Recent renders list + Export options + Tips.
+     - Client flow: post to `/api/ai/generate` -> returns job id -> poll `/api/ai/job/[id]`. Show progress, show preview when ready, allow download (PNG/JPG/MP4 loop).
+     - Accept `image_prompt` + `style` + `aspect` in request body.
+   - AI Meme Studio:
+     - Same layout patterns. Template selector, top/bottom text fields, watermark toggle, Generate Meme button that either:
+       - uses server-side image generation + text overlay (sharp), or
+       - uses local JS template (for quick free generation).
+     - Provide "Download" and "Share to Forum (private)" actions (POST to forum endpoint).
+   - AI EPK Generator:
+     - Form for artist details, tracks, highlights, gallery upload. Generate Draft button constructs a multi-section HTML preview and a downloadable PDF via Puppeteer.
+     - Allow “Auto-fill from links” (scrape provided artist SoundCloud / Bandcamp / RA links in server-side job to fetch metadata and fill fields).
+   - Community Forum:
+     - Invite-only view: list categories (left column), thread feed center, right column filters, now-playing and top contributors.
+     - Must include create thread modal, post composer with optional attach (upload image), upvote & reply UI (store in DB). Implement moderation flags and admin badge.
+     - Implement server endpoints to create/read threads, replies, and to upvote.
+     - All operations validate input with Zod.
+   - News (aggregator):
+     - Uses `spotlight-sources.ts`. Provide server-side feed aggregation job with filters: source, tag, date-range, platform, search.
+     - UI: left filter pane (tags & sources), center feed cards with thumbnail, right column trending topics & top authors. Search box in header filters news.
+     - Implement caching: show cached snapshot instantly; background refresh updates via web socket or polling.
+   - Weekly Curated Music:
+     - Provide paginated playlists aggregated from Bandcamp tag RSS, Discogs label feeds, Mixcloud sets (oEmbed), SoundCloud charts scraping fallback.
+     - Allow "Add to playlist" (local playlist in DB) and export to Spotify via share links (if user has Spotify link).
+   - India Gigs:
+     - Aggregate from RA India events (scrape list), local event sites (Festivalsherpa, BookMyShow scraping for India listings), and club sites. Display event tiles with ticket button linking to external ticketing or your free ticket flow if promoter set `freeTicket=true`.
+   - AI Avatar Generator:
+     - Simple UI to pick style + hair + accent color; generate via server-side model or vector composition fallback (SVG). Provide download and use-as-avatar actions (update user profile).
+   - AI Ticketing (free ticket):
+     - Admin creates free ticket type or user claims free ticket -> endpoint creates ticket token, generates QR and PDF, returns URL to download/print. Ticket contains event slug, seat (if assigned), issuedAt, ticketId, and HMAC signature to prevent forgery (use HMAC with TICKET_SECRET in .env).
+     - Implement simple verification endpoint (GET /api/tickets/verify?ticketId=...) that returns JSON whether valid; include sample server-side verification script.
+
+5. Security & env vars (.env.example additions)
+   - Add to `.env.example`:
+     - HF_API_TOKEN= (optional)
+     - LOCAL_DIFFUSERS=false
+     - TEST_MODE=true
+     - TICKET_SECRET=your-hmac-secret
+     - SUPABASE_URL= (if supabase used)
+     - SUPABASE_SERVICE_KEY=
+     - DATABASE_URL=sqlite:./dev.db
+   - If any keys are missing in dev, server must run in TEST_MODE with mock responses and fixture data.
+
+6. Tests & CI
+   - Add unit tests (Vitest) for:
+     - CoverArt UI snapshot test
+     - Forum create thread flow (mocked fetch)
+     - Feeds ingestion mocked test (use msw/nock)
+     - Ticket creation & verification (HMAC test)
+   - Update `apps/web/package.json` scripts: `test`, `lint`, `typecheck`.
+   - Update root `.github/workflows/ci.yml` to add job to run vitest for these pages and run TypeScript checks.
+
+7. Performance & UX details
+   - All pages must render server-side with cached data snapshot; heavy tasks (AI model runs, PDF generation, scraping) run as background jobs with job queue (in-memory for dev; Redis/BullMQ optional when REDIS_URL present).
+   - Use optimistic UI for generating; show skeleton / spinner.
+   - Do not block page render waiting for remote model results.
+   - All server requests include sensible timeouts (10s rss, 15s scraping, 60s model call).
+   - Respect robots.txt; implement circuit breaker for failing sources.
+
+8. Developer ergonomics & deliverable steps (agent must run these)
+   - Create/modify files listed above, commit as: 
+     `git add -A && git commit -m "feat(ai): add cover art, meme, epk, forum, news, music, gigs, avatar, and ticketing pages + edge APIs"`
+   - Run:
+     - `pnpm -w -s tsc --noEmit`
+     - `pnpm -w -s vitest run`
+     - `pnpm --filter apps/web dev` (sanity check)
+   - If TypeScript/tests fail, auto-fix imports/types. If auto-fix cannot finish, produce a short remediation log.
+
+9. Acceptance criteria (automatable)
+   - Each new page route responds (server starts) and returns HTTP 200 for server-rendered HTML for the route (e.g., `/ai/cover-art`, `/community/forum`).
+   - The AI generate endpoint returns `202 Accepted` with job id when called with test payload in TEST_MODE and job completes to `success` in test.
+   - The ticket creation endpoint returns a `downloadUrl` to a PDF and the HMAC verification passes for that ticket.
+   - Tests pass: `pnpm test` returns success.
+
+10. Fixtures & mocks (must be provided)
+   - Provide fixtures under `tests/fixtures/` for news feeds, bandcamp items, sample generated images (small base64), forum threads, and a sample ticket PDF.
+   - Implement `TEST_MODE=true` to use fixtures and skip remote calls.
+
+11. Implementation notes for agent
+   - Use Zod for input validation everywhere.
+   - Keep TypeScript strict.
+   - Pin npm dependencies in package.json.
+   - Reuse existing layout components; if missing, create `src/components/Layout/DashboardLayout.tsx` to wrap pages (Sidebar + Header + container).
+   - For client polling use `useSWR` or a small custom hook that polls `/api/ai/job/[id]` with backoff.
+   - For server-side job queue implement a simple in-memory queue with persistent sqlite job table + worker process that processes jobs; when REDIS_URL present, wire BullMQ instead.
+   - For PDF ticket generation use `puppeteer-core` + `playwright` (allow both; prefer puppeteer when available).
+   - For image generation fallback, provide a pure-JS generator that returns a small SVG branded image (so tests can still download).
+
+12. Final report in Replit output (agent must include)
+   - Files changed and their paths.
+   - `git show --name-status HEAD`.
+   - `pnpm -w -s tsc --noEmit` output (clean).
+   - `pnpm -w -s vitest run` output (tests pass).
+   - How to start local dev and test flows (copy-paste commands).
+   - Example cURL for:
+     - kicking off a test AI job (TEST_MODE),
+     - creating a free ticket and verifying it.
+
+End of prompt.
