@@ -121,36 +121,6 @@ export const gigs = pgTable('gigs', {
   userIdIdx: index('gigs_user_id_idx').on(table.userId),
 }));
 
-export const forumThreads = pgTable('forum_threads', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  title: text('title').notNull(),
-  content: text('content').notNull(),
-  tags: jsonb('tags').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-  upvotes: integer('upvotes').notNull().default(0),
-  commentCount: integer('comment_count').notNull().default(0),
-  isPinned: boolean('is_pinned').notNull().default(false),
-  isLocked: boolean('is_locked').notNull().default(false),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-}, (table) => ({
-  createdAtIdx: index('forum_threads_created_at_idx').on(table.createdAt),
-  upvotesIdx: index('forum_threads_upvotes_idx').on(table.upvotes),
-}));
-
-export const forumComments = pgTable('forum_comments', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  threadId: uuid('thread_id').notNull().references(() => forumThreads.id, { onDelete: 'cascade' }),
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  content: text('content').notNull(),
-  upvotes: integer('upvotes').notNull().default(0),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-}, (table) => ({
-  threadIdIdx: index('forum_comments_thread_id_idx').on(table.threadId),
-  createdAtIdx: index('forum_comments_created_at_idx').on(table.createdAt),
-}));
-
 export const epks = pgTable('epks', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
@@ -181,7 +151,6 @@ export const memes = pgTable('memes', {
   createdAtIdx: index('memes_created_at_idx').on(table.createdAt),
 }));
 
-// Tickets table
 export const tickets = pgTable('tickets', {
   id: uuid('id').primaryKey().defaultRandom(),
   ticketId: text('ticket_id').notNull().unique(),
@@ -198,7 +167,6 @@ export const tickets = pgTable('tickets', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-// Forum tables
 export const forumCategories = pgTable('forum_categories', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
@@ -213,14 +181,20 @@ export const forumThreads = pgTable('forum_threads', {
   userId: uuid('user_id').references(() => users.id),
   title: text('title').notNull(),
   slug: text('slug').notNull().unique(),
+  content: text('content').notNull(),
+  tags: jsonb('tags').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
   isPinned: boolean('is_pinned').default(false),
   isLocked: boolean('is_locked').default(false),
   viewCount: integer('view_count').default(0),
   replyCount: integer('reply_count').default(0),
   upvotes: integer('upvotes').default(0),
+  commentCount: integer('comment_count').notNull().default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  createdAtIdx: index('forum_threads_created_at_idx').on(table.createdAt),
+  upvotesIdx: index('forum_threads_upvotes_idx').on(table.upvotes),
+}));
 
 export const forumPosts = pgTable('forum_posts', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -232,7 +206,10 @@ export const forumPosts = pgTable('forum_posts', {
   isFlagged: boolean('is_flagged').default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  threadIdIdx: index('forum_posts_thread_id_idx').on(table.threadId),
+  createdAtIdx: index('forum_posts_created_at_idx').on(table.createdAt),
+}));
 
 export const aiJobs = pgTable('ai_jobs', {
   id: uuid('id').primaryKey().defaultRandom(),
