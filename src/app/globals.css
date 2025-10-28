@@ -45,6 +45,25 @@
     .sidebar-active {
         @apply bg-primary text-primary-foreground font-semibold;
     }
+    
+    /* Dashboard Header Gradient */
+    .dashboard-header-gradient {
+        background: linear-gradient(90deg, 
+            rgba(155, 92, 255, 0.08) 0%, 
+            rgba(215, 255, 60, 0.05) 15%, 
+            transparent 35%
+        );
+    }
+    
+    /* Dashboard Card */
+    .dashboard-card {
+        @apply bg-[#0f0f0f]/80 rounded-lg border-0;
+    }
+    
+    /* Dashboard Sidebar */
+    .dashboard-sidebar {
+        @apply bg-[#0a0a0a] border-r border-[#1a1a1a];
+    }
 }
 
 

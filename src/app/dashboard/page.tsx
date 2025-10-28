@@ -36,23 +36,23 @@ function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="w-[258px] h-screen fixed left-0 top-0 flex flex-col bg-[#0a0a0a]">
-      <div className="flex h-16 items-center px-5">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-full bg-[#c8ff00] flex items-center justify-center">
+    <div className="w-[258px] h-screen fixed left-0 top-0 flex flex-col bg-[#0a0a0a] border-r-0">
+      <div className="flex h-[72px] items-center px-5 border-b-0">
+        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <div className="w-7 h-7 rounded-full bg-[#c8ff00] flex items-center justify-center">
             <span className="text-black text-sm font-bold">C</span>
           </div>
-          <span className="text-white text-[15px] font-medium">thecueRoom</span>
+          <span className="text-white text-[15px] font-semibold">thecueRoom</span>
         </Link>
       </div>
       
       <div className="flex-1 overflow-y-auto px-4 pt-6">
-        <div className="mb-2 px-2">
+        <div className="mb-3 px-2">
           <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#666666]">
             Navigation
           </h3>
         </div>
-        <nav className="space-y-0.5 mt-3">
+        <nav className="space-y-1 mt-3">
           {mainNav.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -60,13 +60,13 @@ function Sidebar() {
                 key={item.label}
                 href={item.href}
                 className={cn(
-                  'flex items-center gap-3 rounded-md px-3 py-2.5 text-[13px] font-medium transition-all',
+                  'flex items-center gap-3 rounded-md px-3 py-2.5 text-[13px] transition-all',
                   isActive 
-                    ? 'bg-[#c8ff00] text-black' 
-                    : 'text-white hover:bg-[#1a1a1a]'
+                    ? 'bg-[#c8ff00] text-black font-semibold' 
+                    : 'text-white hover:bg-[#1a1a1a] font-normal'
                 )}
               >
-                <item.icon className="h-[18px] w-[18px]" strokeWidth={2} />
+                <item.icon className="h-[18px] w-[18px]" strokeWidth={isActive ? 2.5 : 2} />
                 {item.label}
               </Link>
             );
@@ -74,22 +74,22 @@ function Sidebar() {
         </nav>
       </div>
 
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-4 border-t-0">
         <Link
           href="/settings"
           className={cn(
-            'flex items-center gap-3 rounded-md px-3 py-2.5 text-[13px] font-medium transition-all',
+            'flex items-center gap-3 rounded-md px-3 py-2.5 text-[13px] transition-all',
             pathname === '/settings' 
-              ? 'bg-[#c8ff00] text-black' 
-              : 'text-white hover:bg-[#1a1a1a]'
+              ? 'bg-[#c8ff00] text-black font-semibold' 
+              : 'text-white hover:bg-[#1a1a1a] font-normal'
           )}
         >
-          <Settings className="h-[18px] w-[18px]" strokeWidth={2} />
+          <Settings className="h-[18px] w-[18px]" strokeWidth={pathname === '/settings' ? 2.5 : 2} />
           Settings
         </Link>
       </div>
 
-      <div className="px-4 py-3">
+      <div className="px-4 py-3 border-t-0">
         <p className="text-[10px] text-[#666666]">© thecueRoom Underground Collective</p>
       </div>
     </div>
@@ -100,9 +100,9 @@ function Header() {
   const { user } = useUser();
 
   return (
-    <header className="h-16 px-6 flex items-center justify-between bg-transparent relative">
-      {/* Gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#9B5CFF]/10 via-transparent to-transparent pointer-events-none" />
+    <header className="h-[72px] px-6 flex items-center justify-between bg-transparent relative border-b-0">
+      {/* Gradient background - purple and green on left corner */}
+      <div className="absolute inset-0 dashboard-header-gradient pointer-events-none" />
       
       <div className="flex-1 max-w-xl relative z-10">
         <div className="relative">
@@ -110,15 +110,15 @@ function Header() {
           <input
             type="text"
             placeholder="Search artists, gigs, news..."
-            className="w-full pl-10 pr-4 py-2 bg-[#0a0a0a]/80 border-0 rounded-lg text-[13px] text-white placeholder:text-[#666666] focus:outline-none focus:bg-[#0f0f0f] transition-colors"
+            className="w-full pl-10 pr-4 py-2.5 bg-[#1a1a1a]/60 border-0 rounded-lg text-[13px] text-white placeholder:text-[#666666] focus:outline-none focus:bg-[#1a1a1a]/80 transition-colors"
           />
         </div>
       </div>
       
       <div className="flex items-center gap-3 ml-6 relative z-10">
-        <Avatar className="h-9 w-9 border-0">
+        <Avatar className="h-9 w-9 border-0 ring-0">
           <AvatarImage src={user?.photoURL || undefined} />
-          <AvatarFallback className="text-xs font-bold bg-[#c8ff00] text-black">
+          <AvatarFallback className="text-xs font-bold bg-[#c8ff00] text-black border-0">
             {user?.email?.charAt(0).toUpperCase() || 'U'}
           </AvatarFallback>
         </Avatar>
@@ -129,25 +129,25 @@ function Header() {
 
 function DashboardContent() {
   return (
-    <div className="max-w-[1200px] mx-auto space-y-6">
+    <div className="max-w-[1200px] mx-auto space-y-5">
       {/* Top Section with Verification Pending and Gig Radar */}
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-3 gap-5">
         {/* Verification Pending Banner - spans 2 columns */}
-        <div className="col-span-2 bg-[#0f0f0f]/80 rounded-lg p-6 border-0">
+        <div className="col-span-2 dashboard-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-[18px] font-semibold text-white mb-1">Verification Pending</h2>
+              <h2 className="text-[18px] font-semibold text-white mb-1.5">Verification Pending</h2>
               <p className="text-[13px] text-[#999999]">Your account is under review. You'll be notified once approved.</p>
             </div>
             <div className="flex gap-3">
               <Button 
                 variant="outline" 
-                className="h-9 px-5 text-[13px] font-medium border-[#2a2a2a] text-white bg-transparent hover:bg-[#1a1a1a] hover:text-white"
+                className="h-9 px-5 text-[13px] font-medium border-[#333333] text-white bg-transparent hover:bg-[#1a1a1a] hover:text-white hover:border-[#444444]"
               >
                 Sign Out
               </Button>
               <Button 
-                className="h-9 px-5 text-[13px] font-semibold bg-[#c8ff00] text-black hover:bg-[#d4ff33] border-0"
+                className="h-9 px-5 text-[13px] font-semibold bg-[#c8ff00] text-black hover:bg-[#d4ff33] border-0 shadow-none"
               >
                 Contact Support
               </Button>
@@ -156,28 +156,28 @@ function DashboardContent() {
         </div>
 
         {/* Gig Radar - Right Column */}
-        <div className="bg-[#0f0f0f]/80 rounded-lg p-5 border-0">
+        <div className="dashboard-card p-5">
           <h2 className="text-[15px] font-semibold text-white mb-4">Gig Radar</h2>
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             <div>
               <div className="text-[13px] font-medium text-white">Industrial Night</div>
-              <div className="text-[11px] mt-0.5 text-[#666666]">Today</div>
+              <div className="text-[11px] mt-1 text-[#666666]">Today</div>
             </div>
             <div>
               <div className="text-[13px] font-medium text-white">Deep House Pop-up</div>
-              <div className="text-[11px] mt-0.5 text-[#666666]">Tomorrow</div>
+              <div className="text-[11px] mt-1 text-[#666666]">Tomorrow</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Three Column Grid */}
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-3 gap-5">
         {/* Spotlight */}
-        <div className="bg-[#0f0f0f]/80 rounded-lg p-5 border-0">
+        <div className="dashboard-card p-5">
           <h2 className="text-[15px] font-semibold text-white mb-4">Spotlight</h2>
           <div className="space-y-3">
-            <div className="flex items-start gap-2.5">
+            <div className="flex items-start gap-3">
               <Music className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#c8ff00]" />
               <div>
                 <div className="text-[13px] font-semibold text-white">🎵 Trending Artist</div>
@@ -188,22 +188,22 @@ function DashboardContent() {
         </div>
 
         {/* Gig Radar (Center) */}
-        <div className="bg-[#0f0f0f]/80 rounded-lg p-5 border-0">
+        <div className="dashboard-card p-5">
           <h2 className="text-[15px] font-semibold text-white mb-4">Gig Radar</h2>
           <div className="space-y-2.5">
-            <div className="p-3 rounded-md bg-black/50">
+            <div className="p-3 rounded-md bg-black/40">
               <div className="flex items-start justify-between gap-3">
                 <div className="text-[13px] font-medium text-white">Bangalore Warehouse 03</div>
                 <div className="text-[11px] text-[#999999] whitespace-nowrap">Fri • 11:30 PM</div>
               </div>
             </div>
-            <div className="p-3 rounded-md bg-black/50">
+            <div className="p-3 rounded-md bg-black/40">
               <div className="flex items-start justify-between gap-3">
                 <div className="text-[13px] font-medium text-white">Basement House 12</div>
                 <div className="text-[11px] text-[#999999] whitespace-nowrap">Sat • 10:00 PM</div>
               </div>
             </div>
-            <div className="p-3 rounded-md bg-black/50">
+            <div className="p-3 rounded-md bg-black/40">
               <div className="flex items-start justify-between gap-3">
                 <div className="text-[13px] font-medium text-white">Secret Rooftop</div>
                 <div className="text-[11px] text-[#999999] whitespace-nowrap">Sun • 7:00 PM</div>
@@ -213,9 +213,9 @@ function DashboardContent() {
         </div>
 
         {/* Verification Status */}
-        <div className="bg-[#0f0f0f]/80 rounded-lg p-5 border-0">
+        <div className="dashboard-card p-5">
           <h2 className="text-[15px] font-semibold text-white mb-4">Verification Status</h2>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <div className="w-2 h-2 rounded-full bg-[#c8ff00]"></div>
             <span className="text-[13px] text-[#999999]">Pending review</span>
           </div>
@@ -223,7 +223,7 @@ function DashboardContent() {
       </div>
 
       {/* Recent Activity - Full Width */}
-      <div className="bg-[#0f0f0f]/80 rounded-lg p-5 border-0">
+      <div className="dashboard-card p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-[15px] font-semibold text-white">Recent Activity</h2>
           <div className="text-[11px] flex items-center gap-2 text-[#666666]">
@@ -232,9 +232,9 @@ function DashboardContent() {
           </div>
         </div>
         <div className="space-y-2.5">
-          <div className="flex items-start gap-3 p-3 rounded-md bg-black/50">
-            <Avatar className="h-9 w-9 flex-shrink-0">
-              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00]">
+          <div className="flex items-start gap-3 p-3 rounded-md bg-black/40">
+            <Avatar className="h-9 w-9 flex-shrink-0 border-0">
+              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00] border-0">
                 AM
               </AvatarFallback>
             </Avatar>
@@ -243,9 +243,9 @@ function DashboardContent() {
               <div className="text-[11px] mt-1 text-[#666666]">Queued update while verification completes</div>
             </div>
           </div>
-          <div className="flex items-start gap-3 p-3 rounded-md bg-black/50">
-            <Avatar className="h-9 w-9 flex-shrink-0">
-              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00]">
+          <div className="flex items-start gap-3 p-3 rounded-md bg-black/40">
+            <Avatar className="h-9 w-9 flex-shrink-0 border-0">
+              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00] border-0">
                 SY
               </AvatarFallback>
             </Avatar>
@@ -258,20 +258,20 @@ function DashboardContent() {
       </div>
 
       {/* Bottom Section */}
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-3 gap-5">
         <div className="col-span-2"></div>
         {/* Curators */}
-        <div className="bg-[#0f0f0f]/80 rounded-lg p-5 border-0">
+        <div className="dashboard-card p-5">
           <h2 className="text-[15px] font-semibold text-white mb-4">Curators</h2>
-          <div className="flex gap-2">
-            <Avatar className="h-10 w-10 border-0">
-              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00]">C1</AvatarFallback>
+          <div className="flex gap-2.5">
+            <Avatar className="h-10 w-10 border-0 ring-0">
+              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00] border-0">C1</AvatarFallback>
             </Avatar>
-            <Avatar className="h-10 w-10 border-0">
-              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00]">C2</AvatarFallback>
+            <Avatar className="h-10 w-10 border-0 ring-0">
+              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00] border-0">C2</AvatarFallback>
             </Avatar>
-            <Avatar className="h-10 w-10 border-0">
-              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00]">C3</AvatarFallback>
+            <Avatar className="h-10 w-10 border-0 ring-0">
+              <AvatarFallback className="text-xs font-bold bg-[#1a1a1a] text-[#c8ff00] border-0">C3</AvatarFallback>
             </Avatar>
           </div>
         </div>
