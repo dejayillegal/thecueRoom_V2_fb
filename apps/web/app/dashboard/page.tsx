@@ -1,53 +1,39 @@
-
 import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
+import { getSession } from '@/lib/auth';
 
 export default async function DashboardPage() {
-  // Check if user is authenticated
-  const cookieStore = await cookies();
-  const session = cookieStore.get('session');
+  const user = await getSession();
 
-  if (!session) {
+  if (!user) {
     redirect('/');
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground mt-2">
-            Welcome to thecueRoom! You've successfully signed in.
-          </p>
+    <div className="min-h-screen bg-background p-8">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-4xl font-bold mb-8">Dashboard</h1>
+
+        <div className="bg-card border border-border rounded-lg p-6 mb-6">
+          <h2 className="text-2xl font-semibold mb-4">Welcome back!</h2>
+          <p className="text-muted-foreground mb-2">Email: {user.email}</p>
+          <p className="text-muted-foreground mb-2">Role: {user.role}</p>
+          <p className="text-muted-foreground">User ID: {user.uid}</p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-card border border-border rounded-lg p-6">
-            <h3 className="font-semibold mb-2">Cover Art</h3>
-            <p className="text-sm text-muted-foreground">
-              Generate AI-powered cover art for your music
-            </p>
+            <h3 className="text-lg font-semibold mb-2">News Feeds</h3>
+            <p className="text-3xl font-bold text-primary">Active</p>
           </div>
 
           <div className="bg-card border border-border rounded-lg p-6">
-            <h3 className="font-semibold mb-2">Memes</h3>
-            <p className="text-sm text-muted-foreground">
-              Create and share music memes with the community
-            </p>
+            <h3 className="text-lg font-semibold mb-2">Status</h3>
+            <p className="text-3xl font-bold text-green-500">Online</p>
           </div>
 
           <div className="bg-card border border-border rounded-lg p-6">
-            <h3 className="font-semibold mb-2">News</h3>
-            <p className="text-sm text-muted-foreground">
-              Stay updated with the latest music industry news
-            </p>
-          </div>
-
-          <div className="bg-card border border-border rounded-lg p-6">
-            <h3 className="font-semibold mb-2">Gigs</h3>
-            <p className="text-sm text-muted-foreground">
-              Find and book gigs in your area
-            </p>
+            <h3 className="text-lg font-semibold mb-2">Access Level</h3>
+            <p className="text-3xl font-bold text-purple-500">Admin</p>
           </div>
         </div>
       </div>
