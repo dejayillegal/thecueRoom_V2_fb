@@ -22,3 +22,27 @@
     "source": "Test Source"
   }
 ]
+{
+  "data": [
+    {
+      "id": "1",
+      "title": "New Techno Label Launches in Berlin",
+      "summary": "Exciting new underground label focusing on experimental techno",
+      "url": "https://example.com/news/1",
+      "image": "https://picsum.photos/seed/news1/800/600",
+      "source": "Test News",
+      "tags": ["techno", "label", "berlin"],
+      "publishedAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "2",
+      "title": "Festival Announces 2024 Lineup",
+      "summary": "Major festival reveals headliners for upcoming season",
+      "url": "https://example.com/news/2",
+      "image": "https://picsum.photos/seed/news2/800/600",
+      "source": "Festival News",
+      "tags": ["festival", "events"],
+      "publishedAt": "2024-01-14T12:00:00Z"
+    }
+  ]
+}

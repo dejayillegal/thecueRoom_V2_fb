@@ -181,6 +181,59 @@ export const memes = pgTable('memes', {
   createdAtIdx: index('memes_created_at_idx').on(table.createdAt),
 }));
 
+// Tickets table
+export const tickets = pgTable('tickets', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  ticketId: text('ticket_id').notNull().unique(),
+  eventSlug: text('event_slug').notNull(),
+  userId: uuid('user_id').references(() => users.id),
+  holderName: text('holder_name'),
+  holderEmail: text('holder_email'),
+  seat: text('seat'),
+  issuedAt: timestamp('issued_at').defaultNow().notNull(),
+  verified: boolean('verified').default(false),
+  signature: text('signature').notNull(),
+  qrUrl: text('qr_url'),
+  pdfUrl: text('pdf_url'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Forum tables
+export const forumCategories = pgTable('forum_categories', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  slug: text('slug').notNull().unique(),
+  description: text('description'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const forumThreads = pgTable('forum_threads', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  categoryId: uuid('category_id').references(() => forumCategories.id),
+  userId: uuid('user_id').references(() => users.id),
+  title: text('title').notNull(),
+  slug: text('slug').notNull().unique(),
+  isPinned: boolean('is_pinned').default(false),
+  isLocked: boolean('is_locked').default(false),
+  viewCount: integer('view_count').default(0),
+  replyCount: integer('reply_count').default(0),
+  upvotes: integer('upvotes').default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const forumPosts = pgTable('forum_posts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  threadId: uuid('thread_id').references(() => forumThreads.id),
+  userId: uuid('user_id').references(() => users.id),
+  content: text('content').notNull(),
+  imageUrl: text('image_url'),
+  upvotes: integer('upvotes').default(0),
+  isFlagged: boolean('is_flagged').default(false),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 export const aiJobs = pgTable('ai_jobs', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
