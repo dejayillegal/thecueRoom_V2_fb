@@ -75,7 +75,7 @@ export function DashboardContent({ user }: DashboardContentProps) {
   ];
 
   return (
-    <main className="ml-0 lg:ml-[258px] mt-[72px] min-h-screen bg-background">
+    <main className="ml-0 lg:ml-[258px] mt-[72px] min-h-screen bg-[#0b0b0b]">
       <div className="max-w-[1400px] mx-auto p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
           {/* Verification Pending Banner */}

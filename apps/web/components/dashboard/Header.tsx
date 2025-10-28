@@ -3,6 +3,8 @@
 
 import { Search } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Logo } from '@/components/Logo';
+import Link from 'next/link';
 
 interface HeaderProps {
   user?: {
@@ -20,15 +22,20 @@ export function Header({ user }: HeaderProps) {
     .toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U';
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-[72px] bg-[var(--surface)] z-40 ml-0 lg:ml-[258px]">
-      <div className="h-full max-w-[1400px] mx-auto px-6 flex items-center justify-between">
-        <div className="flex-1 max-w-md">
+    <header className="fixed top-0 left-0 right-0 h-[72px] bg-[#0b0b0b] border-b border-[#1a1a1a] z-40">
+      <div className="h-full px-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Logo className="w-8 h-8" />
+          <span className="text-white text-[15px] font-medium">thecueRoom</span>
+        </div>
+
+        <div className="flex-1 max-w-md mx-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
             <input
               type="search"
               placeholder="Search artists, gigs, news..."
-              className="w-full h-10 pl-10 pr-4 bg-[#0f0f0f] border border-[#1a1a1a] rounded-lg text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--tcr-accent)]/50"
+              className="w-full h-10 pl-10 pr-4 bg-transparent border border-[#1a1a1a] rounded-lg text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-[#2a2a2a]"
             />
           </div>
         </div>
