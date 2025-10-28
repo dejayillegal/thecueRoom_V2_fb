@@ -5,11 +5,6 @@ import { Sidebar } from '@/components/dashboard/Sidebar';
 import { Header } from '@/components/dashboard/Header';
 import DashboardContent from './dashboard-content';
 
-export const metadata = {
-  title: 'Dashboard | thecueRoom',
-  description: 'Your thecueRoom dashboard',
-};
-
 export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
