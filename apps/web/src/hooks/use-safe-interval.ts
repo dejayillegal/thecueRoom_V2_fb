@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 
 export function useSafeInterval(callback: () => void, delay: number | null) {
   const savedCallback = useRef(callback);
-  const intervalRef = useRef<NodeJS.Timeout>();
+  const intervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   useEffect(() => {
     savedCallback.current = callback;

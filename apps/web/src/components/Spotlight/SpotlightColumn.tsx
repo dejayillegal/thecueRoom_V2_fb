@@ -13,7 +13,7 @@ export const SpotlightColumn = memo(function SpotlightColumn({
   className = '',
 }: SpotlightColumnProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const rafRef = useRef<number>();
+  const rafRef = useRef<number | undefined>(undefined);
   const [isPaused, setIsPaused] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 

@@ -5,7 +5,7 @@ let subscriberCount = 0;
 
 export function useSharedSocket(url: string | null) {
   const [isConnected, setIsConnected] = useState(false);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   useEffect(() => {
     if (!url) return;
