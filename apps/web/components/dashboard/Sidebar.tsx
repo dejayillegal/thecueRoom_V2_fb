@@ -17,6 +17,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Logo } from '@/components/Logo';
 
 interface SidebarProps {
   className?: string;
@@ -41,24 +42,22 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 h-screen bg-[#0b0b0b] border-r border-[#1a1a1a] flex flex-col z-40 transition-all duration-300 ease-in-out',
+        'fixed left-0 top-0 h-screen backdrop-blur-md bg-background/60 flex flex-col z-40 transition-all duration-300 ease-in-out',
         isOpen ? 'w-[200px]' : 'w-[60px]',
         className
       )}
     >
       {/* Sidebar Header */}
-      <div className="h-[72px] flex items-center justify-between px-4 border-b border-[#1a1a1a]">
+      <div className="h-[72px] flex items-center justify-between px-4">
         {isOpen ? (
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[var(--tcr-accent)] flex items-center justify-center">
-              <span className="text-black text-sm font-bold">C</span>
-            </div>
+          <Link href="/" className="flex items-center gap-2">
+            <Logo className="h-8 w-8" />
             <span className="text-white text-sm font-semibold">thecueRoom</span>
-          </div>
+          </Link>
         ) : (
-          <div className="w-8 h-8 rounded-full bg-[var(--tcr-accent)] flex items-center justify-center mx-auto">
-            <span className="text-black text-sm font-bold">C</span>
-          </div>
+          <Link href="/" className="flex items-center justify-center mx-auto">
+            <Logo className="h-8 w-8" />
+          </Link>
         )}
       </div>
 
@@ -97,7 +96,7 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
       </nav>
 
       {/* Settings & Toggle */}
-      <div className="p-2 border-t border-[#1a1a1a] space-y-2">
+      <div className="p-2 space-y-2">
         <Link
           href="/settings"
           className={cn(
