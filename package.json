@@ -14,6 +14,8 @@
     "ingest:all": "tsx scripts/ingest-all.ts",
     "ingest:enhanced": "tsx scripts/enhanced-ingest.ts",
     "seed:sources": "tsx scripts/seed-sources.ts",
+    "seed:admin": "tsx scripts/seed-admin.ts",
+    "setup": "tsx scripts/setup.ts",
     "worker": "tsx scripts/start-worker.ts",
     "worker:dev": "tsx watch scripts/start-worker.ts",
     "ai:worker": "pnpm --filter worker ai",
@@ -21,6 +23,7 @@
     "clean": "pnpm -r clean",
     "create-admin": "tsx scripts/create-admin-user.ts"
   },
+  "postinstall": "echo '\n✨ Run \"pnpm setup\" to initialize the database and fetch feeds'",
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=8.0.0"

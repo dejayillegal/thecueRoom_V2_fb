@@ -25,16 +25,28 @@ pnpm install
 
 # Set up environment variables
 cp .env.example .env
-# Edit .env with your Supabase credentials
+# Edit .env with your database credentials
 
-# Run database migrations
-pnpm migrate
+# Run complete setup (migrations + admin seeding + feed ingestion)
+pnpm setup
+
+# Or run individually:
+pnpm migrate          # Run database migrations
+pnpm seed:admin       # Create admin user
+pnpm seed:sources     # Seed news sources
+pnpm ingest           # Fetch latest feeds (run periodically)
 
 # Start development server
 pnpm dev
 ```
 
 The app will be available at http://localhost:5000
+
+**Default Admin Credentials:**
+- Email: `dejayillegal@gmail.com`
+- Password: `Closer@82`
+
+> **Security Note:** Change these credentials in production by setting `ADMIN_EMAIL` and `ADMIN_PASSWORD` environment variables before running setup.
 
 ## 📁 Project Structure
 

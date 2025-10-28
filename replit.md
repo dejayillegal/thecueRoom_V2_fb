@@ -78,6 +78,25 @@ thecueroom-v2/
 3. **Community Features** - Forum, Gig Radar, Weekly Playlists
 4. **Admin Console** - Content management and moderation
 
+## Recent Changes (Oct 28, 2025)
+
+### Database & Seeding (Oct 28, 2025)
+- ✅ Database tables successfully created via Drizzle migrations
+- ✅ Admin seeding script created (`scripts/seed-admin.ts`)
+- ✅ Setup script created for one-command initialization
+- ✅ Admin user created: dejayillegal@gmail.com with secure bcrypt password hash
+- ✅ Admin profile created with 1000 AI credits
+- ✅ Environment variables documented in .env.example
+- ✅ Feed ingestion integrated into setup - automatically fetches 167+ news items on initialization
+- ✅ News sources seeded from data/sources.json (60+ worldwide sources)
+
+### UI Updates (Oct 28, 2025)
+- ✅ Dashboard UI updated to match pixel-perfect reference image
+- ✅ Transparent header with purple/green gradient on left
+- ✅ Sidebar styling refined with proper spacing and yellow active state
+- ✅ Dashboard cards updated with consistent styling using `dashboard-card` class
+- ✅ All borders removed from header and cards for cleaner look
+
 ## Recent Changes (Oct 27, 2025)
 
 ### Architecture
@@ -107,11 +126,14 @@ thecueroom-v2/
 ## Important Notes
 
 ### Security
-⚠️ **CRITICAL**: Admin credentials currently in scratchpad should be moved to environment variables:
+✅ **COMPLETED**: Admin credentials are now properly configured via environment variables:
 ```bash
 ADMIN_EMAIL=dejayillegal@gmail.com
-ADMIN_PASSWORD_HASH=[bcrypt hash of Closer@82]
+ADMIN_PASSWORD=Closer@82
 ```
+- Password is securely hashed using bcrypt during seeding
+- Admin user is automatically created with `pnpm seed:admin` or `pnpm setup`
+- Admin has 1000 AI credits by default (vs 100 for regular users)
 
 ### Database
 - Schema defined in `packages/db/schema.ts`
