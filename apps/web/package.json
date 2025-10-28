@@ -41,7 +41,7 @@
     "embla-carousel-react": "^8.6.0",
     "fast-xml-parser": "^4.5.0",
     "framer-motion": "11.3.28",
-    "lucide-react": "^0475.0",
+    "lucide-react": "^0.475.0",
     "next": "^15.1.4",
     "next-themes": "^0.4.4",
     "qrcode": "^1.5.3",
