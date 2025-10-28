@@ -1,8 +1,6 @@
 'use client';
 
-import { useState, useCallback, memo } from 'react';
-import { Sidebar } from '@/components/dashboard/Sidebar';
-import { Header } from '@/components/dashboard/Header';
+import { memo } from 'react';
 import { DashboardContent } from './dashboard-content';
 
 // In production, this would come from session/auth
@@ -13,28 +11,9 @@ const mockUser = {
 };
 
 export default memo(function DashboardPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-
-  const handleSidebarToggle = useCallback(() => {
-    setSidebarOpen(prev => !prev);
-  }, []);
-
   return (
-    <div className="min-h-screen bg-[#0b0b0b]">
-      <Sidebar
-        isOpen={sidebarOpen}
-        onToggle={handleSidebarToggle}
-      />
-      <Header 
-        user={mockUser}
-        sidebarOpen={sidebarOpen}
-      />
-      <main 
-        className="min-h-screen pt-[72px] transition-all duration-300 ease-in-out"
-        style={{ marginLeft: sidebarOpen ? '200px' : '60px' }}
-      >
-        <DashboardContent user={mockUser} />
-      </main>
+    <div className="max-w-[1400px] mx-auto p-6">
+      <DashboardContent user={mockUser} />
     </div>
   );
 });
