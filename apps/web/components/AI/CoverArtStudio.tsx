@@ -486,6 +486,22 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
                 </div>
               )}
 
+              {!hasAIKey && (
+                <Button
+                  onClick={() => {
+                    const randomPreset = STYLE_PRESETS[Math.floor(Math.random() * STYLE_PRESETS.length)];
+                    const randomSeed = Math.floor(Math.random() * 1000000);
+                    setStyle(randomPreset.id);
+                    setSeed(randomSeed.toString());
+                  }}
+                  variant="outline"
+                  className="w-full border-[#333333] text-white hover:bg-[#1a1a1a] text-sm"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Randomize
+                </Button>
+              )}
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="artist" className="text-white text-sm mb-1 block">Artist Name</Label>
