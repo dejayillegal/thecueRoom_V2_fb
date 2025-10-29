@@ -1,6 +1,7 @@
 modules = ["nodejs-18", "web", "nix", "postgresql-16"]
 [agent]
 expertMode = true
+integrations = ["javascript_openai:1.0.0"]
 
 [nix]
 channel = "stable-25_05"
@@ -62,10 +63,6 @@ outputType = "console"
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 38587
-externalPort = 3003
 
 [[ports]]
 localPort = 41663
