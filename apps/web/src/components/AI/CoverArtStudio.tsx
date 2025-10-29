@@ -133,37 +133,40 @@ export function CoverArtStudio() {
               />
             </div>
 
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <Label className="text-white text-sm">Style Preset</Label>
-                <Button
-                  onClick={handleRandomize}
-                  size="sm"
-                  variant="outline"
-                  className="border-[#333333] text-white hover:bg-[#1a1a1a] text-xs h-7"
-                >
-                  <Shuffle className="w-3 h-3 mr-1" />
-                  Randomize
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-                {STYLE_PRESETS.map((preset) => (
-                  <button
-                    key={preset.id}
-                    onClick={() => setStyle(preset.id)}
-                    className={`p-3 rounded-lg border transition-all group ${
-                      style === preset.id
-                        ? 'border-[#D1FF3D] bg-[#D1FF3D]/10 shadow-lg shadow-[#D1FF3D]/20'
-                        : 'border-[#1a1a1a] hover:border-[#D1FF3D]/50 hover:shadow-md hover:shadow-[#D1FF3D]/10'
-                    }`}
-                    title={preset.description}
+            {/* Show style presets only when SVG fallback is active (no AI key) */}
+            {hasAIKey === false && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-white text-sm">Style Preset</Label>
+                  <Button
+                    onClick={handleRandomize}
+                    size="sm"
+                    variant="outline"
+                    className="border-[#333333] text-white hover:bg-[#1a1a1a] text-xs h-7"
                   >
-                    <div className={`h-12 rounded bg-gradient-to-r ${preset.gradient} mb-2 transition-transform group-hover:scale-105`} />
-                    <span className="text-xs text-white font-medium">{preset.label}</span>
-                  </button>
-                ))}
+                    <Shuffle className="w-3 h-3 mr-1" />
+                    Randomize
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                  {STYLE_PRESETS.map((preset) => (
+                    <button
+                      key={preset.id}
+                      onClick={() => setStyle(preset.id)}
+                      className={`p-3 rounded-lg border transition-all group ${
+                        style === preset.id
+                          ? 'border-[#D1FF3D] bg-[#D1FF3D]/10 shadow-lg shadow-[#D1FF3D]/20'
+                          : 'border-[#1a1a1a] hover:border-[#D1FF3D]/50 hover:shadow-md hover:shadow-[#D1FF3D]/10'
+                      }`}
+                      title={preset.description}
+                    >
+                      <div className={`h-12 rounded bg-gradient-to-r ${preset.gradient} mb-2 transition-transform group-hover:scale-105`} />
+                      <span className="text-xs text-white font-medium">{preset.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <div>

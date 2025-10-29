@@ -1,0 +1,136 @@
+/**
+ * Admin API route for feed poller configuration
+ * Protected by admin authentication (mocked in development)
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+
+const pollerConfigSchema = z.object({
+  pollIntervalSeconds: z.number().min(10).max(3600),
+  pollConcurrency: z.number().min(1).max(10),
+  failureThreshold: z.number().min(1).max(20),
+});
+
+const sourceToggleSchema = z.object({
+  sourceId: z.string(),
+  enabled: z.boolean(),
+});
+
+// Simple in-memory storage (in production, use database)
+let pollerConfig = {
+  pollIntervalSeconds: parseInt(process.env.POLL_INTERVAL_SECONDS || '60'),
+  pollConcurrency: parseInt(process.env.POLL_CONCURRENCY || '3'),
+  failureThreshold: parseInt(process.env.FEED_FAILURE_THRESHOLD || '5'),
+};
+
+/**
+ * Mock admin authentication check
+ * In production, verify JWT token or session
+ */
+function isAdminAuthenticated(request: NextRequest): boolean {
+  // In development, check for admin cookie or always return true
+  if (process.env.NODE_ENV === 'development') {
+    return true;
+  }
+
+  const adminSecret = request.headers.get('x-admin-secret');
+  return adminSecret === process.env.ADMIN_SECRET;
+}
+
+/**
+ * GET - Retrieve current poller configuration
+ */
+export async function GET(request: NextRequest) {
+  if (!isAdminAuthenticated(request)) {
+    return NextResponse.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
+    );
+  }
+
+  return NextResponse.json({
+    config: pollerConfig,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+/**
+ * PUT - Update poller configuration
+ */
+export async function PUT(request: NextRequest) {
+  if (!isAdminAuthenticated(request)) {
+    return NextResponse.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const body = await request.json();
+    const validated = pollerConfigSchema.parse(body);
+
+    pollerConfig = validated;
+
+    console.log('[Admin] Updated poller config:', pollerConfig);
+
+    return NextResponse.json({
+      success: true,
+      config: pollerConfig,
+      message: 'Poller configuration updated successfully',
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Invalid configuration', details: error.errors },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: 'Failed to update configuration' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST - Toggle source enabled/disabled
+ */
+export async function POST(request: NextRequest) {
+  if (!isAdminAuthenticated(request)) {
+    return NextResponse.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const body = await request.json();
+    const { sourceId, enabled } = sourceToggleSchema.parse(body);
+
+    // In production, update database
+    console.log(`[Admin] ${enabled ? 'Enabled' : 'Disabled'} source:`, sourceId);
+
+    return NextResponse.json({
+      success: true,
+      sourceId,
+      enabled,
+      message: `Source ${enabled ? 'enabled' : 'disabled'} successfully`,
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Invalid request', details: error.errors },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: 'Failed to toggle source' },
+      { status: 500 }
+    );
+  }
+}
+
+export const dynamic = 'force-dynamic';
