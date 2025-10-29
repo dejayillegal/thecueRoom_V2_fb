@@ -1,0 +1,72 @@
+✓ Compiled /api/fallback-thumb/[id] in 7.1s (853 modules)
+Error: Route "/api/fallback-thumb/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/fallback-thumb/[id]/route.ts:21:13)
+  19 | ) {
+  20 |   try {
+> 21 |     const { id } = params;
+     |             ^
+  22 |
+  23 |     // Determine which fallback to use
+  24 |     let fallbackIndex: number;
+Error: Route "/api/fallback-thumb/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/fallback-thumb/[id]/route.ts:21:13)
+  19 | ) {
+  20 |   try {
+> 21 |     const { id } = params;
+     |             ^
+  22 |
+  23 |     // Determine which fallback to use
+  24 |     let fallbackIndex: number;
+Error: Route "/api/fallback-thumb/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/fallback-thumb/[id]/route.ts:21:13)
+  19 | ) {
+  20 |   try {
+> 21 |     const { id } = params;
+     |             ^
+  22 |
+  23 |     // Determine which fallback to use
+  24 |     let fallbackIndex: number;
+Error: Route "/api/fallback-thumb/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/fallback-thumb/[id]/route.ts:21:13)
+  19 | ) {
+  20 |   try {
+> 21 |     const { id } = params;
+     |             ^
+  22 |
+  23 |     // Determine which fallback to use
+  24 |     let fallbackIndex: number;
+ GET /api/fallback-thumb/e9aa9546-02c0-4f4c-9511-e72fe39aaf22?w=600&format=webp 200 in 8355ms
+ GET /api/fallback-thumb/e9aa9546-02c0-4f4c-9511-e72fe39aaf22?w=600&format=webp 200 in 8676ms
+ GET /api/fallback-thumb/aa64114a-c2a8-4ddb-9707-c662890032e6?w=600&format=webp 200 in 1525ms
+ GET /api/fallback-thumb/5ca0196a-6676-43db-8383-166f2db4bbab?w=600&format=webp 200 in 8484ms
+ GET /api/feeds?limit=8 200 in 9323ms
+ GET /api/feeds?limit=32&offset=0 200 in 9323ms
+ GET /api/feeds?limit=24 200 in 7041ms
+Error: Route "/api/fallback-thumb/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/fallback-thumb/[id]/route.ts:21:13)
+  19 | ) {
+  20 |   try {
+> 21 |     const { id } = params;
+     |             ^
+  22 |
+  23 |     // Determine which fallback to use
+  24 |     let fallbackIndex: number;
+ GET /api/fallback-thumb/1935f1ff-f8f7-482b-936d-6ca2e4f327f3?w=600&format=webp 200 in 272ms
+Error: Route "/api/fallback-thumb/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/fallback-thumb/[id]/route.ts:21:13)
+  19 | ) {
+  20 |   try {
+> 21 |     const { id } = params;
+     |             ^
+  22 |
+  23 |     // Determine which fallback to use
+  24 |     let fallbackIndex: number;
+ GET /api/fallback-thumb/5ca0196a-6676-43db-8383-166f2db4bbab?w=600&format=webp 200 in 213ms
+Error: Route "/api/fallback-thumb/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/fallback-thumb/[id]/route.ts:21:13)
+  19 | ) {
+  20 |   try {
+> 21 |     const { id } = params;
+     |             ^
+  22 |
+  23 |     // Determine which fallback to use
