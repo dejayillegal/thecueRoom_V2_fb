@@ -1,0 +1,183 @@
+Deliverables (what to implement)
+
+Put source files in apps/web/public/fallbacks/:
+
+fallback_1.png, fallback_2.png, fallback_3.png, fallback_4.png
+
+New server-side endpoint(s):
+
+GET /api/fallback-thumb/:id
+
+:id = any unique string (use article id, feed url hash, or the path used by client).
+
+Returns an optimized image variant. Query params: ?w=300&format=webp or ?w=600&format=png.
+
+Deterministically pick which fallback (fallback_{1..4}.png) using hash(id) % 4.
+
+Support size presets: small (300), medium (600), large (1200).
+
+Use safe streamed response (no huge buffers).
+
+Response headers: Cache-Control: public, max-age=31536000, immutable for generated files; ETag and Content-Type.
+
+If the worker cannot generate WebP, gracefully return PNG.
+
+On-demand resizing + caching pipeline:
+
+Use sharp (or a JS fallback if native fails).
+
+Implement an async background worker that:
+
+Accepts a job (source fallback image + params), produces optimized file on disk under /.cache/fallbacks/{id}-{w}.{format}.
+
+Limit concurrency by FALLBACK_WORKER_CONCURRENCY env var (default 2).
+
+If cache exists, serve immediately — do not re-generate.
+
+For Replit/test environments where sharp native install fails, implement a JS-only fallback:
+
+Rasterize via an SVG wrapper + @svg2png-js or create resized <canvas> via node-canvas (TEST_MODE).
+
+Clean up old cache files older than FALLBACK_CACHE_TTL hours via scripts/diag/cleanup-fallback-cache.js.
+
+Feed-image resolver util (server + client cooperation):
+
+File: apps/web/src/lib/feed-image.ts (or update existing)
+
+Export getArticleImage(article):
+
+If article.image exists and HEAD request returns 200 + image MIME, return that URL.
+
+Otherwise return /api/fallback-thumb/:id?w=...&format=webp (choose id derived deterministically from article GUID/URL).
+
+Use a small LRU in-memory cache (TTL ~ 60s) for HEAD result to prevent repeated HEADs on hot articles.
+
+Client Image component:
+
+ImageWithFallback.tsx (update existing)
+
+Use loading="lazy" + decoding="async".
+
+Use srcset and sizes computed from server getArticleImage URL variants.
+
+On onError, swap to /api/fallback-thumb/:id?w=300&format=webp.
+
+Use intersection observer to only start requests when in viewport.
+
+Ensure no title-to-image creation — simply use fallback image.
+
+Admin toggle:
+
+Small admin config flag ENABLE_FALLBACK_ROTATION (default false).
+
+If true, choose fallback file randomly per request (still seeded by id + epoch roll if desired). If false (default), deterministic per id.
+
+Tests & diagnostics:
+
+Unit test: tests/fallback/thumb.test.ts — verify:
+
+Deterministic selection mapping (same id -> same fallback).
+
+/api/fallback-thumb/:id?w=300&format=webp returns 200 and Content-Type: image/webp.
+
+Performance diag script: scripts/diag/fallback-stress.js — request 100 different fallback thumbnails concurrently and measure median response time; fail if median > 250ms in dev environment.
+
+Add make diag-fallback command that runs the stress script and shows cache-hit ratio.
+
+Extra optimizations & safety:
+
+Use AbortController with per-fetch timeout for any external HEAD requests.
+
+Use streaming writes when creating cache files to avoid buffering whole images in memory.
+
+LRU cache memory cap (e.g., 1000 entries).
+
+Strong headers for static cached outputs: Cache-Control and ETag so CDN (or browser) caches aggressively.
+
+Return Vary: Accept if you support both WebP and PNG.
+
+Implementation specifics (file list & core code behaviour)
+
+apps/web/public/fallbacks/fallback_1.png ... _4.png (pre-uploaded)
+
+apps/web/app/api/fallback-thumb/[id]/route.ts
+
+Validate params, compute fallbackIndex = hash(id) % 4
+
+desiredWidth = Number(req.query.w) || sizePreset
+
+format = webp|png with Accept negotiation
+
+cachePath = ./.cache/fallbacks/${id}-${desiredWidth}.${format}
+
+if exists -> stream file with res.setHeader and fs.createReadStream
+
+else -> worker.enqueue({ source: public/fallbacks/fallback_${index}.png, width, format, outPath: cachePath }) and await worker result or stream progressive placeholder until done. (Prefer: if worker will take >100ms, return 202 with Location to poll; but simplest: generate quickly in request path but with concurrency limiter)
+
+packages/ai/worker-fallbacks.js or packages/fallback/worker.js
+
+Worker queue with p-limit; uses sharp pipeline: sharp(source).resize(width).toFormat('webp', { quality: 80 }).toFile(outPath) (stream version)
+
+If fails (sharp not available), call svg-resize-fallback() which wraps source in <image> and rasterizes.
+
+apps/web/src/lib/feed-image.ts
+
+getFallbackUrl(id, size='medium') => /api/fallback-thumb/${encodeURIComponent(id)}?w=600&format=webp
+
+apps/web/src/components/ImageWithFallback.tsx
+
+Build srcSet for 300/600/1200 widths using getFallbackUrl(id, w=...)
+
+onError sets src to getFallbackUrl(id, w=300)
+
+scripts/diag/cleanup-fallback-cache.js and scripts/diag/fallback-stress.js
+
+Add env vars to .env.example:
+
+FALLBACK_WORKER_CONCURRENCY=2
+
+FALLBACK_CACHE_TTL_HRS=168
+
+ENABLE_FALLBACK_ROTATION=false
+
+Commands for Replit assistant to run (exact)
+
+Install deps (if not present):
+
+pnpm --filter apps/web add sharp p-limit lru-cache cross-fetch
+pnpm --filter apps/web add -D vitest supertest
+
+
+(If sharp fails on Replit, wrap in TRY/FAIL and install @svg2png-js or canvas as fallback for TEST_MODE.)
+
+Run tests:
+
+pnpm --filter apps/web test:unit
+node scripts/diag/fallback-stress.js
+
+
+Start the worker (dev):
+
+node packages/fallback/worker.js &
+pnpm --filter apps/web dev
+
+Acceptance checks (must pass)
+
+GET /api/fallback-thumb/abc?w=300&format=webp → 200, Content-Type: image/webp, response streamed fast (<250ms median in dev).
+
+Same id returns same fallback image index every run (deterministic mapping).
+
+ImageWithFallback on feed pages uses srcset with 300/600/1200 widths and falls back immediately on error.
+
+Stress script shows cache hit ratio increasing after initial run and median latency within threshold.
+
+Small sample deterministic hash (to implement)
+// simple stable hash
+function hashToIndex(id: string, buckets = 4) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < id.length; i++) {
+    h ^= id.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return Math.abs(h % buckets);
+}
