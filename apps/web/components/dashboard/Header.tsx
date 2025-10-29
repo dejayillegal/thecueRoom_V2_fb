@@ -24,7 +24,7 @@ export function Header({ user, sidebarOpen }: HeaderProps) {
 
   return (
     <header 
-      className="fixed top-0 right-0 h-14 backdrop-blur-md bg-background/60 z-30 transition-all duration-300"
+      className="fixed top-0 right-0 h-14 bg-background/95 z-30 transition-all duration-300"
       style={{ left: sidebarOpen ? '200px' : '60px' }}
     >
       <div className="h-full px-4 flex items-center justify-between">

@@ -42,7 +42,7 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 h-screen backdrop-blur-md bg-background/60 flex flex-col z-40 transition-all duration-300 ease-in-out',
+        'fixed left-0 top-0 h-screen bg-background/95 flex flex-col z-40 transition-all duration-300 ease-in-out',
         isOpen ? 'w-[200px]' : 'w-[60px]',
         className
       )}
