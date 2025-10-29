@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useCallback, useMemo, useEffect, useRef, memo } from 'react';
@@ -69,7 +68,9 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
   const [recentRenders, setRecentRenders] = useState<Render[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  
+  const [progress, setProgress] = useState(0); // Added progress state
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null); // Added for final image
+
   const abortControllerRef = useRef<AbortController | null>(null);
   const isMountedRef = useRef(true);
 
@@ -88,15 +89,15 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
 
   // Update preview and recent renders when job completes
   useEffect(() => {
-    if (status === 'completed' && resultUrl && prompt && isMountedRef.current) {
-      setPreviewUrl(resultUrl);
+    if (status === 'completed' && generatedImage && isMountedRef.current) {
+      setPreviewUrl(generatedImage);
       setRecentRenders(prev => [{
         id: jobId || Date.now().toString(),
-        url: resultUrl,
+        url: generatedImage,
         prompt
       }, ...prev.slice(0, 5)]);
     }
-  }, [status, resultUrl, jobId, prompt]);
+  }, [status, generatedImage, jobId, prompt]);
 
   // Show job errors
   useEffect(() => {
@@ -105,25 +106,140 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
     }
   }, [jobError]);
 
+  // Add text overlay to generated image using Canvas API
+  const addTextOverlay = async (imageUrl: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+          resolve(imageUrl);
+          return;
+        }
+
+        // Draw the base image
+        ctx.drawImage(img, 0, 0);
+
+        // Style configurations based on selected preset
+        const styleConfigs: Record<string, { textColor: string; shadowColor: string; bgColor: string }> = {
+          'neon': { textColor: '#D1FF3D', shadowColor: '#8B00FF', bgColor: 'rgba(0, 0, 0, 0.7)' }, // Corrected key to match 'neon'
+          'monochrome': { textColor: '#FFFFFF', shadowColor: '#000000', bgColor: 'rgba(0, 0, 0, 0.8)' },
+          'geometric': { textColor: '#00BFFF', shadowColor: '#0066CC', bgColor: 'rgba(0, 0, 0, 0.6)' },
+          'brutalist': { textColor: '#FF3333', shadowColor: '#660000', bgColor: 'rgba(20, 20, 20, 0.9)' },
+          'cybergrind': { textColor: '#00FF00', shadowColor: '#003300', bgColor: 'rgba(0, 0, 0, 0.85)' },
+          'vaporwave': { textColor: '#FF71CE', shadowColor: '#01CDFE', bgColor: 'rgba(0, 0, 0, 0.7)' },
+          'chromatic-grid': { textColor: '#FF006E', shadowColor: '#8338EC', bgColor: 'rgba(0, 0, 0, 0.75)' },
+          'noir-light': { textColor: '#FFFFFF', shadowColor: '#666666', bgColor: 'rgba(0, 0, 0, 0.5)' },
+          'acid-geometry': { textColor: '#FFFF00', shadowColor: '#FF00FF', bgColor: 'rgba(0, 0, 0, 0.8)' },
+          'liquid-metal': { textColor: '#C0C0C0', shadowColor: '#404040', bgColor: 'rgba(0, 0, 0, 0.7)' }
+        };
+
+        const config = styleConfigs[style] || styleConfigs['neon']; // Use selected style
+        const padding = 40;
+        const textY = img.height - padding;
+
+        // Calculate font sizes based on image dimensions
+        const artistFontSize = Math.max(48, img.width / 20);
+        const releaseFontSize = Math.max(32, img.width / 30);
+
+        // Measure text dimensions
+        ctx.font = `bold ${artistFontSize}px "Arial Black", Arial, sans-serif`;
+        const artistWidth = artist ? ctx.measureText(artist).width : 0;
+
+        ctx.font = `${releaseFontSize}px Arial, sans-serif`;
+        const releaseWidth = release ? ctx.measureText(release).width : 0;
+
+        const maxWidth = Math.max(artistWidth, releaseWidth);
+        const bgHeight = (artist && release) ? 140 : 80;
+
+        // Draw semi-transparent background for text
+        if (artist || release) {
+          ctx.fillStyle = config.bgColor;
+          ctx.fillRect(padding - 20, textY - bgHeight + 20, maxWidth + 40, bgHeight);
+        }
+
+        // Draw artist name
+        if (artist) {
+          ctx.font = `bold ${artistFontSize}px "Arial Black", Arial, sans-serif`;
+          ctx.shadowColor = config.shadowColor;
+          ctx.shadowBlur = 15;
+          ctx.shadowOffsetX = 3;
+          ctx.shadowOffsetY = 3;
+          ctx.fillStyle = config.textColor;
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(artist, padding, textY - (release ? 60 : 20));
+        }
+
+        // Draw release title
+        if (release) {
+          ctx.font = `${releaseFontSize}px Arial, sans-serif`;
+          ctx.shadowColor = config.shadowColor;
+          ctx.shadowBlur = 10;
+          ctx.shadowOffsetX = 2;
+          ctx.shadowOffsetY = 2;
+          ctx.fillStyle = config.textColor;
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(release, padding, textY - 10);
+        }
+
+        // Add watermark in bottom right
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        ctx.font = '16px Arial';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.textAlign = 'right';
+        const watermark = 'thecueRoom.com';
+        ctx.fillText(watermark, img.width - padding, img.height - 20);
+
+        // Convert to data URL
+        try {
+          const dataUrl = canvas.toDataURL('image/png');
+          resolve(dataUrl);
+        } catch (err) {
+          console.error('Canvas toDataURL error:', err);
+          resolve(imageUrl);
+        }
+      };
+
+      img.onerror = () => {
+        console.error('Image load error for text overlay');
+        resolve(imageUrl);
+      };
+
+      img.src = imageUrl;
+    });
+  };
+
   const handleGenerate = useCallback(async () => {
-    if (!prompt.trim()) {
-      setError('Please enter a prompt');
-      return;
-    }
+    if (isGenerating) return;
 
-    if (!isMountedRef.current) return;
-
-    // Abort any ongoing request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    abortControllerRef.current = new AbortController();
     setIsGenerating(true);
     setError(null);
-    setJobId(null);
+    setProgress(0);
 
     try {
+      // Validation
+      if (!prompt.trim()) {
+        setError('Please enter a prompt');
+        setIsGenerating(false);
+        return;
+      }
+      
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      abortControllerRef.current = new AbortController();
+
       const response = await fetch('/api/ai/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -150,11 +266,41 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
       }
 
       const data = await response.json();
-      
+
       if (!isMountedRef.current) return;
 
       if (data.jobId) {
         setJobId(data.jobId);
+        setProgress(10); // Start progress for polling
+
+        // Poll for job completion
+        const pollInterval = setInterval(async () => {
+          const statusRes = await fetch(`/api/ai/job/${data.jobId}`);
+          const job = await statusRes.json();
+
+          if (job.status === 'completed') {
+            clearInterval(pollInterval);
+            setProgress(95);
+
+            // Add text overlay if artist or release provided
+            let finalImage = job.resultUrl;
+            if (artist || release) {
+              console.log('Adding text overlay to generated image...');
+              finalImage = await addTextOverlay(job.resultUrl);
+            }
+
+            setProgress(100);
+            setGeneratedImage(finalImage);
+            setIsGenerating(false);
+          } else if (job.status === 'failed') {
+            clearInterval(pollInterval);
+            setError(job.error || 'Generation failed');
+            setIsGenerating(false);
+          } else {
+            // Update progress
+            setProgress(prev => Math.min(prev + 5, 90));
+          }
+        }, 1000);
       } else {
         throw new Error('No job ID returned');
       }
@@ -162,13 +308,17 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
       if (err instanceof Error && err.name !== 'AbortError' && isMountedRef.current) {
         setError(err.message);
         console.error('Failed to generate:', err);
+        setIsGenerating(false); // Ensure generation stops on error
+        setProgress(0);
       }
     } finally {
-      if (isMountedRef.current) {
-        setIsGenerating(false);
+      // Note: isGenerating is set to false within the polling logic or catch block
+      // We only need to ensure it's reset if the initial fetch fails before jobId is set.
+      if (!jobId && isMountedRef.current) {
+         setIsGenerating(false);
       }
     }
-  }, [prompt, style, artist, release, aspect, resolution, seed]);
+  }, [prompt, style, artist, release, aspect, resolution, seed, isGenerating, isPolling, addTextOverlay, setGeneratedImage, setError, setJobId, setProgress, isMountedRef, abortControllerRef]);
 
   const handleReset = useCallback(() => {
     setPrompt('');
@@ -178,6 +328,9 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
     setJobId(null);
     setError(null);
     setPreviewUrl(null);
+    setGeneratedImage(null); // Reset generated image
+    setProgress(0);
+    setIsGenerating(false); // Ensure generation state is reset
   }, []);
 
   const handleDownload = useCallback((url: string) => {
@@ -189,6 +342,7 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
 
   const handleSelectRender = useCallback((url: string) => {
     setPreviewUrl(url);
+    setGeneratedImage(url); // Also set generatedImage to allow download of selected render
   }, []);
 
   const isGenerateDisabled = useMemo(
@@ -209,7 +363,7 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
         <Card className="bg-[#111111] border-[#1a1a1a] p-6 space-y-6">
           <div>
             <h2 className="text-lg font-semibold text-white mb-4">Create Cover Art</h2>
-            
+
             <div className="space-y-4">
               <div>
                 <Label htmlFor="prompt" className="text-white text-sm mb-1 block">Prompt</Label>

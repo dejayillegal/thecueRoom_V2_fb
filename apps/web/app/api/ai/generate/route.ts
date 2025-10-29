@@ -229,20 +229,10 @@ function buildCoverArtPrompt(userPrompt: string, params?: any): string {
   // Technical specs
   prompt += `Format: Square album cover artwork, ${resolution} resolution, optimized for digital streaming platforms (Spotify, Bandcamp, Apple Music). `;
   
-  // Artist/Release branding
-  if (artist || release) {
-    prompt += `Typography: Include the following text in the design with bold, modern typography that fits the ${style} aesthetic. `;
-    if (artist) {
-      prompt += `Artist name: "${artist}" (should be prominent, large, and integrated into the design). `;
-    }
-    if (release) {
-      prompt += `Release title: "${release}" (should complement the artist name with clean, readable typography). `;
-    }
-    prompt += `Position the text in a visually balanced way, ensuring it's readable and professionally integrated. `;
-    prompt += `Add a subtle "thecueRoom.com" watermark in the bottom right corner. `;
-  } else {
-    prompt += `IMPORTANT: No text or typography should be included in the image - pure visual artwork only. `;
-  }
+  // IMPORTANT: Text will be added client-side via Canvas API for reliability
+  // AI models are bad at generating readable text, so we'll overlay it afterwards
+  prompt += `IMPORTANT: Do not include any text, typography, or letters in the image. Create pure visual artwork only - text will be added separately. `;
+  prompt += `Leave appropriate negative space at the bottom of the composition for text overlay. `;
   
   // Design principles
   prompt += `Design principles: Professional music industry standard, eye-catching composition that stands out in small thumbnails, `;
