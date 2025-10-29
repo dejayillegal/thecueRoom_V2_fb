@@ -1,0 +1,141 @@
+TASK: Enhance and rebuild the AI Album Cover generation system for thecueRoom with **AI-first priority and dynamic SVG fallback**.  
+If AI API key (HF_TOKEN or other) is not present, the app must automatically disable the text prompt input and generate randomized SVG album covers with stunning visual quality.
+
+────────────────────────────────────────────
+🎯 OBJECTIVE SUMMARY
+────────────────────────────────────────────
+1. Prioritize AI generation:
+   - Use Hugging Face Inference API (stabilityai/stable-diffusion-xl or flux.1-schnell) **if HF_TOKEN is available.**
+   - Automatically detect key presence in `process.env.HF_TOKEN`.
+   - If missing, disable the “Prompt” field in the frontend and switch to **Procedural SVG Fallback Mode**.
+
+2. SVG Fallback Enhancements:
+   - Create multiple style presets, each producing visually distinct procedural SVG art:
+     - `Neon Accent` — purple/pink gradient glow + chrome shapes.
+     - `Monochrome` — black/white brutalist grid composition.
+     - `Geometric` — triangles, polygons, structured shapes.
+     - `Brutalist` — rough textures, industrial gradients, stencil typography.
+     - `Cybergrind` — glitchy circuits, blue lasers, shattered overlays.
+     - `Vaporwave` — pastel gradients, digital sun, 80s wireframes.
+     - `Chromatic Grid` — rainbow grids with blur filters.
+     - `Noir Light` — high-contrast light shafts, noir spotlight.
+     - `Acid Geometry` — neon geometric chaos, techno vibe.
+     - `Liquid Metal` — silver distortions, wave mesh lighting.
+   - Generator must produce **randomly composed results** (gradients, shapes, patterns, typography layouts) within selected preset.
+   - Each render unique: different seeds for shape placement, noise level, and lighting gradients.
+
+3. Rasterization:
+   - Convert SVG to PNG (1024×1024) with `sharp`, streamed to disk at `${AI_TEMP_DIR}/${jobId}.png`.
+   - Must never hold more than one buffer in memory.
+   - Metadata JSON sidecar file (prompt, style, artist, release, seed) stored in same folder.
+
+4. Frontend Behavior:
+   - Detect if `HF_TOKEN` is available via `/api/env` route.
+     - If not, disable “Prompt” field and show “Fallback Mode: SVG Generator Active”.
+   - Add **Randomize** button next to style presets — clicking it calls `/api/ai/generate?mode=random` and produces a random preset + seed.
+   - Add 10 new preset cards visually consistent with existing dashboard style.
+   - When fallback mode is active, show subtle “Generated locally — AI offline” badge under the Generate button.
+
+5. Backend Logic (Next.js App Router APIs):
+   - `apps/web/app/api/ai/generate/route.ts`
+     - If HF_TOKEN present → call Hugging Face inference.
+     - If missing → fallback to procedural SVG.
+     - Always respond JSON: `{ jobId, status, resultUrl?, mode: "ai"|"fallback" }`
+   - `apps/web/app/api/ai/env/route.ts`
+     - Returns `{ hasAIKey: boolean }` for frontend detection.
+   - `packages/ai/impl/fallback-svg.ts`
+     - Create `generateFallbackSVG(preset, artist, release, seed?)`
+     - Procedurally generate SVG string per style preset.
+     - Randomize gradient angles, blur filters, lighting noise.
+     - Optionally embed text using `<text>` element stylized by preset.
+
+6. Worker Improvements:
+   - Background-safe (spawn `packages/ai/worker.js`).
+   - Limit concurrency (default 1).
+   - Implement cleanup script removing temp files >24h old.
+   - Maintain progress state for each job.
+
+7. Frontend (CoverArtStudio):
+   - Disable Prompt field if `hasAIKey=false`.
+   - Render 10 presets grid with hover animation (glow border).
+   - Add “Randomize” button that picks a preset + seed automatically.
+   - Display live preview of fallback SVG.
+   - Download button uses generated image URL.
+   - Responsive grid layout consistent with dashboard.
+
+8. Tests:
+   - Add `tests/ai/fallback-svg.test.ts` verifying each preset returns valid SVG string.
+   - Add integration test with TEST_MODE=true that confirms PNG generation under 2s.
+   - Confirm /api/env properly reports key presence.
+
+────────────────────────────────────────────
+📁 FILES TO IMPLEMENT / UPDATE
+────────────────────────────────────────────
+- apps/web/app/api/ai/generate/route.ts
+- apps/web/app/api/ai/env/route.ts
+- packages/ai/impl/fallback-svg.ts
+- packages/ai/impl/hf.ts
+- apps/web/src/components/AI/CoverArtStudio.tsx
+- apps/web/public/svg-presets/ (optional directory for reusable shapes)
+- scripts/cleanup-ai-temp.js
+- tests/ai/fallback-svg.test.ts
+- .env.example
+
+────────────────────────────────────────────
+⚙️ ENV VARIABLES
+────────────────────────────────────────────
+HF_TOKEN=               # optional Hugging Face key
+AI_TEMP_DIR=/tmp/thecueroom-ai
+AI_WORKER_CONCURRENCY=1
+TEST_MODE=false
+AI_TEMP_TTL_HOURS=24
+
+────────────────────────────────────────────
+📦 DEPENDENCIES
+────────────────────────────────────────────
+pnpm --filter apps/web add sharp zod cross-fetch nanoid
+pnpm --filter apps/web add -D vitest supertest
+
+────────────────────────────────────────────
+✅ ACCEPTANCE CHECKS
+────────────────────────────────────────────
+1. `pnpm -w tsc --noEmit` → passes
+2. `pnpm --filter apps/web dev` → dashboard loads and preview works
+3. Without HF_TOKEN:
+   - Prompt field disabled.
+   - “Randomize” button works → generates random SVG preset output.
+   - `/api/ai/generate` returns `{ jobId, status: "done", mode: "fallback" }`.
+4. With HF_TOKEN:
+   - AI generation active (prompt enabled).
+   - `/api/ai/generate` returns `{ jobId, status: "done", mode: "ai" }`.
+5. `pnpm --filter apps/web test:unit` → all tests green.
+6. `node scripts/cleanup-ai-temp.js` → deletes files >24h.
+
+────────────────────────────────────────────
+💬 COMMIT
+────────────────────────────────────────────
+git add -A
+git commit -m "feat(ai): add advanced SVG presets & random generator, disable prompt if no AI key, hybrid AI/fallback album cover system"
+git show --name-status HEAD
+
+────────────────────────────────────────────
+🧠 EXTRA REQUIREMENTS
+────────────────────────────────────────────
+- Every fallback render must look **professionally aesthetic**, not placeholder art.
+- SVG must layer gradients, blend modes (`overlay`, `screen`), noise filters, and optionally procedural text paths.
+- Fallback renders must reflect preset style visually.
+- Randomize composition on each render (seed).
+- Do not crash or degrade performance: stream to disk, memory cap <300MB.
+
+────────────────────────────────────────────
+✅ EXPECTED ASSISTANT OUTPUT
+────────────────────────────────────────────
+1. List of all updated files.
+2. Sample `/api/env` JSON (`{ "hasAIKey": false }`).
+3. Sample `/api/ai/generate` response in fallback mode.
+4. Screenshot-ready SVG/PNG placeholder example string snippet.
+5. `git show --name-status HEAD` and typecheck/test results.
+
+────────────────────────────────────────────
+DO NOT ASK QUESTIONS. IMPLEMENT, TEST, FIX, COMMIT, AND REPORT.
+────────────────────────────────────────────
