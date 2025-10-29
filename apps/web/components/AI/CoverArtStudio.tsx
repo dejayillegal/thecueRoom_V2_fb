@@ -11,10 +11,10 @@ import { Loader2, Download, Sparkles, RefreshCw } from 'lucide-react';
 import { useAIJobPolling } from '@/lib/hooks/useAIJobPolling';
 
 const STYLE_PRESETS = [
-  { id: 'neon', label: 'Neon Accent', gradient: 'from-purple-500 to-pink-500' },
-  { id: 'monochrome', label: 'Monochrome', gradient: 'from-gray-900 to-gray-600' },
-  { id: 'geometric', label: 'Geometric', gradient: 'from-blue-500 to-cyan-500' },
-  { id: 'brutalist', label: 'Brutalist', gradient: 'from-red-500 to-orange-500' },
+  { id: 'neon', label: 'Neon Accent', gradient: 'from-purple-500 via-pink-500 to-purple-600' },
+  { id: 'monochrome', label: 'Monochrome', gradient: 'from-gray-900 via-gray-600 to-gray-400' },
+  { id: 'geometric', label: 'Geometric', gradient: 'from-blue-500 via-cyan-500 to-blue-600' },
+  { id: 'brutalist', label: 'Brutalist', gradient: 'from-red-500 via-orange-500 to-red-600' },
 ] as const;
 
 const ASPECT_RATIOS = ['1:1', '16:9', '4:3', '3:4'] as const;
@@ -37,14 +37,14 @@ const StylePresetButton = memo(({
 }) => (
   <button
     onClick={onClick}
-    className={`p-3 rounded-lg border transition-all ${
+    className={`p-2 rounded-md border transition-all ${
       isSelected
         ? 'border-[#D1FF3D] bg-[#D1FF3D]/10'
         : 'border-[#1a1a1a] hover:border-[#333333]'
     }`}
   >
-    <div className={`h-8 rounded bg-gradient-to-r ${preset.gradient} mb-2`} />
-    <span className="text-sm text-white">{preset.label}</span>
+    <div className={`h-6 rounded bg-gradient-to-r ${preset.gradient} mb-1.5`} />
+    <span className="text-xs text-white">{preset.label}</span>
   </button>
 ));
 StylePresetButton.displayName = 'StylePresetButton';
