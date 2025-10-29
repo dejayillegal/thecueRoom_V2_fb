@@ -1,0 +1,20 @@
+{
+  "name": "@thecueroom/ai",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./impl/fallback-svg": "./impl/fallback-svg.ts",
+    "./impl/hf": "./impl/hf.ts",
+    "./types": "./types/index.ts"
+  },
+  "dependencies": {
+    "nanoid": "^5.0.9",
+    "cross-fetch": "^4.1.0",
+    "sharp": "^0.34.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.23",
+    "typescript": "^5.8.1"
+  }
+}
