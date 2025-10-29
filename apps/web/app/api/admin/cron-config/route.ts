@@ -13,7 +13,7 @@ interface CronConfig {
 // In-memory storage (replace with database in production)
 let cronConfig: CronConfig = {
   enabled: true,
-  interval: 60, // 1 hour by default
+  interval: parseInt(process.env.INGEST_INTERVAL_MINUTES || '60', 10),
 };
 
 export async function GET(request: NextRequest) {
@@ -46,11 +46,15 @@ export async function POST(request: NextRequest) {
     
     if (typeof body.interval === 'number' && body.interval > 0) {
       cronConfig.interval = body.interval;
+      
+      // Update environment variable for periodic worker
+      process.env.INGEST_INTERVAL_MINUTES = body.interval.toString();
     }
 
     return NextResponse.json({ 
       success: true, 
-      config: cronConfig 
+      config: cronConfig,
+      message: 'Configuration updated. Restart Background Worker to apply new interval.'
     });
   } catch (error) {
     return NextResponse.json({ 

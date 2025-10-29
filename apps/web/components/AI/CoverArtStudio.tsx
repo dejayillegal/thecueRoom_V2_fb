@@ -390,16 +390,25 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
   }, []);
 
   const handleDownload = useCallback(async (url: string) => {
-    // Add text overlay before downloading
+    // Check if it's SVG before adding overlay
+    const isSvgSource = url.startsWith('data:image/svg+xml');
+    
     let finalUrl = url;
-    if (artist || release) {
-      finalUrl = await addTextOverlay(url);
+    let extension = 'png';
+    
+    if (isSvgSource) {
+      // For SVG fallback, download as SVG directly without text overlay
+      // Text overlay converts to PNG, which defeats the purpose of SVG fallback
+      extension = 'svg';
+      finalUrl = url;
+    } else {
+      // For AI-generated images, add text overlay and download as PNG
+      if (artist || release) {
+        finalUrl = await addTextOverlay(url);
+      }
+      const isPng = finalUrl.startsWith('data:image/png');
+      extension = isPng ? 'png' : 'jpg';
     }
-
-    // Determine file extension based on data URL type
-    const isSvg = finalUrl.startsWith('data:image/svg+xml');
-    const isPng = finalUrl.startsWith('data:image/png');
-    const extension = isSvg ? 'svg' : isPng ? 'png' : 'jpg';
 
     const a = document.createElement('a');
     a.href = finalUrl;
