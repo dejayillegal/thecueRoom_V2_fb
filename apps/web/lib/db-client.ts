@@ -18,10 +18,10 @@ function getConnectionString(): string {
 }
 
 let client: ReturnType<typeof postgres> | null = null;
-let db: ReturnType<typeof drizzle> | null = null;
+let dbInstance: ReturnType<typeof drizzle> | null = null;
 
 export function getDbClient() {
-  if (!db) {
+  if (!dbInstance) {
     const connectionString = getConnectionString();
     
     client = postgres(connectionString, {
@@ -48,17 +48,20 @@ export function getDbClient() {
       },
     });
     
-    db = drizzle(client, { schema });
+    dbInstance = drizzle(client, { schema });
   }
-  return db;
+  return dbInstance;
 }
 
 export function closeDbConnection() {
   if (client) {
     client.end({ timeout: 5 });
     client = null;
-    db = null;
+    dbInstance = null;
   }
 }
 
 export { schema };
+
+// Export db for direct usage
+export const db = getDbClient();

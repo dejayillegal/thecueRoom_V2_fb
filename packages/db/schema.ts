@@ -218,6 +218,7 @@ export const aiJobs = pgTable('ai_jobs', {
   prompt: text('prompt').notNull(),
   params: jsonb('params').$type<any>(),
   status: text('status').notNull().default('pending'),
+  progress: integer('progress').notNull().default(0),
   resultUrl: text('result_url'),
   error: text('error'),
   retryCount: integer('retry_count').notNull().default(0),
