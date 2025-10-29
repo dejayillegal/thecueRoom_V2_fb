@@ -231,13 +231,15 @@ function buildCoverArtPrompt(userPrompt: string, params?: any): string {
   
   // Artist/Release branding
   if (artist || release) {
-    prompt += `Typography: `;
+    prompt += `Typography: Include the following text in the design with bold, modern typography that fits the ${style} aesthetic. `;
     if (artist) {
-      prompt += `Artist name "${artist}" should be integrated into the design with bold, modern typography. `;
+      prompt += `Artist name: "${artist}" (should be prominent, large, and integrated into the design). `;
     }
     if (release) {
-      prompt += `Release title "${release}" should complement the artist name with clean, readable typography. `;
+      prompt += `Release title: "${release}" (should complement the artist name with clean, readable typography). `;
     }
+    prompt += `Position the text in a visually balanced way, ensuring it's readable and professionally integrated. `;
+    prompt += `Add a subtle "thecueRoom.com" watermark in the bottom right corner. `;
   } else {
     prompt += `IMPORTANT: No text or typography should be included in the image - pure visual artwork only. `;
   }
@@ -256,99 +258,10 @@ function buildCoverArtPrompt(userPrompt: string, params?: any): string {
 
 
 async function addTextOverlay(imageUrl: string, params: any): Promise<string> {
-  try {
-    const { createCanvas, loadImage } = await import('canvas');
-    
-    // Load the base image
-    const image = await loadImage(imageUrl);
-    const canvas = createCanvas(image.width, image.height);
-    const ctx = canvas.getContext('2d');
-    
-    // Draw the base image
-    ctx.drawImage(image, 0, 0);
-    
-    const artist = params?.artist || '';
-    const release = params?.release || '';
-    const style = params?.style || 'neon';
-    
-    // Style configurations
-    const styleConfigs: Record<string, { textColor: string; shadowColor: string; bgColor: string }> = {
-      neon: { textColor: '#D1FF3D', shadowColor: '#8B00FF', bgColor: 'rgba(0, 0, 0, 0.7)' },
-      monochrome: { textColor: '#FFFFFF', shadowColor: '#000000', bgColor: 'rgba(0, 0, 0, 0.8)' },
-      geometric: { textColor: '#00BFFF', shadowColor: '#0066CC', bgColor: 'rgba(0, 0, 0, 0.6)' },
-      brutalist: { textColor: '#FF3333', shadowColor: '#660000', bgColor: 'rgba(20, 20, 20, 0.9)' }
-    };
-    
-    const config = styleConfigs[style] || styleConfigs.neon;
-    const padding = 40;
-    const textY = image.height - padding;
-    
-    // Configure text styling
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'bottom';
-    
-    // Draw semi-transparent background for text
-    const artistFontSize = Math.max(48, image.width / 20);
-    const releaseFontSize = Math.max(32, image.width / 30);
-    
-    ctx.font = `bold ${artistFontSize}px "Arial Black", sans-serif`;
-    const artistWidth = artist ? ctx.measureText(artist).width : 0;
-    
-    ctx.font = `${releaseFontSize}px Arial, sans-serif`;
-    const releaseWidth = release ? ctx.measureText(release).width : 0;
-    
-    const maxWidth = Math.max(artistWidth, releaseWidth);
-    const bgHeight = (artist && release) ? 140 : 80;
-    
-    if (artist || release) {
-      ctx.fillStyle = config.bgColor;
-      ctx.fillRect(padding - 20, textY - bgHeight + 20, maxWidth + 40, bgHeight);
-    }
-    
-    // Draw artist name
-    if (artist) {
-      ctx.font = `bold ${artistFontSize}px "Arial Black", sans-serif`;
-      ctx.shadowColor = config.shadowColor;
-      ctx.shadowBlur = 15;
-      ctx.shadowOffsetX = 3;
-      ctx.shadowOffsetY = 3;
-      ctx.fillStyle = config.textColor;
-      ctx.fillText(artist, padding, textY - (release ? 60 : 20));
-    }
-    
-    // Draw release title
-    if (release) {
-      ctx.font = `${releaseFontSize}px Arial, sans-serif`;
-      ctx.shadowColor = config.shadowColor;
-      ctx.shadowBlur = 10;
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 2;
-      ctx.fillStyle = config.textColor;
-      ctx.fillText(release, padding, textY - 10);
-    }
-    
-    // Add watermark in bottom right
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-    ctx.font = '16px Arial';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.textAlign = 'right';
-    const watermark = 'thecueRoom.com';
-    ctx.fillText(watermark, image.width - padding, image.height - 20);
-    
-    // Convert to base64
-    const buffer = canvas.toBuffer('image/png');
-    const base64 = buffer.toString('base64');
-    
-    console.log('✅ Text overlay added successfully');
-    return `data:image/png;base64,${base64}`;
-    
-  } catch (error) {
-    console.error('❌ Text overlay failed:', error);
-    // Return original image if overlay fails
-    return imageUrl;
-  }
+  // Text overlay is now handled by the AI prompt instead of post-processing
+  // This avoids the need for the canvas package which doesn't work in serverless environments
+  console.log('ℹ️ Text overlay will be included in AI generation prompt');
+  return imageUrl;
 }
 
   prompt += `high detail and clarity, suitable for professional release on major platforms.`;
@@ -452,12 +365,6 @@ async function generateImageWithAI(prompt: string, params?: any): Promise<string
     console.log('💡 Add HF_TOKEN or GOOGLE_API_KEY to Secrets to enable real AI generation');
     console.log('📦 Generating advanced procedural SVG...');
     baseImageUrl = await generatePlaceholderImage(prompt, params);
-  }
-  
-  // Add text overlay and watermark if artist/release provided
-  if (params?.artist || params?.release) {
-    console.log('✍️ Adding text overlay to generated image...');
-    return await addTextOverlay(baseImageUrl, params);
   }
   
   return baseImageUrl;
