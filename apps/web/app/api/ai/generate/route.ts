@@ -259,19 +259,42 @@ function buildCoverArtPrompt(userPrompt: string, params?: any): string {
 }
 
 async function generateImageWithAI(prompt: string, params?: any): Promise<string> {
-  // Try to use actual AI generation if possible, otherwise fallback to placeholder
+  const hasHFKey = process.env.HF_TOKEN || process.env.HUGGINGFACE_KEY;
   const hasGeminiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+  
+  if (hasHFKey) {
+    try {
+      console.log('🎨 Generating album cover with Hugging Face AI...');
+      const { generateWithHuggingFace } = await import('../../../packages/ai/impl/hf.js');
+      
+      const result = await generateWithHuggingFace(
+        {
+          prompt,
+          negativePrompt: 'blurry, low quality, distorted, text, watermark',
+          width: 1024,
+          height: 1024,
+        },
+        hasHFKey
+      );
+      
+      if (result.success && result.imageBuffer) {
+        const base64 = result.imageBuffer.toString('base64');
+        console.log('✅ Hugging Face generation successful!');
+        return `data:image/png;base64,${base64}`;
+      }
+    } catch (error) {
+      console.error('❌ HF generation failed:', error);
+    }
+  }
   
   if (hasGeminiKey) {
     try {
       console.log('🎨 Generating album cover with Gemini AI...');
       console.log('Prompt:', prompt.substring(0, 150) + '...');
       
-      // Use Gemini 2.0 Flash with image generation capabilities
       const { GoogleGenerativeAI } = await import('@google/generative-ai');
       const genAI = new GoogleGenerativeAI(hasGeminiKey);
       
-      // Use the imagen-3.0-generate-001 model for image generation
       const model = genAI.getGenerativeModel({ 
         model: 'imagen-3.0-generate-001'
       });
@@ -292,7 +315,7 @@ async function generateImageWithAI(prompt: string, params?: any): Promise<string
       const response = result.response;
       const imageData = response.candidates?.[0]?.content?.parts?.[0];
       
-      if (imageData && 'inlineData' in imageData) {
+      if (imageData && 'inlineData' in imageData && imageData.inlineData) {
         const base64Data = imageData.inlineData.data;
         const imageUrl = `data:${imageData.inlineData.mimeType};base64,${base64Data}`;
         console.log('✅ AI generation successful!');
@@ -300,7 +323,6 @@ async function generateImageWithAI(prompt: string, params?: any): Promise<string
       } else {
         console.log('⚠️ No image data in response, trying text generation with image prompt...');
         
-        // Fallback: try text-to-image with Gemini 2.0 Flash
         const flashModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
         const flashResult = await flashModel.generateContent({
           contents: [{
@@ -314,7 +336,7 @@ async function generateImageWithAI(prompt: string, params?: any): Promise<string
         const flashResponse = flashResult.response;
         const flashImageData = flashResponse.candidates?.[0]?.content?.parts?.[0];
         
-        if (flashImageData && 'inlineData' in flashImageData) {
+        if (flashImageData && 'inlineData' in flashImageData && flashImageData.inlineData) {
           const base64Data = flashImageData.inlineData.data;
           console.log('✅ Flash AI generation successful!');
           return `data:${flashImageData.inlineData.mimeType};base64,${base64Data}`;
@@ -325,107 +347,57 @@ async function generateImageWithAI(prompt: string, params?: any): Promise<string
       console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
     }
   } else {
-    console.log('⚠️ No Gemini API key found - using placeholder');
-    console.log('💡 Add GOOGLE_API_KEY to Secrets to enable real AI generation');
+    console.log('⚠️ No AI API key found - using advanced SVG fallback');
+    console.log('💡 Add HF_TOKEN or GOOGLE_API_KEY to Secrets to enable real AI generation');
   }
   
-  // Fallback to enhanced placeholder
-  console.log('📦 Generating enhanced SVG placeholder...');
+  console.log('📦 Generating advanced procedural SVG...');
   return generatePlaceholderImage(prompt, params);
 }
 
-function generatePlaceholderImage(prompt: string, params?: any): string {
-  // Generate high-quality album cover style SVG
-  const style = params?.style || 'neon';
-  const artist = params?.artist || '';
-  const release = params?.release || '';
-
-  const styleColors: Record<string, string[]> = {
-    neon: ['#FF00FF', '#00FFFF', '#FF0080', '#9D00FF'], // Magenta, Cyan, Hot Pink, Purple
-    monochrome: ['#000000', '#1a1a1a', '#333333', '#666666'], // Black to Gray
-    geometric: ['#FF6B35', '#F7931E', '#FDC830', '#FDBB2D'], // Orange gradient
-    brutalist: ['#0a0a0a', '#8B0000', '#2F4F4F', '#1a1a1a'], // Dark with red accent
-  };
-
-  const colors = styleColors[style] || styleColors.neon;
-  const width = parseInt(params?.resolution?.split('x')[0] || '1024');
-  const height = parseInt(params?.resolution?.split('x')[1] || '1024');
-
-  // Create album cover patterns based on style
-  let pattern = '';
-  let textElements = '';
-  
-  if (style === 'geometric') {
-    pattern = `
-      <circle cx="${width * 0.3}" cy="${height * 0.3}" r="${width * 0.25}" fill="${colors[0]}" opacity="0.4"/>
-      <circle cx="${width * 0.7}" cy="${height * 0.7}" r="${width * 0.25}" fill="${colors[1]}" opacity="0.4"/>
-      <rect x="${width * 0.35}" y="${height * 0.35}" width="${width * 0.3}" height="${width * 0.3}" 
-            fill="${colors[2]}" opacity="0.3" transform="rotate(45 ${width/2} ${height/2})"/>
-      <polygon points="${width*0.5},${height*0.2} ${width*0.7},${height*0.5} ${width*0.5},${height*0.8} ${width*0.3},${height*0.5}" 
-               fill="${colors[3]}" opacity="0.25"/>`;
-  } else if (style === 'brutalist') {
-    pattern = `
-      <rect x="0" y="0" width="${width}" height="${height * 0.15}" fill="${colors[1]}" opacity="0.9"/>
-      <rect x="0" y="${height * 0.85}" width="${width}" height="${height * 0.15}" fill="${colors[2]}" opacity="0.9"/>
-      <rect x="${width * 0.05}" y="${height * 0.4}" width="${width * 0.9}" height="${height * 0.2}" 
-            fill="${colors[3]}" opacity="0.2" transform="rotate(-5 ${width/2} ${height/2})"/>`;
-  } else if (style === 'neon') {
-    pattern = `
-      <circle cx="${width/2}" cy="${height/2}" r="${width * 0.4}" fill="none" stroke="${colors[0]}" stroke-width="4" opacity="0.6">
-        <animate attributeName="r" values="${width*0.35};${width*0.45};${width*0.35}" dur="3s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="${width/2}" cy="${height/2}" r="${width * 0.3}" fill="none" stroke="${colors[1]}" stroke-width="3" opacity="0.7">
-        <animate attributeName="r" values="${width*0.25};${width*0.35};${width*0.25}" dur="2s" repeatCount="indefinite"/>
-      </circle>
-      <rect x="${width * 0.1}" y="${height * 0.1}" width="${width * 0.8}" height="${height * 0.8}" 
-            fill="none" stroke="${colors[2]}" stroke-width="2" opacity="0.3"/>`;
+async function generatePlaceholderImage(prompt: string, params?: any): Promise<string> {
+  try {
+    const { generateFallbackSVG } = await import('../../../packages/ai/impl/fallback-svg.js');
+    
+    const style = params?.style || 'neon-accent';
+    const artist = params?.artist || '';
+    const release = params?.release || '';
+    const seed = parseInt(params?.seed) || Math.floor(Math.random() * 1000000);
+    
+    const styleMap: Record<string, any> = {
+      'neon': 'neon-accent',
+      'monochrome': 'monochrome',
+      'geometric': 'geometric',
+      'brutalist': 'brutalist',
+    };
+    
+    const mappedStyle = styleMap[style] || style;
+    
+    const svg = generateFallbackSVG({
+      preset: mappedStyle,
+      artist,
+      release,
+      seed,
+    });
+    
+    const base64 = Buffer.from(svg).toString('base64');
+    return `data:image/svg+xml;base64,${base64}`;
+  } catch (error) {
+    console.error('SVG generation error:', error);
+    
+    const width = parseInt(params?.resolution?.split('x')[0] || '1024');
+    const height = parseInt(params?.resolution?.split('x')[1] || '1024');
+    
+    const fallbackSvg = `
+      <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+        <rect width="${width}" height="${height}" fill="#1a1a1a"/>
+        <text x="${width/2}" y="${height/2}" font-family="Arial" font-size="24" fill="white" text-anchor="middle">
+          Album Cover
+        </text>
+      </svg>
+    `;
+    
+    const base64 = Buffer.from(fallbackSvg).toString('base64');
+    return `data:image/svg+xml;base64,${base64}`;
   }
-
-  // Add text if artist/release provided
-  if (artist || release) {
-    const fontSize = Math.max(24, width * 0.08);
-    const smallFontSize = Math.max(16, width * 0.05);
-    textElements = `
-      <text x="${width/2}" y="${height * 0.85}" font-family="Arial, sans-serif" font-size="${fontSize}" 
-            font-weight="bold" fill="white" text-anchor="middle" opacity="0.95">
-        ${artist || 'ARTIST'}
-      </text>
-      <text x="${width/2}" y="${height * 0.92}" font-family="Arial, sans-serif" font-size="${smallFontSize}" 
-            fill="white" text-anchor="middle" opacity="0.8">
-        ${release || 'RELEASE'}
-      </text>`;
-  }
-
-  const svg = `
-    <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:${colors[0]};stop-opacity:1" />
-          <stop offset="33%" style="stop-color:${colors[1]};stop-opacity:1" />
-          <stop offset="66%" style="stop-color:${colors[2]};stop-opacity:1" />
-          <stop offset="100%" style="stop-color:${colors[colors.length - 1]};stop-opacity:1" />
-        </linearGradient>
-        <filter id="noise">
-          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" />
-          <feColorMatrix type="saturate" values="0"/>
-        </filter>
-        <filter id="glow">
-          <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-          <feMerge>
-            <feMergeNode in="coloredBlur"/>
-            <feMergeNode in="SourceGraphic"/>
-          </feMerge>
-        </filter>
-      </defs>
-      <rect width="${width}" height="${height}" fill="url(#grad)"/>
-      <rect width="${width}" height="${height}" filter="url(#noise)" opacity="0.15"/>
-      <g filter="url(#glow)">
-        ${pattern}
-      </g>
-      ${textElements}
-    </svg>
-  `;
-
-  const base64 = Buffer.from(svg).toString('base64');
-  return `data:image/svg+xml;base64,${base64}`;
 }
