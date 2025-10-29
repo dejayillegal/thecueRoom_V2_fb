@@ -7,6 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Loader2, Download, Sparkles, RefreshCw } from 'lucide-react';
 import { useAIJobPolling } from '@/lib/hooks/useAIJobPolling';
 
@@ -25,29 +32,6 @@ interface Render {
   url: string;
   prompt: string;
 }
-
-const StylePresetButton = memo(({ 
-  preset, 
-  isSelected, 
-  onClick 
-}: { 
-  preset: typeof STYLE_PRESETS[number];
-  isSelected: boolean;
-  onClick: () => void;
-}) => (
-  <button
-    onClick={onClick}
-    className={`p-2 rounded-md border transition-all ${
-      isSelected
-        ? 'border-[#D1FF3D] bg-[#D1FF3D]/10'
-        : 'border-[#1a1a1a] hover:border-[#333333]'
-    }`}
-  >
-    <div className={`h-6 rounded bg-gradient-to-r ${preset.gradient} mb-1.5`} />
-    <span className="text-xs text-white">{preset.label}</span>
-  </button>
-));
-StylePresetButton.displayName = 'StylePresetButton';
 
 const RecentRenderCard = memo(({ render, onSelect }: { render: Render; onSelect: () => void }) => (
   <div 
@@ -197,10 +181,6 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
     a.click();
   }, []);
 
-  const handleStyleSelect = useCallback((styleId: string) => {
-    setStyle(styleId);
-  }, []);
-
   const handleSelectRender = useCallback((url: string) => {
     setPreviewUrl(url);
   }, []);
@@ -237,17 +217,29 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
               </div>
 
               <div>
-                <Label className="text-white text-sm mb-2 block">Style Preset</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {STYLE_PRESETS.map((preset) => (
-                    <StylePresetButton
-                      key={preset.id}
-                      preset={preset}
-                      isSelected={style === preset.id}
-                      onClick={() => handleStyleSelect(preset.id)}
-                    />
-                  ))}
-                </div>
+                <Label htmlFor="style" className="text-white text-sm mb-1 block">Style Preset</Label>
+                <Select value={style} onValueChange={setStyle}>
+                  <SelectTrigger 
+                    id="style"
+                    className="bg-[#0a0a0a] border-[#1a1a1a] text-white text-sm"
+                  >
+                    <SelectValue placeholder="Select a style" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#111111] border-[#1a1a1a]">
+                    {STYLE_PRESETS.map((preset) => (
+                      <SelectItem 
+                        key={preset.id} 
+                        value={preset.id}
+                        className="text-white hover:bg-[#1a1a1a] focus:bg-[#1a1a1a] cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className={`h-4 w-12 rounded bg-gradient-to-r ${preset.gradient}`} />
+                          <span>{preset.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
