@@ -20,7 +20,8 @@
       "@/lib/*": ["./src/lib/*", "./lib/*"],
       "@/app/*": ["./app/*"],
       "@/hooks/*": ["./src/hooks/*"],
-      "@thecueroom/ai/*": ["../../packages/ai/*"]
+      "@thecueroom/ai/*": ["../../packages/ai/*"],
+      "@thecueroom/fallback/*": ["../../packages/fallback/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

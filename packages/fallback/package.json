@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "main": "worker.ts",
+  "exports": {
+    "./worker": "./worker.ts"
+  },
   "dependencies": {
     "sharp": "^0.33.0",
     "p-limit": "^5.0.0"
