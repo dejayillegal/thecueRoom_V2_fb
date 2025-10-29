@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import Parser from 'rss-parser';
-import { feeds, sources, fetchLogs } from '@thecueroom/db/schema';
+import { feeds, sources, fetchLogs } from '@thecueroom/db';
 import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
 import { extractImageFromPage, scrapeFeed } from './lib/scraper';
