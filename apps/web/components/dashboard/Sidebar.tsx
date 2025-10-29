@@ -79,7 +79,7 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
                 <Link
                   href={item.href}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] transition-all duration-200',
+                    'flex items-center gap-2 px-2.5 py-2 text-[13px] transition-all duration-200',
                     isActive 
                       ? 'bg-[var(--tcr-accent)] text-black font-medium' 
                       : 'text-gray-400 hover:bg-[#1a1a1a] hover:text-white',
@@ -101,7 +101,7 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
         <Link
           href="/settings"
           className={cn(
-            'flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] transition-all duration-200',
+            'flex items-center gap-2 px-2.5 py-2 text-[13px] transition-all duration-200',
             pathname === '/settings'
               ? 'bg-[var(--tcr-accent)] text-black font-medium'
               : 'text-gray-400 hover:bg-[#1a1a1a] hover:text-white',
@@ -116,10 +116,17 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
         {/* Toggle Button */}
         <button
           onClick={onToggle}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-gray-400 hover:bg-[#1a1a1a] hover:text-white transition-all duration-200"
+          className="w-full flex items-center justify-center gap-1.5 px-2.5 py-2 text-gray-400 hover:bg-[#1a1a1a] hover:text-white transition-all duration-200"
           aria-label={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
         >
-          {isOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
+          {isOpen ? (
+            <>
+              <ChevronLeft size={18} />
+              <span className="text-xs">Collapse</span>
+            </>
+          ) : (
+            <ChevronRight size={18} />
+          )}
         </button>
       </div>
     </aside>

@@ -52,7 +52,7 @@ const NavigationButton = memo(({
 }) => (
   <button
     onClick={onClick}
-    className={`absolute ${direction}-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm border border-border rounded-full p-2 opacity-0 group-hover/spotlight:opacity-100 transition-opacity hover:bg-background/90 z-10`}
+    className={`absolute ${direction}-4 top-1/2 -translate-y-1/2 bg-background/80 border border-border p-2 opacity-0 group-hover/spotlight:opacity-100 transition-opacity hover:bg-background/90 z-10`}
     style={{ willChange: 'opacity' }}
     aria-label={label}
   >

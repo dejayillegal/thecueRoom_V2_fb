@@ -137,7 +137,7 @@ button:hover .tcr-tab-label::after { transform: translateX(120%); }
 
 .tcr-arrow {
   position:absolute; top:50%; transform:translateY(-50%);
-  width:36px; height:36px; border-radius:9999px;
+  width:36px; height:36px;
   background: rgba(0,0,0,.45);
   border:1px solid rgba(255,255,255,.08);
   display:flex; align-items:center; justify-content:center;
@@ -153,11 +153,11 @@ button:hover .tcr-tab-label::after { transform: translateX(120%); }
 @media (prefers-reduced-motion: reduce) { .tcr-arrow { transition:none } }
 
 .tcr-dot {
-  width:8px; height:8px; border-radius:9999px; background:#D7FF3C; transform-origin:center;
+  width:8px; height:8px; background:#D7FF3C; transform-origin:center;
   transition: opacity .15s ease, transform .15s ease;
 }
 
-.tcr-ico { width:28px; height:28px; border-radius:9999px; display:flex; align-items:center; justify-content:center; }
+.tcr-ico { width:28px; height:28px; display:flex; align-items:center; justify-content:center; }
 .tcr-ico-pri { color:#0b0b0b; background:#D7FF3C; }
 .tcr-ico-sec { color:#fff; background:rgba(155,92,255,.22); border:1px solid rgba(255,255,255,.10); }
 .tcr-ico:hover { filter:brightness(1.05); transform: translateY(-1px); }

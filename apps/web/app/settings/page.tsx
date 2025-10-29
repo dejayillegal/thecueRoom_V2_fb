@@ -68,8 +68,8 @@ export default memo(function SettingsPage() {
                     className="bg-[#1a1a1a] border-[#333] text-white"
                   />
                 </div>
-                <Button className="bg-[var(--tcr-accent)] text-black hover:bg-[var(--tcr-accent)]/90">
-                  Save Changes
+                <Button className="bg-[var(--tcr-accent)] text-black hover:bg-[var(--tcr-accent)]/90 h-9 px-3 gap-1.5">
+                  <span>Save Changes</span>
                 </Button>
               </CardContent>
             </Card>
@@ -132,8 +132,8 @@ export default memo(function SettingsPage() {
                     className="bg-[#1a1a1a] border-[#333] text-white"
                   />
                 </div>
-                <Button className="bg-[var(--tcr-accent)] text-black hover:bg-[var(--tcr-accent)]/90">
-                  Update Password
+                <Button className="bg-[var(--tcr-accent)] text-black hover:bg-[var(--tcr-accent)]/90 h-9 px-3 gap-1.5">
+                  <span>Update Password</span>
                 </Button>
               </CardContent>
             </Card>

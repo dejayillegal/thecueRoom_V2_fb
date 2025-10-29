@@ -34,7 +34,7 @@ export function Header({ user, sidebarOpen }: HeaderProps) {
             <input
               type="search"
               placeholder="Search artists, gigs, news..."
-              className="w-full h-9 pl-10 pr-4 bg-transparent border border-[#1a1a1a] rounded-lg text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-[#2a2a2a] transition-colors"
+              className="w-full h-9 pl-10 pr-4 bg-transparent border border-[#1a1a1a] text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-[#2a2a2a] transition-colors"
             />
           </div>
         </div>

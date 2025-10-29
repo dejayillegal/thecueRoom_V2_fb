@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, MessageSquare, ThumbsUp, Award } from 'lucide-react';
+import { Plus, MessageSquare, ThumbsUp, Award, Send } from 'lucide-react';
 
 interface Thread {
   id: string;
@@ -68,9 +68,9 @@ export default function ForumPage() {
           </div>
           <Dialog open={isCreating} onOpenChange={setIsCreating}>
             <DialogTrigger asChild>
-              <Button className="bg-[#D1FF3D] text-black hover:bg-[#e7ff6f]">
-                <Plus className="w-4 h-4 mr-2" />
-                New Thread
+              <Button className="bg-[#D1FF3D] text-black hover:bg-[#e7ff6f] h-9 px-3 gap-1.5">
+                <Plus className="w-4 h-4" />
+                <span>New Thread</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-[#111111] border-[#1a1a1a] text-white">
@@ -94,8 +94,9 @@ export default function ForumPage() {
                     className="mt-1 bg-[#0a0a0a] border-[#1a1a1a] text-white min-h-[120px]"
                   />
                 </div>
-                <Button onClick={handleCreateThread} className="w-full bg-[#D1FF3D] text-black hover:bg-[#e7ff6f]">
-                  Create Thread
+                <Button onClick={handleCreateThread} className="w-full bg-[#D1FF3D] text-black hover:bg-[#e7ff6f] h-9 gap-1.5">
+                  <Plus className="w-4 h-4" />
+                  <span>Create Thread</span>
                 </Button>
               </div>
             </DialogContent>
