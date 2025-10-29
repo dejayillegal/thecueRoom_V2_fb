@@ -1,0 +1,22 @@
+{
+  "name": "@thecueroom/epk",
+  "version": "2.0.0",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "scripts": {
+    "worker": "node worker.js",
+    "worker:dev": "nodemon worker.js"
+  },
+  "dependencies": {
+    "nanoid": "^5.1.6",
+    "p-limit": "^6.2.0",
+    "sharp": "^0.34.4",
+    "puppeteer-core": "^24.26.1",
+    "archiver": "^8.0.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.23",
+    "typescript": "^5.7.2"
+  }
+}

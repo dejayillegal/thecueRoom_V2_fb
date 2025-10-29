@@ -21,7 +21,9 @@
       "@/app/*": ["./app/*"],
       "@/hooks/*": ["./src/hooks/*"],
       "@thecueroom/ai/*": ["../../packages/ai/*"],
-      "@thecueroom/fallback/*": ["../../packages/fallback/*"]
+      "@thecueroom/fallback/*": ["../../packages/fallback/*"],
+      "@thecueroom/epk": ["../../packages/epk/index.ts"],
+      "@thecueroom/epk/*": ["../../packages/epk/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

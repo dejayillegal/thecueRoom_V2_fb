@@ -21,6 +21,10 @@ args = "Server"
 task = "workflow.run"
 args = "Background Worker"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "EPK Worker"
+
 [[workflows.workflow]]
 name = "Server"
 author = "agent"
@@ -44,13 +48,20 @@ args = "pnpm worker"
 [workflows.workflow.metadata]
 outputType = "console"
 
+[[workflows.workflow]]
+name = "EPK Worker"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node packages/epk/worker.js"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 33923
-externalPort = 3003
 
 [[ports]]
 localPort = 41663
