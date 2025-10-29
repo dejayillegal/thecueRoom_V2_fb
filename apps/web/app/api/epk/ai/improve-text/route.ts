@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { improveEPKText } from '@/lib/ai/epk-ai';
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       ok: false,
-      error: error instanceof Error ? error.message : 'Improvement failed'
+      error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 }

@@ -28,6 +28,8 @@ export function EPKEditor() {
     website: ''
   });
   
+  const [mixItems, setMixItems] = useState<Array<{ id: string; title: string; link: string }>>([]);
+  
   const [isGeneratingBio, setIsGeneratingBio] = useState(false);
   const [isImprovingBio, setIsImprovingBio] = useState(false);
   const [isGeneratingQuotes, setIsGeneratingQuotes] = useState(false);
@@ -212,6 +214,20 @@ export function EPKEditor() {
     }
   }, [artistName, genre]);
 
+  const handleAddMixItem = useCallback(() => {
+    setMixItems(prev => [...prev, { id: Date.now().toString(), title: '', link: '' }]);
+  }, []);
+
+  const handleRemoveMixItem = useCallback((id: string) => {
+    setMixItems(prev => prev.filter(item => item.id !== id));
+  }, []);
+
+  const handleUpdateMixItem = useCallback((id: string, field: 'title' | 'link', value: string) => {
+    setMixItems(prev => prev.map(item => 
+      item.id === id ? { ...item, [field]: value } : item
+    ));
+  }, []);
+
   const handleGenerateEPK = useCallback(async () => {
     if (!artistName || !bio) {
       setError('Please fill in at least Artist Name and Bio');
@@ -226,8 +242,13 @@ export function EPKEditor() {
         { id: '1', type: 'bio', data: { text: bio } },
         ...(pressQuotes ? [{ id: '2', type: 'quotes' as const, data: { quotes: pressQuotes.split('\n\n').filter(q => q.trim()) } }] : []),
         ...(techRider ? [{ id: '3', type: 'techRider' as const, data: { items: techRider.split('\n').filter(i => i.trim()) } }] : []),
-        ...(Object.values(socialLinks).some(v => v) ? [{ 
+        ...(mixItems.length > 0 ? [{ 
           id: '4', 
+          type: 'tracklist' as const, 
+          data: { tracks: mixItems.filter(item => item.title && item.link) }
+        }] : []),
+        ...(Object.values(socialLinks).some(v => v) ? [{ 
+          id: '5', 
           type: 'links' as const, 
           data: { links: Object.entries(socialLinks).filter(([_, v]) => v).map(([k, v]) => ({ platform: k, url: v })) }
         }] : [])
@@ -261,7 +282,7 @@ export function EPKEditor() {
     } finally {
       setIsGeneratingEPK(false);
     }
-  }, [artistName, bio, genre, pressQuotes, techRider, socialLinks]);
+  }, [artistName, bio, genre, pressQuotes, techRider, mixItems, socialLinks]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -409,6 +430,54 @@ export function EPKEditor() {
       <Card className="p-6 bg-[#0a0a0a] border-[#1a1a1a]">
         <div className="space-y-6">
           <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white">Mixes, Sets & Releases</h2>
+              <Button
+                size="sm"
+                onClick={handleAddMixItem}
+                className="bg-primary hover:bg-primary/90 text-black"
+              >
+                + Add Item
+              </Button>
+            </div>
+            
+            {mixItems.length > 0 && (
+              <div className="space-y-3 mb-6">
+                {mixItems.map((item) => (
+                  <div key={item.id} className="flex gap-2">
+                    <Input
+                      placeholder="Title (e.g., 'Boiler Room Set 2025')"
+                      value={item.title}
+                      onChange={(e) => handleUpdateMixItem(item.id, 'title', e.target.value)}
+                      className="bg-[#0a0a0a] border-[#1a1a1a] text-white text-sm flex-1"
+                    />
+                    <Input
+                      placeholder="Link URL"
+                      value={item.link}
+                      onChange={(e) => handleUpdateMixItem(item.id, 'link', e.target.value)}
+                      className="bg-[#0a0a0a] border-[#1a1a1a] text-white text-sm flex-1"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleRemoveMixItem(item.id)}
+                      className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {mixItems.length === 0 && (
+              <p className="text-sm text-gray-500 mb-6">
+                Add your best mixes, sets, or releases to showcase your work
+              </p>
+            )}
+          </div>
+
+          <div className="border-t border-[#1a1a1a] pt-6">
             <h2 className="text-xl font-bold text-white mb-4">Social Links</h2>
             <div className="space-y-3">
               <div>
@@ -496,9 +565,10 @@ export function EPKEditor() {
               <h4 className="text-sm font-bold text-white mb-2">💡 Pro Tips</h4>
               <ul className="text-xs text-gray-400 space-y-1">
                 <li>• Use AI to generate a professional bio in seconds</li>
-                <li>• Include your best press quotes to build credibility</li>
+                <li>• Add your best mixes and releases to showcase your work</li>
+                <li>• Include press quotes to build credibility</li>
                 <li>• Tech rider helps venues prepare for your performance</li>
-                <li>• Social links make it easy for promoters to find your music</li>
+                <li>• Social links make it easy for promoters to find you</li>
               </ul>
             </div>
           </div>
