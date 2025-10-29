@@ -266,8 +266,16 @@ async function addTextOverlay(imageUrl: string, params: any): Promise<string> {
 }
 
 async function generateImageWithAI(prompt: string, params?: any): Promise<string> {
+  // Re-check environment on every request to support runtime key addition
   const hasHFKey = process.env.HF_TOKEN || process.env.HUGGINGFACE_KEY;
   const hasGeminiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+  
+  // Log current API key status for debugging
+  console.log('🔑 API Key Status:', {
+    hasHF: !!hasHFKey,
+    hasGemini: !!hasGeminiKey,
+    willUseAI: !!(hasHFKey || hasGeminiKey)
+  });
   
   let baseImageUrl: string | null = null;
   

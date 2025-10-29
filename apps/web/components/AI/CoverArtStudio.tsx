@@ -39,13 +39,13 @@ interface Render {
 }
 
 const RecentRenderCard = memo(({ render, onSelect }: { render: Render; onSelect: () => void }) => (
-  <div 
+  <div
     className="bg-[#0a0a0a] rounded-lg p-3 border border-[#1a1a1a] cursor-pointer hover:border-[#333333] transition-colors"
     onClick={onSelect}
   >
-    <img 
-      src={render.url} 
-      alt={render.prompt} 
+    <img
+      src={render.url}
+      alt={render.prompt}
       className="w-full h-32 object-cover rounded mb-2"
       loading="lazy"
       decoding="async"
@@ -60,7 +60,7 @@ const addTextOverlayToImage = (imageUrl: string, artist: string, release: string
   return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    
+
     // For SVG data URLs, we need to ensure proper dimensions
     const isSvg = imageUrl.startsWith('data:image/svg+xml');
     img.src = imageUrl;
@@ -70,7 +70,7 @@ const addTextOverlayToImage = (imageUrl: string, artist: string, release: string
         // Use explicit dimensions for SVG (fallback to 1024x1024)
         const width = isSvg ? 1024 : img.width;
         const height = isSvg ? 1024 : img.height;
-        
+
         const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
@@ -207,11 +207,33 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [progress, setProgress] = useState(0); // Added progress state
   const [generatedImage, setGeneratedImage] = useState<string | null>(null); // Added for final image
+  const [hasAIKey, setHasAIKey] = useState(false); // State to track AI key availability
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const isMountedRef = useRef(true);
 
   const { status, resultUrl, error: jobError, isLoading: isPolling } = useAIJobPolling({ jobId });
+
+  // Check for API keys on component mount
+  useEffect(() => {
+    const checkAIKeys = async () => {
+      try {
+        const response = await fetch('/api/ai/check-keys');
+        if (response.ok) {
+          const data = await response.json();
+          setHasAIKey(data.hasKeys);
+        } else {
+          console.error('Failed to check AI keys');
+          setHasAIKey(false);
+        }
+      } catch (err) {
+        console.error('Error checking AI keys:', err);
+        setHasAIKey(false);
+      }
+    };
+    checkAIKeys();
+  }, []);
+
 
   // Cleanup on unmount
   useEffect(() => {
@@ -249,6 +271,11 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
   }, [artist, release, style]);
 
   const handleGenerate = useCallback(async () => {
+    if (!hasAIKey) {
+      setError("AI generation is not available. Please add your API keys.");
+      return;
+    }
+
     if (isGenerating || !prompt.trim()) {
       if (!prompt.trim()) setError('Please enter a prompt');
       return;
@@ -303,7 +330,7 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
           try {
             const statusRes = await fetch(`/api/ai/job/${data.jobId}`);
             if (!statusRes.ok) throw new Error('Poll failed');
-            
+
             const job = await statusRes.json();
             pollCount++;
 
@@ -347,7 +374,7 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
          setIsGenerating(false);
       }
     }
-  }, [prompt, style, artist, release, aspect, resolution, seed, isGenerating]);
+  }, [prompt, style, artist, release, aspect, resolution, seed, isGenerating, hasAIKey]);
 
   const handleReset = useCallback(() => {
     setPrompt('');
@@ -368,12 +395,12 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
     if (artist || release) {
       finalUrl = await addTextOverlay(url);
     }
-    
+
     // Determine file extension based on data URL type
     const isSvg = finalUrl.startsWith('data:image/svg+xml');
     const isPng = finalUrl.startsWith('data:image/png');
     const extension = isSvg ? 'svg' : isPng ? 'png' : 'jpg';
-    
+
     const a = document.createElement('a');
     a.href = finalUrl;
     a.download = `cover-art-${Date.now()}.${extension}`;
@@ -386,8 +413,8 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
   }, []);
 
   const isGenerateDisabled = useMemo(
-    () => isGenerating || isPolling || !prompt.trim(),
-    [isGenerating, isPolling, prompt]
+    () => isGenerating || isPolling || !prompt.trim() || !hasAIKey,
+    [isGenerating, isPolling, prompt, hasAIKey]
   );
 
   const hasResult = useMemo(
@@ -424,8 +451,7 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
               <div>
                 <Label htmlFor="style" className="text-white text-sm mb-1 block">Style Preset</Label>
                 <Select value={style} onValueChange={setStyle}>
-                  <SelectTrigger 
-                    id="style"
+                  <SelectTrigger
                     className="bg-[#0a0a0a] border-[#1a1a1a] text-white text-sm h-10"
                   >
                     <SelectValue placeholder="Select a style">
@@ -434,8 +460,8 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
                   </SelectTrigger>
                   <SelectContent className="bg-[#111111] border-[#1a1a1a] max-h-[300px]">
                     {STYLE_PRESETS.map((preset) => (
-                      <SelectItem 
-                        key={preset.id} 
+                      <SelectItem
+                        key={preset.id}
                         value={preset.id}
                         className="text-white hover:bg-[#1a1a1a] focus:bg-[#1a1a1a] cursor-pointer py-2"
                       >
@@ -519,6 +545,17 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
                 </div>
               )}
 
+              {!hasAIKey && (
+                <p className="text-xs text-gray-500 text-center">
+                  🎨 SVG mode — Add HF_TOKEN or GOOGLE_API_KEY to Secrets to enable AI generation
+                </p>
+              )}
+              {hasAIKey && (
+                <p className="text-xs text-[#D1FF3D] text-center">
+                  ✨ AI mode enabled — Using Hugging Face or Gemini
+                </p>
+              )}
+
               <div className="flex gap-2">
                 <Button
                   onClick={handleGenerate}
@@ -554,9 +591,9 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
           <h2 className="text-lg font-semibold text-white mb-4">Preview</h2>
           <div className="aspect-square bg-[#0a0a0a] rounded-lg flex items-center justify-center border border-[#1a1a1a]">
             {hasResult ? (
-              <img 
-                src={previewUrl!} 
-                alt="Generated cover art" 
+              <img
+                src={previewUrl!}
+                alt="Generated cover art"
                 className="w-full h-full object-cover rounded-lg"
                 loading="lazy"
                 decoding="async"
@@ -603,8 +640,8 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
             <p className="text-sm text-gray-500 col-span-2">No renders yet</p>
           ) : (
             recentRenders.slice(0, 6).map((render) => (
-              <RecentRenderCard 
-                key={render.id} 
+              <RecentRenderCard
+                key={render.id}
                 render={render}
                 onSelect={() => handleSelectRender(render.url)}
               />

@@ -1,25 +1,29 @@
+
 import { NextResponse } from 'next/server';
 
-export async function GET() {
-  // Always fetch fresh environment variables
+export async function POST() {
   const hasHFKey = Boolean(process.env.HF_TOKEN || process.env.HUGGINGFACE_KEY);
   const hasGeminiKey = Boolean(process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY);
-  const hasAIKey = hasHFKey || hasGeminiKey;
   
-  // Log for debugging
-  console.log('🔑 Environment check:', {
+  const provider = hasHFKey ? 'huggingface' : hasGeminiKey ? 'gemini' : 'fallback';
+  
+  console.log('🔄 Provider check requested:', {
+    provider,
     hasHFKey,
     hasGeminiKey,
-    hasAIKey,
     timestamp: new Date().toISOString()
   });
   
   return NextResponse.json({
-    hasAIKey,
-    providers: {
+    provider,
+    capabilities: {
       huggingface: hasHFKey,
-      gemini: hasGeminiKey
-    }
+      gemini: hasGeminiKey,
+      fallback: true
+    },
+    message: hasHFKey || hasGeminiKey 
+      ? `Using ${provider} for AI generation`
+      : 'Using SVG fallback - add HF_TOKEN or GOOGLE_API_KEY to enable AI'
   });
 }
 
