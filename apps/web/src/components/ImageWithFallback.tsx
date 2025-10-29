@@ -73,18 +73,18 @@ export function ImageWithFallback({
       
       // Use deterministic fallback if articleId provided
       if (articleId) {
-        setImgSrc(getFallbackUrl(articleId, 300, 'webp'));
+        setImgSrc(getFallbackUrl(articleId));
       } else if (fallbackSrc) {
         setImgSrc(fallbackSrc);
       } else {
         // Default to first fallback if no articleId
-        setImgSrc(getFallbackUrl('default', 300, 'webp'));
+        setImgSrc(getFallbackUrl('default'));
       }
     }
   };
 
   // Build srcSet for responsive images if using fallback
-  const srcSet = hasError && articleId ? getFallbackSrcSet(articleId, 'webp') : undefined;
+  const srcSet = hasError && articleId ? getFallbackSrcSet(articleId) : undefined;
 
   if (fill) {
     return (

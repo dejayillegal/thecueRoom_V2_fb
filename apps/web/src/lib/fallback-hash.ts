@@ -1,4 +1,3 @@
-
 /**
  * Simple stable hash function for deterministic fallback selection
  * Uses FNV-1a hash algorithm for consistent results
@@ -13,8 +12,8 @@ export function hashToIndex(id: string, buckets = 3): number {
 }
 
 /**
- * Get fallback image number (1-3) for a given article ID
+ * Get fallback number (1-4) for an article ID
  */
 export function getFallbackNumber(id: string): number {
-  return hashToIndex(id, 3) + 1;
+  return hashToIndex(id, 4) + 1;
 }

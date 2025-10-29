@@ -22,15 +22,15 @@ export async function GET(
     // Await params in Next.js 15
     const { id } = await params;
 
-    // Determine which fallback to use (1-3 only, not 4)
+    // Determine which fallback to use (1-4)
     let fallbackIndex: number;
     if (ENABLE_ROTATION) {
       // Random but seeded by id + hour epoch for cache-friendly rotation
       const hourEpoch = Math.floor(Date.now() / (1000 * 60 * 60));
-      fallbackIndex = hashToIndex(`${id}-${hourEpoch}`, 3);
+      fallbackIndex = hashToIndex(`${id}-${hourEpoch}`, 4);
     } else {
       // Deterministic selection
-      fallbackIndex = hashToIndex(id, 3);
+      fallbackIndex = hashToIndex(id, 4);
     }
 
     const fallbackNumber = fallbackIndex + 1;

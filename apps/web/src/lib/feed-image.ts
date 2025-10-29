@@ -1,5 +1,6 @@
+
+```typescript
 import { LRUCache } from 'lru-cache';
-import { hashToIndex } from './fallback-hash';
 
 /**
  * Centralized feed image handling module
@@ -86,7 +87,7 @@ export async function getArticleImage(article: {
   // If no image provided, return fallback immediately
   if (!article || !article.image || !isValidHttpUrl(article.image)) {
     const id = article?.guid || article?.url || article?.title || 'default';
-    return getFallbackUrl(id, 600, 'webp');
+    return getFallbackUrl(id);
   }
 
   // Validate the image URL (with caching)
@@ -98,7 +99,7 @@ export async function getArticleImage(article: {
 
   // Return fallback if invalid
   const id = article.guid || article.url || article.title || 'default';
-  return getFallbackUrl(id, 600, 'webp');
+  return getFallbackUrl(id);
 }
 
 /**
@@ -112,8 +113,9 @@ export function getArticleImageSync(article: {
 } | null): string {
   if (!article || !article.image || !isValidHttpUrl(article.image)) {
     const id = article?.guid || article?.url || article?.title || 'default';
-    return getFallbackUrl(id, 600, 'webp');
+    return getFallbackUrl(id);
   }
 
   return article.image;
 }
+```
