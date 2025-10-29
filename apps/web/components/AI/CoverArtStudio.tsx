@@ -392,10 +392,10 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
   const handleDownload = useCallback(async (url: string) => {
     // Check if it's SVG before adding overlay
     const isSvgSource = url.startsWith('data:image/svg+xml');
-    
+
     let finalUrl = url;
     let extension = 'png';
-    
+
     if (isSvgSource) {
       // For SVG fallback, download as SVG directly without text overlay
       // Text overlay converts to PNG, which defeats the purpose of SVG fallback
@@ -457,32 +457,34 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
                 />
               </div>
 
-              <div>
-                <Label htmlFor="style" className="text-white text-sm mb-1 block">Style Preset</Label>
-                <Select value={style} onValueChange={setStyle}>
-                  <SelectTrigger
-                    className="bg-[#0a0a0a] border-[#1a1a1a] text-white text-sm h-10"
-                  >
-                    <SelectValue placeholder="Select a style">
-                      {STYLE_PRESETS.find(p => p.id === style)?.label || 'Select a style'}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#111111] border-[#1a1a1a] max-h-[300px]">
-                    {STYLE_PRESETS.map((preset) => (
-                      <SelectItem
-                        key={preset.id}
-                        value={preset.id}
-                        className="text-white hover:bg-[#1a1a1a] focus:bg-[#1a1a1a] cursor-pointer py-2"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`h-5 w-16 rounded bg-gradient-to-r ${preset.gradient}`} />
-                          <span>{preset.label}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {!hasAIKey && (
+                <div>
+                  <Label htmlFor="style" className="text-white text-sm mb-1 block">Style Preset</Label>
+                  <Select value={style} onValueChange={setStyle}>
+                    <SelectTrigger
+                      className="bg-[#0a0a0a] border-[#1a1a1a] text-white text-sm h-10"
+                    >
+                      <SelectValue placeholder="Select a style">
+                        {STYLE_PRESETS.find(p => p.id === style)?.label || 'Select a style'}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#111111] border-[#1a1a1a] max-h-[300px]">
+                      {STYLE_PRESETS.map((preset) => (
+                        <SelectItem
+                          key={preset.id}
+                          value={preset.id}
+                          className="text-white hover:bg-[#1a1a1a] focus:bg-[#1a1a1a] cursor-pointer py-2"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`h-5 w-16 rounded bg-gradient-to-r ${preset.gradient}`} />
+                            <span>{preset.label}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
