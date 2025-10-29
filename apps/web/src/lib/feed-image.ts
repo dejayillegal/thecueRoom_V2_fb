@@ -85,14 +85,14 @@ export function getFallbackSrcSet(id: string, format: 'webp' | 'png' = 'webp'): 
  * Get the article image URL with fallback support
  */
 export async function getArticleImage(article: {
-  image?: string;
+  image?: string | null;
   guid?: string;
   url?: string;
   title?: string;
-}): Promise<string> {
+} | null): Promise<string> {
   // If no image provided, return fallback immediately
-  if (!article.image || !isValidHttpUrl(article.image)) {
-    const id = article.guid || article.url || article.title || 'default';
+  if (!article || !article.image || !isValidHttpUrl(article.image)) {
+    const id = article?.guid || article?.url || article?.title || 'default';
     return getFallbackUrl(id, 600, 'webp');
   }
 
@@ -112,13 +112,13 @@ export async function getArticleImage(article: {
  * Get article image synchronously (for client-side use)
  */
 export function getArticleImageSync(article: {
-  image?: string;
+  image?: string | null;
   guid?: string;
   url?: string;
   title?: string;
-}): string {
-  if (!article.image || !isValidHttpUrl(article.image)) {
-    const id = article.guid || article.url || article.title || 'default';
+} | null): string {
+  if (!article || !article.image || !isValidHttpUrl(article.image)) {
+    const id = article?.guid || article?.url || article?.title || 'default';
     return getFallbackUrl(id, 600, 'webp');
   }
 

@@ -75,7 +75,12 @@ export async function GET(request: Request) {
       title: item.title,
       summary: item.summary,
       url: item.link,
-      image: getArticleImageSync(item.image, item.title),
+      image: getArticleImageSync({
+        image: item.image,
+        guid: item.id,
+        url: item.link,
+        title: item.title
+      }),
       tags: item.tags || [],
       publishedAt: typeof item.publishedAt === 'string' ? item.publishedAt : item.publishedAt?.toISOString(),
       source: item.source?.name || 'Unknown',
