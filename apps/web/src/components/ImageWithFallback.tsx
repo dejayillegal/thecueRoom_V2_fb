@@ -77,7 +77,8 @@ export function ImageWithFallback({
       } else if (fallbackSrc) {
         setImgSrc(fallbackSrc);
       } else {
-        setImgSrc('/fallback-thumbnail.png');
+        // Default to first fallback if no articleId
+        setImgSrc(getFallbackUrl('default', 300, 'webp'));
       }
     }
   };

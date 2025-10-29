@@ -4,11 +4,9 @@ import { hashToIndex } from './fallback-hash';
 
 /**
  * Centralized feed image handling module
- * Returns a constant fallback thumbnail when article images are missing or invalid
- * Eliminates title-as-image rendering for better performance
+ * Returns optimized fallback thumbnails when article images are missing or invalid
+ * Uses deterministic hash-based selection from 4 fallback images
  */
-
-const FALLBACK_THUMBNAIL = '/fallback-thumbnail.png';
 
 // LRU cache for HEAD request results (60s TTL, max 1000 entries)
 const imageValidationCache = new LRUCache<string, boolean>({

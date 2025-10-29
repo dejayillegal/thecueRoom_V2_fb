@@ -1,9 +1,8 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
 import { feeds, sources } from '@thecueroom/db/schema';
 import { desc, eq, and, sql, gt } from 'drizzle-orm';
-import { getFeedImageUrl } from '@/lib/feed-image';
+import { getArticleImageSync } from '@/src/lib/feed-image';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -76,7 +75,7 @@ export async function GET(request: Request) {
       title: item.title,
       summary: item.summary,
       url: item.link,
-      image: getFeedImageUrl(item.image, item.title),
+      image: getArticleImageSync(item.image, item.title),
       tags: item.tags || [],
       publishedAt: typeof item.publishedAt === 'string' ? item.publishedAt : item.publishedAt?.toISOString(),
       source: item.source?.name || 'Unknown',
