@@ -1,84 +1,49 @@
-import type { Config } from 'tailwindcss';
+import type { Config } from "tailwindcss";
 
-export default {
-  darkMode: ['class'],
+const config: Config = {
   content: [
-    './pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    container: {
-      center: true,
-      padding: '2rem',
-      screens: {
-        '2xl': '1400px',
-      },
-    },
     extend: {
-      fontFamily: {
-        sans: ['var(--font-inter)', 'sans-serif'],
-        mono: ['var(--font-source-code-pro)', 'monospace'],
-      },
       colors: {
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
+        background: "#000000",
+        foreground: "#ffffff",
         card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
-        },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
+          DEFAULT: "#0a0a0a",
+          foreground: "#ffffff",
         },
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
+          DEFAULT: "#D1FF3D",
+          foreground: "#000000",
         },
         secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
+          DEFAULT: "#9B5CFF",
+          foreground: "#ffffff",
         },
         muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
+          DEFAULT: "#1a1a1a",
+          foreground: "#999999",
         },
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
-        },
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
-        },
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        surface: 'hsl(var(--surface))',
+        border: "#1a1a1a",
+        input: "#0a0a0a",
+        ring: "#D1FF3D",
       },
-      borderRadius: {
-        lg: '0.5rem',
-        md: 'calc(0.5rem - 2px)',
-        sm: 'calc(0.5rem - 4px)',
+      fontFamily: {
+        sans: ['var(--font-inter)'],
       },
-      boxShadow: {
-        card: '0 4px 12px rgba(0,0,0,0.25)',
+      transitionDuration: {
+        '150': '150ms',
+        '200': '200ms',
       },
-      keyframes: {
-        'accordion-down': {
-          from: { height: '0' },
-          to: { height: 'var(--radix-accordion-content-height)' },
-        },
-        'accordion-up': {
-          from: { height: 'var(--radix-accordion-content-height)' },
-          to: { height: '0' },
-        },
-      },
-      animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
+      transitionTimingFunction: {
+        'out': 'cubic-bezier(0, 0, 0.2, 1)',
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
-} satisfies Config;
+  plugins: [],
+};
+
+export default config;

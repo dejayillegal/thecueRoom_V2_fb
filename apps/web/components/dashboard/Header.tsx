@@ -24,8 +24,8 @@ export function Header({ user, sidebarOpen }: HeaderProps) {
 
   return (
     <header 
-      className="fixed top-0 right-0 h-14 bg-background z-30"
-      style={{ left: sidebarOpen ? '200px' : '60px', transition: 'left 0.2s ease' }}
+      className="fixed top-0 right-0 h-14 bg-black z-30"
+      style={{ left: sidebarOpen ? '200px' : '60px', transition: 'left 0.2s ease', willChange: 'left' }}
     >
       <div className="h-full px-4 flex items-center justify-between">
         <div className="flex-1 max-w-md">

@@ -38,7 +38,7 @@ export default function LandingHeader({ onSignInClick }: LandingHeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 flex items-center justify-between border-b border-neutral-800 bg-background px-4 md:px-6 py-2">
+    <header className="sticky top-0 z-50 flex items-center justify-between border-b border-neutral-800 bg-black px-4 md:px-6 py-2">
       <div className="group">
         <Link href="/" className="flex items-center gap-2 text-xl">
           <Logo className="h-8 w-8 md:h-10 md:w-10" />

@@ -25,10 +25,8 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://picsum.photos" />
       </head>
-      <body className={`${inter.className} antialiased`} style={{ background: 'hsl(var(--background))' }} suppressHydrationWarning>
-        <div className="min-h-screen bg-[#0B0B0B]">
-          {children}
-        </div>
+      <body className={`${inter.className} antialiased`} style={{ background: '#000000', minHeight: '100vh' }}>
+        {children}
       </body>
     </html>
   );

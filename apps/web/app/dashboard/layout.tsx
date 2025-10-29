@@ -23,7 +23,7 @@ export default memo(function DashboardLayout({
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0b0b0b]">
+    <div className="min-h-screen bg-black">
       <Sidebar
         isOpen={sidebarOpen}
         onToggle={handleSidebarToggle}
@@ -33,8 +33,11 @@ export default memo(function DashboardLayout({
         sidebarOpen={sidebarOpen}
       />
       <main 
-        className="min-h-screen pt-[72px] transition-all duration-300 ease-in-out"
-        style={{ marginLeft: sidebarOpen ? '200px' : '60px' }}
+        className="min-h-screen pt-[72px] transition-all duration-200 ease-out"
+        style={{ 
+          marginLeft: sidebarOpen ? '200px' : '60px',
+          willChange: 'margin-left'
+        }}
       >
         {children}
       </main>

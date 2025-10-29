@@ -174,22 +174,44 @@ button:hover .tcr-tab-label::after { transform: translateX(120%); }
 }
 
 /* Performance optimizations */
-.hero-glow::before,
-.grain-overlay::before {
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+body {
+  overscroll-behavior: contain;
+  background: #000000;
+}
+
+/* GPU-accelerated transforms only - no opacity changes */
+.hover-lift {
+  transition: transform 0.15s ease;
   will-change: auto;
 }
 
-@media (prefers-reduced-motion: reduce) {
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
 
-  *,
-  *::before,
-  *::after {
+/* Smooth scrolling containers */
+.scroll-container {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-
-  .hero-glow::before {
-    animation: none !important;
+    scroll-behavior: auto !important;
   }
 }

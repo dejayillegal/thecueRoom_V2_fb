@@ -47,7 +47,7 @@ html {
   html {
     scroll-behavior: auto;
   }
-  
+
   * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
@@ -63,32 +63,21 @@ html {
 
 html {
   scroll-behavior: smooth;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
+  -webkit-overflow-scrolling: touch;
 }
 
 body {
   overscroll-behavior: contain;
-  background: #0B0B0B;
 }
 
-/* GPU-accelerated animations - composite-only properties */
+/* GPU-accelerated transforms only */
 .hover-lift {
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.15s ease;
+  will-change: auto;
 }
 
 .hover-lift:hover {
   transform: translateY(-2px);
-  will-change: transform;
-}
-
-.hover-lift:not(:hover) {
-  will-change: auto;
 }
 
 /* Smooth scrolling containers */
@@ -98,9 +87,16 @@ body {
   overscroll-behavior: contain;
 }
 
-/* Reduce motion for accessibility */
+/* Remove expensive effects */
+.hero-glow::before,
+.grain-overlay::before {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
