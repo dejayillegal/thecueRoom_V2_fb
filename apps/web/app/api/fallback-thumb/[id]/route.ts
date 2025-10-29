@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { createReadStream } from 'fs';
 import { hashToIndex } from '@/src/lib/fallback-hash';
-import { queueOptimization, getCachedFile } from '@thecueroom/fallback/worker';
+import { queueOptimization, getCachedFile } from '../../../../../../packages/fallback/worker';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -62,7 +62,7 @@ export async function GET(
     }
     
     const fallbackNumber = fallbackIndex + 1;
-    const sourcePath = path.join(process.cwd(), 'apps/web/public/fallbacks', `fallback_${fallbackNumber}.png`);
+    const sourcePath = path.join(process.cwd(), 'public/fallbacks', `fallback_${fallbackNumber}.png`);
     
     // Check if source exists
     try {
@@ -72,7 +72,7 @@ export async function GET(
     }
     
     // Build cache path
-    const cacheDir = path.join(process.cwd(), 'apps/web/.cache/fallbacks');
+    const cacheDir = path.join(process.cwd(), '.cache/fallbacks');
     const cachePath = path.join(cacheDir, `${id}-${width}.${format}`);
     
     // Check ETag for 304 Not Modified
