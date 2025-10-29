@@ -19,7 +19,8 @@
       "@/components/*": ["./src/components/*", "./components/*"],
       "@/lib/*": ["./src/lib/*", "./lib/*"],
       "@/app/*": ["./app/*"],
-      "@/hooks/*": ["./src/hooks/*"]
+      "@/hooks/*": ["./src/hooks/*"],
+      "@thecueroom/ai/*": ["../../packages/ai/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
