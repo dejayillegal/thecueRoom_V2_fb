@@ -108,114 +108,163 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
 
   // Add text overlay to generated image using Canvas API
   const addTextOverlay = async (imageUrl: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const img = new Image();
-      img.crossOrigin = 'anonymous';
+      
+      // Handle data URLs and external URLs differently
+      if (imageUrl.startsWith('data:')) {
+        img.src = imageUrl;
+      } else {
+        img.crossOrigin = 'anonymous';
+        img.src = imageUrl;
+      }
 
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-
-        if (!ctx) {
-          resolve(imageUrl);
-          return;
-        }
-
-        // Draw the base image
-        ctx.drawImage(img, 0, 0);
-
-        // Style configurations based on selected preset
-        const styleConfigs: Record<string, { textColor: string; shadowColor: string; bgColor: string }> = {
-          'neon': { textColor: '#D1FF3D', shadowColor: '#8B00FF', bgColor: 'rgba(0, 0, 0, 0.7)' }, // Corrected key to match 'neon'
-          'monochrome': { textColor: '#FFFFFF', shadowColor: '#000000', bgColor: 'rgba(0, 0, 0, 0.8)' },
-          'geometric': { textColor: '#00BFFF', shadowColor: '#0066CC', bgColor: 'rgba(0, 0, 0, 0.6)' },
-          'brutalist': { textColor: '#FF3333', shadowColor: '#660000', bgColor: 'rgba(20, 20, 20, 0.9)' },
-          'cybergrind': { textColor: '#00FF00', shadowColor: '#003300', bgColor: 'rgba(0, 0, 0, 0.85)' },
-          'vaporwave': { textColor: '#FF71CE', shadowColor: '#01CDFE', bgColor: 'rgba(0, 0, 0, 0.7)' },
-          'chromatic-grid': { textColor: '#FF006E', shadowColor: '#8338EC', bgColor: 'rgba(0, 0, 0, 0.75)' },
-          'noir-light': { textColor: '#FFFFFF', shadowColor: '#666666', bgColor: 'rgba(0, 0, 0, 0.5)' },
-          'acid-geometry': { textColor: '#FFFF00', shadowColor: '#FF00FF', bgColor: 'rgba(0, 0, 0, 0.8)' },
-          'liquid-metal': { textColor: '#C0C0C0', shadowColor: '#404040', bgColor: 'rgba(0, 0, 0, 0.7)' }
-        };
-
-        const config = styleConfigs[style] || styleConfigs['neon']; // Use selected style
-        const padding = 40;
-        const textY = img.height - padding;
-
-        // Calculate font sizes based on image dimensions
-        const artistFontSize = Math.max(48, img.width / 20);
-        const releaseFontSize = Math.max(32, img.width / 30);
-
-        // Measure text dimensions
-        ctx.font = `bold ${artistFontSize}px "Arial Black", Arial, sans-serif`;
-        const artistWidth = artist ? ctx.measureText(artist).width : 0;
-
-        ctx.font = `${releaseFontSize}px Arial, sans-serif`;
-        const releaseWidth = release ? ctx.measureText(release).width : 0;
-
-        const maxWidth = Math.max(artistWidth, releaseWidth);
-        const bgHeight = (artist && release) ? 140 : 80;
-
-        // Draw semi-transparent background for text
-        if (artist || release) {
-          ctx.fillStyle = config.bgColor;
-          ctx.fillRect(padding - 20, textY - bgHeight + 20, maxWidth + 40, bgHeight);
-        }
-
-        // Draw artist name
-        if (artist) {
-          ctx.font = `bold ${artistFontSize}px "Arial Black", Arial, sans-serif`;
-          ctx.shadowColor = config.shadowColor;
-          ctx.shadowBlur = 15;
-          ctx.shadowOffsetX = 3;
-          ctx.shadowOffsetY = 3;
-          ctx.fillStyle = config.textColor;
-          ctx.textAlign = 'left';
-          ctx.textBaseline = 'bottom';
-          ctx.fillText(artist, padding, textY - (release ? 60 : 20));
-        }
-
-        // Draw release title
-        if (release) {
-          ctx.font = `${releaseFontSize}px Arial, sans-serif`;
-          ctx.shadowColor = config.shadowColor;
-          ctx.shadowBlur = 10;
-          ctx.shadowOffsetX = 2;
-          ctx.shadowOffsetY = 2;
-          ctx.fillStyle = config.textColor;
-          ctx.textAlign = 'left';
-          ctx.textBaseline = 'bottom';
-          ctx.fillText(release, padding, textY - 10);
-        }
-
-        // Add watermark in bottom right
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
-        ctx.font = '16px Arial';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-        ctx.textAlign = 'right';
-        const watermark = 'thecueRoom.com';
-        ctx.fillText(watermark, img.width - padding, img.height - 20);
-
-        // Convert to data URL
         try {
-          const dataUrl = canvas.toDataURL('image/png');
-          resolve(dataUrl);
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d', { willReadFrequently: false });
+
+          if (!ctx) {
+            console.warn('Could not get canvas context');
+            resolve(imageUrl);
+            return;
+          }
+
+          // Draw the base image
+          ctx.drawImage(img, 0, 0);
+
+          // Only add text if artist or release is provided
+          if (!artist && !release) {
+            // Still add watermark
+            ctx.font = '18px Arial';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText('thecueRoom.com', img.width - 30, img.height - 20);
+            
+            try {
+              const dataUrl = canvas.toDataURL('image/png', 0.95);
+              resolve(dataUrl);
+            } catch (err) {
+              console.error('Canvas toDataURL error:', err);
+              resolve(imageUrl);
+            }
+            return;
+          }
+
+          // Style configurations - match the preset IDs exactly
+          const styleConfigs: Record<string, { textColor: string; shadowColor: string; bgColor: string }> = {
+            'neon': { textColor: '#D1FF3D', shadowColor: '#9333EA', bgColor: 'rgba(0, 0, 0, 0.75)' },
+            'monochrome': { textColor: '#FFFFFF', shadowColor: '#000000', bgColor: 'rgba(0, 0, 0, 0.85)' },
+            'geometric': { textColor: '#FFA500', shadowColor: '#FF6B00', bgColor: 'rgba(0, 0, 0, 0.7)' },
+            'brutalist': { textColor: '#FF3333', shadowColor: '#990000', bgColor: 'rgba(20, 20, 20, 0.9)' },
+            'cybergrind': { textColor: '#00FF00', shadowColor: '#00CCCC', bgColor: 'rgba(0, 0, 0, 0.85)' },
+            'vaporwave': { textColor: '#FF71CE', shadowColor: '#01CDFE', bgColor: 'rgba(0, 0, 0, 0.7)' },
+            'chromatic-grid': { textColor: '#FF006E', shadowColor: '#8338EC', bgColor: 'rgba(0, 0, 0, 0.8)' },
+            'noir-light': { textColor: '#FFFFFF', shadowColor: '#666666', bgColor: 'rgba(0, 0, 0, 0.6)' },
+            'acid-geometry': { textColor: '#FFFF00', shadowColor: '#FF00FF', bgColor: 'rgba(0, 0, 0, 0.85)' },
+            'liquid-metal': { textColor: '#E0E0E0', shadowColor: '#505050', bgColor: 'rgba(0, 0, 0, 0.75)' }
+          };
+
+          const config = styleConfigs[style] || styleConfigs['neon'];
+          const padding = 50;
+          const bottomPadding = 30;
+
+          // Calculate responsive font sizes
+          const artistFontSize = Math.max(56, Math.min(img.width / 15, 80));
+          const releaseFontSize = Math.max(36, Math.min(img.width / 25, 48));
+          const watermarkFontSize = 18;
+
+          // Measure text to create proper background
+          let totalTextHeight = bottomPadding;
+          let maxTextWidth = 0;
+
+          if (artist) {
+            ctx.font = `bold ${artistFontSize}px "Arial Black", Arial, sans-serif`;
+            const artistMetrics = ctx.measureText(artist);
+            maxTextWidth = Math.max(maxTextWidth, artistMetrics.width);
+            totalTextHeight += artistFontSize + 10;
+          }
+
+          if (release) {
+            ctx.font = `600 ${releaseFontSize}px Arial, sans-serif`;
+            const releaseMetrics = ctx.measureText(release);
+            maxTextWidth = Math.max(maxTextWidth, releaseMetrics.width);
+            totalTextHeight += releaseFontSize + 10;
+          }
+
+          // Draw semi-transparent background box for text
+          if (artist || release) {
+            const bgPadding = 25;
+            const bgX = padding - bgPadding;
+            const bgY = img.height - totalTextHeight - bgPadding;
+            const bgWidth = maxTextWidth + (bgPadding * 2);
+            const bgHeight = totalTextHeight + bgPadding;
+
+            ctx.fillStyle = config.bgColor;
+            ctx.fillRect(bgX, bgY, bgWidth, bgHeight);
+          }
+
+          let currentY = img.height - bottomPadding;
+
+          // Draw release title (bottom)
+          if (release) {
+            ctx.font = `600 ${releaseFontSize}px Arial, sans-serif`;
+            ctx.shadowColor = config.shadowColor;
+            ctx.shadowBlur = 12;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            ctx.fillStyle = config.textColor;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(release, padding, currentY);
+            currentY -= releaseFontSize + 10;
+          }
+
+          // Draw artist name (above release)
+          if (artist) {
+            ctx.font = `bold ${artistFontSize}px "Arial Black", Arial, sans-serif`;
+            ctx.shadowColor = config.shadowColor;
+            ctx.shadowBlur = 15;
+            ctx.shadowOffsetX = 3;
+            ctx.shadowOffsetY = 3;
+            ctx.fillStyle = config.textColor;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(artist, padding, currentY);
+          }
+
+          // Add watermark in bottom right
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
+          ctx.font = `${watermarkFontSize}px Arial`;
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText('thecueRoom.com', img.width - padding, img.height - 20);
+
+          // Convert to data URL with high quality
+          try {
+            const dataUrl = canvas.toDataURL('image/png', 0.95);
+            console.log('✅ Text overlay added successfully');
+            resolve(dataUrl);
+          } catch (err) {
+            console.error('❌ Canvas toDataURL error:', err);
+            resolve(imageUrl);
+          }
         } catch (err) {
-          console.error('Canvas toDataURL error:', err);
+          console.error('❌ Text overlay error:', err);
           resolve(imageUrl);
         }
       };
 
-      img.onerror = () => {
-        console.error('Image load error for text overlay');
+      img.onerror = (err) => {
+        console.error('❌ Image load error for text overlay:', err);
         resolve(imageUrl);
       };
-
-      img.src = imageUrl;
     });
   };
 
