@@ -176,7 +176,7 @@ button:hover .tcr-tab-label::after { transform: translateX(120%); }
 /* Performance optimizations */
 .hero-glow::before,
 .grain-overlay::before {
-  will-change: opacity;
+  will-change: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -62,7 +62,7 @@ export default {
         sm: 'calc(0.5rem - 4px)',
       },
       boxShadow: {
-        card: '0 10px 30px rgba(0,0,0,0.35)',
+        card: '0 4px 12px rgba(0,0,0,0.25)',
       },
       keyframes: {
         'accordion-down': {

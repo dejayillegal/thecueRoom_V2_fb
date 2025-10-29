@@ -106,7 +106,7 @@ export default async function HomePage() {
     <main className="min-h-screen">
       <div className="grain-overlay" />
 
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+      <header className="sticky top-0 z-50 bg-background/95 border-b border-border">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <Logo className="w-8 h-8" />

@@ -138,7 +138,7 @@ export default memo(function SettingsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-[#111] border-[#222]">
+            <Card className="bg-background border-border">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-white">
                   <Palette size={20} />

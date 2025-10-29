@@ -110,7 +110,7 @@ export default function ForumPage() {
               {['General', 'Production', 'Events', 'Feedback'].map((cat) => (
                 <button
                   key={cat}
-                  className="w-full text-left px-3 py-2 rounded text-sm text-gray-400 hover:bg-[#1a1a1a] hover:text-white transition-colors"
+                  className="w-full text-left px-3 py-2 rounded text-sm text-gray-400 hover:bg-[#1a1a1a] hover:text-white"
                 >
                   {cat}
                 </button>
