@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import { ImageWithFallback } from '@/../../apps/web/src/components/ImageWithFallback';

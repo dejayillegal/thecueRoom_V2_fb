@@ -7,10 +7,18 @@ import { useEffect, useRef } from 'react';
  * @param handler - Event handler function
  * @param element - Element to attach listener to (default: window)
  */
+const PASSIVE_EVENTS = ['wheel', 'touchstart', 'touchmove', 'scroll'];
+
+interface EventListenerOptions {
+  passive?: boolean;
+  capture?: boolean;
+}
+
 export function useEventListener<K extends keyof WindowEventMap>(
   eventName: K,
   handler: (event: WindowEventMap[K]) => void,
-  element: Window | HTMLElement = window
+  element: Window | HTMLElement = window,
+  options?: EventListenerOptions
 ): void {
   const savedHandler = useRef<(event: WindowEventMap[K]) => void>();
 
@@ -26,10 +34,15 @@ export function useEventListener<K extends keyof WindowEventMap>(
       savedHandler.current?.(event as WindowEventMap[K]);
     };
 
-    element.addEventListener(eventName, eventListener);
+    const eventOptions: AddEventListenerOptions = {
+      passive: options?.passive ?? PASSIVE_EVENTS.includes(eventName),
+      capture: options?.capture ?? false,
+    };
+
+    element.addEventListener(eventName, eventListener, eventOptions);
 
     return () => {
-      element.removeEventListener(eventName, eventListener);
+      element.removeEventListener(eventName, eventListener, eventOptions);
     };
-  }, [eventName, element]);
+  }, [eventName, element, options]);
 }

@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import { SpotlightColumn } from '@/../../apps/web/src/components/Spotlight/SpotlightColumn';
@@ -20,7 +21,7 @@ describe('Spotlight Auto-scroll', () => {
     const cancelSpy = vi.spyOn(window, 'cancelAnimationFrame');
 
     const { unmount } = render(
-      <SpotlightColumn speed={20}>
+      <SpotlightColumn>
         <div>Test content</div>
       </SpotlightColumn>
     );

@@ -268,14 +268,6 @@ function DashboardContent() {
         </div>
       </div>
 
-       min-w-0">
-              <div className="text-[13px] font-medium text-white">System</div>
-              <div className="text-[11px] mt-1 text-[#666666]">Invite-only access enforced</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Bottom Section - Empty left, Verification Status center, Curators right */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         <div className="hidden lg:block"></div>

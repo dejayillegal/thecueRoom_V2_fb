@@ -1,11 +1,12 @@
 
 'use client';
 
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { SpotlightColumn } from '@/components/Dashboard/SpotlightColumn';
 import { RecentActivity } from '@/components/Dashboard/RecentActivity';
 import { GigRadar } from '@/components/Dashboard/GigRadar';
+import { markStart, markEnd } from '@/lib/analytics/perf-marks';
 
 const TopBanner = lazy(() =>
   import('@/components/Dashboard/TopBanner').then((mod) => ({ default: mod.TopBanner }))
@@ -48,6 +49,19 @@ const gigs = Array.from({ length: 15 }, (_, i) => ({
 }));
 
 export default function DashboardPage() {
+  useEffect(() => {
+    markStart('dashboard-mount');
+    markStart('dashboard-render');
+    
+    return () => {
+      markEnd('dashboard-mount');
+    };
+  }, []);
+
+  useEffect(() => {
+    markEnd('dashboard-render');
+  });
+
   return (
     <div className="max-w-[1400px] mx-auto p-6">
       <div className="mb-6">
