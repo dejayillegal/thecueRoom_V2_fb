@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
 import { feeds, sources } from '@thecueroom/db/schema';
 import { desc, eq, and, sql, gt } from 'drizzle-orm';
+import { getFeedImageUrl } from '@/lib/feed-image';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -10,41 +11,6 @@ export const maxDuration = 10;
 
 const CACHE_TTL = 60;
 const ITEMS_PER_PAGE = 24;
-
-function sanitizeImageUrl(url: string | null, title: string): string {
-  if (!url || url.trim() === '') {
-    return `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
-  }
-
-  const trimmedUrl = url.trim();
-
-  // If already a fallback URL, return as-is
-  if (trimmedUrl.startsWith('/api/og-fallback')) {
-    return trimmedUrl;
-  }
-
-  // Validate URL format
-  try {
-    const urlObj = new URL(trimmedUrl);
-    
-    // Check for data URIs
-    if (urlObj.protocol === 'data:') {
-      return trimmedUrl;
-    }
-
-    // Only allow http/https protocols
-    if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') {
-      return `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
-    }
-
-    // Trust the URL from database (already validated by worker)
-    return trimmedUrl;
-
-    } catch (e) {
-    // Invalid URL format
-    return `/api/og-fallback?title=${encodeURIComponent(title.slice(0, 120))}`;
-  }
-}
 
 export async function GET(request: Request) {
   try {
@@ -110,7 +76,7 @@ export async function GET(request: Request) {
       title: item.title,
       summary: item.summary,
       url: item.link,
-      image: sanitizeImageUrl(item.image, item.title),
+      image: getFeedImageUrl(item.image, item.title),
       tags: item.tags || [],
       publishedAt: typeof item.publishedAt === 'string' ? item.publishedAt : item.publishedAt?.toISOString(),
       source: item.source?.name || 'Unknown',

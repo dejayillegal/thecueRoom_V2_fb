@@ -87,10 +87,31 @@ body {
   overscroll-behavior: contain;
 }
 
-/* Remove expensive effects */
-.hero-glow::before,
+/* Reduced motion support - class-based control */
+.reduced-motion,
+.reduced-motion * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Remove expensive effects globally (landing page can override) */
+.hero-glow {
+  display: none;
+}
+
 .grain-overlay::before {
   display: none;
+}
+
+/* Landing page exception - allow heavy effects only on landing page */
+[data-page="landing"] .hero-glow {
+  display: block;
+}
+
+[data-page="landing"] .grain-overlay::before {
+  display: block;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -224,10 +245,23 @@ body {
 .hero-glow {
   position: absolute;
   inset: -10rem;
+  /* Heavy GPU effect - only enabled on landing page via data-page attribute */
   filter: blur(80px);
   background: 
     radial-gradient(40% 60% at 20% 10%, rgba(215,255,60,.18), transparent 60%),
     radial-gradient(40% 60% at 80% 10%, rgba(155,92,255,.20), transparent 60%);
+  will-change: auto;
+}
+
+/* Lightweight alternative for non-landing pages */
+.subtle-glow {
+  position: absolute;
+  inset: -5rem;
+  opacity: 0.5;
+  background: 
+    radial-gradient(50% 70% at 20% 20%, rgba(215,255,60,.08), transparent 50%),
+    radial-gradient(50% 70% at 80% 20%, rgba(155,92,255,.08), transparent 50%);
+  will-change: auto;
 }
 
 .grain-overlay::before {
