@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
         pathname: '/api/fallback-thumb/**',
       },
       {
-        pathname: '/fallback-thumbnail.png',
+        pathname: '/fallbacks/**',
       },
     ],
     formats: ['image/avif', 'image/webp'],

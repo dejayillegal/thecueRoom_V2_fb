@@ -1,4 +1,3 @@
-
 import { LRUCache } from 'lru-cache';
 import { hashToIndex } from './fallback-hash';
 
@@ -60,25 +59,26 @@ async function validateImageUrl(url: string): Promise<boolean> {
 }
 
 /**
- * Get optimized fallback URL for an article
+ * Generate URL for fallback thumbnail API
  */
 export function getFallbackUrl(
   id: string,
-  width: number = 600,
-  format: 'webp' | 'png' = 'webp'
+  _width?: number,
+  _format?: 'webp' | 'png'
 ): string {
-  return `/api/fallback-thumb/${encodeURIComponent(id)}?w=${width}&format=${format}`;
+  return `/api/fallback-thumb/${encodeURIComponent(id)}`;
 }
 
 /**
- * Get srcset for responsive fallback images
+ * Generate srcset for responsive fallback images
+ * Note: Now serves same image at all sizes since we're using static PNGs
  */
-export function getFallbackSrcSet(id: string, format: 'webp' | 'png' = 'webp'): string {
-  return [
-    `${getFallbackUrl(id, 300, format)} 300w`,
-    `${getFallbackUrl(id, 600, format)} 600w`,
-    `${getFallbackUrl(id, 1200, format)} 1200w`,
-  ].join(', ');
+export function getFallbackSrcSet(
+  id: string,
+  _format?: 'webp' | 'png'
+): string {
+  const url = getFallbackUrl(id);
+  return `${url} 1x, ${url} 2x`;
 }
 
 /**
