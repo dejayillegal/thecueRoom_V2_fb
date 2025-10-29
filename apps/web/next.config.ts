@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
         pathname: '/api/og-fallback',
       },
       {
+        pathname: '/api/fallback-thumb/**',
+      },
+      {
         pathname: '/fallback-thumbnail.png',
       },
     ],
