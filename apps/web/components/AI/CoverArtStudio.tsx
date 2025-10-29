@@ -55,6 +55,136 @@ const RecentRenderCard = memo(({ render, onSelect }: { render: Render; onSelect:
 ));
 RecentRenderCard.displayName = 'RecentRenderCard';
 
+// Add text overlay to image using Canvas API
+const addTextOverlayToImage = (imageUrl: string, artist: string, release: string, style: string): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = imageUrl;
+
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d', { willReadFrequently: false });
+
+        if (!ctx) {
+          console.warn('Could not get canvas context');
+          resolve(imageUrl);
+          return;
+        }
+
+        // Draw the base image
+        ctx.drawImage(img, 0, 0);
+
+        // Style configurations
+        const styleConfigs: Record<string, { textColor: string; shadowColor: string; bgColor: string }> = {
+          'neon': { textColor: '#D1FF3D', shadowColor: '#9333EA', bgColor: 'rgba(0, 0, 0, 0.75)' },
+          'monochrome': { textColor: '#FFFFFF', shadowColor: '#000000', bgColor: 'rgba(0, 0, 0, 0.85)' },
+          'geometric': { textColor: '#FFA500', shadowColor: '#FF6B00', bgColor: 'rgba(0, 0, 0, 0.7)' },
+          'brutalist': { textColor: '#FF3333', shadowColor: '#990000', bgColor: 'rgba(20, 20, 20, 0.9)' },
+          'cybergrind': { textColor: '#00FF00', shadowColor: '#00CCCC', bgColor: 'rgba(0, 0, 0, 0.85)' },
+          'vaporwave': { textColor: '#FF71CE', shadowColor: '#01CDFE', bgColor: 'rgba(0, 0, 0, 0.7)' },
+          'chromatic-grid': { textColor: '#FF006E', shadowColor: '#8338EC', bgColor: 'rgba(0, 0, 0, 0.8)' },
+          'noir-light': { textColor: '#FFFFFF', shadowColor: '#666666', bgColor: 'rgba(0, 0, 0, 0.6)' },
+          'acid-geometry': { textColor: '#FFFF00', shadowColor: '#FF00FF', bgColor: 'rgba(0, 0, 0, 0.85)' },
+          'liquid-metal': { textColor: '#E0E0E0', shadowColor: '#505050', bgColor: 'rgba(0, 0, 0, 0.75)' }
+        };
+
+        const config = styleConfigs[style] || styleConfigs['neon'];
+        const padding = 50;
+        const bottomPadding = 30;
+
+        // Calculate responsive font sizes
+        const artistFontSize = Math.max(56, Math.min(img.width / 15, 80));
+        const releaseFontSize = Math.max(36, Math.min(img.width / 25, 48));
+        const watermarkFontSize = 18;
+
+        // Measure text to create proper background
+        let totalTextHeight = bottomPadding;
+        let maxTextWidth = 0;
+
+        if (artist) {
+          ctx.font = `bold ${artistFontSize}px "Arial Black", Arial, sans-serif`;
+          const artistMetrics = ctx.measureText(artist);
+          maxTextWidth = Math.max(maxTextWidth, artistMetrics.width);
+          totalTextHeight += artistFontSize + 10;
+        }
+
+        if (release) {
+          ctx.font = `600 ${releaseFontSize}px Arial, sans-serif`;
+          const releaseMetrics = ctx.measureText(release);
+          maxTextWidth = Math.max(maxTextWidth, releaseMetrics.width);
+          totalTextHeight += releaseFontSize + 10;
+        }
+
+        // Draw semi-transparent background box for text
+        if (artist || release) {
+          const bgPadding = 25;
+          const bgX = padding - bgPadding;
+          const bgY = img.height - totalTextHeight - bgPadding;
+          const bgWidth = maxTextWidth + (bgPadding * 2);
+          const bgHeight = totalTextHeight + bgPadding;
+
+          ctx.fillStyle = config.bgColor;
+          ctx.fillRect(bgX, bgY, bgWidth, bgHeight);
+        }
+
+        let currentY = img.height - bottomPadding;
+
+        // Draw release title (bottom)
+        if (release) {
+          ctx.font = `600 ${releaseFontSize}px Arial, sans-serif`;
+          ctx.shadowColor = config.shadowColor;
+          ctx.shadowBlur = 12;
+          ctx.shadowOffsetX = 2;
+          ctx.shadowOffsetY = 2;
+          ctx.fillStyle = config.textColor;
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(release, padding, currentY);
+          currentY -= releaseFontSize + 10;
+        }
+
+        // Draw artist name (above release)
+        if (artist) {
+          ctx.font = `bold ${artistFontSize}px "Arial Black", Arial, sans-serif`;
+          ctx.shadowColor = config.shadowColor;
+          ctx.shadowBlur = 15;
+          ctx.shadowOffsetX = 3;
+          ctx.shadowOffsetY = 3;
+          ctx.fillStyle = config.textColor;
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(artist, padding, currentY);
+        }
+
+        // Add watermark in bottom right
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        ctx.font = `${watermarkFontSize}px Arial`;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('thecueRoom.com', img.width - padding, img.height - 20);
+
+        const dataUrl = canvas.toDataURL('image/png', 0.95);
+        resolve(dataUrl);
+      } catch (err) {
+        console.error('Text overlay error:', err);
+        resolve(imageUrl);
+      }
+    };
+
+    img.onerror = () => {
+      console.error('Image load error');
+      resolve(imageUrl);
+    };
+  });
+};
+
 export const CoverArtStudio = memo(function CoverArtStudio() {
   const [prompt, setPrompt] = useState('');
   const [style, setStyle] = useState('neon');
@@ -106,167 +236,10 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
     }
   }, [jobError]);
 
-  // Add text overlay to generated image using Canvas API
-  const addTextOverlay = async (imageUrl: string): Promise<string> => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      
-      // Handle data URLs and external URLs differently
-      if (imageUrl.startsWith('data:')) {
-        img.src = imageUrl;
-      } else {
-        img.crossOrigin = 'anonymous';
-        img.src = imageUrl;
-      }
-
-      img.onload = () => {
-        try {
-          const canvas = document.createElement('canvas');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext('2d', { willReadFrequently: false });
-
-          if (!ctx) {
-            console.warn('Could not get canvas context');
-            resolve(imageUrl);
-            return;
-          }
-
-          // Draw the base image
-          ctx.drawImage(img, 0, 0);
-
-          // Only add text if artist or release is provided
-          if (!artist && !release) {
-            // Still add watermark
-            ctx.font = '18px Arial';
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-            ctx.textAlign = 'right';
-            ctx.textBaseline = 'bottom';
-            ctx.fillText('thecueRoom.com', img.width - 30, img.height - 20);
-            
-            try {
-              const dataUrl = canvas.toDataURL('image/png', 0.95);
-              resolve(dataUrl);
-            } catch (err) {
-              console.error('Canvas toDataURL error:', err);
-              resolve(imageUrl);
-            }
-            return;
-          }
-
-          // Style configurations - match the preset IDs exactly
-          const styleConfigs: Record<string, { textColor: string; shadowColor: string; bgColor: string }> = {
-            'neon': { textColor: '#D1FF3D', shadowColor: '#9333EA', bgColor: 'rgba(0, 0, 0, 0.75)' },
-            'monochrome': { textColor: '#FFFFFF', shadowColor: '#000000', bgColor: 'rgba(0, 0, 0, 0.85)' },
-            'geometric': { textColor: '#FFA500', shadowColor: '#FF6B00', bgColor: 'rgba(0, 0, 0, 0.7)' },
-            'brutalist': { textColor: '#FF3333', shadowColor: '#990000', bgColor: 'rgba(20, 20, 20, 0.9)' },
-            'cybergrind': { textColor: '#00FF00', shadowColor: '#00CCCC', bgColor: 'rgba(0, 0, 0, 0.85)' },
-            'vaporwave': { textColor: '#FF71CE', shadowColor: '#01CDFE', bgColor: 'rgba(0, 0, 0, 0.7)' },
-            'chromatic-grid': { textColor: '#FF006E', shadowColor: '#8338EC', bgColor: 'rgba(0, 0, 0, 0.8)' },
-            'noir-light': { textColor: '#FFFFFF', shadowColor: '#666666', bgColor: 'rgba(0, 0, 0, 0.6)' },
-            'acid-geometry': { textColor: '#FFFF00', shadowColor: '#FF00FF', bgColor: 'rgba(0, 0, 0, 0.85)' },
-            'liquid-metal': { textColor: '#E0E0E0', shadowColor: '#505050', bgColor: 'rgba(0, 0, 0, 0.75)' }
-          };
-
-          const config = styleConfigs[style] || styleConfigs['neon'];
-          const padding = 50;
-          const bottomPadding = 30;
-
-          // Calculate responsive font sizes
-          const artistFontSize = Math.max(56, Math.min(img.width / 15, 80));
-          const releaseFontSize = Math.max(36, Math.min(img.width / 25, 48));
-          const watermarkFontSize = 18;
-
-          // Measure text to create proper background
-          let totalTextHeight = bottomPadding;
-          let maxTextWidth = 0;
-
-          if (artist) {
-            ctx.font = `bold ${artistFontSize}px "Arial Black", Arial, sans-serif`;
-            const artistMetrics = ctx.measureText(artist);
-            maxTextWidth = Math.max(maxTextWidth, artistMetrics.width);
-            totalTextHeight += artistFontSize + 10;
-          }
-
-          if (release) {
-            ctx.font = `600 ${releaseFontSize}px Arial, sans-serif`;
-            const releaseMetrics = ctx.measureText(release);
-            maxTextWidth = Math.max(maxTextWidth, releaseMetrics.width);
-            totalTextHeight += releaseFontSize + 10;
-          }
-
-          // Draw semi-transparent background box for text
-          if (artist || release) {
-            const bgPadding = 25;
-            const bgX = padding - bgPadding;
-            const bgY = img.height - totalTextHeight - bgPadding;
-            const bgWidth = maxTextWidth + (bgPadding * 2);
-            const bgHeight = totalTextHeight + bgPadding;
-
-            ctx.fillStyle = config.bgColor;
-            ctx.fillRect(bgX, bgY, bgWidth, bgHeight);
-          }
-
-          let currentY = img.height - bottomPadding;
-
-          // Draw release title (bottom)
-          if (release) {
-            ctx.font = `600 ${releaseFontSize}px Arial, sans-serif`;
-            ctx.shadowColor = config.shadowColor;
-            ctx.shadowBlur = 12;
-            ctx.shadowOffsetX = 2;
-            ctx.shadowOffsetY = 2;
-            ctx.fillStyle = config.textColor;
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'bottom';
-            ctx.fillText(release, padding, currentY);
-            currentY -= releaseFontSize + 10;
-          }
-
-          // Draw artist name (above release)
-          if (artist) {
-            ctx.font = `bold ${artistFontSize}px "Arial Black", Arial, sans-serif`;
-            ctx.shadowColor = config.shadowColor;
-            ctx.shadowBlur = 15;
-            ctx.shadowOffsetX = 3;
-            ctx.shadowOffsetY = 3;
-            ctx.fillStyle = config.textColor;
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'bottom';
-            ctx.fillText(artist, padding, currentY);
-          }
-
-          // Add watermark in bottom right
-          ctx.shadowBlur = 0;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-          ctx.font = `${watermarkFontSize}px Arial`;
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-          ctx.textAlign = 'right';
-          ctx.textBaseline = 'bottom';
-          ctx.fillText('thecueRoom.com', img.width - padding, img.height - 20);
-
-          // Convert to data URL with high quality
-          try {
-            const dataUrl = canvas.toDataURL('image/png', 0.95);
-            console.log('✅ Text overlay added successfully');
-            resolve(dataUrl);
-          } catch (err) {
-            console.error('❌ Canvas toDataURL error:', err);
-            resolve(imageUrl);
-          }
-        } catch (err) {
-          console.error('❌ Text overlay error:', err);
-          resolve(imageUrl);
-        }
-      };
-
-      img.onerror = (err) => {
-        console.error('❌ Image load error for text overlay:', err);
-        resolve(imageUrl);
-      };
-    });
-  };
+  // Add text overlay wrapper
+  const addTextOverlay = useCallback(async (imageUrl: string): Promise<string> => {
+    return addTextOverlayToImage(imageUrl, artist, release, style);
+  }, [artist, release, style]);
 
   const handleGenerate = useCallback(async () => {
     if (isGenerating || !prompt.trim()) {
@@ -329,16 +302,9 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
 
             if (job.status === 'completed') {
               clearInterval(pollInterval);
-              setProgress(95);
-
-              // Add text overlay if artist or release provided
-              let finalImage = job.resultUrl;
-              if (artist || release) {
-                finalImage = await addTextOverlay(job.resultUrl);
-              }
-
               setProgress(100);
-              setGeneratedImage(finalImage);
+              // Store the raw image without text overlay
+              setGeneratedImage(job.resultUrl);
               setIsGenerating(false);
             } else if (job.status === 'failed') {
               clearInterval(pollInterval);
@@ -389,12 +355,18 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
     setIsGenerating(false); // Ensure generation state is reset
   }, []);
 
-  const handleDownload = useCallback((url: string) => {
+  const handleDownload = useCallback(async (url: string) => {
+    // Add text overlay before downloading
+    let finalUrl = url;
+    if (artist || release) {
+      finalUrl = await addTextOverlay(url);
+    }
+    
     const a = document.createElement('a');
-    a.href = url;
+    a.href = finalUrl;
     a.download = `cover-art-${Date.now()}.png`;
     a.click();
-  }, []);
+  }, [artist, release, style]);
 
   const handleSelectRender = useCallback((url: string) => {
     setPreviewUrl(url);
@@ -442,19 +414,21 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
                 <Select value={style} onValueChange={setStyle}>
                   <SelectTrigger 
                     id="style"
-                    className="bg-[#0a0a0a] border-[#1a1a1a] text-white text-sm"
+                    className="bg-[#0a0a0a] border-[#1a1a1a] text-white text-sm h-10"
                   >
-                    <SelectValue placeholder="Select a style" />
+                    <SelectValue placeholder="Select a style">
+                      {STYLE_PRESETS.find(p => p.id === style)?.label || 'Select a style'}
+                    </SelectValue>
                   </SelectTrigger>
-                  <SelectContent className="bg-[#111111] border-[#1a1a1a]">
+                  <SelectContent className="bg-[#111111] border-[#1a1a1a] max-h-[300px]">
                     {STYLE_PRESETS.map((preset) => (
                       <SelectItem 
                         key={preset.id} 
                         value={preset.id}
-                        className="text-white hover:bg-[#1a1a1a] focus:bg-[#1a1a1a] cursor-pointer"
+                        className="text-white hover:bg-[#1a1a1a] focus:bg-[#1a1a1a] cursor-pointer py-2"
                       >
-                        <div className="flex items-center gap-2">
-                          <div className={`h-4 w-12 rounded bg-gradient-to-r ${preset.gradient}`} />
+                        <div className="flex items-center gap-3">
+                          <div className={`h-5 w-16 rounded bg-gradient-to-r ${preset.gradient}`} />
                           <span>{preset.label}</span>
                         </div>
                       </SelectItem>
