@@ -61,11 +61,7 @@ async function validateImageUrl(url: string): Promise<boolean> {
 /**
  * Generate URL for fallback thumbnail API
  */
-export function getFallbackUrl(
-  id: string,
-  _width?: number,
-  _format?: 'webp' | 'png'
-): string {
+export function getFallbackUrl(id: string): string {
   return `/api/fallback-thumb/${encodeURIComponent(id)}`;
 }
 
@@ -73,10 +69,7 @@ export function getFallbackUrl(
  * Generate srcset for responsive fallback images
  * Note: Now serves same image at all sizes since we're using static PNGs
  */
-export function getFallbackSrcSet(
-  id: string,
-  _format?: 'webp' | 'png'
-): string {
+export function getFallbackSrcSet(id: string): string {
   const url = getFallbackUrl(id);
   return `${url} 1x, ${url} 2x`;
 }

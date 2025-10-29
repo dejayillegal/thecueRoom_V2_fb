@@ -34,7 +34,7 @@ export async function GET(
     }
 
     const fallbackNumber = fallbackIndex + 1;
-    const imagePath = path.join(process.cwd(), 'apps/web/public/fallbacks', `fallback_${fallbackNumber}.png`);
+    const imagePath = path.join(process.cwd(), 'public/fallbacks', `fallback_${fallbackNumber}.png`);
 
     // Check if image exists
     try {
