@@ -1,3 +1,7 @@
+
+import { LRUCache } from 'lru-cache';
+import { hashToIndex } from './fallback-hash';
+
 /**
  * Centralized feed image handling module
  * Returns a constant fallback thumbnail when article images are missing or invalid
@@ -6,55 +10,119 @@
 
 const FALLBACK_THUMBNAIL = '/fallback-thumbnail.png';
 
+// LRU cache for HEAD request results (60s TTL, max 1000 entries)
+const imageValidationCache = new LRUCache<string, boolean>({
+  max: 1000,
+  ttl: 60 * 1000, // 60 seconds
+});
+
 /**
  * Validates if a URL is a valid HTTP/HTTPS URL
  */
-function isValidImageUrl(url: string): boolean {
+function isValidHttpUrl(url: string): boolean {
   try {
-    const urlObj = new URL(url);
-    return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
   } catch {
     return false;
   }
 }
 
 /**
- * Gets the image URL for a feed item
- * Returns fallback thumbnail if the image is missing or invalid
- * 
- * @param imageUrl - The image URL from the feed item (can be null/undefined)
- * @param _title - Article title (preserved for API compatibility but not used)
- * @returns Valid image URL or fallback thumbnail path
+ * Check if an image URL is valid and accessible (cached)
  */
-export function getFeedImageUrl(imageUrl: string | null | undefined, _title?: string): string {
-  if (!imageUrl || imageUrl.trim() === '') {
-    return FALLBACK_THUMBNAIL;
+async function validateImageUrl(url: string): Promise<boolean> {
+  // Check cache first
+  const cached = imageValidationCache.get(url);
+  if (cached !== undefined) {
+    return cached;
   }
 
-  const trimmedUrl = imageUrl.trim();
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-  // If already using fallback, return as-is
-  if (trimmedUrl === FALLBACK_THUMBNAIL) {
-    return FALLBACK_THUMBNAIL;
+    const response = await fetch(url, {
+      method: 'HEAD',
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    const isValid =
+      response.ok &&
+      response.headers.get('content-type')?.startsWith('image/');
+
+    imageValidationCache.set(url, isValid);
+    return isValid;
+  } catch {
+    imageValidationCache.set(url, false);
+    return false;
   }
-
-  // Check for data URIs (base64 encoded images)
-  if (trimmedUrl.startsWith('data:image/')) {
-    return trimmedUrl;
-  }
-
-  // Validate HTTP/HTTPS URLs
-  if (!isValidImageUrl(trimmedUrl)) {
-    return FALLBACK_THUMBNAIL;
-  }
-
-  return trimmedUrl;
 }
 
 /**
- * Gets the fallback thumbnail path
- * @returns Path to the fallback thumbnail
+ * Get optimized fallback URL for an article
  */
-export function getFallbackThumbnail(): string {
-  return FALLBACK_THUMBNAIL;
+export function getFallbackUrl(
+  id: string,
+  width: number = 600,
+  format: 'webp' | 'png' = 'webp'
+): string {
+  return `/api/fallback-thumb/${encodeURIComponent(id)}?w=${width}&format=${format}`;
+}
+
+/**
+ * Get srcset for responsive fallback images
+ */
+export function getFallbackSrcSet(id: string, format: 'webp' | 'png' = 'webp'): string {
+  return [
+    `${getFallbackUrl(id, 300, format)} 300w`,
+    `${getFallbackUrl(id, 600, format)} 600w`,
+    `${getFallbackUrl(id, 1200, format)} 1200w`,
+  ].join(', ');
+}
+
+/**
+ * Get the article image URL with fallback support
+ */
+export async function getArticleImage(article: {
+  image?: string;
+  guid?: string;
+  url?: string;
+  title?: string;
+}): Promise<string> {
+  // If no image provided, return fallback immediately
+  if (!article.image || !isValidHttpUrl(article.image)) {
+    const id = article.guid || article.url || article.title || 'default';
+    return getFallbackUrl(id, 600, 'webp');
+  }
+
+  // Validate the image URL (with caching)
+  const isValid = await validateImageUrl(article.image);
+
+  if (isValid) {
+    return article.image;
+  }
+
+  // Return fallback if invalid
+  const id = article.guid || article.url || article.title || 'default';
+  return getFallbackUrl(id, 600, 'webp');
+}
+
+/**
+ * Get article image synchronously (for client-side use)
+ */
+export function getArticleImageSync(article: {
+  image?: string;
+  guid?: string;
+  url?: string;
+  title?: string;
+}): string {
+  if (!article.image || !isValidHttpUrl(article.image)) {
+    const id = article.guid || article.url || article.title || 'default';
+    return getFallbackUrl(id, 600, 'webp');
+  }
+
+  return article.image;
 }

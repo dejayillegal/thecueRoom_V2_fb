@@ -13,6 +13,15 @@ help:
 	@echo "  make seed        - Seed database with initial data"
 	@echo "  make diag        - Run diagnostic scripts"
 	@echo "  make clean       - Clean build artifacts"
+	@echo "  make diag-fallback  - Run fallback thumbnail stress test"
+
+.PHONY: diag-fallback
+diag-fallback:
+	@node scripts/diag/fallback-stress.js
+
+.PHONY: cleanup-fallback
+cleanup-fallback:
+	@node scripts/diag/cleanup-fallback-cache.js
 
 dev:
 	@echo "Starting development environment..."
