@@ -14,6 +14,13 @@ export async function POST(request: NextRequest) {
 
     const result = await improveEPKText(validated.text, validated.tone);
 
+    if (!result.text || result.text.trim().length === 0) {
+      return NextResponse.json({
+        ok: false,
+        error: 'Failed to improve text - please try again'
+      }, { status: 500 });
+    }
+
     return NextResponse.json({
       ok: true,
       text: result.text,

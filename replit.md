@@ -1,353 +1,57 @@
 # thecueRoom V2 - Project Memory
 
-## Project Overview
-
-**Goal**: Complete V2 rebuild of thecueRoom as a production-grade monorepo application migrating from Firebase to Supabase+Drizzle ORM with modern UI/UX and advanced features.
-
-**Status**: ✅ Foundation Complete - Feature Development In Progress
-
-**Timeline**: Multi-stage project (26 tasks total)
-
-## Current State (Oct 29, 2025)
-
-### ✅ Completed (11/26 tasks)
-1. **Monorepo Architecture**: pnpm workspace with apps/web, packages (db, ai-adapters, shared)
-2. **V1 Branding Preserved**: Logo, color scheme (#0B0B0B, #D7FF3C lime, #9B5CFF purple), Inter font
-3. **Supabase Integration**: Client setup and configuration ready
-4. **Database Schema**: Comprehensive Drizzle ORM schema (users, profiles, feeds, sources, spotlights, gigs, forum, EPKs, AI jobs)
-5. **60+ News Sources**: Worldwide coverage across Scene, Industry, Gear, Regional, Features, EDM, Community categories
-6. **Feed API**: Endpoints for feeds and sources with pagination and caching
-7. **AI Adapters**: OpenAI integration with local fallback generator
-8. **Landing Page**: Modern hero section with V1 branding
-9. **Development Server**: Running successfully on port 5000 ✓
-10. **AI Cover Art Studio**: Production-ready with multi-provider support ✓
-11. **PostgreSQL Database**: Initialized and running with all tables created ✓
-
-### 🔨 In Progress (0/26 tasks)
-- Ready for next feature
-
-### ⏳ Pending (16/26 tasks)
-Core features to build:
-- Feed ingestion worker (RSS/JSON parsing, deduplication, thumbnails)
-- AI Cover Art Studio, EPK Generator, Meme Generator, Avatar Generator
-- Community Forum with threads, comments, upvotes
-- Gig Radar with map view and calendar
-- Weekly Curated Music playlists
-- Admin Console with secure authentication
-- Authentication system with admin role
-- Profile management
-- Docker setup, CI/CD, performance optimization
-- Final testing and security audit
-
-## Technical Architecture
-
-### Stack
-- **Frontend**: Next.js 15 (App Router), React 19, Tailwind CSS
-- **Backend**: Next.js API routes, Drizzle ORM
-- **Database**: PostgreSQL via Supabase
-- **AI**: OpenAI DALL-E, local Canvas fallback
-- **Package Manager**: pnpm workspaces
-- **Deployment**: Replit (dev), production TBD
-
-### Project Structure
-```
-thecueroom-v2/
-├── apps/web/              # Next.js application
-│   ├── app/              # Pages and API routes
-│   ├── components/       # React components
-│   └── lib/              # Utilities and clients
-├── packages/
-│   ├── db/               # Drizzle schema & migrations
-│   ├── ai-adapters/      # AI service adapters
-│   └── shared/           # Shared types & utils
-└── data/sources.json     # 60+ news feed sources
-```
+## Overview
+thecueRoom V2 is a production-grade monorepo application that aims to be the central hub for music news, creative AI tools, and community interaction. It is being rebuilt from V1, migrating from Firebase to Supabase+Drizzle ORM, with a focus on modern UI/UX and advanced features. The project will offer worldwide music news feeds, AI-powered creative tools (Cover Art, EPK, Meme, Avatar generators), and community features like forums, a Gig Radar, and curated music playlists. The business vision is to create a comprehensive platform for musicians and music enthusiasts.
 
 ## User Preferences
-
-### Design Requirements
 - **MUST preserve V1 branding**: Logo, colors (#0B0B0B, #D7FF3C, #9B5CFF), Inter font
 - **Advanced modern UI/UX**: Production-grade, fast, responsive
 - **Feed requirements**: Title, summary, thumbnails, external links, tags, FAST loading
+- **Admin Access Email**: dejayillegal@gmail.com
+- **Feature Priorities**:
+    1. Worldwide Music News Feeds - Global coverage with fast loading
+    2. AI Creative Tools - Cover Art, EPK, Meme, Avatar generators
+    3. Community Features - Forum, Gig Radar, Weekly Playlists
+    4. Admin Console - Content management and moderation
 
-### Admin Access
-- **Email**: dejayillegal@gmail.com
-- **Note**: Admin credentials should be moved to environment variables for security
+## System Architecture
+The project utilizes a pnpm monorepo structure with `apps/web` for the Next.js frontend and `packages/db`, `packages/ai-adapters`, `packages/shared` for shared code.
 
-### Feature Priorities
-1. **Worldwide Music News Feeds** - Global coverage with fast loading
-2. **AI Creative Tools** - Cover Art, EPK, Meme, Avatar generators
-3. **Community Features** - Forum, Gig Radar, Weekly Playlists
-4. **Admin Console** - Content management and moderation
+**UI/UX Decisions:**
+- **Branding:** Preserves V1 branding including the logo, specific color palette (#0B0B0B, #D7FF3C lime, #9B5CFF purple), and Inter font.
+- **Design:** Focus on an advanced, modern, production-grade, fast, and responsive user interface.
+- **Feed Display:** Feeds must include title, summary, thumbnails, external links, and tags, with an emphasis on fast loading.
+- **Dashboard UI:** Updated to match pixel-perfect references, featuring a transparent header with a purple/green gradient, refined sidebar styling with yellow active state, and consistent card styling without borders.
 
-## Recent Changes (Oct 29, 2025)
+**Technical Implementations:**
+- **Frontend:** Next.js 15 (App Router), React 19, Tailwind CSS.
+- **Backend:** Next.js API routes.
+- **Database ORM:** Drizzle ORM for schema definition and migrations.
+- **AI Integration:** OpenAI GPT-5 (text) and OpenAI DALL-E (images) are primary AI providers, with local Canvas fallback for image generation. An AI adapter pattern is used for multi-provider support and graceful degradation.
+- **Feed API:** Endpoints for feeds and sources with pagination and caching for performance.
+- **AI Cover Art Studio:** Features 10 professional SVG presets and multi-provider AI integration (Hugging Face Stable Diffusion XL, Google Gemini, SVG fallback). AI jobs are processed via a Background Worker with automated cleanup.
+- **AI EPK Generator:** Integrates OpenAI GPT-5 for professional text generation (bios, press quotes, tech riders) with AI-powered improvement features and graceful fallback. Supports PDF export and social platform integration.
+- **Performance:** Includes fixes for memory leaks, TypeScript strict mode errors, optimized image loading with `Next.js Image` component, and robust WebSocket handling.
 
-### Database Initialization - COMPLETED ✅ (Oct 29, 2025 - Evening)
-**PostgreSQL database successfully provisioned and initialized**
+**Feature Specifications:**
+- **Monorepo Architecture:** pnpm workspace with `apps/web`, and `packages/db`, `packages/ai-adapters`, `packages/shared`.
+- **Database Schema:** Comprehensive Drizzle ORM schema for users, profiles, feeds, sources, spotlights, gigs, forums, EPKs, and AI jobs.
+- **News Sources:** Over 60 worldwide news sources categorized by Scene, Industry, Gear, Regional, Features, EDM, and Community.
+- **AI Creative Tools:** AI Cover Art Studio, AI EPK Generator, and planned Meme and Avatar Generators.
+- **Authentication:** Planned Supabase Auth with admin role.
+- **Admin Console:** Planned for content management and moderation.
 
-#### Changes Made
-- ✅ **Dependencies Installed**: All pnpm workspace packages installed successfully (967 packages)
-- ✅ **Database Created**: PostgreSQL database provisioned via Replit
-- ✅ **Schema Deployed**: Drizzle migrations run successfully with `drizzle-kit push`
-- ✅ **Workflows Running**: Both Background Worker and Server workflows running without errors
-- ✅ **Application Live**: Website accessible and responding correctly at port 5000
+**System Design Choices:**
+- **Deployment:** Replit for development, production deployment TBD.
+- **Scalability:** Cursor-based pagination implemented for API performance.
+- **Modularity:** AI adapter pattern for flexible AI service integration.
+- **Security:** Admin credentials are managed via environment variables and password hashing (bcrypt).
 
-#### Environment Variables Added
-```bash
-DATABASE_URL=<auto-configured>
-PGPORT=<auto-configured>
-PGUSER=<auto-configured>
-PGPASSWORD=<auto-configured>
-PGDATABASE=<auto-configured>
-PGHOST=<auto-configured>
-```
-
-#### Current Application State
-- **Server**: Running on http://localhost:5000 with Next.js 15.5.6
-- **Background Worker**: Running and checking for news sources every 60 minutes
-- **Database**: All tables created and ready (users, profiles, feeds, sources, spotlights, gigs, forum, etc.)
-- **UI**: Clean interface displaying correctly with "No spotlight feeds available yet" and "No news feeds available yet" (expected - database empty)
-
-#### Next Steps
-To populate the application with data:
-1. Run `pnpm seed:admin` to create admin user
-2. Run `pnpm seed:sources` to populate news sources
-3. Run `pnpm ingest` to fetch initial news feeds
-
-### AI Cover Art Studio - COMPLETED ✅ (Oct 29, 2025)
-**Production-ready AI album cover generation system with multi-provider support**
-
-#### Features Implemented
-- ✅ **10 Professional SVG Presets**: Neon, Monochrome, Geometric, Brutalist, Vaporwave, Grunge, Minimalist, Abstract, Retro, Cyberpunk
-- ✅ **Multi-Provider AI Integration**: Hugging Face Stable Diffusion XL (primary), Google Gemini (secondary), SVG fallback (no keys)
-- ✅ **Smart Environment Detection**: `/api/ai/env` checks for HF_TOKEN, HUGGINGFACE_KEY, GOOGLE_API_KEY, GEMINI_API_KEY
-- ✅ **Intelligent Randomization**: Randomize button generates unique presets with random seeds for variety
-- ✅ **Background Worker Processing**: AI jobs processed via existing Background Worker infrastructure
-- ✅ **Automated Cleanup**: `scripts/cleanup-ai-temp.js` removes old temp files (configurable TTL)
-- ✅ **Comprehensive Testing**: Test suite covering all 10 SVG presets with validation
-- ✅ **Complete Documentation**: `.env.example` updated with all AI provider variables
-
-#### Technical Implementation
-```
-packages/ai/
-├── impl/
-│   ├── fallback-svg.ts    # 10 presets, procedural generation
-│   └── hf.ts              # Hugging Face Stable Diffusion XL
-└── index.ts               # Type definitions
-
-apps/web/app/api/ai/
-├── env/route.ts           # Environment detection
-└── generate/route.ts      # Job processing with AI prioritization
-
-apps/web/src/components/AI/
-└── CoverArtStudio.tsx     # UI with presets, randomize, mode badge
-
-scripts/
-└── cleanup-ai-temp.js     # Cleanup script (pnpm cleanup:ai)
-
-tests/ai/
-└── fallback-svg.test.ts   # Comprehensive test suite
-```
-
-#### AI Priority Order
-1. **Hugging Face** (if HF_TOKEN or HUGGINGFACE_KEY present)
-2. **Google Gemini** (if GOOGLE_API_KEY or GEMINI_API_KEY present)
-3. **SVG Fallback** (always available, no keys needed)
-
-#### Module Resolution
-- Added `@thecueroom/ai/*` path alias to `apps/web/tsconfig.json`
-- Points to `../../packages/ai/*` for clean imports
-- Dynamic imports work correctly with Next.js bundler
-
-#### Environment Variables Added
-```bash
-# Hugging Face
-HF_TOKEN=optional
-HUGGINGFACE_KEY=optional
-
-# Google Gemini
-GOOGLE_API_KEY=optional
-GEMINI_API_KEY=optional
-
-# System Config
-AI_TEMP_DIR=/tmp/thecueroom-ai
-AI_WORKER_CONCURRENCY=1
-AI_TEMP_TTL_HOURS=24
-```
-
-#### User Experience
-- **With AI keys**: Full prompt input + style presets for custom cover art
-- **Without AI keys**: Preset selection only, generates beautiful SVG covers instantly
-- **Randomize button**: Generates unique combinations for inspiration
-- **Generation mode badge**: Shows current mode (AI Enabled/Fallback SVG)
-
-#### Architect Approval
-Final review: ✅ **PASS** - Production ready with all requirements met
-
-## Recent Changes (Oct 28, 2025)
-
-### Production Performance Fixes (Oct 28, 2025 - Evening)
-- ✅ Fixed memory leaks: All timer-based hooks properly cleanup intervals and timeouts
-- ✅ Fixed TypeScript strict mode errors: useRef initialization across all hooks and components
-- ✅ Enhanced ImageWithFallback component: Added fill/sizes/quality props for Next.js Image optimization
-- ✅ Fixed tsconfig path aliases: Properly resolves @/hooks/* and @/src/* imports
-- ✅ Fixed next.config localPatterns: Added /fallback-thumbnail.png support
-- ✅ Fixed critical WebSocket bug: useSharedSocket now properly reattaches event handlers on reconnect
-- ✅ Installed @playwright/test for E2E testing infrastructure
-- ✅ Verified existing implementations: VirtualList (virtualization), SpotlightColumn (RAF auto-scroll), Header (debounced search), /api/music/weekly (LRU cache + TEST_MODE)
-- ✅ All workflows running successfully with 200 HTTP responses
-- ✅ Clean UI with no visual artifacts or overlapping text issues
-
-### Database & Seeding (Oct 28, 2025 - Afternoon)
-- ✅ Database tables successfully created via Drizzle migrations
-- ✅ Admin seeding script created (`scripts/seed-admin.ts`)
-- ✅ Setup script created for one-command initialization
-- ✅ Admin user created: dejayillegal@gmail.com with secure bcrypt password hash
-- ✅ Admin profile created with 1000 AI credits
-- ✅ Environment variables documented in .env.example
-- ✅ Feed ingestion integrated into setup - automatically fetches 167+ news items on initialization
-- ✅ News sources seeded from data/sources.json (60+ worldwide sources)
-
-### UI Updates (Oct 28, 2025)
-- ✅ Dashboard UI updated to match pixel-perfect reference image
-- ✅ Transparent header with purple/green gradient on left
-- ✅ Sidebar styling refined with proper spacing and yellow active state
-- ✅ Dashboard cards updated with consistent styling using `dashboard-card` class
-- ✅ All borders removed from header and cards for cleaner look
-
-## Recent Changes (Oct 27, 2025)
-
-### Architecture
-- Created pnpm monorepo with 4 workspaces
-- Set up Drizzle ORM with comprehensive schema (10+ tables)
-- Configured Supabase client integration
-- Implemented AI adapter pattern with fallback support
-
-### Content
-- Expanded from V1 to 60+ worldwide news sources
-- Categories: Scene, Industry, Gear, Regional, Features, EDM, Community
-
-### API
-- Created `/api/feeds` - Feed listing with pagination and caching
-- Created `/api/sources` - Source management
-- Implemented cursor-based pagination for performance
-
-### UI
-- Built landing page with animated logo
-- Preserved V1 dark theme with lime/purple accents
-- Created feeds page structure (content TBD)
-
-### Documentation
-- README.md - Quick start and project overview
-- DEVELOPER_GUIDE.md - Architecture and development guide
-
-## Important Notes
-
-### Security
-✅ **COMPLETED**: Admin credentials are now properly configured via environment variables:
-```bash
-ADMIN_EMAIL=dejayillegal@gmail.com
-ADMIN_PASSWORD=Closer@82
-```
-- Password is securely hashed using bcrypt during seeding
-- Admin user is automatically created with `pnpm seed:admin` or `pnpm setup`
-- Admin has 1000 AI credits by default (vs 100 for regular users)
-
-### Database
-- Schema defined in `packages/db/schema.ts`
-- Migrations not yet run (awaiting Supabase database setup)
-- All tables use UUID primary keys
-- Comprehensive relations defined
-
-### AI Services
-- OpenAI adapter requires `OPENAI_API_KEY` env variable
-- Local fallback works without API keys (canvas-based generation)
-- Adapter factory auto-selects best available option
-
-## Next Steps
-
-### Immediate (Task 8)
-- Build UI components library with V1 branding
-- Create reusable components: Button, Card, Input, Modal, etc.
-- Implement dark theme with design tokens
-
-### High Priority
-1. **Feed Ingestion Worker** (Task 6) - Parse RSS, deduplicate, extract thumbnails
-2. **Authentication System** (Task 21) - Supabase Auth with admin role
-3. **Admin Console** (Task 17) - Secure content management
-4. **AI Cover Art Studio** (Task 10) - First AI feature to ship
-
-### Medium Priority
-- Community Forum (Task 14)
-- Gig Radar (Task 15)
-- AI EPK Generator (Task 11)
-- Profile Management (Task 22)
-
-### Low Priority
-- Docker setup (Task 19)
-- CI/CD (Task 23)
-- Performance optimization (Task 25)
-- Final testing (Task 26)
-
-## Development Commands
-
-```bash
-# Start dev server (already running)
-pnpm dev
-
-# Install new package
-pnpm --filter web add <package>
-pnpm --filter db add <package>
-
-# Database migrations
-pnpm migrate:generate
-pnpm migrate
-
-# Build for production
-pnpm build
-```
-
-## Environment Variables Required
-
-```bash
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-
-# AI Services (Optional)
-OPENAI_API_KEY=
-REPLICATE_API_KEY=
-
-# Admin (Secure)
-ADMIN_EMAIL=dejayillegal@gmail.com
-ADMIN_PASSWORD_HASH=[bcrypt hash]
-
-# App
-NEXT_PUBLIC_APP_URL=http://localhost:5000
-```
-
-## Known Issues
-
-1. ✅ **RESOLVED: Database not provisioned** - PostgreSQL database now running with all tables created
-2. **Database empty** - Need to run seeding scripts to populate data (pnpm seed:admin, pnpm seed:sources, pnpm ingest)
-3. **Auth not implemented** - Admin access requires authentication system
-4. **UI components incomplete** - Need complete component library
-
-## Success Metrics
-
-- [x] Monorepo structure established
-- [x] V1 branding preserved
-- [x] 60+ news sources configured
-- [x] Development server running
-- [x] PostgreSQL database provisioned and initialized
-- [ ] Database populated with admin user and news sources
-- [ ] First feed successfully ingested
-- [ ] Admin can log in and manage content
-- [x] AI Cover Art generator functional
-- [ ] Community features live
-- [ ] Production deployment ready
-
----
-
-Last updated: October 29, 2025
-Project Lead: dejayillegal@gmail.com
+## External Dependencies
+- **Database:** PostgreSQL (via Supabase)
+- **AI Services:**
+    - OpenAI GPT-5 (text generation)
+    - OpenAI DALL-E (image generation)
+    - Hugging Face Stable Diffusion XL (image generation for Cover Art Studio)
+    - Google Gemini (image generation for Cover Art Studio)
+- **Deployment Platform:** Replit

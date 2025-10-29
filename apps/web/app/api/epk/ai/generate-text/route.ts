@@ -17,6 +17,13 @@ export async function POST(request: NextRequest) {
 
     const result = await generateEPKText(validated);
 
+    if (!result.text || result.text.trim().length === 0) {
+      return NextResponse.json({
+        ok: false,
+        error: 'Failed to generate text - please try again'
+      }, { status: 500 });
+    }
+
     return NextResponse.json({
       ok: true,
       text: result.text,

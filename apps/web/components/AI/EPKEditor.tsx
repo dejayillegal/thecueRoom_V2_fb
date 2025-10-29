@@ -28,11 +28,13 @@ export function EPKEditor() {
     website: ''
   });
   
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [isImproving, setIsImproving] = useState(false);
+  const [isGeneratingBio, setIsGeneratingBio] = useState(false);
+  const [isImprovingBio, setIsImprovingBio] = useState(false);
+  const [isGeneratingQuotes, setIsGeneratingQuotes] = useState(false);
+  const [isGeneratingTechRider, setIsGeneratingTechRider] = useState(false);
+  const [isGeneratingEPK, setIsGeneratingEPK] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [aiMode, setAIMode] = useState<'generate' | 'improve' | null>(null);
   const [aiAvailable, setAIAvailable] = useState(false);
   
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -67,9 +69,8 @@ export function EPKEditor() {
     }
 
     abortControllerRef.current = new AbortController();
-    setIsGenerating(true);
+    setIsGeneratingBio(true);
     setError(null);
-    setAIMode('generate');
 
     try {
       const response = await fetch('/api/epk/ai/generate-text', {
@@ -98,8 +99,7 @@ export function EPKEditor() {
         console.error('Bio generation failed:', err);
       }
     } finally {
-      setIsGenerating(false);
-      setAIMode(null);
+      setIsGeneratingBio(false);
     }
   }, [artistName, genre]);
 
@@ -114,9 +114,8 @@ export function EPKEditor() {
     }
 
     abortControllerRef.current = new AbortController();
-    setIsImproving(true);
+    setIsImprovingBio(true);
     setError(null);
-    setAIMode('improve');
 
     try {
       const response = await fetch('/api/epk/ai/improve-text', {
@@ -143,8 +142,7 @@ export function EPKEditor() {
         console.error('Bio improvement failed:', err);
       }
     } finally {
-      setIsImproving(false);
-      setAIMode(null);
+      setIsImprovingBio(false);
     }
   }, [bio]);
 
@@ -154,7 +152,7 @@ export function EPKEditor() {
       return;
     }
 
-    setIsGenerating(true);
+    setIsGeneratingQuotes(true);
     setError(null);
 
     try {
@@ -180,12 +178,12 @@ export function EPKEditor() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Generation failed');
     } finally {
-      setIsGenerating(false);
+      setIsGeneratingQuotes(false);
     }
   }, [artistName, genre, bio]);
 
   const handleGenerateTechRider = useCallback(async () => {
-    setIsGenerating(true);
+    setIsGeneratingTechRider(true);
     setError(null);
 
     try {
@@ -210,7 +208,7 @@ export function EPKEditor() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Generation failed');
     } finally {
-      setIsGenerating(false);
+      setIsGeneratingTechRider(false);
     }
   }, [artistName, genre]);
 
@@ -220,7 +218,7 @@ export function EPKEditor() {
       return;
     }
 
-    setIsGenerating(true);
+    setIsGeneratingEPK(true);
     setError(null);
 
     try {
@@ -261,7 +259,7 @@ export function EPKEditor() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'EPK generation failed');
     } finally {
-      setIsGenerating(false);
+      setIsGeneratingEPK(false);
     }
   }, [artistName, bio, genre, pressQuotes, techRider, socialLinks]);
 
@@ -317,10 +315,10 @@ export function EPKEditor() {
                 <Button
                   size="sm"
                   onClick={handleGenerateBio}
-                  disabled={isGenerating || !artistName}
+                  disabled={isGeneratingBio || !artistName}
                   className="bg-primary hover:bg-primary/90 text-black"
                 >
-                  {isGenerating && aiMode === 'generate' ? (
+                  {isGeneratingBio ? (
                     <Loader2 className="w-3 h-3 mr-1 animate-spin" />
                   ) : (
                     <Sparkles className="w-3 h-3 mr-1" />
@@ -331,10 +329,10 @@ export function EPKEditor() {
                   size="sm"
                   variant="outline"
                   onClick={handleImproveBio}
-                  disabled={isImproving || !bio}
+                  disabled={isImprovingBio || !bio}
                   className="border-primary/50 text-primary hover:bg-primary/10"
                 >
-                  {isImproving ? (
+                  {isImprovingBio ? (
                     <Loader2 className="w-3 h-3 mr-1 animate-spin" />
                   ) : (
                     <Wand2 className="w-3 h-3 mr-1" />
@@ -362,10 +360,10 @@ export function EPKEditor() {
               <Button
                 size="sm"
                 onClick={handleGenerateQuotes}
-                disabled={isGenerating || !artistName}
+                disabled={isGeneratingQuotes || !artistName}
                 className="bg-[#9B5CFF] hover:bg-[#8B4CEF] text-white"
               >
-                {isGenerating ? (
+                {isGeneratingQuotes ? (
                   <Loader2 className="w-3 h-3 mr-1 animate-spin" />
                 ) : (
                   <Sparkles className="w-3 h-3 mr-1" />
@@ -387,10 +385,10 @@ export function EPKEditor() {
               <Button
                 size="sm"
                 onClick={handleGenerateTechRider}
-                disabled={isGenerating}
+                disabled={isGeneratingTechRider}
                 className="bg-[#9B5CFF] hover:bg-[#8B4CEF] text-white"
               >
-                {isGenerating ? (
+                {isGeneratingTechRider ? (
                   <Loader2 className="w-3 h-3 mr-1 animate-spin" />
                 ) : (
                   <Sparkles className="w-3 h-3 mr-1" />
@@ -469,11 +467,11 @@ export function EPKEditor() {
               </p>
               <Button
                 onClick={handleGenerateEPK}
-                disabled={isGenerating || !artistName || !bio}
+                disabled={isGeneratingEPK || !artistName || !bio}
                 className="w-full bg-primary hover:bg-primary/90 text-black font-bold"
                 size="lg"
               >
-                {isGenerating ? (
+                {isGeneratingEPK ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Generating EPK...

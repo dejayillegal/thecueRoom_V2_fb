@@ -50,8 +50,16 @@ export async function generateEPKText(request: GenerateEPKTextRequest): Promise<
 
     const generatedText = response.choices[0].message.content?.trim() || '';
     
+    if (!generatedText || generatedText.length < 10) {
+      console.warn('[EPK AI] GPT-5 returned empty/short content, using fallback');
+      return {
+        text: generateFallbackText(request),
+        usedAI: false
+      };
+    }
+    
     return {
-      text: generatedText || generateFallbackText(request),
+      text: generatedText,
       usedAI: true
     };
   } catch (error) {
@@ -96,7 +104,15 @@ export async function improveEPKText(text: string, tone: string = 'professional'
       max_completion_tokens: 800,
     });
 
-    const improved = response.choices[0].message.content?.trim() || text;
+    const improved = response.choices[0].message.content?.trim() || '';
+    
+    if (!improved || improved.length < 10) {
+      console.warn('[EPK AI] GPT-5 improvement returned empty/short content, keeping original');
+      return {
+        text: text,
+        usedAI: false
+      };
+    }
     
     return {
       text: improved,
