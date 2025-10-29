@@ -60,13 +60,20 @@ const addTextOverlayToImage = (imageUrl: string, artist: string, release: string
   return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
+    
+    // For SVG data URLs, we need to ensure proper dimensions
+    const isSvg = imageUrl.startsWith('data:image/svg+xml');
     img.src = imageUrl;
 
     img.onload = () => {
       try {
+        // Use explicit dimensions for SVG (fallback to 1024x1024)
+        const width = isSvg ? 1024 : img.width;
+        const height = isSvg ? 1024 : img.height;
+        
         const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
+        canvas.width = width;
+        canvas.height = height;
         const ctx = canvas.getContext('2d', { willReadFrequently: false });
 
         if (!ctx) {
@@ -76,7 +83,7 @@ const addTextOverlayToImage = (imageUrl: string, artist: string, release: string
         }
 
         // Draw the base image
-        ctx.drawImage(img, 0, 0);
+        ctx.drawImage(img, 0, 0, width, height);
 
         // Style configurations
         const styleConfigs: Record<string, { textColor: string; shadowColor: string; bgColor: string }> = {
@@ -97,8 +104,8 @@ const addTextOverlayToImage = (imageUrl: string, artist: string, release: string
         const bottomPadding = 30;
 
         // Calculate responsive font sizes
-        const artistFontSize = Math.max(56, Math.min(img.width / 15, 80));
-        const releaseFontSize = Math.max(36, Math.min(img.width / 25, 48));
+        const artistFontSize = Math.max(56, Math.min(width / 15, 80));
+        const releaseFontSize = Math.max(36, Math.min(width / 25, 48));
         const watermarkFontSize = 18;
 
         // Measure text to create proper background
@@ -131,7 +138,7 @@ const addTextOverlayToImage = (imageUrl: string, artist: string, release: string
           ctx.fillRect(bgX, bgY, bgWidth, bgHeight);
         }
 
-        let currentY = img.height - bottomPadding;
+        let currentY = height - bottomPadding;
 
         // Draw release title (bottom)
         if (release) {
@@ -168,7 +175,7 @@ const addTextOverlayToImage = (imageUrl: string, artist: string, release: string
         ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
         ctx.textAlign = 'right';
         ctx.textBaseline = 'bottom';
-        ctx.fillText('thecueRoom.com', img.width - padding, img.height - 20);
+        ctx.fillText('thecueRoom.com', width - padding, height - 20);
 
         const dataUrl = canvas.toDataURL('image/png', 0.95);
         resolve(dataUrl);
@@ -362,11 +369,16 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
       finalUrl = await addTextOverlay(url);
     }
     
+    // Determine file extension based on data URL type
+    const isSvg = finalUrl.startsWith('data:image/svg+xml');
+    const isPng = finalUrl.startsWith('data:image/png');
+    const extension = isSvg ? 'svg' : isPng ? 'png' : 'jpg';
+    
     const a = document.createElement('a');
     a.href = finalUrl;
-    a.download = `cover-art-${Date.now()}.png`;
+    a.download = `cover-art-${Date.now()}.${extension}`;
     a.click();
-  }, [artist, release, style]);
+  }, [artist, release, addTextOverlay]);
 
   const handleSelectRender = useCallback((url: string) => {
     setPreviewUrl(url);
