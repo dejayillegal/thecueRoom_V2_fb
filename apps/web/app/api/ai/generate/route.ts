@@ -211,10 +211,16 @@ function buildCoverArtPrompt(userPrompt: string, params?: any): string {
   const resolution = params?.resolution || '1024x1024';
 
   const styleDescriptions: Record<string, string> = {
-    neon: 'vibrant neon colors with electric blues, hot pinks, and acid greens, cyberpunk aesthetic with glowing accents, lens flares, chromatic aberration effects, futuristic electronic music vibe, synthwave inspiration, retro-futuristic elements',
-    monochrome: 'pure black and white with high contrast, minimalist Bauhaus-inspired design, stark shadows and dramatic lighting, clean geometric composition, brutally simple forms, Swiss design influence, deep blacks and crisp whites',
-    geometric: 'bold geometric shapes with precise angles, abstract mathematical patterns, Bauhaus and constructivist influence, modern Swiss design aesthetic, clean lines with perfect symmetry, isometric perspectives, op-art visual effects, structured color blocking',
-    brutalist: 'raw concrete textures with weathered surfaces, bold sans-serif typography, industrial warehouse aesthetic, exposed structures, urban decay elements, underground rave culture, stark architectural forms, gritty realistic materials, dystopian atmosphere'
+    'neon': 'vibrant neon colors with electric blues, hot pinks, and acid greens, cyberpunk aesthetic with glowing accents, lens flares, chromatic aberration effects, futuristic electronic music vibe, synthwave inspiration, retro-futuristic elements',
+    'monochrome': 'pure black and white with high contrast, minimalist Bauhaus-inspired design, stark shadows and dramatic lighting, clean geometric composition, brutally simple forms, Swiss design influence, deep blacks and crisp whites',
+    'geometric': 'bold geometric shapes with precise angles, abstract mathematical patterns, Bauhaus and constructivist influence, modern Swiss design aesthetic, clean lines with perfect symmetry, isometric perspectives, op-art visual effects, structured color blocking',
+    'brutalist': 'raw concrete textures with weathered surfaces, bold sans-serif typography, industrial warehouse aesthetic, exposed structures, urban decay elements, underground rave culture, stark architectural forms, gritty realistic materials, dystopian atmosphere',
+    'cybergrind': 'chaotic glitchy circuits with blue laser grids, cybernetic horror aesthetic, distorted digital noise, fragmented data streams, intense electric energy, corrupted visual artifacts, mechanical decay, aggressive neon highlights on black',
+    'vaporwave': 'pastel gradients with pink purple and blue, digital sunset palm trees, 80s computer graphics, nostalgic retro-futurism, soft dreamy atmosphere, marble statues, geometric grids, roman columns, Japanese text elements, lo-fi aesthetic',
+    'chromatic-grid': 'rainbow RGB color grids with heavy chromatic aberration, digital glitch art, separated color channels, prismatic light distortion, technological grid patterns, vibrant spectrum colors, blur and offset effects, cybernetic precision',
+    'noir-light': 'high-contrast black and white with dramatic light shafts, film noir aesthetic, harsh shadows and bright highlights, cinematic lighting, moody atmospheric fog, vintage detective film style, stark monochrome drama',
+    'acid-geometry': 'neon yellow green and cyan geometric chaos, psychedelic patterns, liquid shapes merging with hard angles, vibrant acidic colors, trippy visual effects, underground rave aesthetic, fluorescent energy, kaleidoscopic complexity',
+    'liquid-metal': 'silver chrome liquid distortions, metallic wave mesh surfaces, fluid metal reflections, mirror-like sheen, abstract liquid forms, grayscale with metallic highlights, smooth flowing shapes, futuristic mercury aesthetic'
   };
 
   // Build comprehensive album cover prompt
@@ -374,9 +380,15 @@ async function generatePlaceholderImage(prompt: string, params?: any): Promise<s
       'monochrome': 'monochrome',
       'geometric': 'geometric',
       'brutalist': 'brutalist',
+      'cybergrind': 'cybergrind',
+      'vaporwave': 'vaporwave',
+      'chromatic-grid': 'chromatic-grid',
+      'noir-light': 'noir-light',
+      'acid-geometry': 'acid-geometry',
+      'liquid-metal': 'liquid-metal',
     };
     
-    const mappedStyle = styleMap[style] || style;
+    const mappedStyle = styleMap[style] || 'neon-accent';
     
     const svg = generateFallbackSVG({
       preset: mappedStyle,

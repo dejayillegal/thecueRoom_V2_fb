@@ -220,24 +220,19 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
   };
 
   const handleGenerate = useCallback(async () => {
-    if (isGenerating) return;
+    if (isGenerating || !prompt.trim()) {
+      if (!prompt.trim()) setError('Please enter a prompt');
+      return;
+    }
 
     setIsGenerating(true);
     setError(null);
     setProgress(0);
 
     try {
-      // Validation
-      if (!prompt.trim()) {
-        setError('Please enter a prompt');
-        setIsGenerating(false);
-        return;
-      }
-      
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
-
       abortControllerRef.current = new AbortController();
 
       const response = await fetch('/api/ai/generate', {
@@ -273,32 +268,44 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
         setJobId(data.jobId);
         setProgress(10); // Start progress for polling
 
-        // Poll for job completion
+        // Poll for job completion with exponential backoff
+        let pollCount = 0;
         const pollInterval = setInterval(async () => {
-          const statusRes = await fetch(`/api/ai/job/${data.jobId}`);
-          const job = await statusRes.json();
+          try {
+            const statusRes = await fetch(`/api/ai/job/${data.jobId}`);
+            if (!statusRes.ok) throw new Error('Poll failed');
+            
+            const job = await statusRes.json();
+            pollCount++;
 
-          if (job.status === 'completed') {
-            clearInterval(pollInterval);
-            setProgress(95);
+            if (job.status === 'completed') {
+              clearInterval(pollInterval);
+              setProgress(95);
 
-            // Add text overlay if artist or release provided
-            let finalImage = job.resultUrl;
-            if (artist || release) {
-              console.log('Adding text overlay to generated image...');
-              finalImage = await addTextOverlay(job.resultUrl);
+              // Add text overlay if artist or release provided
+              let finalImage = job.resultUrl;
+              if (artist || release) {
+                finalImage = await addTextOverlay(job.resultUrl);
+              }
+
+              setProgress(100);
+              setGeneratedImage(finalImage);
+              setIsGenerating(false);
+            } else if (job.status === 'failed') {
+              clearInterval(pollInterval);
+              setError(job.error || 'Generation failed');
+              setIsGenerating(false);
+            } else {
+              // Update progress more conservatively
+              setProgress(prev => Math.min(prev + 3, 85));
             }
-
-            setProgress(100);
-            setGeneratedImage(finalImage);
-            setIsGenerating(false);
-          } else if (job.status === 'failed') {
-            clearInterval(pollInterval);
-            setError(job.error || 'Generation failed');
-            setIsGenerating(false);
-          } else {
-            // Update progress
-            setProgress(prev => Math.min(prev + 5, 90));
+          } catch (err) {
+            console.error('Poll error:', err);
+            if (pollCount > 30) { // Stop after 30 seconds
+              clearInterval(pollInterval);
+              setError('Generation timeout - please try again');
+              setIsGenerating(false);
+            }
           }
         }, 1000);
       } else {
@@ -318,7 +325,7 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
          setIsGenerating(false);
       }
     }
-  }, [prompt, style, artist, release, aspect, resolution, seed, isGenerating, isPolling, addTextOverlay, setGeneratedImage, setError, setJobId, setProgress, isMountedRef, abortControllerRef]);
+  }, [prompt, style, artist, release, aspect, resolution, seed, isGenerating]);
 
   const handleReset = useCallback(() => {
     setPrompt('');
@@ -362,7 +369,12 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
         {/* Controls Card */}
         <Card className="bg-[#111111] border-[#1a1a1a] p-6 space-y-6">
           <div>
-            <h2 className="text-lg font-semibold text-white mb-4">Create Cover Art</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-white">Create Cover Art</h2>
+              <div className="text-xs px-2 py-1 rounded bg-[#D1FF3D]/10 text-[#D1FF3D] border border-[#D1FF3D]/20">
+                AI + Style Preset
+              </div>
+            </div>
 
             <div className="space-y-4">
               <div>
@@ -511,14 +523,16 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
                 src={previewUrl!} 
                 alt="Generated cover art" 
                 className="w-full h-full object-cover rounded-lg"
-                loading="eager"
+                loading="lazy"
                 decoding="async"
               />
-            ) : isPolling ? (
+            ) : isGenerating ? (
               <div className="text-center">
                 <Loader2 className="w-12 h-12 text-[#D1FF3D] animate-spin mx-auto mb-4" />
                 <p className="text-sm text-gray-400">Generating your artwork...</p>
-                <p className="text-sm text-gray-500 mt-2">This may take a moment...</p>
+                {progress > 0 && (
+                  <p className="text-xs text-gray-500 mt-2">{progress}%</p>
+                )}
               </div>
             ) : (
               <p className="text-gray-500 text-sm">Your artwork will appear here</p>
@@ -549,11 +563,11 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
       {/* Right Column - Recent Renders & Tips */}
       <Card className="bg-[#111111] border-[#1a1a1a] p-6 h-fit">
         <h2 className="text-lg font-semibold text-white mb-4">Recent Renders</h2>
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="grid grid-cols-2 gap-3 mb-6 max-h-[400px] overflow-y-auto">
           {recentRenders.length === 0 ? (
             <p className="text-sm text-gray-500 col-span-2">No renders yet</p>
           ) : (
-            recentRenders.map((render) => (
+            recentRenders.slice(0, 6).map((render) => (
               <RecentRenderCard 
                 key={render.id} 
                 render={render}
