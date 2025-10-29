@@ -18,10 +18,16 @@ import { Loader2, Download, Sparkles, RefreshCw } from 'lucide-react';
 import { useAIJobPolling } from '@/lib/hooks/useAIJobPolling';
 
 const STYLE_PRESETS = [
-  { id: 'neon', label: 'Neon Accent', gradient: 'from-[#a855f7] via-[#ec4899] to-[#9333ea]' },
-  { id: 'monochrome', label: 'Monochrome', gradient: 'from-[#111111] via-[#4b5563] to-[#9ca3af]' },
-  { id: 'geometric', label: 'Geometric', gradient: 'from-[#3b82f6] via-[#06b6d4] to-[#2563eb]' },
-  { id: 'brutalist', label: 'Brutalist', gradient: 'from-[#ef4444] via-[#f97316] to-[#dc2626]' },
+  { id: 'neon', label: 'Neon Accent', gradient: 'from-purple-500 via-pink-500 to-purple-600' },
+  { id: 'monochrome', label: 'Monochrome', gradient: 'from-gray-900 via-gray-600 to-gray-400' },
+  { id: 'geometric', label: 'Geometric', gradient: 'from-orange-500 via-yellow-500 to-orange-600' },
+  { id: 'brutalist', label: 'Brutalist', gradient: 'from-gray-800 via-red-800 to-gray-900' },
+  { id: 'cybergrind', label: 'Cybergrind', gradient: 'from-black via-cyan-500 to-green-500' },
+  { id: 'vaporwave', label: 'Vaporwave', gradient: 'from-pink-400 via-purple-300 to-blue-400' },
+  { id: 'chromatic-grid', label: 'Chromatic Grid', gradient: 'from-red-500 via-green-500 to-blue-500' },
+  { id: 'noir-light', label: 'Noir Light', gradient: 'from-black via-gray-500 to-white' },
+  { id: 'acid-geometry', label: 'Acid Geometry', gradient: 'from-yellow-400 via-green-400 to-cyan-400' },
+  { id: 'liquid-metal', label: 'Liquid Metal', gradient: 'from-gray-400 via-gray-100 to-gray-500' },
 ] as const;
 
 const ASPECT_RATIOS = ['1:1', '16:9', '4:3', '3:4'] as const;
