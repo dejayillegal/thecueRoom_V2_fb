@@ -1,11 +1,15 @@
 #!/usr/bin/env node
 
-const fs = require('fs').promises;
-const path = require('path');
-const { nanoid } = require('nanoid');
-const pLimit = require('p-limit');
-const archiver = require('archiver');
-const { createWriteStream, createReadStream } = require('fs');
+import { promises as fs } from 'fs';
+import { createWriteStream, createReadStream } from 'fs';
+import path from 'path';
+import crypto from 'crypto';
+import pLimit from 'p-limit';
+import archiver from 'archiver';
+
+function generateId() {
+  return crypto.randomBytes(16).toString('hex');
+}
 
 const EPK_TEMP_DIR = process.env.EPK_TEMP_DIR || '/tmp/thecueroom-epk';
 const EPK_WORKER_CONCURRENCY = parseInt(process.env.EPK_WORKER_CONCURRENCY || '1', 10);
@@ -75,7 +79,7 @@ async function generatePdf(job) {
     let pdfBuffer;
 
     if (PDF_TOOL === 'puppeteer') {
-      const puppeteer = require('puppeteer-core');
+      const { default: puppeteer } = await import('puppeteer-core');
       const browser = await puppeteer.launch({
         headless: true,
         executablePath: '/usr/bin/chromium-browser',
@@ -291,18 +295,12 @@ async function scanAndProcessJobs() {
   }
 }
 
-if (require.main === module) {
-  console.log('[EPK Worker] Starting...');
-  console.log(`[EPK Worker] Concurrency: ${EPK_WORKER_CONCURRENCY}`);
-  console.log(`[EPK Worker] Test Mode: ${TEST_MODE}`);
-  console.log(`[EPK Worker] PDF Tool: ${PDF_TOOL}`);
-  
-  setInterval(scanAndProcessJobs, 5000);
-  scanAndProcessJobs();
-}
+console.log('[EPK Worker] Starting...');
+console.log(`[EPK Worker] Concurrency: ${EPK_WORKER_CONCURRENCY}`);
+console.log(`[EPK Worker] Test Mode: ${TEST_MODE}`);
+console.log(`[EPK Worker] PDF Tool: ${PDF_TOOL}`);
 
-module.exports = {
-  processJob,
-  writeJobMeta,
-  readJobMeta
-};
+setInterval(scanAndProcessJobs, 5000);
+scanAndProcessJobs();
+
+export { processJob, writeJobMeta, readJobMeta };
