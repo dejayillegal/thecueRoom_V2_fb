@@ -11,10 +11,10 @@ import { Loader2, Download, Sparkles, RefreshCw } from 'lucide-react';
 import { useAIJobPolling } from '@/lib/hooks/useAIJobPolling';
 
 const STYLE_PRESETS = [
-  { id: 'neon', label: 'Neon Accent', gradient: 'from-purple-500 via-pink-500 to-purple-600' },
-  { id: 'monochrome', label: 'Monochrome', gradient: 'from-gray-900 via-gray-600 to-gray-400' },
-  { id: 'geometric', label: 'Geometric', gradient: 'from-blue-500 via-cyan-500 to-blue-600' },
-  { id: 'brutalist', label: 'Brutalist', gradient: 'from-red-500 via-orange-500 to-red-600' },
+  { id: 'neon', label: 'Neon Accent', gradient: 'from-[#a855f7] via-[#ec4899] to-[#9333ea]' },
+  { id: 'monochrome', label: 'Monochrome', gradient: 'from-[#111111] via-[#4b5563] to-[#9ca3af]' },
+  { id: 'geometric', label: 'Geometric', gradient: 'from-[#3b82f6] via-[#06b6d4] to-[#2563eb]' },
+  { id: 'brutalist', label: 'Brutalist', gradient: 'from-[#ef4444] via-[#f97316] to-[#dc2626]' },
 ] as const;
 
 const ASPECT_RATIOS = ['1:1', '16:9', '4:3', '3:4'] as const;
@@ -51,7 +51,7 @@ StylePresetButton.displayName = 'StylePresetButton';
 
 const RecentRenderCard = memo(({ render, onSelect }: { render: Render; onSelect: () => void }) => (
   <div 
-    className="bg-[#0a0a0a] rounded-lg p-3 border border-[#1a1a1a] cursor-pointer hover:border-[#333333] transition-all"
+    className="bg-[#0a0a0a] rounded-lg p-3 border border-[#1a1a1a] cursor-pointer hover:border-[#333333] transition-colors"
     onClick={onSelect}
   >
     <img 
@@ -59,6 +59,7 @@ const RecentRenderCard = memo(({ render, onSelect }: { render: Render; onSelect:
       alt={render.prompt} 
       className="w-full h-32 object-cover rounded mb-2"
       loading="lazy"
+      decoding="async"
     />
     <p className="text-sm text-gray-400 line-clamp-2">{render.prompt}</p>
   </div>
@@ -80,12 +81,15 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   
   const abortControllerRef = useRef<AbortController | null>(null);
+  const isMountedRef = useRef(true);
 
   const { status, resultUrl, error: jobError, isLoading: isPolling } = useAIJobPolling({ jobId });
 
   // Cleanup on unmount
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
+      isMountedRef.current = false;
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
@@ -94,7 +98,7 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
 
   // Update preview and recent renders when job completes
   useEffect(() => {
-    if (status === 'completed' && resultUrl && prompt) {
+    if (status === 'completed' && resultUrl && prompt && isMountedRef.current) {
       setPreviewUrl(resultUrl);
       setRecentRenders(prev => [{
         id: jobId || Date.now().toString(),
@@ -106,7 +110,7 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
 
   // Show job errors
   useEffect(() => {
-    if (jobError) {
+    if (jobError && isMountedRef.current) {
       setError(jobError);
     }
   }, [jobError]);
@@ -116,6 +120,8 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
       setError('Please enter a prompt');
       return;
     }
+
+    if (!isMountedRef.current) return;
 
     // Abort any ongoing request
     if (abortControllerRef.current) {
@@ -146,24 +152,31 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
         signal: abortControllerRef.current.signal,
       });
 
+      if (!isMountedRef.current) return;
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to generate cover art');
       }
 
       const data = await response.json();
+      
+      if (!isMountedRef.current) return;
+
       if (data.jobId) {
         setJobId(data.jobId);
       } else {
         throw new Error('No job ID returned');
       }
     } catch (err) {
-      if (err instanceof Error && err.name !== 'AbortError') {
+      if (err instanceof Error && err.name !== 'AbortError' && isMountedRef.current) {
         setError(err.message);
         console.error('Failed to generate:', err);
       }
     } finally {
-      setIsGenerating(false);
+      if (isMountedRef.current) {
+        setIsGenerating(false);
+      }
     }
   }, [prompt, style, artist, release, aspect, resolution, seed]);
 
@@ -346,7 +359,8 @@ export const CoverArtStudio = memo(function CoverArtStudio() {
                 src={previewUrl!} 
                 alt="Generated cover art" 
                 className="w-full h-full object-cover rounded-lg"
-                loading="lazy"
+                loading="eager"
+                decoding="async"
               />
             ) : isPolling ? (
               <div className="text-center">
