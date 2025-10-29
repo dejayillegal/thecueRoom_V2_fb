@@ -154,11 +154,11 @@ export default memo(function SpotlightSection({
       if (spotlightData.data && spotlightData.data.length > 0) {
         const formattedFeeds = spotlightData.data.map((item: any) => ({
           title: item.title,
-          url: item.link,
+          url: item.url,
           summary: item.summary || '',
           image: item.image,
           publishedAt: item.publishedAt,
-          source: item.source?.name || 'Unknown',
+          source: item.source || 'Unknown',
           tags: item.tags || [],
         }));
         setCurrentFeeds(formattedFeeds);
@@ -185,11 +185,11 @@ export default memo(function SpotlightSection({
           .slice(0, 16)
           .map((item: any) => ({
             title: item.title,
-            url: item.link,
+            url: item.url,
             summary: item.summary || '',
             image: item.image,
             publishedAt: item.publishedAt,
-            source: item.source?.name || 'Unknown',
+            source: item.source || 'Unknown',
             tags: item.tags || [],
           }));
 

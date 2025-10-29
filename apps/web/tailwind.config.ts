@@ -12,7 +12,7 @@ const config: Config = {
         background: "#000000",
         foreground: "#ffffff",
         card: {
-          DEFAULT: "#0a0a0a",
+          DEFAULT: "#1a1a1a",
           foreground: "#ffffff",
         },
         primary: {
@@ -24,10 +24,10 @@ const config: Config = {
           foreground: "#ffffff",
         },
         muted: {
-          DEFAULT: "#1a1a1a",
+          DEFAULT: "#2a2a2a",
           foreground: "#999999",
         },
-        border: "#1a1a1a",
+        border: "#2a2a2a",
         input: "#0a0a0a",
         ring: "#D1FF3D",
       },

@@ -1,0 +1,87 @@
+## Error Type
+Build Error
+
+## Error Message
+  × Expected ';', '}' or <eof>
+
+## Build Output
+./src/lib/feed-image.ts
+Error:   × Expected ';', '}' or <eof>
+    ╭─[/home/runner/workspace/apps/web/src/lib/feed-image.ts:2:1]
+  1 │     
+  2 │ ╭─▶ ```typescript
+  3 │ │   import { LRUCache } from 'lru-cache';
+  4 │ │   
+  5 │ │   /**
+  6 │ │    * Centralized feed image handling module
+  7 │ │    * Returns optimized fallback thumbnails when article images are missing or invalid
+  8 │ │    * Uses deterministic hash-based selection from 4 fallback images
+  9 │ │    */
+ 10 │ │   
+ 11 │ │   // LRU cache for HEAD request results (60s TTL, max 1000 entries)
+ 12 │ │   const imageValidationCache = new LRUCache<string, boolean>({
+ 13 │ │     max: 1000,
+ 14 │ │     ttl: 60 * 1000, // 60 seconds
+ 15 │ │   });
+ 16 │ │   
+ 17 │ │   /**
+ 18 │ │    * Validates if a URL is a valid HTTP/HTTPS URL
+ 19 │ │    */
+ 20 │ │   function isValidHttpUrl(url: string): boolean {
+ 21 │ │     try {
+ 22 │ │       const parsed = new URL(url);
+ 23 │ │       return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+ 24 │ │     } catch {
+ 25 │ │       return false;
+ 26 │ │     }
+ 27 │ │   }
+ 28 │ │   
+ 29 │ │   /**
+ 30 │ │    * Check if an image URL is valid and accessible (cached)
+ 31 │ │    */
+ 32 │ │   async function validateImageUrl(url: string): Promise<boolean> {
+ 33 │ │     // Check cache first
+ 34 │ │     const cached = imageValidationCache.get(url);
+ 35 │ │     if (cached !== undefined) {
+ 36 │ │       return cached;
+ 37 │ │     }
+ 38 │ │   
+ 39 │ │     try {
+ 40 │ │       const controller = new AbortController();
+ 41 │ │       const timeoutId = setTimeout(() => controller.abort(), 3000);
+ 42 │ │   
+ 43 │ │       const response = await fetch(url, {
+ 44 │ │         method: 'HEAD',
+ 45 │ │         signal: controller.signal,
+ 46 │ │       });
+ 47 │ │   
+ 48 │ │       clearTimeout(timeoutId);
+ 49 │ │   
+ 50 │ │       const isValid =
+ 51 │ │         response.ok &&
+ 52 │ │         response.headers.get('content-type')?.startsWith('image/');
+ 53 │ │   
+ 54 │ │       imageValidationCache.set(url, isValid);
+ 55 │ │       return isValid;
+ 56 │ │     } catch {
+ 57 │ │       imageValidationCache.set(url, false);
+ 58 │ │       return false;
+ 59 │ │     }
+ 60 │ │   }
+ 61 │ │   
+ 62 │ │   /**
+ 63 │ │    * Generate URL for fallback thumbnail API
+ 64 │ │    */
+ 65 │ │   export function getFallbackUrl(id: string): string {
+ 66 │ ├─▶   return `/api/fallback-thumb/${encodeURIComponent(id)}`;
+    · ╰───                               ─
+    · ╰──── This is the expression part of an expression statement
+ 67 │     }
+ 68 │     
+ 69 │     /**
+    ╰────
+
+Caused by:
+    Syntax Error
+
+Next.js version: 15.5.6 (Webpack)

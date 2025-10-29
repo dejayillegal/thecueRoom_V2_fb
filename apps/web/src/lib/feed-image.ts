@@ -1,5 +1,3 @@
-
-```typescript
 import { LRUCache } from 'lru-cache';
 
 /**
@@ -49,7 +47,7 @@ async function validateImageUrl(url: string): Promise<boolean> {
 
     const isValid =
       response.ok &&
-      response.headers.get('content-type')?.startsWith('image/');
+      (response.headers.get('content-type')?.startsWith('image/') ?? false);
 
     imageValidationCache.set(url, isValid);
     return isValid;
@@ -118,4 +116,3 @@ export function getArticleImageSync(article: {
 
   return article.image;
 }
-```

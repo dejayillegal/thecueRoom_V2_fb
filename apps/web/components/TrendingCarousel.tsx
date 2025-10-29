@@ -63,7 +63,7 @@ TrendingCard.displayName = 'TrendingCard';
 
 export default function TrendingCarousel({ feeds }: { feeds: FeedItem[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const rafRef = useRef<number>();
+  const rafRef = useRef<number | undefined>(undefined);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
