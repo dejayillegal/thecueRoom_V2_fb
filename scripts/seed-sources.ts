@@ -49,7 +49,7 @@ async function seedSources() {
             enabled: source.enabled !== false,
           })
           .where(eq(sources.url, source.url));
-        
+
         console.log(`✓ Updated: ${source.name}`);
         updated++;
       } else {
@@ -60,7 +60,7 @@ async function seedSources() {
           tags: source.tags || [],
           enabled: source.enabled !== false,
         });
-        
+
         console.log(`✓ Added: ${source.name}`);
         added++;
       }

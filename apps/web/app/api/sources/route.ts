@@ -8,29 +8,20 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const db = getDbClient();
-    
-    const allSources = await db
-      .select({
-        id: sources.id,
-        name: sources.name,
-        url: sources.url,
-        tags: sources.tags,
-        enabled: sources.enabled,
-      })
-      .from(sources)
-      .where(eq(sources.enabled, true));
+    const allSources = await db.select().from(sources);
 
     return NextResponse.json({
-      data: allSources,
-    }, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
-      },
+      sources: allSources.map(source => ({
+        ...source,
+        enabled: source.enabled ?? true,
+        failureCount: source.failureCount ?? 0,
+      })),
+      total: allSources.length,
     });
   } catch (error) {
     console.error('Sources API error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch sources', data: [] },
+      { error: 'Failed to fetch sources' },
       { status: 500 }
     );
   }

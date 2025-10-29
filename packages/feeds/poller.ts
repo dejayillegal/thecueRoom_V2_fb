@@ -91,7 +91,7 @@ async function fetchFeedWithTimeout(
 
   } catch (error) {
     clearTimeout(timeoutId);
-    
+
     if (error instanceof Error && error.name === 'AbortError') {
       return {
         sourceId: source.id,
@@ -159,7 +159,7 @@ export class FeedPoller {
   updateConfig(config: Partial<PollerConfig>): void {
     this.config = { ...this.config, ...config };
     this.limit = pLimit(this.config.pollConcurrency);
-    
+
     // Restart with new config if already running
     if (this.isRunning) {
       this.stop();
@@ -172,7 +172,7 @@ export class FeedPoller {
    */
   private async fetchAllSources(): Promise<void> {
     const enabledSources = Array.from(this.sources.values()).filter(s => s.enabled);
-    
+
     if (enabledSources.length === 0) {
       console.log('[FeedPoller] No enabled sources to fetch');
       return;
@@ -201,7 +201,7 @@ export class FeedPoller {
     // Check if source should be backed off
     if (source.failureCount && source.failureCount > 0) {
       const backoffDelay = getBackoffDelay(source.failureCount);
-      const timeSinceLastFetch = source.lastFetch 
+      const timeSinceLastFetch = source.lastFetch
         ? Date.now() - source.lastFetch.getTime()
         : Infinity;
 
@@ -329,7 +329,7 @@ if (require.main === module) {
       poller.addSource({
         id: `sim-${i}`,
         name: `Simulated Feed ${i}`,
-        url: i % 3 === 0 
+        url: i % 3 === 0
           ? 'https://invalid-domain.com/feed.xml'  // 1/3 will fail
           : 'https://example.com/feed.xml',
         enabled: true,
