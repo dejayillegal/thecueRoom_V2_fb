@@ -30,7 +30,13 @@ The project utilizes a pnpm monorepo structure with `apps/web` for the Next.js f
 - **AI Integration:** OpenAI GPT-5 (text) and OpenAI DALL-E (images) are primary AI providers, with local Canvas fallback for image generation. An AI adapter pattern is used for multi-provider support and graceful degradation.
 - **Feed API:** Endpoints for feeds and sources with pagination and caching for performance.
 - **AI Cover Art Studio:** Features 10 professional SVG presets and multi-provider AI integration (Hugging Face Stable Diffusion XL, Google Gemini, SVG fallback). AI jobs are processed via a Background Worker with automated cleanup.
-- **AI EPK Generator:** Integrates OpenAI GPT-5 for professional text generation (bios, press quotes, tech riders) with AI-powered improvement features and graceful fallback. Supports PDF export and social platform integration.
+- **AI EPK Generator:** Production-ready implementation using OpenAI GPT-5 (released August 7, 2025) for professional text generation. Features include:
+  - **Separate AI Actions**: Bio generation, bio improvement, press quote generation, and tech rider generation with independent loading states
+  - **Smart Fallback**: Automatic fallback to template-based text when API unavailable or returns empty content
+  - **API Validation**: All endpoints validate responses for non-empty content before sending to client
+  - **Dual Interface**: Simple EPKEditor at `/ai/epk-generator` for quick generation, advanced EPKStudio at `/epk` for drag-and-drop customization
+  - **PDF Export**: Professional PDF generation with social platform integration
+  - **Backward Compatible**: Maintains compatibility with existing EPKStudio through rewrite endpoint
 - **Performance:** Includes fixes for memory leaks, TypeScript strict mode errors, optimized image loading with `Next.js Image` component, and robust WebSocket handling.
 
 **Feature Specifications:**
