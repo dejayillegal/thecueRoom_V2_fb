@@ -1,0 +1,269 @@
+REPLIT ASSISTANT TASK — thecueRoom: Full hardening, perf & AI flows (single-run)
+
+SUMMARY
+Implement the full set of improvements and features described below. Make code changes, run tests and diagnostics, commit, and return a machine-readable JSON report plus a short human summary. Preserve exact dashboard theme tokens and layout (internal pages only). Landing page may be redesigned.
+
+SCOPE (combined requirements)
+1. Preserve dashboard style/tokens/layout on internal pages.
+2. Remove/disable heavy GPU/motion effects globally except landing page.
+3. Replace icon-only controls with accessible Icon+Label component across the app.
+4. Centralize a single fallback thumbnail for feeds.
+5. AI-first generation with free-first fallback (Hugging Face if HF_TOKEN provided; otherwise high-quality procedural SVG → raster via sharp or JS fallback).
+6. Workerize heavy tasks (AI rasterize, composition) with concurrency limits and TEST_MODE.
+7. Implement server-side Compose API to stamp Artist Name + Release Title + watermark (server auto-stamp) and client-side CanvasEditor for manual edits.
+8. Robust feed poller: admin-configurable, workerized, self-healing, non-blocking, cached checks, disable-on-failure.
+9. Safe JSON handling — never call `.json()` on HTML responses unguarded.
+10. Comprehensive diagnostics: memory checks, scroll stress, Lighthouse, CSS scan.
+11. Full tests: typecheck, unit, e2e/perf, snapshots for dashboard layout.
+12. No TODOs. If a native dependency (sharp) fails in Replit, use a deterministic SVG raster fallback in TEST_MODE and document exact local commands to enable native later.
+13. Commit with a clear message and generate the required report.
+
+ENVIRONMENT / .env.example (add/update)
+- HF_TOKEN=                # optional Hugging Face token (optional)
+- AI_TEMP_DIR=/tmp/thecueroom-ai
+- AI_WORKER_CONCURRENCY=1
+- POLL_INTERVAL_SECONDS=60
+- POLL_CONCURRENCY=3
+- FEED_FAILURE_THRESHOLD=5
+- TEST_MODE=false
+
+DEPENDENCY INSTALL (commands for Replit / local)
+- pnpm -w install
+- pnpm --filter apps/web add p-limit cross-fetch sharp nanoid react-virtual
+- pnpm --filter apps/web add -D vitest playwright supertest axe-core @svg2png-js
+
+IMPORTANT: If `sharp` fails to build in Replit, the assistant must detect this at install time and automatically use `@svg2png-js` fallback paths in worker; tests must still run in TEST_MODE.
+
+FILES TO ADD / UPDATE (implement exact behavior; full file contents; no stubs)
+
+A. Global CSS & theme safety
+// FILE: apps/web/app/globals.css
+- Preserve root tokens exactly (--background, --surface, --tcr-accent, --primary, etc.) per preamble.
+- Remove or disable heavy GPU-heavy global effects (backdrop-filter, large blur) for internal pages. Add `.reduced-motion` rules.
+- Provide a small landing-page-only CSS class `.landing-heavy-visuals` which is allowed to have heavier effects.
+- Keep all color tokens unchanged and accessible.
+
+B. Icon + Label accessibility
+// FILE: apps/web/src/components/ui/IconLabelButton.tsx
+- New canonical accessible button that renders icon + visible label, supports variants, aria attributes, keyboard focus, and passes tests.
+- Replace all icon-only buttons across app (Sidebar, Header, toolbars, card actions, forum, gig list) with this component — preserve spacing/layout.
+
+C. Central fallback thumbnail & image helper
+// FILE: apps/web/public/fallback-thumbnail.png
+- Add single polished fallback PNG (if binary can't be written by Replit, create `fallback-thumbnail.svg` and use worker to rasterize once during setup).
+// FILE: apps/web/src/lib/feed-image.ts
+- Export `getFeedImageUrl(article)` that returns `article.image` if valid (cached HEAD check) else `/fallback-thumbnail.png`.
+// FILE: apps/web/src/components/ImageWithFallback.tsx
+- Lazy loads images, uses `decoding="async"`, IntersectionObserver, sets fallback onerror.
+
+D. Safe fetch utilities
+// FILE: apps/web/src/lib/safe-fetch.ts
+- `safeFetch(url, opts)` with AbortController and timeout.
+- `safeJsonResponse(res)` that first `await res.text()` then attempt JSON.parse; if HTML/invalid return `{ ok:false, status:res.status, snippet: text.slice(0,1024) }`.
+
+Replace all repo calls to `fetch(...).json()` with safeFetch + safeJsonResponse.
+
+E. Feed poller & Admin
+// FILE: packages/feeds/poller.ts
+- Implement start/stop/runOnce/simulate.
+- Use p-limit for concurrency; per-fetch AbortController (20s); retry transient errors up to 2 times (500ms → 1500ms backoff).
+- After configured failure threshold (FEED_FAILURE_THRESHOLD), mark feed disabled and log.
+- Persist feed metadata to `dev-data/feed_sources.json` for dev, and emit progress via EventEmitter; write logs to `logs/feed-poller.log`.
+- Run poller in worker thread / child_process to avoid blocking.
+
+// FILE: apps/web/app/(admin)/feed-settings/page.tsx
+- Dashboard-styled admin UI (table of sources, toggles, poller settings, Run Now button).
+- Uses same dashboard layout and theme tokens.
+
+// FILE: apps/web/app/api/admin/feed-settings/route.ts
+- GET returns current settings + feed list.
+- POST updates settings.
+- PATCH toggles feed enabled/disabled.
+- Protected by dev mock header `x-admin: true`.
+
+F. AI Worker & queue
+// FILE: packages/ai/worker.js
+- Node worker (worker_threads or child_process.fork).
+- Accept queue jobs via simple JSON queue in `dev-data/ai-queue.json` or via IPC.
+- Job types: `hfGenerateImage` (if HF_TOKEN), `rasterizeSvg`, `composeTextWatermark`, `thumbnailProcess`.
+- Respect AI_WORKER_CONCURRENCY.
+- Streaming `sharp` usage for SVG→PNG and compositing; if sharp unavailable, use `@svg2png-js` fallback.
+- Write outputs to `AI_TEMP_DIR/<jobId>.png` and status metadata to `<jobId>.json`.
+- Provide graceful cleanup and temp file retention policy (e.g., clean files older than 24h via `scripts/cleanup-ai-temp.js`).
+
+G. AI endpoints & Compose flows
+// FILE: apps/web/app/api/ai/env/route.ts
+- GET returns `{ hasAIKey: boolean }` depending on HF_TOKEN presence.
+
+// FILE: apps/web/app/api/ai/generate/route.ts
+- POST { prompt?, preset?, artist?, release?, resolution? }.
+- Validate with Zod.
+- Behavior:
+  - If HF_TOKEN present, try HF inference (respect rate limits & timeout) — fallback to procedural SVG if HF fails.
+  - If no HF_TOKEN or error, use `packages/ai/impl/fallback-svg.ts` to produce SVG and enqueue rasterize job.
+  - Always return JSON `{ jobId, status:'queued' }`.
+  - Never return HTML; use safeFetch/safeJsonResponse for external calls.
+
+// FILE: packages/ai/impl/fallback-svg.ts
+- Provide presets: Neon Accent, Monochrome, Geometric, Brutalist, Cybergrind, Vaporwave, Chromatic Grid, Noir Light, Acid Geometry, Liquid Metal — each produces high-quality, professional SVG at requested resolution. Randomize elements while maintaining composition rules (focal point, centered crop, typographic slot).
+- Export function that returns SVG string and small metadata (seed, preset).
+
+// FILE: apps/web/app/api/ai/queue/route.ts
+- POST enqueue job; returns `{ jobId, status: 'queued' }`.
+
+// FILE: apps/web/app/api/ai/job/[jobId]/route.ts
+- GET job status and result url when done.
+
+H. Compose (text + watermark) endpoints
+// FILE: apps/web/app/api/ai/compose/route.ts
+- POST: accepts { jobId, mode: "auto"|"editor", artistName, releaseTitle, watermarkText?, fontFamily?, fontSize?, color?, position?, opacity? }.
+- Zod-validate input; sanitize/escape text.
+- If mode==='auto', enqueue `composeTextWatermark` job to worker and return `{ composeJobId, status:'queued' }`.
+- If mode==='editor', return ephemeral result URL for client editor to use.
+- Always return structured JSON even on errors.
+
+// FILE: apps/web/app/api/ai/compose/status/[composeJobId]/route.ts
+- GET job status: progress, resultUrl or error.
+
+I. Frontend CoverArt UI & Canvas Editor
+// FILE: apps/web/src/components/AI/CoverArtStudio.tsx
+- Form with prompt input (enabled only when hasAIKey true) and presets (visible only when hasAIKey false).
+- When job done show two-card stepper: Preview card with "Download (Auto stamp)" and "Open Editor".
+- "Download (Auto stamp)" calls `/api/ai/compose` mode=auto and polls `/compose/status` then downloads PNG.
+- "Open Editor" opens CanvasEditor modal.
+
+// FILE: apps/web/src/components/AI/CanvasEditor.tsx
+- Robust canvas implementation:
+  - Uses createImageBitmap to load base.
+  - Renders base then draws text with stroke for readability.
+  - Exposes controls: Artist, Release, watermark (on/off), font family, size, color, position, opacity, shadow toggle.
+  - Undo/redo depth 3.
+  - Export: `canvas.toBlob()` and either direct download or POST to `/api/ai/compose` mode=editor to store server copy.
+  - Memory-safe cleanup (revokeObjectURL, close ImageBitmap).
+
+J. Image components & feed item changes
+// FILE: apps/web/src/components/FeedItem.tsx
+- Uses ImageWithFallback and centralized feed-image rules. No title-on-image fallback. Use single `/fallback-thumbnail.png` for missing thumbnails.
+
+K. Virtualization & hook fixes
+- Replace long lists rendering with react-virtual in key lists (feed list, forum threads).
+- Ensure `use-debounce`, `use-safe-interval`, `use-event-listener` proper cleanup to avoid leaks.
+
+L. Diagnostics, tests & scripts
+// FILE: scripts/diag/check-heavy-css.js
+- Scan CSS files for banned heavy properties in dashboard files; landing page exceptions allowed via a whitelist. Exit non-zero if banned found in dashboard CSS.
+
+// FILE: scripts/diag/run-scroll-stress.js
+- Playwright/Puppeteer script that loads `/feed`, auto-scrolls, records frame drops and long tasks, outputs JSON summary.
+
+// FILE: scripts/diag/check-memory.js
+- Spawns 3 TEST_MODE worker compose jobs and records heapUsed before/after; fail if growth > 50MB.
+
+// FILE: tests/snapshots/dashboard-snap.test.ts
+- Snapshot tests for `/dashboard`, `/dashboard/gigs`, `/dashboard/community` verifying layout & classnames unchanged.
+
+// FILE: tests/ai/compose.test.ts
+- Tests server-side compose in TEST_MODE flow; asserts result file exists and metadata contains artist/release.
+
+// FILE: scripts/cleanup-ai-temp.js
+- Remove temp images older than 24h.
+
+M. Admin poller API
+// FILE: apps/web/app/api/admin/feed-poller/route.ts
+- GET poller status, POST start/stop/run-now. Protected by dev header.
+
+N. Makefile & developer commands
+// FILE: Makefile
+- Targets: dev, ci, build, migrate, seed, diag (run diag scripts).
+- Provide `make dev` to run local supabase (docker-compose snippet if necessary), start worker and web concurrently.
+
+ACCEPTANCE CHECKS & RUNBOOK (assistant must run these)
+1. Install deps:
+   - pnpm -w install
+   - pnpm --filter apps/web add p-limit cross-fetch sharp nanoid react-virtual
+   - pnpm --filter apps/web add -D vitest playwright supertest axe-core @svg2png-js
+   - If sharp fails, assistant must log fallback and use @svg2png-js in worker.
+
+// Typecheck
+2. pnpm -w tsc --noEmit  -> must be 0 errors
+
+// Unit tests
+3. pnpm --filter apps/web test:unit -> pass (including ai/compose.test in TEST_MODE)
+
+// Snapshot tests
+4. pnpm --filter apps/web test:snap -> pass and show no diffs for dashboard routes
+
+// Poller simulation
+5. TEST_MODE=true node packages/feeds/poller.js --simulate 50 --duration 15
+   - Must respect concurrency, disable failing sources after threshold, and not crash
+
+// AI worker simulation
+6. TEST_MODE=true node packages/ai/worker.js
+   - Enqueue 3 rasterize/compose jobs:
+     curl -X POST http://localhost:3000/api/ai/queue -H "Content-Type: application/json" -d '{"preset":"Neon Accent","artist":"Test","release":"Test EP"}'
+   - Poll /api/ai/job/:jobId until status done and ensure /api/ai/job/:jobId/result returns PNG with Content-Type image/png
+
+// Scroll stress
+7. node scripts/diag/run-scroll-stress.js http://localhost:3000/feed
+   - Frame drops <= 5%, long tasks <= 100ms
+
+// CSS heavy check
+8. node scripts/diag/check-heavy-css.js
+   - Must pass for dashboard files
+
+// Memory check
+9. node scripts/diag/check-memory.js
+   - Heap growth < 50MB for 3 concurrent compose jobs
+
+// Lighthouse (optional if environment permits)
+10. node scripts/diag/run-lighthouse-local.js http://localhost:3000
+   - If cannot run in Replit, log skipped and provide exact local commands
+
+COMMIT & REPORT (assistant must run and include outputs)
+- Commit message:
+  feat(ui/perf): reduce heavy animations, workerize ai, centralized fallback thumbnail, robust poller, preserve dashboard layout
+
+- After commit, output:
+  1. `git show --name-status HEAD`
+  2. `pnpm -w tsc --noEmit` output
+  3. `pnpm --filter apps/web test:unit` summary
+  4. Snapshot test summary and diffs (if any). If diffs exist for dashboard routes, revert them and report failure.
+  5. `node scripts/diag/check-heavy-css.js` output
+  6. `node scripts/diag/run-scroll-stress.js` summary (frame drops %, max main-thread block)
+  7. `node scripts/diag/check-memory.js` summary (heapUsed before/after)
+  8. AI worker sample job logs (list jobIds and final result URLs)
+  9. Confirmation that `/public/fallback-thumbnail.png` is used for sample feeds (list sample feed item demonstrating fallback)
+ 10. Machine-readable JSON at end:
+    {
+      "status":"success"|"failed",
+      "commit":"<sha>",
+      "files_changed":[...],
+      "tsc":"<ok or error>",
+      "unit_tests":"<summary>",
+      "snapshots":"<summary>",
+      "poller_simulation":"<log excerpt>",
+      "ai_worker_jobs":["<jobId>: <url>", ...],
+      "scroll_stress":"<summary>",
+      "css_check":"<summary>",
+      "memory_check":"<summary>"
+    }
+ 11. 4-line human summary of top fixes and next recommended steps.
+
+FAILOVER / NOTES (assistant must follow if environment limits encountered)
+- If `sharp` fails to install: log the failure, switch the worker to `@svg2png-js` fallback, ensure TEST_MODE tests still run. Provide exact local commands to install `sharp` later:
+  - apt-get update && apt-get install -y build-essential libvips-dev
+  - pnpm --filter apps/web add sharp
+- If Playwright cannot run in Replit: run snapshot and unit tests and mark Playwright steps skipped with exact commands to run locally.
+- If node worker threads blocked in Replit: fallback to child_process.fork with IPC.
+
+NON-NEGOTIABLE RULES (enforce in code)
+- No HTML is returned to the client where JSON expected. If external fetch returns HTML, server returns a structured JSON error using `safeJsonResponse`.
+- No change to dashboard tokens, spacing, or component layout files used by internal pages. Snapshot tests must confirm.
+- All interactive controls in internal pages must have icon + visible label text.
+- Single fallback image only; do not generate title-on-image fallbacks.
+- No TODOs in committed code.
+
+RUN THIS NOW (single action)
+- Implement all items above, run acceptance checks, commit with message given, and return the full report & JSON summary.
+
+END
