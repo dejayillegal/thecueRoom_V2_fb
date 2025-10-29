@@ -265,7 +265,7 @@ async function generateImageWithAI(prompt: string, params?: any): Promise<string
   if (hasHFKey) {
     try {
       console.log('🎨 Generating album cover with Hugging Face AI...');
-      const { generateWithHuggingFace } = await import('../../../packages/ai/impl/hf.js');
+      const { generateWithHuggingFace } = await import('../../../../packages/ai/impl/hf');
       
       const result = await generateWithHuggingFace(
         {
@@ -357,7 +357,7 @@ async function generateImageWithAI(prompt: string, params?: any): Promise<string
 
 async function generatePlaceholderImage(prompt: string, params?: any): Promise<string> {
   try {
-    const { generateFallbackSVG } = await import('../../../packages/ai/impl/fallback-svg.js');
+    const { generateFallbackSVG } = await import('../../../../packages/ai/impl/fallback-svg');
     
     const style = params?.style || 'neon-accent';
     const artist = params?.artist || '';

@@ -21,7 +21,8 @@
     "ai:worker": "pnpm --filter worker ai",
     "test": "pnpm -r test",
     "clean": "pnpm -r clean",
-    "create-admin": "tsx scripts/create-admin-user.ts"
+    "create-admin": "tsx scripts/create-admin-user.ts",
+    "cleanup:ai": "node scripts/cleanup-ai-temp.js"
   },
   "postinstall": "echo '\n✨ Run \"pnpm setup\" to initialize the database and fetch feeds'",
   "engines": {

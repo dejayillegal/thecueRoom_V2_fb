@@ -231,7 +231,7 @@ export function CoverArtStudio() {
             <div className="flex gap-2">
               <Button
                 onClick={handleGenerate}
-                disabled={isGenerating || isPolling || (hasAIKey && !prompt.trim())}
+                disabled={isGenerating || isPolling || (hasAIKey === true && !prompt.trim())}
                 className="flex-1 bg-[#D1FF3D] text-black hover:bg-[#e7ff6f] font-semibold"
               >
                 {isGenerating || isPolling ? (
