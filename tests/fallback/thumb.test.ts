@@ -14,15 +14,15 @@ describe('Fallback Thumbnail System', () => {
 
     it('should return values within bucket range', () => {
       const id = 'test-article-456';
-      const result = hashToIndex(id, 4);
+      const result = hashToIndex(id, 3);
       expect(result).toBeGreaterThanOrEqual(0);
-      expect(result).toBeLessThan(4);
+      expect(result).toBeLessThan(3);
     });
 
     it('should distribute values across buckets', () => {
       const ids = Array.from({ length: 100 }, (_, i) => `article-${i}`);
-      const results = ids.map(id => hashToIndex(id, 4));
-      const distribution = [0, 0, 0, 0];
+      const results = ids.map(id => hashToIndex(id, 3));
+      const distribution = [0, 0, 0];
       results.forEach(r => distribution[r]++);
       
       // Each bucket should have at least some values
@@ -33,10 +33,10 @@ describe('Fallback Thumbnail System', () => {
   });
 
   describe('getFallbackNumber', () => {
-    it('should return a number between 1 and 4', () => {
+    it('should return a number between 1 and 3', () => {
       const result = getFallbackNumber('test-article');
       expect(result).toBeGreaterThanOrEqual(1);
-      expect(result).toBeLessThanOrEqual(4);
+      expect(result).toBeLessThanOrEqual(3);
     });
   });
 

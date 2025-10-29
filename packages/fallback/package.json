@@ -8,5 +8,5 @@
     "./worker": "./worker.ts"
   },
   "dependencies": {},
-  "description": "DEPRECATED: Fallback images now served directly from public/fallbacks"
+  "description": "DEPRECATED: Fallback images now served directly from apps/web/public/fallbacks"
 }

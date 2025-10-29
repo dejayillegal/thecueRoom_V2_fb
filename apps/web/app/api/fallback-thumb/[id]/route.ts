@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs/promises';
@@ -15,24 +16,25 @@ function getETag(id: string, fallbackNumber: number): string {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    // Await params in Next.js 15
+    const { id } = await params;
 
-    // Determine which fallback to use
+    // Determine which fallback to use (1-3 only, not 4)
     let fallbackIndex: number;
     if (ENABLE_ROTATION) {
       // Random but seeded by id + hour epoch for cache-friendly rotation
       const hourEpoch = Math.floor(Date.now() / (1000 * 60 * 60));
-      fallbackIndex = hashToIndex(`${id}-${hourEpoch}`, 4);
+      fallbackIndex = hashToIndex(`${id}-${hourEpoch}`, 3);
     } else {
       // Deterministic selection
-      fallbackIndex = hashToIndex(id, 4);
+      fallbackIndex = hashToIndex(id, 3);
     }
 
     const fallbackNumber = fallbackIndex + 1;
-    const imagePath = path.join(process.cwd(), 'public', 'fallbacks', `fallback_${fallbackNumber}.png`);
+    const imagePath = path.join(process.cwd(), 'apps/web/public/fallbacks', `fallback_${fallbackNumber}.png`);
 
     // Check if image exists
     try {
@@ -47,7 +49,7 @@ export async function GET(
       return new NextResponse(null, { status: 304 });
     }
 
-    // Stream the file directly
+    // Stream the file directly - no sharp processing needed
     const stats = await fs.stat(imagePath);
     const stream = createReadStream(imagePath);
 
