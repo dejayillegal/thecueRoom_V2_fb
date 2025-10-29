@@ -253,6 +253,104 @@ function buildCoverArtPrompt(userPrompt: string, params?: any): string {
   
   // Quality markers
   prompt += `Quality: Studio-grade artwork, publication-ready, no watermarks, professional color grading, `;
+
+
+async function addTextOverlay(imageUrl: string, params: any): Promise<string> {
+  try {
+    const { createCanvas, loadImage } = await import('canvas');
+    
+    // Load the base image
+    const image = await loadImage(imageUrl);
+    const canvas = createCanvas(image.width, image.height);
+    const ctx = canvas.getContext('2d');
+    
+    // Draw the base image
+    ctx.drawImage(image, 0, 0);
+    
+    const artist = params?.artist || '';
+    const release = params?.release || '';
+    const style = params?.style || 'neon';
+    
+    // Style configurations
+    const styleConfigs: Record<string, { textColor: string; shadowColor: string; bgColor: string }> = {
+      neon: { textColor: '#D1FF3D', shadowColor: '#8B00FF', bgColor: 'rgba(0, 0, 0, 0.7)' },
+      monochrome: { textColor: '#FFFFFF', shadowColor: '#000000', bgColor: 'rgba(0, 0, 0, 0.8)' },
+      geometric: { textColor: '#00BFFF', shadowColor: '#0066CC', bgColor: 'rgba(0, 0, 0, 0.6)' },
+      brutalist: { textColor: '#FF3333', shadowColor: '#660000', bgColor: 'rgba(20, 20, 20, 0.9)' }
+    };
+    
+    const config = styleConfigs[style] || styleConfigs.neon;
+    const padding = 40;
+    const textY = image.height - padding;
+    
+    // Configure text styling
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'bottom';
+    
+    // Draw semi-transparent background for text
+    const artistFontSize = Math.max(48, image.width / 20);
+    const releaseFontSize = Math.max(32, image.width / 30);
+    
+    ctx.font = `bold ${artistFontSize}px "Arial Black", sans-serif`;
+    const artistWidth = artist ? ctx.measureText(artist).width : 0;
+    
+    ctx.font = `${releaseFontSize}px Arial, sans-serif`;
+    const releaseWidth = release ? ctx.measureText(release).width : 0;
+    
+    const maxWidth = Math.max(artistWidth, releaseWidth);
+    const bgHeight = (artist && release) ? 140 : 80;
+    
+    if (artist || release) {
+      ctx.fillStyle = config.bgColor;
+      ctx.fillRect(padding - 20, textY - bgHeight + 20, maxWidth + 40, bgHeight);
+    }
+    
+    // Draw artist name
+    if (artist) {
+      ctx.font = `bold ${artistFontSize}px "Arial Black", sans-serif`;
+      ctx.shadowColor = config.shadowColor;
+      ctx.shadowBlur = 15;
+      ctx.shadowOffsetX = 3;
+      ctx.shadowOffsetY = 3;
+      ctx.fillStyle = config.textColor;
+      ctx.fillText(artist, padding, textY - (release ? 60 : 20));
+    }
+    
+    // Draw release title
+    if (release) {
+      ctx.font = `${releaseFontSize}px Arial, sans-serif`;
+      ctx.shadowColor = config.shadowColor;
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
+      ctx.fillStyle = config.textColor;
+      ctx.fillText(release, padding, textY - 10);
+    }
+    
+    // Add watermark in bottom right
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.font = '16px Arial';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.textAlign = 'right';
+    const watermark = 'thecueRoom.com';
+    ctx.fillText(watermark, image.width - padding, image.height - 20);
+    
+    // Convert to base64
+    const buffer = canvas.toBuffer('image/png');
+    const base64 = buffer.toString('base64');
+    
+    console.log('✅ Text overlay added successfully');
+    return `data:image/png;base64,${base64}`;
+    
+  } catch (error) {
+    console.error('❌ Text overlay failed:', error);
+    // Return original image if overlay fails
+    return imageUrl;
+  }
+}
+
   prompt += `high detail and clarity, suitable for professional release on major platforms.`;
 
   return prompt;
@@ -261,6 +359,8 @@ function buildCoverArtPrompt(userPrompt: string, params?: any): string {
 async function generateImageWithAI(prompt: string, params?: any): Promise<string> {
   const hasHFKey = process.env.HF_TOKEN || process.env.HUGGINGFACE_KEY;
   const hasGeminiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+  
+  let baseImageUrl: string | null = null;
   
   if (hasHFKey) {
     try {
@@ -280,14 +380,14 @@ async function generateImageWithAI(prompt: string, params?: any): Promise<string
       if (result.success && result.imageBuffer) {
         const base64 = result.imageBuffer.toString('base64');
         console.log('✅ Hugging Face generation successful!');
-        return `data:image/png;base64,${base64}`;
+        baseImageUrl = `data:image/png;base64,${base64}`;
       }
     } catch (error) {
       console.error('❌ HF generation failed:', error);
     }
   }
   
-  if (hasGeminiKey) {
+  if (!baseImageUrl && hasGeminiKey) {
     try {
       console.log('🎨 Generating album cover with Gemini AI...');
       console.log('Prompt:', prompt.substring(0, 150) + '...');
@@ -317,9 +417,8 @@ async function generateImageWithAI(prompt: string, params?: any): Promise<string
       
       if (imageData && 'inlineData' in imageData && imageData.inlineData) {
         const base64Data = imageData.inlineData.data;
-        const imageUrl = `data:${imageData.inlineData.mimeType};base64,${base64Data}`;
+        baseImageUrl = `data:${imageData.inlineData.mimeType};base64,${base64Data}`;
         console.log('✅ AI generation successful!');
-        return imageUrl;
       } else {
         console.log('⚠️ No image data in response, trying text generation with image prompt...');
         
@@ -338,21 +437,30 @@ async function generateImageWithAI(prompt: string, params?: any): Promise<string
         
         if (flashImageData && 'inlineData' in flashImageData && flashImageData.inlineData) {
           const base64Data = flashImageData.inlineData.data;
+          baseImageUrl = `data:${flashImageData.inlineData.mimeType};base64,${base64Data}`;
           console.log('✅ Flash AI generation successful!');
-          return `data:${flashImageData.inlineData.mimeType};base64,${base64Data}`;
         }
       }
     } catch (error) {
       console.error('❌ AI generation failed:', error);
       console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
     }
-  } else {
-    console.log('⚠️ No AI API key found - using advanced SVG fallback');
-    console.log('💡 Add HF_TOKEN or GOOGLE_API_KEY to Secrets to enable real AI generation');
   }
   
-  console.log('📦 Generating advanced procedural SVG...');
-  return generatePlaceholderImage(prompt, params);
+  if (!baseImageUrl) {
+    console.log('⚠️ No AI API key found - using advanced SVG fallback');
+    console.log('💡 Add HF_TOKEN or GOOGLE_API_KEY to Secrets to enable real AI generation');
+    console.log('📦 Generating advanced procedural SVG...');
+    baseImageUrl = await generatePlaceholderImage(prompt, params);
+  }
+  
+  // Add text overlay and watermark if artist/release provided
+  if (params?.artist || params?.release) {
+    console.log('✍️ Adding text overlay to generated image...');
+    return await addTextOverlay(baseImageUrl, params);
+  }
+  
+  return baseImageUrl;
 }
 
 async function generatePlaceholderImage(prompt: string, params?: any): Promise<string> {
