@@ -44,6 +44,9 @@ importers:
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
+      cross-fetch:
+        specifier: ^4.1.0
+        version: 4.1.0
       drizzle-orm:
         specifier: ^0.36.4
         version: 0.36.4(@types/react@19.2.2)(postgres@3.4.7)(react@19.2.0)
@@ -59,6 +62,9 @@ importers:
       msw:
         specifier: ^2.11.6
         version: 2.11.6(@types/node@20.19.23)(typescript@5.9.3)
+      nanoid:
+        specifier: ^5.1.6
+        version: 5.1.6
       node-cron:
         specifier: ^4.2.1
         version: 4.2.1
@@ -92,6 +98,9 @@ importers:
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(@types/node@20.19.23)(@vitest/ui@3.2.4)(happy-dom@17.6.3)(jiti@1.21.7)(jsdom@23.2.0(canvas@2.11.2))(msw@2.11.6(@types/node@20.19.23)(typescript@5.9.3))(tsx@4.20.6)
+      zod:
+        specifier: ^4.1.12
+        version: 4.1.12
     devDependencies:
       '@types/node':
         specifier: ^20.19.23
@@ -273,7 +282,26 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^1.1.0
-        version: 1.6.1(@types/node@20.19.23)(@vitest/ui@3.2.4)(happy-dom@17.6.3)(jsdom@23.2.0(canvas@2.11.2))
+        version: 1.6.1(@types/node@20.19.23)(@vitest/ui@3.2.4(vitest@3.2.4))(happy-dom@17.6.3)(jsdom@23.2.0(canvas@2.11.2))
+
+  packages/ai:
+    dependencies:
+      cross-fetch:
+        specifier: ^4.1.0
+        version: 4.1.0
+      nanoid:
+        specifier: ^5.0.9
+        version: 5.1.6
+      sharp:
+        specifier: ^0.34.4
+        version: 0.34.4
+    devDependencies:
+      '@types/node':
+        specifier: ^20.19.23
+        version: 20.19.23
+      typescript:
+        specifier: ^5.8.1
+        version: 5.9.3
 
   packages/ai-adapters:
     dependencies:
@@ -2950,6 +2978,9 @@ packages:
     resolution: {integrity: sha512-9Kr/j4O16ISv8zBBhJoi4bXOYNTkFLOqSL3UDB0njXxCXNezjeyVrJyGOWtgfs/q2km1gwBcfH8q1yEGoMYunA==}
     engines: {node: '>=18'}
 
+  cross-fetch@4.1.0:
+    resolution: {integrity: sha512-uKm5PU+MHTootlWEY+mZ4vvXoCn4fLQxT9dSc1sXVMSFkINTJVN8cAQROpwcKm8bJ/c7rgZVIBWzH5T78sNZZw==}
+
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
@@ -4269,6 +4300,11 @@ packages:
   nanoid@3.3.11:
     resolution: {integrity: sha512-N8SpfPUnUp1bK+PMYW8qSWdl9U+wwNWI4QKxOYDy9JAro3WMX7p2OeVRF9v+347pnakNevPmiHhNmZ2HbFA76w==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
+    hasBin: true
+
+  nanoid@5.1.6:
+    resolution: {integrity: sha512-c7+7RQ+dMB5dPwwCp4ee1/iV/q2P6aK1mTZcfr1BTuVlyW9hJYiMPybJCcnBlQtuSmTIWNeazm/zqNoZSSElBg==}
+    engines: {node: ^18 || >=20}
     hasBin: true
 
   napi-postinstall@0.3.4:
@@ -5679,6 +5715,9 @@ packages:
 
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+
+  zod@4.1.12:
+    resolution: {integrity: sha512-JInaHOamG8pt5+Ey8kGmdcAcg3OL9reK8ltczgHTAwNhMys/6ThXHityHxVV2p3fkw/c+MAvBHFVYHFZDmjMCQ==}
 
 snapshots:
 
@@ -8012,6 +8051,12 @@ snapshots:
 
   cookie@1.0.2: {}
 
+  cross-fetch@4.1.0:
+    dependencies:
+      node-fetch: 2.7.0
+    transitivePeerDependencies:
+      - encoding
+
   cross-spawn@7.0.6:
     dependencies:
       path-key: 3.1.1
@@ -9517,6 +9562,8 @@ snapshots:
 
   nanoid@3.3.11: {}
 
+  nanoid@5.1.6: {}
+
   napi-postinstall@0.3.4: {}
 
   natural-compare@1.4.0: {}
@@ -10871,7 +10918,7 @@ snapshots:
       jiti: 1.21.7
       tsx: 4.20.6
 
-  vitest@1.6.1(@types/node@20.19.23)(@vitest/ui@3.2.4)(happy-dom@17.6.3)(jsdom@23.2.0(canvas@2.11.2)):
+  vitest@1.6.1(@types/node@20.19.23)(@vitest/ui@3.2.4(vitest@3.2.4))(happy-dom@17.6.3)(jsdom@23.2.0(canvas@2.11.2)):
     dependencies:
       '@vitest/expect': 1.6.1
       '@vitest/runner': 1.6.1
@@ -11131,3 +11178,5 @@ snapshots:
   yoga-layout@3.2.1: {}
 
   zod@3.25.76: {}
+
+  zod@4.1.12: {}
