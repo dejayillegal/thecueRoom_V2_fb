@@ -20,9 +20,9 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
   const [isLoading, setIsLoading] = useState(true);
 
   return (
-    <article className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all group">
+    <article className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all group rounded-lg">
       <Link href={feed.url} target="_blank" rel="noopener noreferrer">
-        <div className="relative h-64 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
+        <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
           {isLoading && (
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
           )}
@@ -39,30 +39,30 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
           />
           
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent">
-            <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
+            <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 space-y-1.5 sm:space-y-2">
               <div className="flex items-center justify-between text-xs text-white/80">
-                <span className="font-medium text-primary">
+                <span className="font-medium text-primary truncate max-w-[60%]">
                   {feed.source || 'Unknown Source'}
                 </span>
-                <span>{formatDate(feed.publishedAt)}</span>
+                <span className="text-[10px] sm:text-xs">{formatDate(feed.publishedAt)}</span>
               </div>
               
-              <h3 className="text-lg font-semibold line-clamp-2 text-white group-hover:text-primary transition-colors">
+              <h3 className="text-sm sm:text-base md:text-lg font-semibold line-clamp-2 text-white group-hover:text-primary transition-colors">
                 {feed.title}
               </h3>
               
               {feed.summary && (
-                <p className="text-sm text-white/70 line-clamp-2">
+                <p className="text-xs sm:text-sm text-white/70 line-clamp-2 hidden sm:block">
                   {feed.summary}
                 </p>
               )}
               
               {feed.tags && feed.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 pt-1">
+                <div className="flex flex-wrap gap-1 sm:gap-1.5 pt-1">
                   {feed.tags.slice(0, 3).map((tag, idx) => (
                     <span 
                       key={idx}
-                      className="px-2 py-0.5 text-xs bg-primary/20 text-primary border border-primary/30"
+                      className="px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs bg-primary/20 text-primary border border-primary/30 rounded"
                     >
                       {tag}
                     </span>
@@ -179,10 +179,10 @@ export default function NewsSection() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {[...Array(6)].map((_, i) => (
-          <article key={i} className="bg-card overflow-hidden border border-border">
-            <div className="relative h-64 bg-gradient-to-br from-primary/10 to-secondary/10 animate-pulse" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+        {[...Array(8)].map((_, i) => (
+          <article key={i} className="bg-card overflow-hidden border border-border rounded-lg">
+            <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-secondary/10 animate-pulse" />
           </article>
         ))}
       </div>
@@ -199,7 +199,7 @@ export default function NewsSection() {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
         {newsFeeds.map((feed) => (
           <FeedCard key={feed.id} feed={feed} formatDate={formatDate} />
         ))}

@@ -30,10 +30,10 @@ const TrendingCard = memo(({ feed, index }: { feed: FeedItem; index: number }) =
       href={feed.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="block group flex-shrink-0 w-64"
+      className="block group flex-shrink-0 w-56 sm:w-64 md:w-72"
     >
-      <div className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all">
-        <div className="relative h-40 bg-gradient-to-br from-primary/10 to-secondary/10">
+      <div className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all rounded-lg">
+        <div className="relative h-36 sm:h-40 md:h-44 bg-gradient-to-br from-primary/10 to-secondary/10">
           {isLoading && (
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
           )}
@@ -49,11 +49,11 @@ const TrendingCard = memo(({ feed, index }: { feed: FeedItem; index: number }) =
             loading="lazy"
           />
         </div>
-        <div className="p-3">
-          <h4 className="text-sm font-semibold line-clamp-2 mb-1 group-hover:text-primary transition-colors">
+        <div className="p-2.5 sm:p-3">
+          <h4 className="text-xs sm:text-sm font-semibold line-clamp-2 mb-1 group-hover:text-primary transition-colors">
             {feed.title}
           </h4>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 text-[10px] sm:text-xs text-muted-foreground">
             <span className="truncate">{feed.source}</span>
           </div>
         </div>
