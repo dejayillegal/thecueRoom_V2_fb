@@ -228,3 +228,130 @@ export function truncate(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength - 3) + '...';
 }
+export function deterministicRewrite(text: string, tone: 'press' | 'concise' | 'promotional' | 'technical'): {
+  tagline: string;
+  blurb: string;
+  epk_bio: string;
+} {
+  const words = text.trim().split(/\s+/);
+  
+  // Extract key information
+  const genres = extractGenres(text);
+  const venues = extractVenues(text);
+  const experience = extractExperience(text);
+  
+  // Generate tagline
+  const tagline = generateTagline(genres, tone);
+  
+  // Generate blurb (90-160 chars)
+  const blurb = generateBlurb(text, genres, tone);
+  
+  // Generate full EPK bio (250-550 chars)
+  const epk_bio = generateEPKBio(text, genres, venues, experience, tone);
+  
+  return { tagline, blurb, epk_bio };
+}
+
+function extractGenres(text: string): string[] {
+  const genreKeywords = ['techno', 'house', 'ambient', 'minimal', 'bass', 'dub', 'experimental', 'electronic', 'acid', 'trance'];
+  const found: string[] = [];
+  const lowerText = text.toLowerCase();
+  
+  genreKeywords.forEach(genre => {
+    if (lowerText.includes(genre)) {
+      found.push(genre.charAt(0).toUpperCase() + genre.slice(1));
+    }
+  });
+  
+  return found.slice(0, 3);
+}
+
+function extractVenues(text: string): string[] {
+  const venuePattern = /\b(?:Berghain|Fabric|Panorama Bar|Tresor|Printworks|Movement|Dekmantel|Awakenings|Sonar|Burning Man)\b/gi;
+  const matches = text.match(venuePattern) || [];
+  return [...new Set(matches)].slice(0, 3);
+}
+
+function extractExperience(text: string): string | null {
+  const expPattern = /(\d+)\s*(?:years?|yrs?)/i;
+  const match = text.match(expPattern);
+  return match ? match[1] : null;
+}
+
+function generateTagline(genres: string[], tone: string): string {
+  if (genres.length === 0) return 'Electronic Music Artist';
+  
+  const toneMap: Record<string, string[]> = {
+    press: ['Acclaimed', 'Celebrated', 'Innovative', 'Groundbreaking'],
+    concise: ['', '', '', ''],
+    promotional: ['Electrifying', 'Unforgettable', 'Boundary-Pushing', 'Dynamic'],
+    technical: ['Experienced', 'Specialist', 'Expert', 'Professional']
+  };
+  
+  const prefix = toneMap[tone][Math.floor(genres.join('').length % 4)];
+  const genreText = genres.length > 1 ? genres.slice(0, 2).join(' & ') : genres[0];
+  
+  return prefix ? `${prefix} ${genreText} Artist` : `${genreText} Producer & DJ`;
+}
+
+function generateBlurb(text: string, genres: string[], tone: string): string {
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
+  const firstSentence = sentences[0] || text.substring(0, 100);
+  
+  let blurb = firstSentence.trim();
+  
+  // Ensure it's between 90-160 chars
+  if (blurb.length < 90) {
+    const genreText = genres.length > 0 ? ` Known for ${genres[0].toLowerCase()} productions` : '';
+    blurb += genreText;
+  }
+  
+  if (blurb.length > 160) {
+    blurb = blurb.substring(0, 157) + '...';
+  }
+  
+  return blurb;
+}
+
+function generateEPKBio(text: string, genres: string[], venues: string[], experience: string | null, tone: string): string {
+  let bio = text.trim();
+  
+  // Add professional enhancements based on tone
+  if (tone === 'press' && venues.length > 0) {
+    bio += ` Known for electrifying performances at ${venues.join(', ')}.`;
+  }
+  
+  if (tone === 'promotional') {
+    bio += ' Delivering unforgettable experiences that captivate audiences worldwide.';
+  }
+  
+  if (tone === 'technical' && genres.length > 0) {
+    bio += ` Specializing in ${genres.join(', ')} with technical mastery and innovative sound design.`;
+  }
+  
+  // Ensure minimum length
+  if (bio.length < 250) {
+    bio += ' A dynamic force in the electronic music scene, pushing boundaries and creating immersive sonic experiences.';
+  }
+  
+  // Truncate if too long
+  if (bio.length > 550) {
+    bio = bio.substring(0, 547) + '...';
+  }
+  
+  return bio;
+}
+
+export function sanitizeForHTML(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+export function truncate(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength - 3) + '...';
+}

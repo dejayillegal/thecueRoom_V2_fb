@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-const createModuleId = () => `module_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 import { Plus, X, GripVertical } from 'lucide-react';
+
+const createModuleId = () => `module_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
 export interface TechRiderItem {
   id: string;
