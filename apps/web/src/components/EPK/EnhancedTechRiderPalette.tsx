@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { createModuleId } from '@/lib/epk/utils';
+const createModuleId = () => `module_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 import { Plus, X, GripVertical } from 'lucide-react';
 
 export interface TechRiderItem {

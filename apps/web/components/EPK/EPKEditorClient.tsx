@@ -10,7 +10,8 @@ import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import EnhancedTechRiderPalette from './EnhancedTechRiderPalette';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import EnhancedTechRiderPalette from '@/components/EPK/EnhancedTechRiderPalette';
 import { 
   FileText, 
   Download, 
@@ -23,7 +24,9 @@ import {
   Loader2,
   ExternalLink,
   Image as ImageIcon,
-  Wand2
+  Wand2,
+  Upload,
+  Save
 } from 'lucide-react';
 
 interface Release {
@@ -277,6 +280,26 @@ export function EPKEditorClient() {
     }
   };
 
+  // Add venue
+  const addVenue = () => {
+    setVenues([...venues, { id: Date.now().toString(), name: '' }]);
+  };
+
+  // Add release
+  const addRelease = () => {
+    setReleases([...releases, { id: Date.now().toString(), title: '', coverUrl: '', link: '' }]);
+  };
+
+  // Add quote
+  const addQuote = () => {
+    setQuotes([...quotes, { id: Date.now().toString(), text: '', source: '' }]);
+  };
+
+  // Add radio/press
+  const addRadioPress = () => {
+    setRadioPress([...radioPress, { id: Date.now().toString(), name: '', type: 'radio' }]);
+  };
+
   // Export EPK
   const handleExport = async (format: 'pdf' | 'zip') => {
     setIsExporting(true);
@@ -330,154 +353,386 @@ export function EPKEditorClient() {
           <p className="text-gray-400 text-lg">Create professional press kits with AI assistance and live preview</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* LEFT COLUMN - Editor Form */}
-          <div className="space-y-6 overflow-y-auto max-h-[calc(100vh-200px)]">
-            {/* Basic Info */}
-            <Card className="bg-[#0a0a0a] border-[#222] p-6">
-              <h2 className="text-xl font-bold mb-4 text-[#D1FF3D]">Basic Information</h2>
-              
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-gray-300 text-sm mb-2 block">Artist / Project Name *</Label>
-                  <Input
-                    value={artistName}
-                    onChange={(e) => setArtistName(e.target.value)}
-                    placeholder="Your artist name"
-                    className="bg-black border-[#333] text-white"
-                  />
-                </div>
+        <Tabs defaultValue="edit" className="w-full">
+          <TabsList className="bg-[#0a0a0a] border border-[#222] mb-6">
+            <TabsTrigger value="edit" className="data-[state=active]:bg-[#D1FF3D] data-[state=active]:text-black">
+              Edit
+            </TabsTrigger>
+            <TabsTrigger value="preview" className="data-[state=active]:bg-[#D1FF3D] data-[state=active]:text-black">
+              Preview
+            </TabsTrigger>
+          </TabsList>
 
-                <div>
-                  <Label className="text-gray-300 text-sm mb-2 block">Location</Label>
-                  <Input
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="City, Country"
-                    className="bg-black border-[#333] text-white"
-                  />
-                </div>
+          {/* EDIT TAB */}
+          <TabsContent value="edit" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* LEFT COLUMN - Editor Form */}
+              <div className="space-y-6">
+                {/* Basic Info */}
+                <Card className="bg-[#0a0a0a] border-[#222] p-6">
+                  <h2 className="text-xl font-bold mb-4 text-[#D1FF3D]">Basic Information</h2>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-gray-300 text-sm mb-2 block">Artist / Project Name *</Label>
+                      <Input
+                        value={artistName}
+                        onChange={(e) => setArtistName(e.target.value)}
+                        placeholder="Your artist name"
+                        className="bg-black border-[#333] text-white"
+                      />
+                    </div>
 
-                <div>
-                  <Label className="text-gray-300 text-sm mb-2 block">Genres</Label>
-                  <div className="flex gap-2 mb-2">
-                    <Input
-                      value={genreInput}
-                      onChange={(e) => setGenreInput(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && addGenre()}
-                      placeholder="Add genre..."
-                      className="bg-black border-[#333] text-white flex-1"
-                    />
-                    <Button onClick={addGenre} size="sm" className="bg-[#D1FF3D] text-black hover:bg-[#D1FF3D]/90">
-                      <Plus className="w-4 h-4" />
+                    <div>
+                      <Label className="text-gray-300 text-sm mb-2 block">Location</Label>
+                      <Input
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        placeholder="City, Country"
+                        className="bg-black border-[#333] text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-gray-300 text-sm mb-2 block">Genres</Label>
+                      <div className="flex gap-2 mb-2">
+                        <Input
+                          value={genreInput}
+                          onChange={(e) => setGenreInput(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && addGenre()}
+                          placeholder="Add genre..."
+                          className="bg-black border-[#333] text-white flex-1"
+                        />
+                        <Button onClick={addGenre} size="sm" className="bg-[#D1FF3D] text-black hover:bg-[#D1FF3D]/90">
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {genres.map((genre, i) => (
+                          <span key={i} className="px-3 py-1 bg-[#D1FF3D]/10 border border-[#D1FF3D]/30 rounded-full text-sm flex items-center gap-2">
+                            {genre}
+                            <button onClick={() => setGenres(genres.filter((_, idx) => idx !== i))} className="text-red-400 hover:text-red-300">
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* Bios with AI */}
+                <Card className="bg-[#0a0a0a] border-[#222] p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold text-[#D1FF3D]">Biography</h2>
+                    <div className="flex items-center gap-3">
+                      <Select value={selectedTone} onValueChange={(v: any) => setSelectedTone(v)}>
+                        <SelectTrigger className="w-[140px] bg-black border-[#333] text-white text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#0a0a0a] border-[#333]">
+                          <SelectItem value="press">Press</SelectItem>
+                          <SelectItem value="concise">Concise</SelectItem>
+                          <SelectItem value="promotional">Promotional</SelectItem>
+                          <SelectItem value="technical">Technical</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        size="sm"
+                        onClick={handleGenerateSuggestions}
+                        disabled={isGeneratingSuggestions}
+                        className="bg-[#D1FF3D] text-black hover:bg-[#D1FF3D]/90"
+                      >
+                        {isGeneratingSuggestions ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Sparkles className="w-4 h-4 mr-2" />
+                        )}
+                        Suggest Rewrite
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 mb-4">
+                    <Switch checked={autoApply} onCheckedChange={setAutoApply} id="auto-apply" />
+                    <Label htmlFor="auto-apply" className="text-sm text-gray-400 cursor-pointer">
+                      Auto-apply suggestions
+                    </Label>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-gray-300 text-sm mb-2 block">Short Bio (for socials)</Label>
+                      <Textarea
+                        value={shortBio}
+                        onChange={(e) => setShortBio(e.target.value)}
+                        placeholder="Brief artist description..."
+                        className="bg-black border-[#333] text-white min-h-[100px]"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-gray-300 text-sm mb-2 block">Full Bio (for EPK) *</Label>
+                      <Textarea
+                        value={fullBio}
+                        onChange={(e) => setFullBio(e.target.value)}
+                        placeholder="Complete artist biography..."
+                        className="bg-black border-[#333] text-white min-h-[200px]"
+                      />
+                    </div>
+                  </div>
+                </Card>
+
+                {/* Notable Venues */}
+                <Card className="bg-[#0a0a0a] border-[#222] p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold text-[#D1FF3D]">Notable Venues</h2>
+                    <Button onClick={addVenue} size="sm" className="bg-[#D1FF3D] text-black hover:bg-[#D1FF3D]/90">
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add
                     </Button>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {genres.map((genre, i) => (
-                      <span key={i} className="px-3 py-1 bg-[#D1FF3D]/10 border border-[#D1FF3D]/30 rounded-full text-sm flex items-center gap-2">
-                        {genre}
-                        <button onClick={() => setGenres(genres.filter((_, idx) => idx !== i))} className="text-red-400 hover:text-red-300">
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
+                  <div className="space-y-2">
+                    {venues.map((venue, idx) => (
+                      <div key={venue.id} className="flex gap-2">
+                        <Input
+                          value={venue.name}
+                          onChange={(e) => {
+                            const newVenues = [...venues];
+                            newVenues[idx].name = e.target.value;
+                            setVenues(newVenues);
+                          }}
+                          placeholder="Venue name"
+                          className="bg-black border-[#333] text-white flex-1"
+                        />
+                        <Button
+                          onClick={() => setVenues(venues.filter(v => v.id !== venue.id))}
+                          size="sm"
+                          variant="destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     ))}
                   </div>
-                </div>
-              </div>
-            </Card>
+                </Card>
 
-            {/* Bios with AI */}
+                {/* Releases */}
+                <Card className="bg-[#0a0a0a] border-[#222] p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold text-[#D1FF3D]">Releases</h2>
+                    <Button onClick={addRelease} size="sm" className="bg-[#D1FF3D] text-black hover:bg-[#D1FF3D]/90">
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add
+                    </Button>
+                  </div>
+                  <div className="space-y-3">
+                    {releases.map((release, idx) => (
+                      <div key={release.id} className="border border-[#333] rounded-lg p-3 space-y-2">
+                        <Input
+                          value={release.title}
+                          onChange={(e) => {
+                            const newReleases = [...releases];
+                            newReleases[idx].title = e.target.value;
+                            setReleases(newReleases);
+                          }}
+                          placeholder="Release title"
+                          className="bg-black border-[#333] text-white"
+                        />
+                        <Input
+                          value={release.link}
+                          onChange={(e) => {
+                            const newReleases = [...releases];
+                            newReleases[idx].link = e.target.value;
+                            setReleases(newReleases);
+                          }}
+                          placeholder="SoundCloud/Spotify link"
+                          className="bg-black border-[#333] text-white"
+                        />
+                        <Button
+                          onClick={() => setReleases(releases.filter(r => r.id !== release.id))}
+                          size="sm"
+                          variant="destructive"
+                          className="w-full"
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+
+                {/* Press Quotes */}
+                <Card className="bg-[#0a0a0a] border-[#222] p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold text-[#D1FF3D]">Press Quotes</h2>
+                    <Button onClick={addQuote} size="sm" className="bg-[#D1FF3D] text-black hover:bg-[#D1FF3D]/90">
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add
+                    </Button>
+                  </div>
+                  <div className="space-y-3">
+                    {quotes.map((quote, idx) => (
+                      <div key={quote.id} className="border border-[#333] rounded-lg p-3 space-y-2">
+                        <Textarea
+                          value={quote.text}
+                          onChange={(e) => {
+                            const newQuotes = [...quotes];
+                            newQuotes[idx].text = e.target.value;
+                            setQuotes(newQuotes);
+                          }}
+                          placeholder="Quote text"
+                          className="bg-black border-[#333] text-white min-h-[80px]"
+                        />
+                        <Input
+                          value={quote.source}
+                          onChange={(e) => {
+                            const newQuotes = [...quotes];
+                            newQuotes[idx].source = e.target.value;
+                            setQuotes(newQuotes);
+                          }}
+                          placeholder="Source (e.g., DJ Mag, Mixmag)"
+                          className="bg-black border-[#333] text-white"
+                        />
+                        <Button
+                          onClick={() => setQuotes(quotes.filter(q => q.id !== quote.id))}
+                          size="sm"
+                          variant="destructive"
+                          className="w-full"
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              </div>
+
+              {/* RIGHT COLUMN - More Form Fields */}
+              <div className="space-y-6">
+                {/* Tech Rider */}
+                <Card className="bg-[#0a0a0a] border-[#222] p-6">
+                  <h2 className="text-xl font-bold mb-4 text-[#D1FF3D]">Tech Rider</h2>
+                  <EnhancedTechRiderPalette items={techRiderItems} onChange={setTechRiderItems} />
+                </Card>
+
+                {/* Links */}
+                <Card className="bg-[#0a0a0a] border-[#222] p-6">
+                  <h2 className="text-xl font-bold mb-4 text-[#D1FF3D]">Links</h2>
+                  <div className="space-y-3">
+                    {Object.keys(links).map((key) => (
+                      <div key={key}>
+                        <Label className="text-gray-400 text-xs mb-1.5 capitalize block">
+                          {key === 'ra' ? 'Resident Advisor' : key === 'bookingEmail' ? 'Booking Email' : key}
+                        </Label>
+                        <Input
+                          value={links[key as keyof typeof links]}
+                          onChange={(e) => setLinks({ ...links, [key]: e.target.value })}
+                          placeholder={key === 'bookingEmail' ? 'booking@example.com' : `https://${key}.com/...`}
+                          className="bg-black border-[#333] text-white text-sm"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+
+                {/* Radio/Press/Newsletters */}
+                <Card className="bg-[#0a0a0a] border-[#222] p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold text-[#D1FF3D]">Radio / Press / Newsletters</h2>
+                    <Button onClick={addRadioPress} size="sm" className="bg-[#D1FF3D] text-black hover:bg-[#D1FF3D]/90">
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    {radioPress.map((item, idx) => (
+                      <div key={item.id} className="flex gap-2">
+                        <Input
+                          value={item.name}
+                          onChange={(e) => {
+                            const newItems = [...radioPress];
+                            newItems[idx].name = e.target.value;
+                            setRadioPress(newItems);
+                          }}
+                          placeholder="Name"
+                          className="bg-black border-[#333] text-white flex-1"
+                        />
+                        <Select
+                          value={item.type}
+                          onValueChange={(v: any) => {
+                            const newItems = [...radioPress];
+                            newItems[idx].type = v;
+                            setRadioPress(newItems);
+                          }}
+                        >
+                          <SelectTrigger className="w-[120px] bg-black border-[#333] text-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-[#0a0a0a] border-[#333]">
+                            <SelectItem value="radio">Radio</SelectItem>
+                            <SelectItem value="press">Press</SelectItem>
+                            <SelectItem value="newsletter">Newsletter</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          onClick={() => setRadioPress(radioPress.filter(r => r.id !== item.id))}
+                          size="sm"
+                          variant="destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+
+                {/* Export Controls */}
+                <Card className="bg-gradient-to-br from-[#D1FF3D]/10 to-[#D1FF3D]/5 border-[#D1FF3D]/20 p-6">
+                  <h3 className="text-lg font-bold text-white mb-4">Export & Share</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      onClick={() => handleExport('pdf')}
+                      disabled={isExporting || !artistName || !fullBio}
+                      className="bg-[#D1FF3D] text-black hover:bg-[#D1FF3D]/90"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Export PDF
+                    </Button>
+                    <Button
+                      onClick={() => handleExport('zip')}
+                      disabled={isExporting || !artistName || !fullBio}
+                      className="bg-[#9B5CFF] text-white hover:bg-[#9B5CFF]/90"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download ZIP
+                    </Button>
+                  </div>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* PREVIEW TAB */}
+          <TabsContent value="preview">
             <Card className="bg-[#0a0a0a] border-[#222] p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-[#D1FF3D]">Biography</h2>
-                <div className="flex items-center gap-3">
-                  <Select value={selectedTone} onValueChange={(v: any) => setSelectedTone(v)}>
-                    <SelectTrigger className="w-[140px] bg-black border-[#333] text-white text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#0a0a0a] border-[#333]">
-                      <SelectItem value="press">Press</SelectItem>
-                      <SelectItem value="concise">Concise</SelectItem>
-                      <SelectItem value="promotional">Promotional</SelectItem>
-                      <SelectItem value="technical">Technical</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    size="sm"
-                    onClick={handleGenerateSuggestions}
-                    disabled={isGeneratingSuggestions}
-                    className="bg-[#D1FF3D] text-black hover:bg-[#D1FF3D]/90"
-                  >
-                    {isGeneratingSuggestions ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Sparkles className="w-4 h-4 mr-2" />
-                    )}
-                    Suggest Rewrite
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 mb-4">
-                <Switch checked={autoApply} onCheckedChange={setAutoApply} id="auto-apply" />
-                <Label htmlFor="auto-apply" className="text-sm text-gray-400 cursor-pointer">
-                  Auto-apply suggestions
-                </Label>
+                <h2 className="text-xl font-bold text-[#D1FF3D]">Live Preview</h2>
+                {isLoadingPreview && <Loader2 className="w-5 h-5 text-[#D1FF3D] animate-spin" />}
               </div>
               
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-gray-300 text-sm mb-2 block">Short Bio (for socials)</Label>
-                  <Textarea
-                    value={shortBio}
-                    onChange={(e) => setShortBio(e.target.value)}
-                    placeholder="Brief artist description..."
-                    className="bg-black border-[#333] text-white min-h-[100px]"
-                  />
-                </div>
-
-                <div>
-                  <Label className="text-gray-300 text-sm mb-2 block">Full Bio (for EPK) *</Label>
-                  <Textarea
-                    value={fullBio}
-                    onChange={(e) => setFullBio(e.target.value)}
-                    placeholder="Complete artist biography..."
-                    className="bg-black border-[#333] text-white min-h-[200px]"
-                  />
-                </div>
+              <div className="bg-white border-4 border-[#333] rounded-lg overflow-hidden" style={{ height: 'calc(100vh - 300px)', minHeight: '800px' }}>
+                <iframe
+                  ref={previewRef}
+                  className="w-full h-full"
+                  title="EPK Preview"
+                  sandbox="allow-same-origin"
+                />
               </div>
-            </Card>
 
-            {/* Tech Rider */}
-            <Card className="bg-[#0a0a0a] border-[#222] p-6">
-              <h2 className="text-xl font-bold mb-4 text-[#D1FF3D]">Tech Rider</h2>
-              <EnhancedTechRiderPalette items={techRiderItems} onChange={setTechRiderItems} />
-            </Card>
-
-            {/* Links */}
-            <Card className="bg-[#0a0a0a] border-[#222] p-6">
-              <h2 className="text-xl font-bold mb-4 text-[#D1FF3D]">Links</h2>
-              <div className="space-y-3">
-                {Object.keys(links).map((key) => (
-                  <div key={key}>
-                    <Label className="text-gray-400 text-xs mb-1.5 capitalize block">
-                      {key === 'ra' ? 'Resident Advisor' : key === 'bookingEmail' ? 'Booking Email' : key}
-                    </Label>
-                    <Input
-                      value={links[key as keyof typeof links]}
-                      onChange={(e) => setLinks({ ...links, [key]: e.target.value })}
-                      placeholder={`https://${key}.com/...`}
-                      className="bg-black border-[#333] text-white text-sm"
-                    />
-                  </div>
-                ))}
-              </div>
-            </Card>
-
-            {/* Export Controls */}
-            <Card className="bg-gradient-to-br from-[#D1FF3D]/10 to-[#D1FF3D]/5 border-[#D1FF3D]/20 p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Export & Share</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="mt-4 flex justify-end gap-3">
                 <Button
                   onClick={() => handleExport('pdf')}
                   disabled={isExporting || !artistName || !fullBio}
@@ -496,27 +751,8 @@ export function EPKEditorClient() {
                 </Button>
               </div>
             </Card>
-          </div>
-
-          {/* RIGHT COLUMN - Live Preview */}
-          <div className="lg:sticky lg:top-4 h-fit">
-            <Card className="bg-[#0a0a0a] border-[#222] p-6 h-[calc(100vh-180px)] flex flex-col">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-[#D1FF3D]">Live Preview</h2>
-                {isLoadingPreview && <Loader2 className="w-5 h-5 text-[#D1FF3D] animate-spin" />}
-              </div>
-              
-              <div className="flex-1 bg-black border border-[#333] rounded-lg overflow-hidden">
-                <iframe
-                  ref={previewRef}
-                  className="w-full h-full"
-                  title="EPK Preview"
-                  sandbox="allow-same-origin"
-                />
-              </div>
-            </Card>
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
 
         {/* Suggestions Modal */}
         <Dialog open={showSuggestions} onOpenChange={setShowSuggestions}>
