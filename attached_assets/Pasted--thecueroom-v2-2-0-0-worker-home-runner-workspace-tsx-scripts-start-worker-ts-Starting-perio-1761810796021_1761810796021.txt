@@ -1,0 +1,69 @@
+
+> thecueroom-v2@2.0.0 worker /home/runner/workspace
+> tsx scripts/start-worker.ts
+
+⏰ Starting periodic worker (every 60 minutes)
+
+✅ Database client initialized
+
+🚀 Starting thecueRoom Background Feed Worker cycle...
+
+📊 Processing 25 sources...
+
+📥 Fetching RSS: Earmilk
+📥 Fetching RSS: Music Business Worldwide
+📥 Fetching RSS: Ransom Note
+📥 Fetching RSS: FACT
+📥 Fetching RSS: Rolling Stone India
+📥 Fetching RSS: CDM — Create Digital Music
+📥 Fetching RSS: Hypebot
+📥 Fetching RSS: XLR8R
+📥 Fetching RSS: Bandcamp Daily
+📥 Fetching RSS: MusicTech
+📥 Fetching RSS: Rolling Stone Music Interviews
+📥 Fetching RSS: Attack Magazine
+📥 Fetching RSS: DJ TechTools
+📥 Fetching RSS: Crossfadr
+📥 Fetching RSS: Mixdown Magazine
+📥 Fetching RSS: Dancing Astronaut
+📥 Fetching RSS: Festival Sherpa
+📥 Fetching RSS: Digital DJ Tips
+📥 Fetching RSS: DJWORX
+📥 Fetching RSS: EDM.com Festivals
+📥 Fetching RSS: Synthtopia
+📥 Fetching RSS: Synth Anatomy
+📥 Fetching RSS: EDM Identity
+📥 Fetching RSS: Gearnews
+📥 Fetching RSS: Elektronauts Forum
+❌ Earmilk: syntax error at or near "="
+❌ Rolling Stone Music Interviews: syntax error at or near "="
+❌ Music Business Worldwide: syntax error at or near "="
+❌ FACT: syntax error at or near "="
+❌ Ransom Note: syntax error at or near "="
+❌ Hypebot: syntax error at or near "="
+❌ Bandcamp Daily: syntax error at or near "="
+❌ Synthtopia: syntax error at or near "="
+❌ Crossfadr: syntax error at or near "="
+❌ XLR8R: syntax error at or near "="
+❌ DJWORX: syntax error at or near "="
+❌ Attack Magazine: syntax error at or near "="
+❌ Mixdown Magazine: syntax error at or near "="
+❌ CDM — Create Digital Music: syntax error at or near "="
+❌ Rolling Stone India: syntax error at or near "="
+❌ Dancing Astronaut: syntax error at or near "="
+❌ DJ TechTools: syntax error at or near "="
+❌ Digital DJ Tips: syntax error at or near "="
+❌ Festival Sherpa: syntax error at or near "="
+❌ EDM Identity: syntax error at or near "="
+❌ MusicTech: syntax error at or near "="
+❌ Elektronauts Forum: syntax error at or near "="
+❌ Synth Anatomy: syntax error at or near "="
+❌ Gearnews: syntax error at or near "="
+❌ EDM.com Festivals: syntax error at or near "="
+
+✨ Worker cycle complete!
+✅ Successful: 0/25
+❌ Failed: 25/25
+📝 Total items imported: 0
+⏭️  Total duplicates skipped: 0
+⏱️  Cycle duration: 6.86s
