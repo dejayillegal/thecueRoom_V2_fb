@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
@@ -20,16 +19,16 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
   const [isLoading, setIsLoading] = useState(true);
 
   return (
-    <article className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all group rounded-lg">
-      <Link href={feed.url} target="_blank" rel="noopener noreferrer">
-        <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
+    <article className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all group rounded-lg shadow-sm hover:shadow-md">
+      <Link href={feed.url} target="_blank" rel="noopener noreferrer" className="block">
+        <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden rounded-t-lg">
           {isLoading && (
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
           )}
           <img
             src={imgSrc}
             alt={feed.title}
-            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+            className={`w-full h-full object-cover transition-transform duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
             onLoad={() => setIsLoading(false)}
             onError={() => {
               setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
@@ -37,40 +36,38 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
             }}
             loading="lazy"
           />
-          
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent">
-            <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 space-y-1.5 sm:space-y-2">
-              <div className="flex items-center justify-between text-xs text-white/80">
-                <span className="font-medium text-primary truncate max-w-[60%]">
-                  {feed.source || 'Unknown Source'}
-                </span>
-                <span className="text-[10px] sm:text-xs">{formatDate(feed.publishedAt)}</span>
-              </div>
-              
-              <h3 className="text-sm sm:text-base md:text-lg font-semibold line-clamp-2 text-white group-hover:text-primary transition-colors">
-                {feed.title}
-              </h3>
-              
-              {feed.summary && (
-                <p className="text-xs sm:text-sm text-white/70 line-clamp-2 hidden sm:block">
-                  {feed.summary}
-                </p>
-              )}
-              
-              {feed.tags && feed.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 sm:gap-1.5 pt-1">
-                  {feed.tags.slice(0, 3).map((tag, idx) => (
-                    <span 
-                      key={idx}
-                      className="px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs bg-primary/20 text-primary border border-primary/30 rounded"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent rounded-t-lg"></div>
+        </div>
+        <div className="p-4 sm:p-5 space-y-2.5">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span className="font-medium truncate max-w-[60%]">
+              {feed.source || 'Unknown Source'}
+            </span>
+            <span>{formatDate(feed.publishedAt)}</span>
           </div>
+
+          <h3 className="text-base sm:text-lg font-bold line-clamp-2 text-foreground group-hover:text-primary transition-colors leading-tight">
+            {feed.title}
+          </h3>
+
+          {feed.summary && (
+            <p className="text-[13px] leading-relaxed text-muted-foreground line-clamp-3">
+              {feed.summary}
+            </p>
+          )}
+
+          {feed.tags && feed.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-2">
+              {feed.tags.slice(0, 3).map((tag, idx) => (
+                <span
+                  key={idx}
+                  className="px-3 py-1 text-[11px] font-medium bg-primary/10 text-primary border border-primary/30 rounded-full hover:bg-primary/20 transition-colors"
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </Link>
     </article>
@@ -104,13 +101,13 @@ export default function NewsSection() {
 
   const loadNewsFeeds = useCallback(async (isInitial = false) => {
     if (!isInitial && (isLoadingMore || !hasMore)) return;
-    
+
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    
+
     abortControllerRef.current = new AbortController();
-    
+
     if (isInitial) {
       setIsLoading(true);
     } else {
@@ -120,16 +117,16 @@ export default function NewsSection() {
     try {
       const params = new URLSearchParams({ limit: '24' });
       if (cursor) params.append('cursor', cursor);
-      
+
       const response = await fetch(`/api/feeds?${params}`, {
         signal: abortControllerRef.current.signal,
         headers: { 'Accept': 'application/json' }
       });
-      
+
       if (!response.ok) throw new Error('Failed to fetch');
-      
+
       const data = await response.json();
-      
+
       if (data.data && Array.isArray(data.data)) {
         setNewsFeeds(prev => isInitial ? data.data : [...prev, ...data.data]);
         setCursor(data.nextCursor);
@@ -150,7 +147,7 @@ export default function NewsSection() {
 
   useEffect(() => {
     loadNewsFeeds(true);
-    
+
     return () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
@@ -181,8 +178,20 @@ export default function NewsSection() {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
         {[...Array(8)].map((_, i) => (
-          <article key={i} className="bg-card overflow-hidden border border-border rounded-lg">
-            <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-secondary/10 animate-pulse" />
+          <article key={i} className="bg-card overflow-hidden border border-border rounded-lg shadow-sm">
+            <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-secondary/10 animate-pulse rounded-t-lg" />
+            <div className="p-4 space-y-2">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <div className="h-3 w-24 bg-gray-300 rounded animate-pulse"></div>
+                <div className="h-3 w-16 bg-gray-300 rounded animate-pulse"></div>
+              </div>
+              <div className="h-5 w-full bg-gray-300 rounded animate-pulse"></div>
+              <div className="h-4 w-4/5 bg-gray-300 rounded animate-pulse"></div>
+              <div className="flex gap-2">
+                <div className="h-2 w-16 bg-primary/20 rounded-full"></div>
+                <div className="h-2 w-12 bg-primary/20 rounded-full"></div>
+              </div>
+            </div>
           </article>
         ))}
       </div>

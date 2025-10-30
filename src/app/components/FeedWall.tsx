@@ -30,8 +30,8 @@ export default function FeedWall({ items, onTag }: { items: Item[]; onTag?: (tag
         {items.map((it)=>{
           const isLoaded = loadedImages.has(it.url);
           return (
-            <article key={it.url} className="break-inside-avoid mb-6 rounded-xl overflow-hidden ring-1 ring-neutral-800 bg-[#111] group">
-              <div className="relative h-48 bg-neutral-900">
+            <article key={it.url} className="break-inside-avoid mb-6 rounded-xl overflow-hidden ring-1 ring-neutral-800 bg-[#111] group shadow-lg hover:shadow-2xl transition-all duration-300">
+              <div className="relative h-52 bg-neutral-900 rounded-t-xl overflow-hidden">
                 <Link href={it.url} target="_blank" rel="external noopener noreferrer" className="block h-full">
                   {!isLoaded && (
                     <div className="absolute inset-0 bg-gradient-to-br from-neutral-800 to-neutral-900 animate-pulse" />
@@ -41,28 +41,28 @@ export default function FeedWall({ items, onTag }: { items: Item[]; onTag?: (tag
                     alt={it.title} 
                     fill 
                     sizes="33vw"
-                    className={`object-cover transition-all duration-500 ${isLoaded ? 'opacity-100 group-hover:scale-[1.02]' : 'opacity-0'}`}
+                    className={`object-cover transition-all duration-500 ${isLoaded ? 'opacity-100 group-hover:scale-110' : 'opacity-0'}`}
                     onLoad={() => handleImageLoad(it.url)}
                     priority={false}
                   />
                 </Link>
                 {/* share bar (top-right) */}
-                <div className="tcr-share absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="tcr-share absolute top-3 right-3 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                   <ShareButtons title={it.title} url={it.url} />
                 </div>
               </div>
 
-              <div className="p-4">
-                <div className="text-[10px] uppercase tracking-wide text-neutral-400 mb-2">
+              <div className="p-5">
+                <div className="text-[11px] uppercase tracking-wide text-neutral-400 mb-3 font-semibold">
                   {it.source} • <ClientOnlyDate date={it.publishedAt} />
                 </div>
                 <Link href={it.url} target="_blank" rel="external noopener noreferrer">
-                  <h4 className="font-semibold leading-snug text-neutral-50 group-hover:text-[#D7FF3C] transition-colors line-clamp-2 mb-2">{it.title}</h4>
+                  <h4 className="font-bold text-base leading-tight text-neutral-50 group-hover:text-[#D7FF3C] transition-colors line-clamp-2 mb-3">{it.title}</h4>
                 </Link>
-                <p className="text-xs text-neutral-400 line-clamp-2 mb-3">{it.summary}</p>
+                <p className="text-[13px] leading-relaxed text-neutral-400 line-clamp-3 mb-4">{it.summary}</p>
 
                 {/* hashtags */}
-                <div className="flex gap-1.5 flex-wrap">
+                <div className="flex gap-2 flex-wrap">
                   {(it.tags||[]).slice(0,6).map(t=>{
                     const tag = t.toLowerCase();
                     return (
@@ -72,7 +72,7 @@ export default function FeedWall({ items, onTag }: { items: Item[]; onTag?: (tag
                           e.preventDefault();
                           onTag?.(tag);
                         }} 
-                        className="tcr-hash text-[10px] px-2 py-0.5"
+                        className="tcr-hash text-[11px] px-3 py-1 rounded-full font-medium"
                         type="button"
                       >
                         #{tag}

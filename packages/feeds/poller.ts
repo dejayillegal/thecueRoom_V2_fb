@@ -10,6 +10,9 @@
 
 import { Worker } from 'worker_threads';
 import pLimit from 'p-limit';
+import { db } from '@thecueroom/db/client';
+import { feeds, sources } from '@thecueroom/db/schema';
+import { eq } from 'drizzle-orm';
 
 export interface PollerConfig {
   pollIntervalSeconds: number;
