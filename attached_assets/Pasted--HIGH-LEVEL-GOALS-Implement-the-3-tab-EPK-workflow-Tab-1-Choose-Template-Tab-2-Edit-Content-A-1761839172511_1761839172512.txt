@@ -1,0 +1,273 @@
+🎯 HIGH-LEVEL GOALS
+
+Implement the 3-tab EPK workflow:
+Tab 1: Choose Template
+Tab 2: Edit Content (AI-powered)
+Tab 3: Preview & Export
+
+Keep all tabs in a single stateful React page (/ai/epk-generator), preserving the chosen template, data, and generated previews.
+
+Use the same dashboard layout, font sizes, neon-lime accents, and spacing as other thecueRoom pages.
+
+Add 16 full templates under Tab 1 with category filters, keyboard navigation, and accessible design.
+
+Integrate AI Rewrite API (with free-first fallback logic using local rewrite), image upload, and Tech Rider drag & drop for gear setup.
+
+Live-preview under Tab 3 with a styled, responsive template preview, ready for PDF/ZIP export (optional Puppeteer worker support).
+
+Entire system must be robust, lightweight, memory-safe, and consistent — all fields reactively update without lag.
+
+🧩 IMPLEMENTATION OUTLINE
+📄 1. apps/web/app/ai/epk-generator/page.tsx
+
+Main orchestrator component managing all three tabs.
+
+Maintain step state (1 | 2 | 3) and epkData object.
+
+Pass data and callbacks down to child tabs.
+
+Preserve layout and dashboard theme.
+
+Use sticky bottom navigation button (Continue / Back) that adapts per tab.
+
+🧱 2. Tab 1 — Choose Template
+File: apps/web/src/components/EPK/TemplateSelector.tsx
+
+Display all 16 templates with filters:
+
+Modern, Minimalist, Editorial, Futuristic, Retro, Premium, Visual-Heavy.
+
+Source templates from apps/web/src/data/epk-templates.ts.
+
+Each card:
+
+Title, short description, tag badge, module count.
+
+Inline SVG thumbnail placeholder (dark, neon accent line).
+
+Selection glow + check mark on select.
+
+Filterable, keyboard-navigable grid (radiogroup with arrow keys).
+
+Sticky “Continue to Edit” button, disabled until a template is selected.
+
+File: apps/web/src/data/epk-templates.ts
+
+Export EPK_TEMPLATES array of 16 templates:
+
+Brutalist One-Page, Minimalist Clean, Magazine Editorial, Tech Neon, Vintage Poster, Glass Morphism, Dark Luxury, Grid Mosaic, Poster Stack, Modular Studio, Photobook, Club Flyer, Minimalist One-Column, Zine Editorial, Industrial Poster, Photo-Lead.
+
+Each template:
+{ id, name, tag, modules, description, category, thumbnailSvg }.
+
+Expected Behavior:
+
+Selecting template updates epkData.template.
+
+Clicking Continue moves to Tab 2.
+
+✍️ 3. Tab 2 — Edit Content
+File: apps/web/src/components/EPK/EPKEditor.tsx
+
+Displays all editable fields:
+
+Artist / Project name
+
+Genre / Style
+
+Location
+
+Biography (with AI rewrite button)
+
+Press Quotes
+
+Venues Performed
+
+Radio / Newsletter links
+
+SoundCloud / Mixcloud / Spotify / Bandcamp / Instagram / RA links
+
+Upload images (auto-resize thumbnails)
+
+Add More Sections: Biography, Photo Gallery, Video Showcase, Discography.
+
+Tech Rider section: drag-drop gear icons (CDJ, Mixer, Speaker).
+
+Integrate AI Rewrite button using /api/epk/rewrite route.
+
+If HF API key available: use flan-t5-large or flan-alpaca-large model.
+
+If no API: fallback to local rewrite (/lib/rewrite-fallback.ts).
+
+Autosave form changes to epkData (debounced 400ms).
+
+Button to switch to Preview tab.
+
+File: apps/web/src/components/EPK/TechRiderPalette.tsx
+
+Drag/drop interface for adding/removing rider equipment using provided icons:
+
+cdj copy 5.png, mixer.png, speaker.png.
+
+Display cards for each selected gear.
+
+Save techRider array into epkData.
+
+File: apps/web/app/api/epk/rewrite/route.ts
+
+Free-first AI rewrite route:
+
+Hugging Face model if token provided.
+
+Fallback deterministic rewrite (expands sentences, corrects tone).
+
+Always returns JSON: { ok, source, outputs: { epk_bio } }.
+
+🪩 4. Tab 3 — Preview & Export
+File: apps/web/src/components/EPK/EPKPreview.tsx
+
+Live-preview of the EPK:
+
+Template applied (color, typography, module layout).
+
+Sections visible: bio, press quotes, tech rider, social links, etc.
+
+Show icons inline where relevant (SoundCloud, Bandcamp, Spotify, RA).
+
+Generate final layout dynamically using chosen template.
+
+“Export” options:
+
+Export PDF (via Puppeteer worker or @react-pdf/renderer fallback).
+
+Download ZIP (images + JSON + PDF).
+
+Share link (static public link to generated EPK).
+
+File: apps/web/app/api/epk/render/route.ts
+
+Renders HTML to PDF (via Puppeteer or fallback).
+
+Accepts JSON { template, data }.
+
+Workerized under /packages/ai/worker.js.
+
+Always returns valid JSON with { jobId, status, resultUrl }.
+
+🧠 5. Supporting Files
+apps/web/src/lib/rewrite-fallback.ts
+
+Local AI-free deterministic text rewrite fallback:
+
+Expands short bios.
+
+Adds stylistic tone for EPK.
+
+Removes redundant phrases.
+
+apps/web/src/lib/safe-fetch.ts
+
+Safe JSON fetch utility to avoid .json() errors from HTML responses.
+
+⚙️ 6. Workerized Rendering (optional, if Puppeteer available)
+
+packages/ai/worker.js
+
+Handles /api/epk/render jobs in background.
+
+Renders to PDF and ZIP (using sharp, html-pdf, or @react-pdf/renderer fallback).
+
+Cleans temp files hourly.
+
+🧪 7. Tests
+
+Add under /tests/epk/:
+
+template-selector.test.tsx → filter & selection behavior.
+
+epk-editor.test.tsx → AI rewrite fallback correctness.
+
+epk-preview.test.tsx → rendering structure for templates.
+
+snapshot/epk-dashboard.snap.test.tsx → dashboard layout unchanged.
+
+✅ 8. Acceptance Criteria
+
+Functional Checks
+
+Tab navigation works correctly (1→2→3→back).
+
+Template selection saves to state and persists.
+
+All fields editable, AI rewrite works even offline.
+
+Tech Rider drag/drop functions and persists.
+
+Live preview updates immediately when editing.
+
+Export works (PDF, ZIP, or JSON).
+
+0 console errors, 0 memory leaks, smooth scrolling.
+
+Quality Checks
+
+pnpm -w tsc --noEmit → no TS errors.
+
+pnpm --filter apps/web test:unit → all pass.
+
+Lighthouse score ≥ 90 (Performance).
+
+CPU usage stable (<80MB heap growth).
+
+🧱 ENV VARS
+HF_TOKEN=              # optional (Hugging Face)
+EPK_TEMP_DIR=/tmp/epk
+EPK_WORKER_CONCURRENCY=1
+NODE_ENV=production
+
+💾 COMMIT MESSAGE
+feat(epk): complete AI EPK Studio with Choose Template, Edit Content, Preview & Export — templates, rewrite AI, tech rider, and live preview integration
+
+🚀 RUN COMMANDS
+pnpm -w install
+pnpm --filter apps/web dev
+pnpm -w tsc --noEmit
+pnpm --filter apps/web test:unit
+
+🧭 UX Summary
+Tab	Function	Key Features
+1. Choose Template	Select from 16 EPK templates	Filter chips, live highlight, keyboard support
+2. Edit Content	Fill in artist details, rewrite AI	AI fallback, auto-save, drag-drop tech rider
+3. Preview & Export	Render live EPK	Real template preview, export PDF/ZIP/share
+🪄 THEME + UI NOTES
+
+Use same dashboard spacing, color tokens, and typography:
+
+Background: #000
+
+Accent: #D1FF3D
+
+Secondary: #0f0f0f
+
+Border: #1a1a1a
+
+Font sizes: 13–15px body, 20px headers.
+
+Rounded corners: rounded-lg
+
+Transitions: subtle (transition-all ease-in-out duration-200)
+
+No heavy blur, filters, or motion effects.
+
+Final instruction:
+Replit Assistant — implement all three tabs exactly as defined above, test them end-to-end, fix all type or runtime issues, and commit the changes.
+
+When complete, generate the report with:
+
+git show --name-status HEAD
+
+pnpm -w tsc --noEmit output
+
+Test results summary
+
+Screenshot diff summary of EPK tabs in dashboard
