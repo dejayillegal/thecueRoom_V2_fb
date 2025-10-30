@@ -1,5 +1,5 @@
 
-import { SignJWT, jwtVerify } from 'jose';
+import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
 import { cookies } from 'next/headers';
 import bcrypt from 'bcryptjs';
 
@@ -9,7 +9,7 @@ const SECRET_KEY = new TextEncoder().encode(
 
 const SESSION_DURATION = 60 * 60 * 24 * 7; // 7 days in seconds
 
-export interface UserPayload {
+export interface UserPayload extends JWTPayload {
   uid: string;
   email: string;
   role?: string;
@@ -45,7 +45,7 @@ export async function verifyPassword(
 }
 
 export async function setSessionCookie(token: string) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   cookieStore.set('thecue_session', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -56,12 +56,12 @@ export async function setSessionCookie(token: string) {
 }
 
 export async function getSessionCookie(): Promise<string | undefined> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   return cookieStore.get('thecue_session')?.value;
 }
 
 export async function clearSessionCookie() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   cookieStore.delete('thecue_session');
 }
 

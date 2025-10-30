@@ -1,0 +1,531 @@
+eed API error: error: relation "feeds" does not exist
+    at async GET (app/api/feeds/route.ts:66:21)
+  64 |       .offset(offset);
+  65 |
+> 66 |     const results = await query;
+     |                     ^
+  67 |
+  68 |     const hasMore = results.length > limit;
+  69 |     const items = hasMore ? results.slice(0, -1) : results; {
+  length: 105,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '174',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1452',
+  routine: 'parserOpenTable'
+}
+Error stack: error: relation "feeds" does not exist
+    at eval (webpack-internal:///(rsc)/../../node_modules/.pnpm/pg-pool@3.10.1_pg@8.16.3/node_modules/pg-pool/index.js:45:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (webpack-internal:///(rsc)/../../node_modules/.pnpm/drizzle-orm@0.36.4_@types+pg@8.15.6_@types+react@19.2.2_pg@8.16.3_postgres@3.4.7_react@19.2.0/node_modules/drizzle-orm/node-postgres/session.js:96:22)
+    at async GET (webpack-internal:///(rsc)/./app/api/feeds/route.ts:60:25)
+    at async AppRouteRouteModule.do (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:38696)
+    at async AppRouteRouteModule.handle (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:45978)
+    at async responseGenerator (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:203:38)
+    at async AppRouteRouteModule.handleResponse (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:1:187565)
+    at async handleResponse (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:265:32)
+    at async handler (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:317:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1422:9)
+    at async DevServer.renderPageComponent (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1474:24)
+    at async DevServer.renderToResponseImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1514:32)
+    at async DevServer.pipeImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1025:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next-server.js:393:17)
+    at async DevServer.handleRequestImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:916:17)
+    at async /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js:399:20
+    at async Span.traceAsyncFn (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js:395:24)
+    at async invokeRender (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:240:21)
+    at async handleRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:437:24)
+    at async requestHandlerImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:485:13)
+    at async Server.requestListener (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js:226:13)
+Error details: {
+  "length": 105,
+  "name": "error",
+  "severity": "ERROR",
+  "code": "42P01",
+  "position": "174",
+  "file": "parse_relation.c",
+  "line": "1452",
+  "routine": "parserOpenTable"
+}
+ GET /api/feeds?limit=8 500 in 7610ms
+Feed API error: error: relation "feeds" does not exist
+    at async GET (app/api/feeds/route.ts:66:21)
+  64 |       .offset(offset);
+  65 |
+> 66 |     const results = await query;
+     |                     ^
+  67 |
+  68 |     const hasMore = results.length > limit;
+  69 |     const items = hasMore ? results.slice(0, -1) : results; {
+  length: 105,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '174',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1452',
+  routine: 'parserOpenTable'
+}
+Error stack: error: relation "feeds" does not exist
+    at eval (webpack-internal:///(rsc)/../../node_modules/.pnpm/pg-pool@3.10.1_pg@8.16.3/node_modules/pg-pool/index.js:45:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (webpack-internal:///(rsc)/../../node_modules/.pnpm/drizzle-orm@0.36.4_@types+pg@8.15.6_@types+react@19.2.2_pg@8.16.3_postgres@3.4.7_react@19.2.0/node_modules/drizzle-orm/node-postgres/session.js:96:22)
+    at async GET (webpack-internal:///(rsc)/./app/api/feeds/route.ts:60:25)
+    at async AppRouteRouteModule.do (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:38696)
+    at async AppRouteRouteModule.handle (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:45978)
+    at async responseGenerator (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:203:38)
+    at async AppRouteRouteModule.handleResponse (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:1:187565)
+    at async handleResponse (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:265:32)
+    at async handler (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:317:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1422:9)
+    at async DevServer.renderPageComponent (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1474:24)
+    at async DevServer.renderToResponseImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1514:32)
+    at async DevServer.pipeImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1025:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next-server.js:393:17)
+    at async DevServer.handleRequestImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:916:17)
+    at async /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js:399:20
+    at async Span.traceAsyncFn (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js:395:24)
+    at async invokeRender (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:240:21)
+    at async handleRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:437:24)
+    at async requestHandlerImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:485:13)
+    at async Server.requestListener (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js:226:13)
+Error details: {
+  "length": 105,
+  "name": "error",
+  "severity": "ERROR",
+  "code": "42P01",
+  "position": "174",
+  "file": "parse_relation.c",
+  "line": "1452",
+  "routine": "parserOpenTable"
+}
+ GET /api/feeds?limit=32&offset=0 500 in 7724ms
+Feed API error: error: relation "feeds" does not exist
+    at async GET (app/api/feeds/route.ts:66:21)
+  64 |       .offset(offset);
+  65 |
+> 66 |     const results = await query;
+     |                     ^
+  67 |
+  68 |     const hasMore = results.length > limit;
+  69 |     const items = hasMore ? results.slice(0, -1) : results; {
+  length: 105,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '174',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1452',
+  routine: 'parserOpenTable'
+}
+Error stack: error: relation "feeds" does not exist
+    at eval (webpack-internal:///(rsc)/../../node_modules/.pnpm/pg-pool@3.10.1_pg@8.16.3/node_modules/pg-pool/index.js:45:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (webpack-internal:///(rsc)/../../node_modules/.pnpm/drizzle-orm@0.36.4_@types+pg@8.15.6_@types+react@19.2.2_pg@8.16.3_postgres@3.4.7_react@19.2.0/node_modules/drizzle-orm/node-postgres/session.js:96:22)
+    at async GET (webpack-internal:///(rsc)/./app/api/feeds/route.ts:60:25)
+    at async AppRouteRouteModule.do (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:38696)
+    at async AppRouteRouteModule.handle (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:45978)
+    at async responseGenerator (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:203:38)
+    at async AppRouteRouteModule.handleResponse (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:1:187565)
+    at async handleResponse (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:265:32)
+    at async handler (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:317:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1422:9)
+    at async DevServer.renderPageComponent (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1474:24)
+    at async DevServer.renderToResponseImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1514:32)
+    at async DevServer.pipeImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1025:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next-server.js:393:17)
+    at async DevServer.handleRequestImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:916:17)
+    at async /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js:399:20
+    at async Span.traceAsyncFn (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js:395:24)
+    at async invokeRender (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:240:21)
+    at async handleRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:437:24)
+    at async requestHandlerImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:485:13)
+    at async Server.requestListener (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js:226:13)
+Error details: {
+  "length": 105,
+  "name": "error",
+  "severity": "ERROR",
+  "code": "42P01",
+  "position": "174",
+  "file": "parse_relation.c",
+  "line": "1452",
+  "routine": "parserOpenTable"
+}
+ GET /api/feeds?limit=8 500 in 7838ms
+Feed API error: error: relation "feeds" does not exist
+    at async GET (app/api/feeds/route.ts:66:21)
+  64 |       .offset(offset);
+  65 |
+> 66 |     const results = await query;
+     |                     ^
+  67 |
+  68 |     const hasMore = results.length > limit;
+  69 |     const items = hasMore ? results.slice(0, -1) : results; {
+  length: 105,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '174',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1452',
+  routine: 'parserOpenTable'
+}
+Error stack: error: relation "feeds" does not exist
+    at eval (webpack-internal:///(rsc)/../../node_modules/.pnpm/pg-pool@3.10.1_pg@8.16.3/node_modules/pg-pool/index.js:45:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (webpack-internal:///(rsc)/../../node_modules/.pnpm/drizzle-orm@0.36.4_@types+pg@8.15.6_@types+react@19.2.2_pg@8.16.3_postgres@3.4.7_react@19.2.0/node_modules/drizzle-orm/node-postgres/session.js:96:22)
+    at async GET (webpack-internal:///(rsc)/./app/api/feeds/route.ts:60:25)
+    at async AppRouteRouteModule.do (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:38696)
+    at async AppRouteRouteModule.handle (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:45978)
+    at async responseGenerator (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:203:38)
+    at async AppRouteRouteModule.handleResponse (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:1:187565)
+    at async handleResponse (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:265:32)
+    at async handler (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:317:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1422:9)
+    at async DevServer.renderPageComponent (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1474:24)
+    at async DevServer.renderToResponseImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1514:32)
+    at async DevServer.pipeImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1025:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next-server.js:393:17)
+    at async DevServer.handleRequestImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:916:17)
+    at async /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js:399:20
+    at async Span.traceAsyncFn (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js:395:24)
+    at async invokeRender (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:240:21)
+    at async handleRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:437:24)
+    at async requestHandlerImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:485:13)
+    at async Server.requestListener (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js:226:13)
+Error details: {
+  "length": 105,
+  "name": "error",
+  "severity": "ERROR",
+  "code": "42P01",
+  "position": "174",
+  "file": "parse_relation.c",
+  "line": "1452",
+  "routine": "parserOpenTable"
+}
+ GET /api/feeds?limit=32&offset=0 500 in 7906ms
+ GET / 200 in 18630ms
+Feed API error: error: relation "feeds" does not exist
+    at async GET (app/api/feeds/route.ts:66:21)
+  64 |       .offset(offset);
+  65 |
+> 66 |     const results = await query;
+     |                     ^
+  67 |
+  68 |     const hasMore = results.length > limit;
+  69 |     const items = hasMore ? results.slice(0, -1) : results; {
+  length: 105,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '174',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1452',
+  routine: 'parserOpenTable'
+}
+Error stack: error: relation "feeds" does not exist
+    at eval (webpack-internal:///(rsc)/../../node_modules/.pnpm/pg-pool@3.10.1_pg@8.16.3/node_modules/pg-pool/index.js:45:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (webpack-internal:///(rsc)/../../node_modules/.pnpm/drizzle-orm@0.36.4_@types+pg@8.15.6_@types+react@19.2.2_pg@8.16.3_postgres@3.4.7_react@19.2.0/node_modules/drizzle-orm/node-postgres/session.js:96:22)
+    at async GET (webpack-internal:///(rsc)/./app/api/feeds/route.ts:60:25)
+    at async AppRouteRouteModule.do (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:38696)
+    at async AppRouteRouteModule.handle (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:45978)
+    at async responseGenerator (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:203:38)
+    at async AppRouteRouteModule.handleResponse (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:1:187565)
+    at async handleResponse (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:265:32)
+    at async handler (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:317:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1422:9)
+    at async DevServer.renderPageComponent (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1474:24)
+    at async DevServer.renderToResponseImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1514:32)
+    at async DevServer.pipeImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1025:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next-server.js:393:17)
+    at async DevServer.handleRequestImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:916:17)
+    at async /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js:399:20
+    at async Span.traceAsyncFn (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js:395:24)
+    at async invokeRender (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:240:21)
+    at async handleRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:437:24)
+    at async requestHandlerImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:485:13)
+    at async Server.requestListener (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js:226:13)
+Error details: {
+  "length": 105,
+  "name": "error",
+  "severity": "ERROR",
+  "code": "42P01",
+  "position": "174",
+  "file": "parse_relation.c",
+  "line": "1452",
+  "routine": "parserOpenTable"
+}
+ GET /api/feeds?limit=8 500 in 152ms
+Feed API error: error: relation "feeds" does not exist
+    at async GET (app/api/feeds/route.ts:66:21)
+  64 |       .offset(offset);
+  65 |
+> 66 |     const results = await query;
+     |                     ^
+  67 |
+  68 |     const hasMore = results.length > limit;
+  69 |     const items = hasMore ? results.slice(0, -1) : results; {
+  length: 105,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '174',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1452',
+  routine: 'parserOpenTable'
+}
+Error stack: error: relation "feeds" does not exist
+    at eval (webpack-internal:///(rsc)/../../node_modules/.pnpm/pg-pool@3.10.1_pg@8.16.3/node_modules/pg-pool/index.js:45:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (webpack-internal:///(rsc)/../../node_modules/.pnpm/drizzle-orm@0.36.4_@types+pg@8.15.6_@types+react@19.2.2_pg@8.16.3_postgres@3.4.7_react@19.2.0/node_modules/drizzle-orm/node-postgres/session.js:96:22)
+    at async GET (webpack-internal:///(rsc)/./app/api/feeds/route.ts:60:25)
+    at async AppRouteRouteModule.do (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:38696)
+    at async AppRouteRouteModule.handle (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:45978)
+    at async responseGenerator (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:203:38)
+    at async AppRouteRouteModule.handleResponse (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:1:187565)
+    at async handleResponse (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:265:32)
+    at async handler (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:317:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1422:9)
+    at async DevServer.renderPageComponent (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1474:24)
+    at async DevServer.renderToResponseImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1514:32)
+    at async DevServer.pipeImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1025:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next-server.js:393:17)
+    at async DevServer.handleRequestImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:916:17)
+    at async /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js:399:20
+    at async Span.traceAsyncFn (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js:395:24)
+    at async invokeRender (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:240:21)
+    at async handleRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:437:24)
+    at async requestHandlerImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:485:13)
+    at async Server.requestListener (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js:226:13)
+Error details: {
+  "length": 105,
+  "name": "error",
+  "severity": "ERROR",
+  "code": "42P01",
+  "position": "174",
+  "file": "parse_relation.c",
+  "line": "1452",
+  "routine": "parserOpenTable"
+}
+ GET /api/feeds?limit=32&offset=0 500 in 275ms
+ GET / 200 in 657ms
+ ⚠ Cross origin request detected from 127.0.0.1 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+Feed API error: error: relation "feeds" does not exist
+    at async GET (app/api/feeds/route.ts:66:21)
+  64 |       .offset(offset);
+  65 |
+> 66 |     const results = await query;
+     |                     ^
+  67 |
+  68 |     const hasMore = results.length > limit;
+  69 |     const items = hasMore ? results.slice(0, -1) : results; {
+  length: 105,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '174',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1452',
+  routine: 'parserOpenTable'
+}
+Error stack: error: relation "feeds" does not exist
+    at eval (webpack-internal:///(rsc)/../../node_modules/.pnpm/pg-pool@3.10.1_pg@8.16.3/node_modules/pg-pool/index.js:45:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (webpack-internal:///(rsc)/../../node_modules/.pnpm/drizzle-orm@0.36.4_@types+pg@8.15.6_@types+react@19.2.2_pg@8.16.3_postgres@3.4.7_react@19.2.0/node_modules/drizzle-orm/node-postgres/session.js:96:22)
+    at async GET (webpack-internal:///(rsc)/./app/api/feeds/route.ts:60:25)
+    at async AppRouteRouteModule.do (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:38696)
+    at async AppRouteRouteModule.handle (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:45978)
+    at async responseGenerator (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:203:38)
+    at async AppRouteRouteModule.handleResponse (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:1:187565)
+    at async handleResponse (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:265:32)
+    at async handler (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:317:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1422:9)
+    at async DevServer.renderPageComponent (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1474:24)
+    at async DevServer.renderToResponseImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1514:32)
+    at async DevServer.pipeImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1025:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next-server.js:393:17)
+    at async DevServer.handleRequestImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:916:17)
+    at async /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js:399:20
+    at async Span.traceAsyncFn (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js:395:24)
+    at async invokeRender (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:240:21)
+    at async handleRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:437:24)
+    at async requestHandlerImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:485:13)
+    at async Server.requestListener (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js:226:13)
+Error details: {
+  "length": 105,
+  "name": "error",
+  "severity": "ERROR",
+  "code": "42P01",
+  "position": "174",
+  "file": "parse_relation.c",
+  "line": "1452",
+  "routine": "parserOpenTable"
+}
+ GET /api/feeds?limit=24 500 in 183ms
+Feed API error: error: relation "feeds" does not exist
+    at async GET (app/api/feeds/route.ts:66:21)
+  64 |       .offset(offset);
+  65 |
+> 66 |     const results = await query;
+     |                     ^
+  67 |
+  68 |     const hasMore = results.length > limit;
+  69 |     const items = hasMore ? results.slice(0, -1) : results; {
+  length: 105,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '174',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1452',
+  routine: 'parserOpenTable'
+}
+Error stack: error: relation "feeds" does not exist
+    at eval (webpack-internal:///(rsc)/../../node_modules/.pnpm/pg-pool@3.10.1_pg@8.16.3/node_modules/pg-pool/index.js:45:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async eval (webpack-internal:///(rsc)/../../node_modules/.pnpm/drizzle-orm@0.36.4_@types+pg@8.15.6_@types+react@19.2.2_pg@8.16.3_postgres@3.4.7_react@19.2.0/node_modules/drizzle-orm/node-postgres/session.js:96:22)
+    at async GET (webpack-internal:///(rsc)/./app/api/feeds/route.ts:60:25)
+    at async AppRouteRouteModule.do (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:38696)
+    at async AppRouteRouteModule.handle (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:45978)
+    at async responseGenerator (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:203:38)
+    at async AppRouteRouteModule.handleResponse (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:1:187565)
+    at async handleResponse (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:265:32)
+    at async handler (webpack-internal:///(rsc)/../../node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Ffeeds%2Froute&page=%2Fapi%2Ffeeds%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Ffeeds%2Froute.ts&appDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Frunner%2Fworkspace%2Fapps%2Fweb&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:317:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1422:9)
+    at async DevServer.renderPageComponent (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1474:24)
+    at async DevServer.renderToResponseImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1514:32)
+    at async DevServer.pipeImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:1025:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/next-server.js:393:17)
+    at async DevServer.handleRequestImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/base-server.js:916:17)
+    at async /home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js:399:20
+    at async Span.traceAsyncFn (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/dev/next-dev-server.js:395:24)
+    at async invokeRender (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:240:21)
+    at async handleRequest (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:437:24)
+    at async requestHandlerImpl (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/router-server.js:485:13)
+    at async Server.requestListener (/home/runner/workspace/node_modules/.pnpm/next@15.5.6_@babel+core@7.28.5_@playwright+test@1.56.1_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/server/lib/start-server.js:226:13)
+Error details: {
+  "length": 105,
+  "name": "error",
+  "severity": "ERROR",
+  "code": "42P01",
+  "position": "174",
+  "file": "parse_relation.c",
+  "line": "1452",
+  "routine": "parserOpenTable"
+}
+ GET /api/feeds?limit=24 500 in 272ms
+ ⚠ Cross origin request detected from 70bff7b4-4c29-4655-b71d-c06701221f88-00-3mnfadj7vjyvf.riker.replit.dev to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ GET /api/feeds?limit=8 200 in 68ms
+ GET /api/feeds?limit=32&offset=0 200 in 91ms
+ GET / 200 in 443ms
+ GET /api/feeds?limit=24 200 in 22ms
+ GET / 200 in 126ms
+ GET /api/feeds?limit=24 200 in 39ms
+ GET / 200 in 127ms
+ GET /api/feeds?limit=8 200 in 101ms
+ GET /api/feeds?limit=32&offset=0 200 in 132ms
+ GET /api/feeds?limit=24 200 in 37ms
+ GET /api/feeds?limit=8 200 in 73ms
+ GET / 200 in 298ms
+ GET /api/feeds?limit=32&offset=0 200 in 89ms
+ ○ Compiling /api/fallback-thumb/[id] ...
+ ✓ Compiled /api/fallback-thumb/[id] in 1169ms (859 modules)
+✅ Database client initialized
+ GET /api/feeds?limit=24 200 in 791ms
+ GET /api/fallback-thumb/fdb449bb-d214-4413-9248-675901f8c257 200 in 1977ms
+ GET /api/fallback-thumb/8ddb6b80-aa9b-432c-954c-bce79e52991a 200 in 364ms
+ GET /api/fallback-thumb/3369bd51-ffc8-42f4-b833-64caa553590d 200 in 1977ms
+ GET /api/fallback-thumb/6f95d8c5-cd2c-465b-85a9-1a00b151c2f6 200 in 363ms
+ GET / 200 in 387ms
+ GET /api/feeds?limit=8 200 in 72ms
+ GET /api/feeds?limit=32&offset=0 200 in 83ms
+ GET /api/fallback-thumb/fdb449bb-d214-4413-9248-675901f8c257 200 in 71ms
+ GET /api/fallback-thumb/3369bd51-ffc8-42f4-b833-64caa553590d 200 in 31ms
+ GET /api/feeds?limit=24 200 in 26ms
+ GET /api/fallback-thumb/6f95d8c5-cd2c-465b-85a9-1a00b151c2f6 200 in 86ms
+ GET /api/fallback-thumb/8ddb6b80-aa9b-432c-954c-bce79e52991a 200 in 99ms

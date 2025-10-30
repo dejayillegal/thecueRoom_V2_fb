@@ -302,8 +302,43 @@ body {
     text-wrap: balance;
   }
 
+  /* Dark-themed scrollbars for the entire app */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #2a2a2a #0B0B0B;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: #0B0B0B;
+    border-radius: 4px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: #2a2a2a;
+    border-radius: 4px;
+    border: 2px solid #0B0B0B;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: #3a3a3a;
+  }
+
+  *::-webkit-scrollbar-thumb:active {
+    background: hsl(var(--primary) / 0.5);
+  }
+
+  *::-webkit-scrollbar-corner {
+    background: #0B0B0B;
+  }
+
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
+    height: 6px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-track {
@@ -311,12 +346,12 @@ body {
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: #333333;
+    background: #2a2a2a;
     border-radius: 3px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: #444444;
+    background: #3a3a3a;
   }
 
   @keyframes scroll-slow {

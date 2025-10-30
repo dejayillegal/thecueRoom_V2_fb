@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { AuthModal } from './SignInModal';
 import { Button } from '@/components/ui/button';
+import { LogIn } from 'lucide-react';
 
 export function AuthButton() {
   const [open, setOpen] = useState(false);
@@ -12,8 +13,9 @@ export function AuthButton() {
       <Button
         variant="default"
         onClick={() => setOpen(true)}
-        className="bg-primary hover:bg-primary/90 text-sm"
+        className="bg-primary hover:bg-primary/90 text-sm font-semibold gap-2"
       >
+        <LogIn className="w-4 h-4" />
         Sign In / Sign Up
       </Button>
       <AuthModal open={open} onOpenChange={setOpen} />

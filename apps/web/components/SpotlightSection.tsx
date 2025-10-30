@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef, memo, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Users, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
+import { Users, ChevronLeft, ChevronRight, Pause, Play, ExternalLink } from 'lucide-react';
 import TrendingCarousel, { FeedItem } from './TrendingCarousel';
 
 const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
@@ -303,9 +303,10 @@ export default memo(function SpotlightSection({
                 href={currentFeed.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 md:px-6 md:py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm md:text-base"
+                className="inline-flex items-center gap-2 px-4 py-2 md:px-6 md:py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm md:text-base font-semibold"
               >
                 Read More
+                <ExternalLink className="w-4 h-4" />
               </Link>
             )}
           </div>

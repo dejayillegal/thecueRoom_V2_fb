@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Mail, Lock, AlertCircle, CheckCircle2, Loader2, X } from 'lucide-react';
+import { Mail, Lock, AlertCircle, CheckCircle2, Loader2, X, LogIn, UserPlus, Send } from 'lucide-react';
 
 interface AuthModalProps {
   open: boolean;
@@ -238,19 +238,23 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                   <Button
                     onClick={handleForgotPassword}
                     disabled={isLoading}
-                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
                   >
                     {isLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      'Send Reset Link'
+                      <>
+                        <Send className="h-4 w-4" />
+                        Send Reset Link
+                      </>
                     )}
                   </Button>
                   <Button
                     onClick={() => setView('signin')}
                     variant="outline"
-                    className="flex-1 border-[#262626] hover:bg-accent"
+                    className="flex-1 border-[#262626] hover:bg-accent gap-2"
                   >
+                    <LogIn className="h-4 w-4" />
                     Back to Sign In
                   </Button>
                 </div>
@@ -303,20 +307,24 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
                   >
                     {isLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      'Continue'
+                      <>
+                        {view === 'signin' ? <LogIn className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
+                        {view === 'signin' ? 'Sign In' : 'Sign Up'}
+                      </>
                     )}
                   </Button>
                   <Button
                     type="button"
                     onClick={handleCancel}
                     variant="outline"
-                    className="flex-1 border-[#262626] hover:bg-accent"
+                    className="flex-1 border-[#262626] hover:bg-accent gap-2"
                   >
+                    <X className="h-4 w-4" />
                     Cancel
                   </Button>
                 </div>
