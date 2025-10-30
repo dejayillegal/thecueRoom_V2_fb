@@ -27,6 +27,7 @@ const PALETTE_ITEMS: Omit<TechRiderItem, 'id'>[] = [
   { type: 'turntable', label: 'Technics SL-1210', quantity: 2, icon: '/assets/tech-rider/cdj.png' },
   { type: 'speakers', label: 'Monitor Speakers', quantity: 2, icon: '/assets/tech-rider/speaker.png' },
   { type: 'speakers', label: 'PA System', quantity: 1, icon: '/assets/tech-rider/speaker.png' },
+  { type: 'speakers', label: 'In-Ear Monitors', quantity: 1, icon: '/assets/tech-rider/speaker.png' },
 ];
 
 export default function EnhancedTechRiderPalette({ items, onChange }: EnhancedTechRiderPaletteProps) {
@@ -79,31 +80,17 @@ export default function EnhancedTechRiderPalette({ items, onChange }: EnhancedTe
     ));
   }
 
-  function moveItemUp(index: number) {
-    if (index === 0) return;
-    const newItems = [...items];
-    [newItems[index - 1], newItems[index]] = [newItems[index], newItems[index - 1]];
-    onChange(newItems);
-  }
-
-  function moveItemDown(index: number) {
-    if (index === items.length - 1) return;
-    const newItems = [...items];
-    [newItems[index], newItems[index + 1]] = [newItems[index + 1], newItems[index]];
-    onChange(newItems);
-  }
-
   return (
     <div className="space-y-4">
       <div>
-        <h4 className="text-sm font-semibold text-[#D7FF3C] mb-3">Equipment Palette</h4>
+        <h4 className="text-sm font-semibold text-[#D1FF3D] mb-3">Equipment Palette</h4>
         <p className="text-xs text-gray-400 mb-3">Click to add equipment to your tech rider</p>
         <div className="grid grid-cols-2 gap-2">
           {PALETTE_ITEMS.map((item, index) => (
             <button
               key={index}
               onClick={() => addPaletteItem(item)}
-              className="dashboard-card p-3 text-left transition-all hover:scale-[1.02] hover:bg-[#1a1a1a] flex items-center gap-2"
+              className="bg-[#1a1a1a] border border-[#333] rounded-lg p-3 text-left transition-all hover:scale-[1.02] hover:bg-[#222] hover:border-[#D1FF3D]/30 flex items-center gap-2"
               aria-label={`Add ${item.label} to tech rider`}
             >
               {item.icon && (
@@ -120,7 +107,7 @@ export default function EnhancedTechRiderPalette({ items, onChange }: EnhancedTe
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-[#D7FF3C] mb-2">
+        <label className="block text-sm font-medium text-[#D1FF3D] mb-2">
           Custom Equipment
         </label>
         <div className="flex gap-2">
@@ -129,8 +116,8 @@ export default function EnhancedTechRiderPalette({ items, onChange }: EnhancedTe
             value={customLabel}
             onChange={(e) => setCustomLabel(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && addCustomItem()}
-            placeholder="e.g., In-ear monitors"
-            className="flex-1 bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#9B5CFF]"
+            placeholder="e.g., Wireless Microphone"
+            className="flex-1 bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#9B5CFF] focus:border-transparent"
             aria-label="Custom equipment name"
           />
           <button
@@ -145,12 +132,12 @@ export default function EnhancedTechRiderPalette({ items, onChange }: EnhancedTe
       </div>
 
       <div>
-        <h4 className="text-sm font-semibold text-[#D7FF3C] mb-3">
+        <h4 className="text-sm font-semibold text-[#D1FF3D] mb-3">
           Your Tech Rider ({items.length} items)
         </h4>
-        
+
         {items.length === 0 ? (
-          <div className="dashboard-card p-6 text-center text-gray-500">
+          <div className="bg-[#1a1a1a] border border-[#333] rounded-lg p-6 text-center text-gray-500">
             No equipment added yet. Click items above to build your tech rider.
           </div>
         ) : (
@@ -170,8 +157,8 @@ export default function EnhancedTechRiderPalette({ items, onChange }: EnhancedTe
                         <div
                           ref={provided.innerRef}
                           {...provided.draggableProps}
-                          className={`dashboard-card p-3 ${
-                            snapshot.isDragging ? 'ring-2 ring-[#9B5CFF]' : ''
+                          className={`bg-[#1a1a1a] border border-[#333] rounded-lg p-3 ${
+                            snapshot.isDragging ? 'ring-2 ring-[#9B5CFF] shadow-lg' : ''
                           }`}
                           role="listitem"
                         >
@@ -205,25 +192,6 @@ export default function EnhancedTechRiderPalette({ items, onChange }: EnhancedTe
                                     className="w-16 bg-[#0B0B0B] border border-[#333] rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-[#9B5CFF]"
                                     aria-label={`Quantity for ${item.label}`}
                                   />
-                                  
-                                  <div className="flex flex-col gap-1">
-                                    <button
-                                      onClick={() => moveItemUp(index)}
-                                      disabled={index === 0}
-                                      className="p-1 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
-                                      aria-label="Move up"
-                                    >
-                                      ▲
-                                    </button>
-                                    <button
-                                      onClick={() => moveItemDown(index)}
-                                      disabled={index === items.length - 1}
-                                      className="p-1 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
-                                      aria-label="Move down"
-                                    >
-                                      ▼
-                                    </button>
-                                  </div>
 
                                   <button
                                     onClick={() => removeItem(item.id)}
