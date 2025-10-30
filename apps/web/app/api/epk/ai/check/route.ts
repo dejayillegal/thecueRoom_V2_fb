@@ -1,29 +1,30 @@
+
 import { NextResponse } from 'next/server';
 
 export async function GET() {
   const hasOpenAI = !!process.env.OPENAI_API_KEY;
-  
-  return NextResponse.json({
-    available: hasOpenAI,
-    provider: hasOpenAI ? 'openai' : 'fallback'
-  });
-}
-import { NextResponse } from 'next/server';
-
-export async function GET() {
-  const hasOpenAI = !!process.env.OPENAI_API_KEY;
-  const hasHF = !!(process.env.HF_API_TOKEN || process.env.HUGGINGFACE_KEY);
   const hasPerplexity = !!process.env.PERPLEXITY_KEY;
+  const hasHuggingFace = !!process.env.HUGGINGFACE_KEY || !!process.env.HF_API_TOKEN;
   
-  const available = hasOpenAI || hasHF || hasPerplexity;
-  
+  const hasAnyAI = hasOpenAI || hasPerplexity || hasHuggingFace;
+
+  console.log('[EPK AI Check]', {
+    hasOpenAI,
+    hasPerplexity,
+    hasHuggingFace,
+    hasAnyAI,
+    timestamp: new Date().toISOString()
+  });
+
   return NextResponse.json({
-    available,
+    available: hasAnyAI,
     providers: {
       openai: hasOpenAI,
-      huggingface: hasHF,
-      perplexity: hasPerplexity
-    },
-    priority: hasOpenAI ? 'openai' : hasPerplexity ? 'perplexity' : hasHF ? 'huggingface' : 'fallback'
+      perplexity: hasPerplexity,
+      huggingface: hasHuggingFace
+    }
   });
 }
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
