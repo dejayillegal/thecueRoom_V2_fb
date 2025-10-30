@@ -7,12 +7,28 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
-import { Download, FileText, Sparkles, Loader2, Wand2, Send, Plus, X } from 'lucide-react';
+import { Download, FileText, Sparkles, Loader2, Wand2, Send, Plus, X, Eye } from 'lucide-react';
 
 interface EPKModule {
   id: string;
   type: 'bio' | 'tracklist' | 'techRider' | 'quotes' | 'links';
   data: any;
+}
+
+interface Template {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  previewThumbnail?: string;
+  supportedModules: string[];
+  colorScheme: {
+    primary: string;
+    accent: string;
+    secondary: string;
+    background: string;
+    text: string;
+  };
 }
 
 export function EPKEditor() {
@@ -31,7 +47,7 @@ export function EPKEditor() {
   
   const [mixItems, setMixItems] = useState<Array<{ id: string; title: string; link: string }>>([]);
   const [selectedTemplate, setSelectedTemplate] = useState('brutalist-onepage');
-  const [templates, setTemplates] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
   
   const [isGeneratingBio, setIsGeneratingBio] = useState(false);
   const [isImprovingBio, setIsImprovingBio] = useState(false);
@@ -482,6 +498,11 @@ export function EPKEditor() {
                     >
                       <div className="font-bold text-white mb-1">{template.name}</div>
                       <div className="text-xs text-gray-400">{template.description}</div>
+                      <div className="flex gap-2 mt-2">
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-[#1a1a1a] text-gray-500 uppercase">
+                          {template.category}
+                        </span>
+                      </div>
                     </button>
                   ))}
                 </div>
