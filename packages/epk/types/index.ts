@@ -1,8 +1,27 @@
+export type EPKModuleType = 
+  | 'bio' 
+  | 'tracklist' 
+  | 'gallery' 
+  | 'techRider' 
+  | 'links' 
+  | 'quotes' 
+  | 'video' 
+  | 'tourDates' 
+  | 'discography' 
+  | 'pressTimeline'
+  | 'stats'
+  | 'customText';
+
 export interface EPKModule {
   id: string;
-  type: 'bio' | 'tracklist' | 'gallery' | 'techRider' | 'links' | 'quotes';
+  type: EPKModuleType;
   order: number;
   data: any;
+  customStyles?: {
+    backgroundColor?: string;
+    textColor?: string;
+    padding?: string;
+  };
 }
 
 export interface TechRiderItem {
@@ -23,7 +42,16 @@ export interface EPKTemplate {
   name: string;
   description: string;
   previewThumbnail: string;
-  layout: 'brutalist-onepage' | 'gallery-two-column' | 'console-minimal' | 'presskit-compact';
+  layout: string;
+  category: 'modern' | 'minimal' | 'editorial' | 'futuristic' | 'retro' | 'premium' | 'visual';
+  supportedModules: EPKModuleType[];
+  colorScheme: {
+    primary: string;
+    accent: string;
+    secondary: string;
+    background: string;
+    text: string;
+  };
 }
 
 export interface EPKGenerateRequest {
