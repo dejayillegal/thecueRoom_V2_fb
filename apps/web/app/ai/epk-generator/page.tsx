@@ -1,11 +1,4 @@
 
-import { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'AI EPK Studio | thecueRoom',
-  description: 'Create professional Electronic Press Kits with AI assistance, drag-and-drop tech rider, and live preview',
-};
-
 'use client';
 
 import { useState } from 'react';
