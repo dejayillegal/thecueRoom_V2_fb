@@ -49,7 +49,7 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
             <span>{formatDate(feed.publishedAt)}</span>
           </div>
 
-          <h3 className="text-sm font-bold line-clamp-2 text-foreground group-hover:text-[#D7FF3C] transition-colors duration-200 leading-tight">
+          <h3 className="text-sm font-bold line-clamp-2 text-foreground group-hover:text-[#D7FF3C] group-hover:underline transition-colors duration-200 leading-tight">
             {feed.title}
           </h3>
 
