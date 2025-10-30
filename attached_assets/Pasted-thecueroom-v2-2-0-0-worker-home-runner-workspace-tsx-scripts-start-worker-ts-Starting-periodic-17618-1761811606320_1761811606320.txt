@@ -1,0 +1,107 @@
+thecueroom-v2-2-0-0-worker-home-runner-workspace-tsx-scripts-start-worker-ts-Starting-periodic-1761811412100_1761811412100.txt
+thecueroom-v2@2.0.0 worker /home/runner/workspace
+> tsx scripts/start-worker.ts
+
+⏰ Starting periodic worker (every 60 minutes)
+
+✅ Database client initialized
+
+🚀 Starting thecueRoom Background Feed Worker cycle...
+
+📊 Processing 25 sources...
+
+📥 Fetching RSS: Synth Anatomy
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+✅ Synth Anatomy: 0 new items (10 skipped)
+📥 Fetching RSS: EDM.com Festivals
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+✅ EDM.com Festivals: 0 new items (10 skipped)
+📥 Fetching RSS: Earmilk
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+✅ Earmilk: 0 new items (12 skipped)
+📥 Fetching RSS: Bandcamp Daily
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+✅ Bandcamp Daily: 0 new items (34 skipped)
+📥 Fetching RSS: Festival Sherpa
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+✅ Festival Sherpa: 0 new items (10 skipped)
+📥 Fetching RSS: DJ TechTools
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does not exist
+  Error inserting item: column "url" does n...
