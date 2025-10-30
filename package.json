@@ -22,7 +22,8 @@
     "test": "pnpm -r test",
     "clean": "pnpm -r clean",
     "create-admin": "tsx scripts/create-admin-user.ts",
-    "cleanup:ai": "node scripts/cleanup-ai-temp.js"
+    "cleanup:ai": "node scripts/cleanup-ai-temp.js",
+    "epk:diag": "node scripts/diag/epk-check.js"
   },
   "postinstall": "echo '\n✨ Run \"pnpm setup\" to initialize the database and fetch feeds'",
   "engines": {
