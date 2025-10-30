@@ -126,49 +126,50 @@ export default function FeedsPage() {
             {feeds.map((feed) => (
               <article 
                 key={feed.id}
-                className="bg-card rounded-lg overflow-hidden border border-border hover:border-primary/50 transition-all group"
+                className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all group"
               >
                 <Link href={feed.link} target="_blank" rel="noopener noreferrer">
-                  <div className="relative h-48 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
-                    <Image
+                  <div className="relative h-64 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
+                    <img
                       src={feed.image || `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`}
                       alt={feed.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
                     />
-                  </div>
-
-                  <div className="p-5 space-y-3">
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span className="font-medium text-primary">
-                        {feed.source?.name || 'Unknown Source'}
-                      </span>
-                      <span>{formatDate(feed.publishedAt)}</span>
-                    </div>
-
-                    <h3 className="text-lg font-semibold line-clamp-2 group-hover:text-primary transition-colors">
-                      {feed.title}
-                    </h3>
-
-                    {feed.summary && (
-                      <p className="text-sm text-muted-foreground line-clamp-3">
-                        {feed.summary}
-                      </p>
-                    )}
-
-                    {feed.tags && feed.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 pt-2">
-                        {feed.tags.slice(0, 3).map((tag, idx) => (
-                          <span 
-                            key={idx}
-                            className="px-2 py-1 text-xs bg-primary/10 text-primary rounded-md"
-                          >
-                            {tag}
+                    
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent">
+                      <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
+                        <div className="flex items-center justify-between text-xs text-white/80">
+                          <span className="font-medium text-primary">
+                            {feed.source?.name || 'Unknown Source'}
                           </span>
-                        ))}
+                          <span>{formatDate(feed.publishedAt)}</span>
+                        </div>
+
+                        <h3 className="text-lg font-semibold line-clamp-2 text-white group-hover:text-primary transition-colors">
+                          {feed.title}
+                        </h3>
+
+                        {feed.summary && (
+                          <p className="text-sm text-white/70 line-clamp-2">
+                            {feed.summary}
+                          </p>
+                        )}
+
+                        {feed.tags && feed.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {feed.tags.slice(0, 3).map((tag, idx) => (
+                              <span 
+                                key={idx}
+                                className="px-2 py-0.5 text-xs bg-primary/20 text-primary border border-primary/30"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 </Link>
               </article>

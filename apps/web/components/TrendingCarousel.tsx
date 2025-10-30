@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import Link from 'next/link';
 import { OptimizedImage } from './OptimizedImage';
 import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
+import Image from 'next/image';
 
 export interface FeedItem {
   title: string;
@@ -16,44 +17,46 @@ export interface FeedItem {
 }
 
 const TrendingCard = memo(({ feed, index }: { feed: FeedItem; index: number }) => {
+  const [imgSrc, setImgSrc] = useState(feed.image);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setImgSrc(feed.image);
+    setIsLoading(true);
+  }, [feed.image]);
+
   return (
     <Link
       href={feed.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex-shrink-0 w-72 bg-card rounded-lg overflow-hidden border border-border hover:border-primary transition-colors group/card"
+      className="block group flex-shrink-0 w-64"
     >
-      <div className="relative h-40">
-        <OptimizedImage
-          src={feed.image || `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`}
-          alt={feed.title}
-          fill
-          quality={75}
-          sizes="320px"
-          className="object-cover group-hover/card:scale-105 transition-transform"
-          fallbackUrl={`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity">
-          <div className="absolute bottom-2 left-2 right-2">
-            <div className="text-xs font-medium text-white drop-shadow-lg">
-              {feed.source}
-            </div>
-            <div className="text-xs text-white/90 drop-shadow-lg" suppressHydrationWarning>
-              {(() => {
-                const date = new Date(feed.publishedAt);
-                return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
-              })()}
-            </div>
+      <div className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all">
+        <div className="relative h-40 bg-gradient-to-br from-primary/10 to-secondary/10">
+          {isLoading && (
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
+          )}
+          <img
+            src={imgSrc}
+            alt={feed.title}
+            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+            onError={() => {
+              setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
+              setIsLoading(false);
+            }}
+            onLoad={() => setIsLoading(false)}
+            loading="lazy"
+          />
+        </div>
+        <div className="p-3">
+          <h4 className="text-sm font-semibold line-clamp-2 mb-1 group-hover:text-primary transition-colors">
+            {feed.title}
+          </h4>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="truncate">{feed.source}</span>
           </div>
         </div>
-      </div>
-      <div className="p-4">
-        <h4 className="font-semibold text-sm line-clamp-2 group-hover/card:text-primary transition-colors">
-          {feed.title}
-        </h4>
-        <p className="text-xs text-muted-foreground mt-2">
-          {feed.source}
-        </p>
       </div>
     </Link>
   );

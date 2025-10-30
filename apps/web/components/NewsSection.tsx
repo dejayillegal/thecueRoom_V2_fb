@@ -3,7 +3,6 @@
 
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import Link from 'next/link';
-import { OptimizedImage } from './OptimizedImage';
 
 interface FeedItem {
   id: string;
@@ -17,64 +16,64 @@ interface FeedItem {
 }
 
 const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date: Date) => string }) => {
+  const [imgSrc, setImgSrc] = useState(feed.image || `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
+  const [isLoading, setIsLoading] = useState(true);
+
   return (
-    <article className="bg-card rounded-lg overflow-hidden border border-border hover:border-primary/50 transition-all group">
+    <article className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all group">
       <Link href={feed.url} target="_blank" rel="noopener noreferrer">
-        <div className="relative h-48 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
-          <OptimizedImage
-            src={feed.image || `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`}
+        <div className="relative h-64 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
+          {isLoading && (
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
+          )}
+          <img
+            src={imgSrc}
             alt={feed.title}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 50vw"
+            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+            onLoad={() => setIsLoading(false)}
+            onError={() => {
+              setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
+              setIsLoading(false);
+            }}
             loading="lazy"
-            quality={75}
           />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="absolute bottom-2 left-2 right-2">
-            <div className="text-xs font-medium text-white drop-shadow-lg">
-              {feed.source || 'Unknown Source'}
-            </div>
-            <div className="text-xs text-white/90 drop-shadow-lg">
-              {formatDate(feed.publishedAt)}
+          
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent">
+            <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
+              <div className="flex items-center justify-between text-xs text-white/80">
+                <span className="font-medium text-primary">
+                  {feed.source || 'Unknown Source'}
+                </span>
+                <span>{formatDate(feed.publishedAt)}</span>
+              </div>
+              
+              <h3 className="text-lg font-semibold line-clamp-2 text-white group-hover:text-primary transition-colors">
+                {feed.title}
+              </h3>
+              
+              {feed.summary && (
+                <p className="text-sm text-white/70 line-clamp-2">
+                  {feed.summary}
+                </p>
+              )}
+              
+              {feed.tags && feed.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {feed.tags.slice(0, 3).map((tag, idx) => (
+                    <span 
+                      key={idx}
+                      className="px-2 py-0.5 text-xs bg-primary/20 text-primary border border-primary/30"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
-      </div>
-      
-      <div className="p-5 space-y-3">
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span className="font-medium text-primary">
-            {feed.source || 'Unknown Source'}
-          </span>
-          <span>{formatDate(feed.publishedAt)}</span>
-        </div>
-        
-        <h3 className="text-lg font-semibold line-clamp-2 group-hover:text-primary transition-colors">
-          {feed.title}
-        </h3>
-        
-        {feed.summary && (
-          <p className="text-sm text-muted-foreground line-clamp-3">
-            {feed.summary}
-          </p>
-        )}
-        
-        {feed.tags && feed.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 pt-2">
-            {feed.tags.slice(0, 3).map((tag, idx) => (
-              <span 
-                key={idx}
-                className="px-2 py-1 text-xs bg-primary/10 text-primary rounded-md"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-    </Link>
-  </article>
+      </Link>
+    </article>
   );
 });
 
@@ -182,18 +181,8 @@ export default function NewsSection() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {[...Array(6)].map((_, i) => (
-          <article key={i} className="bg-card rounded-lg overflow-hidden border border-border">
-            <div className="relative h-48 bg-muted animate-pulse" />
-            <div className="p-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="h-3 w-20 bg-muted animate-pulse rounded" />
-                <div className="h-3 w-16 bg-muted animate-pulse rounded" />
-              </div>
-              <div className="h-5 bg-muted animate-pulse rounded w-full" />
-              <div className="h-5 bg-muted animate-pulse rounded w-4/5" />
-              <div className="h-4 bg-muted animate-pulse rounded w-full" />
-              <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
-            </div>
+          <article key={i} className="bg-card overflow-hidden border border-border">
+            <div className="relative h-64 bg-gradient-to-br from-primary/10 to-secondary/10 animate-pulse" />
           </article>
         ))}
       </div>

@@ -8,34 +8,37 @@ import TrendingCarousel, { FeedItem } from './TrendingCarousel';
 
 const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
   const [imgSrc, setImgSrc] = useState(feed.image);
-  const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const feedKey = `${feed.url}-${feed.image}`;
 
   useEffect(() => {
     setImgSrc(feed.image);
-    setHasError(false);
+    setIsLoading(true);
   }, [feed.image]);
 
   const handleError = useCallback(() => {
-    if (!hasError) {
-      setHasError(true);
-      setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
-    }
-  }, [hasError, feed.title]);
+    setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
+    setIsLoading(false);
+  }, [feed.title]);
+
+  const handleLoad = useCallback(() => {
+    setIsLoading(false);
+  }, []);
 
   return (
-    <Image
-      key={feedKey}
-      src={imgSrc}
-      alt={feed.title}
-      fill
-      sizes="100vw"
-      priority
-      quality={85}
-      className="object-cover transition-opacity duration-700"
-      onError={handleError}
-      unoptimized={imgSrc.startsWith('/api/og-fallback')}
-    />
+    <>
+      {isLoading && (
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
+      )}
+      <img
+        key={feedKey}
+        src={imgSrc}
+        alt={feed.title}
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+        onError={handleError}
+        onLoad={handleLoad}
+      />
+    </>
   );
 });
 
@@ -255,7 +258,7 @@ export default memo(function SpotlightSection({
         </div>
       </div>
 
-      <div className="relative h-[50vh] md:h-[60vh] bg-card rounded-xl overflow-hidden border border-border shadow-lg group/spotlight">
+      <div className="relative h-[50vh] md:h-[60vh] bg-card overflow-hidden border border-border shadow-lg group/spotlight">
         <div className="relative w-full h-full" style={{ transform: 'translateZ(0)' }}>
           <SpotlightImage feed={currentFeed} />
         </div>
