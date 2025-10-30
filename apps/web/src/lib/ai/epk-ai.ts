@@ -32,7 +32,7 @@ export async function generateEPKText(request: GenerateEPKTextRequest): Promise<
 
   try {
     const prompt = buildPrompt(request);
-    
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -46,24 +46,25 @@ export async function generateEPKText(request: GenerateEPKTextRequest): Promise<
         }
       ],
       max_tokens: 800,
+      temperature: 0.7, // Add temperature for more creative output
     });
 
     const generatedText = response.choices[0].message.content?.trim() || '';
-    
+
     if (!generatedText || generatedText.length < 10) {
-      console.warn('[EPK AI] GPT-5 returned empty/short content, using fallback');
+      console.warn('[EPK AI] GPT-4o-mini returned empty/short content, using fallback');
       return {
         text: generateFallbackText(request),
         usedAI: false
       };
     }
-    
+
     return {
       text: generatedText,
       usedAI: true
     };
   } catch (error) {
-    console.error('[EPK AI] GPT-5 error:', error);
+    console.error('[EPK AI] GPT-4o-mini error:', error);
     return {
       text: generateFallbackText(request),
       usedAI: false
@@ -102,18 +103,19 @@ export async function improveEPKText(text: string, tone: string = 'professional'
         }
       ],
       max_tokens: 800,
+      temperature: 0.7, // Add temperature for more creative output
     });
 
     const improved = response.choices[0].message.content?.trim() || '';
-    
+
     if (!improved || improved.length < 10) {
-      console.warn('[EPK AI] GPT-5 improvement returned empty/short content, keeping original');
+      console.warn('[EPK AI] GPT-4o-mini improvement returned empty/short content, keeping original');
       return {
         text: text,
         usedAI: false
       };
     }
-    
+
     return {
       text: improved,
       usedAI: true
@@ -131,20 +133,20 @@ function buildPrompt(request: GenerateEPKTextRequest): string {
   const { type, artistName, genre, existingText, tone = 'professional' } = request;
 
   const baseInfo = `Artist: ${artistName}${genre ? `\nGenre: ${genre}` : ''}`;
-  
+
   const prompts: Record<EPKTextType, string> = {
     bio: `Write a compelling artist biography for ${artistName}${genre ? `, a ${genre} artist` : ''}. ${
       existingText ? `Use this information: ${existingText}\n\n` : ''
     }Make it ${tone}, engaging, and highlight their unique sound. Include their musical journey, influences, and what makes them stand out. Keep it between 150-250 words.`,
-    
+
     press_quote: `Write 2-3 short press quotes (1-2 sentences each) that could appear in reviews or features about ${artistName}${genre ? `, a ${genre} artist` : ''}. ${
       existingText ? `Based on: ${existingText}\n\n` : ''
     }Make them sound like they came from music critics or industry publications. Be specific about their sound and impact.`,
-    
+
     tech_rider: `Create a concise technical rider for ${artistName}${genre ? `, a ${genre} artist` : ''}. ${
       existingText ? `Additional requirements: ${existingText}\n\n` : ''
     }List essential equipment needed for live performance (DJ setup, instruments, audio equipment). Be specific but realistic. Format as a bullet list.`,
-    
+
     promo_text: `Write a short promotional blurb (50-75 words) for ${artistName}${genre ? `, a ${genre} artist` : ''}. ${
       existingText ? `About: ${existingText}\n\n` : ''
     }Make it punchy, ${tone}, and perfect for festival lineups or event announcements. Highlight what makes them unmissable.`
@@ -174,14 +176,14 @@ export const TECH_RIDER_PRESETS = {
 
 function generateFallbackText(request: GenerateEPKTextRequest): string {
   const { type, artistName, genre } = request;
-  
+
   const fallbacks: Record<EPKTextType, string> = {
     bio: `${artistName} is ${genre ? `a ${genre} artist` : 'an artist'} creating innovative sounds and pushing boundaries. With a unique approach to music production and performance, ${artistName} has been building a dedicated following through compelling releases and dynamic live shows. Their sound blends creativity with technical precision, creating immersive experiences for audiences.`,
-    
+
     press_quote: `"${artistName} delivers a fresh take on ${genre || 'electronic music'} with impressive skill and creativity." - Music Press\n\n"A rising talent to watch in the scene." - Industry Review`,
-    
+
     tech_rider: TECH_RIDER_PRESETS.dj_standard.content,
-    
+
     promo_text: `${artistName} brings high-energy ${genre || 'electronic music'} to the stage with an infectious blend of innovation and crowd-pleasing selection. Known for dynamic sets and technical prowess, ${artistName} is a must-see artist.`
   };
 

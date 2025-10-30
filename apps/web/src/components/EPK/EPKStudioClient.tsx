@@ -106,21 +106,23 @@ export function EPKStudioClient() {
     }
   }, [previewHTML]);
 
-  const handleGenerateTechRider = useCallback(async (moduleId: string) => {
-    setIsRewritingTechRider(true);
+  const handleGenerateContent = useCallback(async (moduleId: string, type: 'bio' | 'press_quote' | 'tech_rider') => {
+    const setLoading = type === 'bio' ? setIsRewritingBio : type === 'press_quote' ? setIsRewritingQuotes : setIsRewritingTechRider;
+    setLoading(true);
 
     try {
       const response = await fetch('/api/epk/ai/generate-text', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type: 'tech_rider',
+          type,
           artistName,
-          genre
+          genre,
+          tone: 'professional'
         })
       });
 
-      if (!response.ok) throw new Error('Tech rider generation failed');
+      if (!response.ok) throw new Error('AI generation failed');
 
       const data = await response.json();
       if (data.text) {
@@ -129,15 +131,10 @@ export function EPKStudioClient() {
         ));
       }
     } catch (error) {
-      console.error('Tech rider generation error:', error);
-      alert('Tech rider generation failed. Using preset instead.');
-      // Fallback to preset
-      const { TECH_RIDER_PRESETS } = await import('@/lib/ai/epk-ai');
-      setModules(prev => prev.map(m => 
-        m.id === moduleId ? { ...m, data: { ...m.data, text: TECH_RIDER_PRESETS.dj_standard.content } } : m
-      ));
+      console.error('AI generation error:', error);
+      alert('AI generation failed. Please try again or enter content manually.');
     } finally {
-      setIsRewritingTechRider(false);
+      setLoading(false);
     }
   }, [artistName, genre]);
 
@@ -304,14 +301,14 @@ export function EPKStudioClient() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-white capitalize">{module.type === 'bio' ? 'Biography' : module.type === 'quotes' ? 'Press Quotes' : module.type === 'techRider' ? 'Tech Rider' : module.type}</h3>
                 <div className="flex gap-2">
-                  {module.type === 'techRider' && (
+                  {(module.type === 'bio' || module.type === 'quotes' || module.type === 'techRider') && (
                     <Button
                       size="sm"
-                      onClick={() => handleGenerateTechRider(module.id)}
-                      disabled={isRewritingTechRider}
+                      onClick={() => handleGenerateContent(module.id, module.type === 'bio' ? 'bio' : module.type === 'quotes' ? 'press_quote' : 'tech_rider')}
+                      disabled={module.type === 'bio' ? isRewritingBio : module.type === 'quotes' ? isRewritingQuotes : isRewritingTechRider}
                       className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
-                      {isRewritingTechRider ? (
+                      {(module.type === 'bio' ? isRewritingBio : module.type === 'quotes' ? isRewritingQuotes : isRewritingTechRider) ? (
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       ) : (
                         <Sparkles className="w-4 h-4 mr-2" />
@@ -319,11 +316,11 @@ export function EPKStudioClient() {
                       Generate
                     </Button>
                   )}
-                  {(module.type === 'bio' || module.type === 'quotes' || module.type === 'techRider') && (
+                  {(module.type === 'bio' || module.type === 'quotes' || module.type === 'techRider') && module.data?.text && (
                     <Button
                       size="sm"
                       onClick={() => handleAIRewrite(module.id, module.type === 'bio' ? 'bio' : module.type === 'quotes' ? 'press_quote' : 'tech_rider')}
-                      disabled={!module.data?.text || (module.type === 'bio' ? isRewritingBio : module.type === 'quotes' ? isRewritingQuotes : isRewritingTechRider)}
+                      disabled={module.type === 'bio' ? isRewritingBio : module.type === 'quotes' ? isRewritingQuotes : isRewritingTechRider}
                       className="bg-primary hover:bg-primary/90 text-black"
                     >
                       {(module.type === 'bio' ? isRewritingBio : module.type === 'quotes' ? isRewritingQuotes : isRewritingTechRider) ? (

@@ -1,73 +1,37 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { generateEPKText } from '@/lib/ai/epk-ai';
+import { z } from 'zod';
 
-export async function POST(request: Request) {
+const GenerateTextSchema = z.object({
+  type: z.enum(['bio', 'press_quote', 'tech_rider', 'promo_text']),
+  artistName: z.string(),
+  genre: z.string().optional(),
+  existingText: z.string().optional(),
+  tone: z.enum(['professional', 'edgy', 'minimal', 'press']).optional()
+});
+
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { type, artistName, genre, existingText, tone } = body;
+    const validated = GenerateTextSchema.parse(body);
 
-    if (!type || !artistName) {
-      return NextResponse.json(
-        { error: 'Missing required fields: type and artistName' },
-        { status: 400 }
-      );
-    }
+    console.log('[EPK AI Generate]', validated);
 
-    console.log('[EPK AI Generate] Request:', { type, artistName, genre, tone });
-
-    const result = await generateEPKText({
-      type,
-      artistName,
-      genre,
-      existingText,
-      tone: tone || 'professional'
-    });
-
-    console.log('[EPK AI Generate] Success:', { usedAI: result.usedAI, length: result.text.length });
+    const result = await generateEPKText(validated);
 
     return NextResponse.json({
+      ok: true,
       text: result.text,
       usedAI: result.usedAI
     });
   } catch (error) {
     console.error('[EPK AI Generate] Error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to generate text' },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      ok: false,
+      error: error instanceof Error ? error.message : 'Generation failed'
+    }, { status: 500 });
   }
 }
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
-import { NextRequest, NextResponse } from 'next/server';
-import { generateEPKText } from '@/lib/ai/epk-ai';
-
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { type, artistName, genre, existingText } = body;
-
-    if (!type || !artistName) {
-      return NextResponse.json(
-        { error: 'Missing required fields: type and artistName' },
-        { status: 400 }
-      );
-    }
-
-    const result = await generateEPKText({
-      type,
-      artistName,
-      genre,
-      existingText
-    });
-
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error('[EPK AI Generate] Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate text' },
-      { status: 500 }
-    );
-  }
-}

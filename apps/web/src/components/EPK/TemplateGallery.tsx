@@ -132,15 +132,18 @@ export function TemplateGallery({ selectedTemplateId, onSelectTemplate }: Templa
             }`}
             onClick={() => onSelectTemplate(template)}
           >
-            <div className="aspect-[3/4] bg-gradient-to-br relative overflow-hidden"
+            <div className="aspect-[4/5] bg-gradient-to-br relative overflow-hidden"
                  style={{
                    background: `linear-gradient(135deg, ${template.colorScheme.primary}, ${template.colorScheme.accent})`
                  }}>
-              <div className="absolute inset-0 flex items-center justify-center p-4">
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+                <Sparkles className="w-16 h-16 mb-4" style={{ color: template.colorScheme.text || '#fff' }} />
                 <div className="text-center space-y-2">
-                  <Sparkles className="w-12 h-12 mx-auto" style={{ color: template.colorScheme.text || '#fff' }} />
-                  <div className="text-sm font-bold" style={{ color: template.colorScheme.text || '#fff' }}>
+                  <div className="text-lg font-bold" style={{ color: template.colorScheme.text || '#fff' }}>
                     {template.name}
+                  </div>
+                  <div className="text-xs opacity-80" style={{ color: template.colorScheme.text || '#fff' }}>
+                    {template.category}
                   </div>
                 </div>
               </div>
@@ -193,13 +196,13 @@ export function TemplateGallery({ selectedTemplateId, onSelectTemplate }: Templa
                 <X className="w-6 h-6" />
               </button>
             </div>
-            <div className="p-4 bg-white overflow-auto" style={{ height: '70vh' }}>
+            <div className="p-4 bg-white overflow-auto" style={{ height: '75vh' }}>
               <iframe
                 ref={previewRef}
-                className="w-full h-full bg-white"
+                className="w-full bg-white"
+                style={{ border: 'none', minHeight: '800px', height: '100%' }}
                 title="Template Preview"
                 sandbox="allow-same-origin allow-scripts"
-                style={{ border: 'none' }}
               />
             </div>
             <div className="p-4 border-t border-[#1a1a1a] flex justify-between items-center">
