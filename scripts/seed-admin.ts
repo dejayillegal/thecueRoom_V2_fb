@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { db } from '../packages/db';
+import { getDbClient } from '../packages/db';
 import { users, profiles } from '../packages/db/schema';
 import { eq } from 'drizzle-orm';
 import * as bcrypt from 'bcryptjs';
@@ -12,6 +12,8 @@ async function seedAdmin() {
   try {
     console.log('🔧 Seeding admin user...');
     console.log(`📧 Admin email: ${ADMIN_EMAIL}`);
+
+    const db = getDbClient();
 
     // Check if admin user already exists
     const existingUser = await db

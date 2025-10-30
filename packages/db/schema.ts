@@ -48,14 +48,18 @@ export const feeds = pgTable('feeds', {
   sourceId: uuid('source_id').notNull().references(() => sources.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   summary: text('summary'),
+  content: text('content'),
   link: text('link').notNull().unique(),
   image: text('image'),
   tags: text('tags').array(),
+  contentHash: text('content_hash').notNull().unique(),
+  rawData: jsonb('raw_data').$type<any>(),
   publishedAt: timestamp('published_at').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 }, (table) => ({
   publishedAtIdx: index('feeds_published_at_idx').on(table.publishedAt),
   sourceIdIdx: index('feeds_source_id_idx').on(table.sourceId),
+  contentHashIdx: index('feeds_content_hash_idx').on(table.contentHash),
 }));
 
 export const fetchLogs = pgTable('fetch_logs', {
