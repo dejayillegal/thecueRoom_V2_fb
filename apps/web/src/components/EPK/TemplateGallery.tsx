@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { EPKTemplate } from '@thecueroom/epk';
 import { Button } from '@/components/ui/button';
-import { Check, Eye, Sparkles } from 'lucide-react';
+import { Check, Eye, Sparkles, X } from 'lucide-react';
 
 interface TemplateGalleryProps {
   selectedTemplateId?: string;
@@ -15,6 +15,9 @@ export function TemplateGallery({ selectedTemplateId, onSelectTemplate }: Templa
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [previewTemplate, setPreviewTemplate] = useState<EPKTemplate | null>(null);
+  const [previewHTML, setPreviewHTML] = useState('');
+  const previewRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     fetchTemplates();
@@ -35,6 +38,39 @@ export function TemplateGallery({ selectedTemplateId, onSelectTemplate }: Templa
       setLoading(false);
     }
   };
+
+  const loadPreview = async (template: EPKTemplate) => {
+    setPreviewTemplate(template);
+    try {
+      const response = await fetch('/api/epk/template-preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          templateId: template.id,
+          modules: [
+            { id: '1', type: 'bio', order: 0, data: { text: 'Sample artist biography showcasing this template style...' } }
+          ],
+          artistName: 'Artist Name',
+          releaseTitle: 'Sample EPK'
+        })
+      });
+      const html = await response.text();
+      setPreviewHTML(html);
+    } catch (error) {
+      console.error('Preview load error:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (previewRef.current && previewHTML) {
+      const doc = previewRef.current.contentDocument;
+      if (doc) {
+        doc.open();
+        doc.write(previewHTML);
+        doc.close();
+      }
+    }
+  }, [previewHTML]);
 
   const filteredTemplates = selectedCategory
     ? templates.filter(t => t.category === selectedCategory)
@@ -131,14 +167,56 @@ export function TemplateGallery({ selectedTemplateId, onSelectTemplate }: Templa
             </div>
 
             <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-              <Button size="sm" variant="outline" className="bg-white/10 text-white border-white/20">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  loadPreview(template);
+                }}
+              >
                 <Eye className="w-3 h-3 mr-1" />
-                Preview
+                Quick Preview
               </Button>
             </div>
           </div>
         ))}
       </div>
+
+      {previewTemplate && (
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-8" onClick={() => setPreviewTemplate(null)}>
+          <div className="bg-[#0a0a0a] border border-primary rounded-lg max-w-5xl w-full max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b border-[#1a1a1a]">
+              <h3 className="text-xl font-bold text-white">{previewTemplate.name} - Quick Preview</h3>
+              <button onClick={() => setPreviewTemplate(null)} className="text-gray-400 hover:text-white">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-4 bg-white overflow-auto" style={{ height: '70vh' }}>
+              <iframe
+                ref={previewRef}
+                className="w-full h-full bg-white"
+                title="Template Preview"
+                sandbox="allow-same-origin allow-scripts"
+                style={{ border: 'none' }}
+              />
+            </div>
+            <div className="p-4 border-t border-[#1a1a1a] flex justify-between items-center">
+              <p className="text-sm text-gray-400">{previewTemplate.description}</p>
+              <Button 
+                onClick={() => {
+                  onSelectTemplate(previewTemplate);
+                  setPreviewTemplate(null);
+                }}
+                className="bg-primary hover:bg-primary/90 text-black"
+              >
+                Use This Template
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -5,9 +5,10 @@ import { EPKTemplate, EPKModule } from '@thecueroom/epk';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { TemplateGallery } from './TemplateGallery';
 import { DragDropEditor } from './DragDropEditor';
-import { Download, Eye, Save, Sparkles } from 'lucide-react';
+import { Download, Eye, Save, Sparkles, Wand2, Loader2 } from 'lucide-react';
 
 export function EPKStudioClient() {
   const [step, setStep] = useState<'template' | 'edit' | 'preview'>('template');
@@ -18,6 +19,9 @@ export function EPKStudioClient() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [previewHTML, setPreviewHTML] = useState('');
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const [isRewritingBio, setIsRewritingBio] = useState(false);
+  const [isRewritingQuotes, setIsRewritingQuotes] = useState(false);
+  const [isRewritingTechRider, setIsRewritingTechRider] = useState(false);
   const previewRef = useRef<HTMLIFrameElement>(null);
 
   const handleSelectTemplate = useCallback((template: EPKTemplate) => {
@@ -102,6 +106,39 @@ export function EPKStudioClient() {
     }
   }, [previewHTML]);
 
+  const handleAIRewrite = useCallback(async (moduleId: string, type: 'bio' | 'press_quote' | 'tech_rider') => {
+    const module = modules.find(m => m.id === moduleId);
+    if (!module || !module.data?.text) return;
+
+    const setLoading = type === 'bio' ? setIsRewritingBio : type === 'press_quote' ? setIsRewritingQuotes : setIsRewritingTechRider;
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/epk/ai/improve-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: module.data.text,
+          tone: 'professional'
+        })
+      });
+
+      if (!response.ok) throw new Error('AI rewrite failed');
+
+      const data = await response.json();
+      if (data.text) {
+        setModules(prev => prev.map(m => 
+          m.id === moduleId ? { ...m, data: { ...m.data, text: data.text } } : m
+        ));
+      }
+    } catch (error) {
+      console.error('AI rewrite error:', error);
+      alert('AI rewrite failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [modules]);
+
   const handleGenerateEPK = useCallback(async () => {
     if (!selectedTemplate || !artistName || modules.length === 0) {
       alert('Please complete all required fields');
@@ -148,30 +185,41 @@ export function EPKStudioClient() {
         <p className="text-gray-400">Create professional Electronic Press Kits with advanced templates and AI-powered content</p>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-2 mb-6">
-        <Button
-          variant={step === 'template' ? 'default' : 'outline'}
-          onClick={() => setStep('template')}
-          className={`w-full sm:w-auto ${step === 'template' ? 'bg-primary text-black' : ''}`}
-        >
-          1. Choose Template
-        </Button>
-        <Button
-          variant={step === 'edit' ? 'default' : 'outline'}
-          onClick={() => setStep('edit')}
-          disabled={!selectedTemplate}
-          className={`w-full sm:w-auto ${step === 'edit' ? 'bg-primary text-black' : ''}`}
-        >
-          2. Edit Content
-        </Button>
-        <Button
-          variant={step === 'preview' ? 'default' : 'outline'}
-          onClick={() => setStep('preview')}
-          disabled={!selectedTemplate}
-          className={`w-full sm:w-auto ${step === 'preview' ? 'bg-primary text-black' : ''}`}
-        >
-          3. Preview & Export
-        </Button>
+      <div className="border-b border-[#1a1a1a] mb-8">
+        <div className="flex gap-1">
+          <button
+            onClick={() => setStep('template')}
+            className={`px-6 py-3 font-semibold transition-all ${
+              step === 'template' 
+                ? 'bg-primary text-black border-b-2 border-primary' 
+                : 'text-gray-400 hover:text-white border-b-2 border-transparent'
+            }`}
+          >
+            1. Choose Template
+          </button>
+          <button
+            onClick={() => setStep('edit')}
+            disabled={!selectedTemplate}
+            className={`px-6 py-3 font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+              step === 'edit' 
+                ? 'bg-primary text-black border-b-2 border-primary' 
+                : 'text-gray-400 hover:text-white border-b-2 border-transparent'
+            }`}
+          >
+            2. Edit Content
+          </button>
+          <button
+            onClick={() => setStep('preview')}
+            disabled={!selectedTemplate}
+            className={`px-6 py-3 font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+              step === 'preview' 
+                ? 'bg-primary text-black border-b-2 border-primary' 
+                : 'text-gray-400 hover:text-white border-b-2 border-transparent'
+            }`}
+          >
+            3. Preview & Export
+          </button>
+        </div>
       </div>
 
       {step === 'template' && (
@@ -216,8 +264,42 @@ export function EPKStudioClient() {
 
       {step === 'edit' && (
         <div className="space-y-6">
+          {modules.map((module) => (
+            <div key={module.id} className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-white capitalize">{module.type === 'bio' ? 'Biography' : module.type === 'quotes' ? 'Press Quotes' : module.type === 'techRider' ? 'Tech Rider' : module.type}</h3>
+                {(module.type === 'bio' || module.type === 'quotes' || module.type === 'techRider') && (
+                  <Button
+                    size="sm"
+                    onClick={() => handleAIRewrite(module.id, module.type === 'bio' ? 'bio' : module.type === 'quotes' ? 'press_quote' : 'tech_rider')}
+                    disabled={!module.data?.text || (module.type === 'bio' ? isRewritingBio : module.type === 'quotes' ? isRewritingQuotes : isRewritingTechRider)}
+                    className="bg-primary hover:bg-primary/90 text-black"
+                  >
+                    {(module.type === 'bio' ? isRewritingBio : module.type === 'quotes' ? isRewritingQuotes : isRewritingTechRider) ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Wand2 className="w-4 h-4 mr-2" />
+                    )}
+                    AI Rewrite
+                  </Button>
+                )}
+              </div>
+              <Textarea
+                value={module.data?.text || ''}
+                onChange={(e) => {
+                  const newModules = modules.map(m => 
+                    m.id === module.id ? { ...m, data: { ...m.data, text: e.target.value } } : m
+                  );
+                  setModules(newModules);
+                }}
+                placeholder={`Enter ${module.type}...`}
+                className="bg-black border-[#333] text-white min-h-[200px] resize-none"
+              />
+            </div>
+          ))}
+
           <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg p-6">
-            <h2 className="text-xl font-bold text-white mb-4">Build Your EPK</h2>
+            <h2 className="text-xl font-bold text-white mb-4">Add More Sections</h2>
             <DragDropEditor
               modules={modules}
               onModulesChange={setModules}
@@ -243,7 +325,7 @@ export function EPKStudioClient() {
 
       {step === 'preview' && (
         <div className="space-y-6">
-          <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg p-6">
+          <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg p-4">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-white">Live Preview</h2>
               {isLoadingPreview && (
@@ -253,10 +335,10 @@ export function EPKStudioClient() {
                 </div>
               )}
             </div>
-            <div className="bg-white rounded overflow-hidden" style={{ minHeight: '800px' }}>
+            <div className="bg-white rounded overflow-hidden border-4 border-gray-800" style={{ minHeight: '1200px' }}>
               <iframe
                 ref={previewRef}
-                className="w-full h-[800px] bg-white rounded"
+                className="w-full h-[1200px] bg-white"
                 title="EPK Preview"
                 sandbox="allow-same-origin allow-scripts"
                 style={{ border: 'none' }}
