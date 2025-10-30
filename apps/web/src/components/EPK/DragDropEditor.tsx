@@ -107,7 +107,12 @@ export function DragDropEditor({ modules, onModulesChange, supportedModules }: D
       </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId="epk-modules">
+        <Droppable 
+          droppableId="epk-modules" 
+          isDropDisabled={false}
+          isCombineEnabled={false}
+          ignoreContainerClipping={false}
+        >
           {(provided) => (
             <div 
               {...provided.droppableProps}

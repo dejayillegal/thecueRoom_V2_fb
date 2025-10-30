@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { EPKTemplate, EPKModule } from '@thecueroom/epk';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,9 @@ export function EPKStudioClient() {
   const [genre, setGenre] = useState('');
   const [modules, setModules] = useState<EPKModule[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [previewHTML, setPreviewHTML] = useState('');
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const previewRef = useRef<HTMLIFrameElement>(null);
 
   const handleSelectTemplate = useCallback((template: EPKTemplate) => {
     setSelectedTemplate(template);
@@ -36,6 +39,68 @@ export function EPKStudioClient() {
     }
     setStep('edit');
   }, [selectedTemplate, artistName]);
+
+  const loadPreview = useCallback(async () => {
+    if (!selectedTemplate || !artistName) {
+      setPreviewHTML('');
+      return;
+    }
+
+    setIsLoadingPreview(true);
+    try {
+      const response = await fetch('/api/epk/template-preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          templateId: selectedTemplate.id,
+          modules: modules.map((m, i) => ({ ...m, order: i })),
+          artistName,
+          releaseTitle: genre || 'Electronic Press Kit'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Preview failed: ${response.status} ${response.statusText}`);
+      }
+
+      const html = await response.text();
+      setPreviewHTML(html);
+    } catch (error) {
+      console.error('Preview loading error:', error);
+      setPreviewHTML(`
+        <html>
+          <body style="font-family: Arial, sans-serif; padding: 40px; text-align: center; background: #1a1a1a; color: #fff;">
+            <h2 style="color: #D7FF3C;">Preview Unavailable</h2>
+            <p style="color: #999;">Unable to load preview. Please try again.</p>
+            <p style="font-size: 12px; color: #666; margin-top: 20px;">${error instanceof Error ? error.message : 'Unknown error'}</p>
+          </body>
+        </html>
+      `);
+    } finally {
+      setIsLoadingPreview(false);
+    }
+  }, [selectedTemplate, artistName, genre, modules]);
+
+  useEffect(() => {
+    if (step === 'preview') {
+      loadPreview();
+    }
+  }, [step, selectedTemplate, artistName, genre, modules, loadPreview]);
+
+  useEffect(() => {
+    if (previewRef.current && previewHTML) {
+      try {
+        const doc = previewRef.current.contentDocument;
+        if (doc) {
+          doc.open();
+          doc.write(previewHTML);
+          doc.close();
+        }
+      } catch (error) {
+        console.error('Error rendering preview:', error);
+      }
+    }
+  }, [previewHTML]);
 
   const handleGenerateEPK = useCallback(async () => {
     if (!selectedTemplate || !artistName || modules.length === 0) {
@@ -58,13 +123,16 @@ export function EPKStudioClient() {
         })
       });
 
-      if (!response.ok) throw new Error('Generation failed');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Generation failed: ${response.status}`);
+      }
 
       const data = await response.json();
       alert(`EPK queued! Job ID: ${data.jobId}. Check the Jobs page to download.`);
     } catch (error) {
       console.error('EPK generation error:', error);
-      alert('Failed to generate EPK. Please try again.');
+      alert(error instanceof Error ? error.message : 'Failed to generate EPK. Please try again.');
     } finally {
       setIsGenerating(false);
     }
@@ -80,11 +148,11 @@ export function EPKStudioClient() {
         <p className="text-gray-400">Create professional Electronic Press Kits with advanced templates and AI-powered content</p>
       </div>
 
-      <div className="flex gap-2 mb-6">
+      <div className="flex flex-col sm:flex-row gap-2 mb-6">
         <Button
           variant={step === 'template' ? 'default' : 'outline'}
           onClick={() => setStep('template')}
-          className={step === 'template' ? 'bg-primary text-black' : ''}
+          className={`w-full sm:w-auto ${step === 'template' ? 'bg-primary text-black' : ''}`}
         >
           1. Choose Template
         </Button>
@@ -92,7 +160,7 @@ export function EPKStudioClient() {
           variant={step === 'edit' ? 'default' : 'outline'}
           onClick={() => setStep('edit')}
           disabled={!selectedTemplate}
-          className={step === 'edit' ? 'bg-primary text-black' : ''}
+          className={`w-full sm:w-auto ${step === 'edit' ? 'bg-primary text-black' : ''}`}
         >
           2. Edit Content
         </Button>
@@ -100,7 +168,7 @@ export function EPKStudioClient() {
           variant={step === 'preview' ? 'default' : 'outline'}
           onClick={() => setStep('preview')}
           disabled={!selectedTemplate}
-          className={step === 'preview' ? 'bg-primary text-black' : ''}
+          className={`w-full sm:w-auto ${step === 'preview' ? 'bg-primary text-black' : ''}`}
         >
           3. Preview & Export
         </Button>
@@ -157,14 +225,14 @@ export function EPKStudioClient() {
             />
           </div>
 
-          <div className="flex justify-between">
-            <Button variant="outline" onClick={() => setStep('template')}>
+          <div className="flex flex-col sm:flex-row justify-between gap-4">
+            <Button variant="outline" onClick={() => setStep('template')} className="w-full sm:w-auto">
               Back to Templates
             </Button>
             <Button
               onClick={() => setStep('preview')}
               disabled={modules.length === 0}
-              className="bg-primary hover:bg-primary/90 text-black"
+              className="bg-primary hover:bg-primary/90 text-black w-full sm:w-auto"
             >
               <Eye className="w-4 h-4 mr-2" />
               Preview EPK
@@ -176,31 +244,42 @@ export function EPKStudioClient() {
       {step === 'preview' && (
         <div className="space-y-6">
           <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg p-6">
-            <h2 className="text-xl font-bold text-white mb-4">Preview</h2>
-            <div className="aspect-[210/297] bg-white rounded overflow-hidden">
-              <div className="h-full flex items-center justify-center text-gray-900">
-                <div className="text-center">
-                  <Eye className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                  <p className="text-gray-600">Preview will render here</p>
-                  <p className="text-sm text-gray-400 mt-2">{artistName} - {selectedTemplate?.name}</p>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white">Live Preview</h2>
+              {isLoadingPreview && (
+                <div className="flex items-center gap-2 text-sm text-gray-400">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                  Loading preview...
                 </div>
-              </div>
+              )}
             </div>
+            <div className="bg-white rounded overflow-hidden" style={{ minHeight: '800px' }}>
+              <iframe
+                ref={previewRef}
+                className="w-full h-[800px] bg-white rounded"
+                title="EPK Preview"
+                sandbox="allow-same-origin allow-scripts"
+                style={{ border: 'none' }}
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              {artistName} - {selectedTemplate?.name} - {modules.length} modules
+            </p>
           </div>
 
-          <div className="flex justify-between">
-            <Button variant="outline" onClick={() => setStep('edit')}>
+          <div className="flex flex-col sm:flex-row justify-between gap-4">
+            <Button variant="outline" onClick={() => setStep('edit')} className="w-full sm:w-auto">
               Back to Edit
             </Button>
-            <div className="flex gap-2">
-              <Button variant="outline">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button variant="outline" className="w-full sm:w-auto">
                 <Save className="w-4 h-4 mr-2" />
                 Save Draft
               </Button>
               <Button
                 onClick={handleGenerateEPK}
-                disabled={isGenerating}
-                className="bg-primary hover:bg-primary/90 text-black"
+                disabled={isGenerating || modules.length === 0}
+                className="bg-primary hover:bg-primary/90 text-black w-full sm:w-auto"
               >
                 {isGenerating ? (
                   <>
