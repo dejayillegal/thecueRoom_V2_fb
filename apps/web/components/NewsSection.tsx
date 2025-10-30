@@ -91,7 +91,7 @@ export default function NewsSection() {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const formatDate = useCallback((date: string | Date) => {
-    const d = new Date(date);
+    const d = date instanceof Date ? date : new Date(date);
     const now = new Date();
     const diffMs = now.getTime() - d.getTime();
     const diffMins = Math.floor(diffMs / 60000);
