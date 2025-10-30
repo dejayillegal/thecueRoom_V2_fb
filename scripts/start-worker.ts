@@ -1,176 +1,177 @@
 
-import { getDbClient } from '@thecueroom/db';
-import { feeds, sources } from '@thecueroom/db/schema';
-import { eq } from 'drizzle-orm';
+import { getDbClient } from '../packages/db/client';
+import { sources, feeds } from '../packages/db/schema';
+import { eq, sql } from 'drizzle-orm';
 import Parser from 'rss-parser';
-import crypto from 'crypto';
 
 const parser = new Parser({
-  timeout: 15000,
+  timeout: 30000,
   headers: {
-    'User-Agent': 'thecueRoom/2.0 (Feed Aggregator)'
-  }
+    'User-Agent': 'thecueRoom/2.0 Feed Aggregator',
+  },
 });
 
-const WORKER_INTERVAL_MS = parseInt(process.env.INGEST_INTERVAL_MINUTES || '60', 10) * 60 * 1000;
+const POLL_INTERVAL_MS = 60 * 60 * 1000; // 60 minutes
 
-interface FeedItem {
-  title?: string;
-  link?: string;
-  pubDate?: string;
-  content?: string;
-  contentSnippet?: string;
-  creator?: string;
-  categories?: string[];
-  enclosure?: {
-    url?: string;
-    type?: string;
-  };
-}
-
-async function processSingleSource(source: any) {
+async function processFeed(source: any) {
   const db = getDbClient();
   
   try {
     console.log(`📥 Fetching RSS: ${source.name}`);
     
     const feed = await parser.parseURL(source.url);
-    const items = feed.items as FeedItem[];
     
+    if (!feed.items || feed.items.length === 0) {
+      console.log(`⚠️  ${source.name}: No items found`);
+      return { success: false, imported: 0, skipped: 0 };
+    }
+
     let imported = 0;
-    let duplicates = 0;
+    let skipped = 0;
 
-    for (const item of items.slice(0, source.maxItems || 20)) {
-      if (!item.link) continue;
-
-      const hash = crypto
-        .createHash('sha256')
-        .update(item.link)
-        .digest('hex')
-        .substring(0, 16);
-
-      const existing = await db
-        .select()
-        .from(feeds)
-        .where(eq(feeds.urlHash, hash))
-        .limit(1);
-
-      if (existing.length > 0) {
-        duplicates++;
+    for (const item of feed.items) {
+      if (!item.link || !item.title) {
+        skipped++;
         continue;
       }
 
-      const thumbnail = item.enclosure?.url || 
-        feed.image?.url || 
-        extractImageFromContent(item.content || item.contentSnippet || '');
+      try {
+        // Check if feed item already exists
+        const existing = await db
+          .select()
+          .from(feeds)
+          .where(eq(feeds.url, item.link))
+          .limit(1);
 
-      await db.insert(feeds).values({
-        id: crypto.randomUUID(),
-        title: item.title || 'Untitled',
-        url: item.link,
-        urlHash: hash,
-        summary: (item.contentSnippet || item.content || '').substring(0, 500),
-        thumbnail: thumbnail || null,
-        sourceId: source.id,
-        publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
-        tags: item.categories || source.tags || [],
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
+        if (existing.length > 0) {
+          skipped++;
+          continue;
+        }
 
-      imported++;
+        // Extract image from content or enclosure
+        let image = item.enclosure?.url || null;
+        if (!image && item.content) {
+          const imgMatch = item.content.match(/<img[^>]+src=["']([^"']+)["']/i);
+          if (imgMatch) image = imgMatch[1];
+        }
+
+        // Parse published date
+        const publishedAt = item.pubDate ? new Date(item.pubDate) : new Date();
+
+        // Extract tags from categories
+        const tags = item.categories || [];
+
+        // Insert new feed item
+        await db.insert(feeds).values({
+          title: item.title,
+          summary: item.contentSnippet || item.content?.substring(0, 300) || null,
+          url: item.link,
+          image,
+          tags,
+          publishedAt,
+          source: source.name,
+          sourceId: source.id,
+        });
+
+        imported++;
+      } catch (err: any) {
+        console.error(`  Error inserting item: ${err.message}`);
+        skipped++;
+      }
     }
 
+    // Update source last fetch time
     await db
       .update(sources)
-      .set({ 
-        lastFetchedAt: new Date(),
-        consecutiveFailures: 0
+      .set({
+        lastFetchAt: new Date(),
+        consecutiveFailures: 0,
       })
       .where(eq(sources.id, source.id));
 
-    console.log(`✅ ${source.name}: imported ${imported}, skipped ${duplicates} duplicates`);
+    console.log(`✅ ${source.name}: ${imported} new items (${skipped} skipped)`);
+    return { success: true, imported, skipped };
     
-    return { success: true, imported, duplicates };
-  } catch (error) {
-    console.error(`❌ ${source.name}:`, error instanceof Error ? error.message : String(error));
+  } catch (error: any) {
+    console.error(`❌ ${source.name}: ${error.message}`);
     
-    await db
-      .update(sources)
-      .set({ 
-        consecutiveFailures: (source.consecutiveFailures || 0) + 1 
-      })
-      .where(eq(sources.id, source.id));
+    // Update failure count
+    try {
+      await db
+        .update(sources)
+        .set({
+          consecutiveFailures: sql`${sources.consecutiveFailures} + 1`,
+          lastFetchAt: new Date(),
+        })
+        .where(eq(sources.id, source.id));
+    } catch (updateErr) {
+      console.error(`  Failed to update source: ${updateErr}`);
+    }
     
-    return { success: false, imported: 0, duplicates: 0 };
+    return { success: false, imported: 0, skipped: 0 };
   }
-}
-
-function extractImageFromContent(content: string): string | null {
-  const imgMatch = content.match(/<img[^>]+src=["']([^"']+)["']/i);
-  if (imgMatch && imgMatch[1]) {
-    return imgMatch[1];
-  }
-  return null;
 }
 
 async function runWorkerCycle() {
   const db = getDbClient();
-  const startTime = Date.now();
   
   console.log('\n🚀 Starting thecueRoom Background Feed Worker cycle...\n');
-
+  
   try {
-    const allSources = await db
+    // Fetch all enabled sources
+    const enabledSources = await db
       .select()
       .from(sources)
       .where(eq(sources.enabled, true));
 
-    console.log(`📊 Processing ${allSources.length} sources...\n`);
+    console.log(`📊 Processing ${enabledSources.length} sources...\n`);
 
-    const results = await Promise.allSettled(
-      allSources.map(source => processSingleSource(source))
-    );
-
-    let totalSuccess = 0;
-    let totalFailed = 0;
     let totalImported = 0;
-    let totalDuplicates = 0;
+    let totalSkipped = 0;
+    let successCount = 0;
+    let failCount = 0;
 
-    results.forEach((result) => {
-      if (result.status === 'fulfilled' && result.value.success) {
-        totalSuccess++;
-        totalImported += result.value.imported;
-        totalDuplicates += result.value.duplicates;
+    // Process feeds sequentially to avoid overwhelming the database
+    for (const source of enabledSources) {
+      const result = await processFeed(source);
+      
+      if (result.success) {
+        successCount++;
+        totalImported += result.imported;
+        totalSkipped += result.skipped;
       } else {
-        totalFailed++;
+        failCount++;
       }
-    });
-
-    const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+      
+      // Small delay between requests
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
 
     console.log('\n✨ Worker cycle complete!');
-    console.log(`✅ Successful: ${totalSuccess}/${allSources.length}`);
-    console.log(`❌ Failed: ${totalFailed}/${allSources.length}`);
+    console.log(`✅ Successful: ${successCount}/${enabledSources.length}`);
+    console.log(`❌ Failed: ${failCount}/${enabledSources.length}`);
     console.log(`📝 Total items imported: ${totalImported}`);
-    console.log(`⏭️  Total duplicates skipped: ${totalDuplicates}`);
-    console.log(`⏱️  Cycle duration: ${duration}s\n`);
-  } catch (error) {
-    console.error('💥 Worker cycle failed:', error);
+    console.log(`⏭️  Total duplicates skipped: ${totalSkipped}`);
+    
+  } catch (error: any) {
+    console.error('❌ Worker cycle failed:', error.message);
   }
 }
 
 async function startPeriodicWorker() {
-  console.log(`⏰ Starting periodic worker (every ${WORKER_INTERVAL_MS / 60000} minutes)\n`);
+  console.log(`⏰ Starting periodic worker (every ${POLL_INTERVAL_MS / 60000} minutes)\n`);
   
+  // Run immediately on start
   await runWorkerCycle();
   
+  // Then run on interval
   setInterval(async () => {
     await runWorkerCycle();
-  }, WORKER_INTERVAL_MS);
+  }, POLL_INTERVAL_MS);
 }
 
-startPeriodicWorker().catch(error => {
+// Start the worker
+startPeriodicWorker().catch((error) => {
   console.error('Failed to start worker:', error);
   process.exit(1);
 });
