@@ -44,27 +44,31 @@ const TrendingCard = memo(({ feed, index }: { feed: FeedItem; index: number }) =
       className="block group flex-shrink-0 w-56 sm:w-64 md:w-72"
     >
       <div className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all shadow-sm hover:shadow-md">
-        <div className="p-2.5 sm:p-3 bg-card">
-          <h4 className="text-xs sm:text-sm font-semibold line-clamp-2 mb-1 group-hover:text-primary transition-colors">
-            {feed.title}
-          </h4>
-          <div className="flex items-center gap-2 text-[10px] sm:text-xs text-muted-foreground">
-            <span className="truncate">{feed.source}</span>
+        <div className="relative">
+          <div className="relative h-36 sm:h-40 md:h-44 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
+            {isLoading && (
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
+            )}
+            <img
+              src={imgSrc}
+              alt={feed.title}
+              className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+              onError={handleError}
+              onLoad={() => setIsLoading(false)}
+              loading="lazy"
+            />
+            
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            
+            <div className="absolute inset-0 p-2.5 sm:p-3 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <h4 className="text-xs sm:text-sm font-semibold line-clamp-2 mb-1 text-white drop-shadow-lg leading-tight">
+                {feed.title}
+              </h4>
+              <div className="flex items-center gap-2 text-[10px] sm:text-xs text-white/90">
+                <span className="truncate drop-shadow-md">{feed.source}</span>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="relative h-36 sm:h-40 md:h-44 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
-          {isLoading && (
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
-          )}
-          <img
-            src={imgSrc}
-            alt={feed.title}
-            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
-            onError={handleError}
-            onLoad={() => setIsLoading(false)}
-            loading="lazy"
-          />
-          <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-black/0 group-hover:bg-black/25 transition-colors duration-300"></div>
         </div>
       </div>
     </Link>

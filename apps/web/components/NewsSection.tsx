@@ -21,53 +21,59 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
   return (
     <article className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all group shadow-sm hover:shadow-md">
       <Link href={feed.url} target="_blank" rel="noopener noreferrer" className="block">
-        <div className="p-4 sm:p-5 space-y-2.5 bg-card">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span className="font-medium truncate max-w-[60%]">
-              {feed.source || 'Unknown Source'}
-            </span>
-            <span>{formatDate(feed.publishedAt)}</span>
-          </div>
+        <div className="relative">
+          <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
+            {isLoading && (
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
+            )}
+            <img
+              src={imgSrc}
+              alt={feed.title}
+              className={`w-full h-full object-cover transition-transform duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+              onLoad={() => setIsLoading(false)}
+              onError={() => {
+                setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
+                setIsLoading(false);
+              }}
+              loading="lazy"
+            />
+            
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            
+            <div className="absolute inset-0 p-4 sm:p-5 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between text-xs text-white/90">
+                  <span className="font-medium truncate max-w-[60%] drop-shadow-md">
+                    {feed.source || 'Unknown Source'}
+                  </span>
+                  <span className="drop-shadow-md">{formatDate(feed.publishedAt)}</span>
+                </div>
 
-          <h3 className="text-[14px] sm:text-[15.5px] font-bold line-clamp-3 text-foreground group-hover:text-primary transition-colors leading-tight">
-            {feed.title}
-          </h3>
+                <h3 className="text-[14px] sm:text-[15.5px] font-bold line-clamp-3 text-white leading-tight drop-shadow-lg">
+                  {feed.title}
+                </h3>
 
-          {feed.summary && (
-            <p className="text-[13px] leading-relaxed text-muted-foreground line-clamp-2">
-              {feed.summary}
-            </p>
-          )}
+                {feed.summary && (
+                  <p className="text-[13px] leading-relaxed text-white/80 line-clamp-2 drop-shadow-md">
+                    {feed.summary}
+                  </p>
+                )}
 
-          {feed.tags && feed.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 pt-2">
-              {feed.tags.slice(0, 3).map((tag, idx) => (
-                <span
-                  key={idx}
-                  className="px-3 py-1 text-[11px] font-medium bg-primary/10 text-primary border border-primary/30 rounded-full hover:bg-primary/20 transition-colors"
-                >
-                  #{tag}
-                </span>
-              ))}
+                {feed.tags && feed.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {feed.tags.slice(0, 3).map((tag, idx) => (
+                      <span
+                        key={idx}
+                        className="px-3 py-1 text-[11px] font-medium bg-white/20 backdrop-blur-sm text-white border border-white/30 rounded-full hover:bg-white/30 transition-colors drop-shadow-md"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-        </div>
-        <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
-          {isLoading && (
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
-          )}
-          <img
-            src={imgSrc}
-            alt={feed.title}
-            className={`w-full h-full object-cover transition-transform duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
-            onLoad={() => setIsLoading(false)}
-            onError={() => {
-              setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
-              setIsLoading(false);
-            }}
-            loading="lazy"
-          />
-          <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-black/0 group-hover:bg-black/25 transition-colors duration-300"></div>
+          </div>
         </div>
       </Link>
     </article>
