@@ -72,11 +72,11 @@ export async function GET(request: Request) {
       id: item.id,
       title: item.title,
       summary: item.summary,
-      url: item.link,
+      url: item.link || '',
       image: getArticleImageSync({
         image: item.image,
         guid: item.id,
-        url: item.link,
+        url: item.link || '',
         title: item.title
       }),
       tags: item.tags || [],

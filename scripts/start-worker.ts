@@ -39,7 +39,7 @@ async function processFeed(source: any) {
         const existing = await db
           .select()
           .from(feeds)
-          .where(eq(feeds.url, item.link))
+          .where(eq(feeds.link, item.link))
           .limit(1);
 
         if (existing.length > 0) {
@@ -64,7 +64,7 @@ async function processFeed(source: any) {
         await db.insert(feeds).values({
           title: item.title,
           summary: item.contentSnippet || item.content?.substring(0, 300) || null,
-          url: item.link,
+          link: item.link,
           image,
           tags,
           publishedAt,
@@ -82,7 +82,7 @@ async function processFeed(source: any) {
     await db
       .update(sources)
       .set({
-        lastFetchAt: new Date(),
+        lastFetchedAt: new Date(),
         consecutiveFailures: 0,
       })
       .where(eq(sources.id, source.id));
@@ -99,7 +99,7 @@ async function processFeed(source: any) {
         .update(sources)
         .set({
           consecutiveFailures: sql`${sources.consecutiveFailures} + 1`,
-          lastFetchAt: new Date(),
+          lastFetchedAt: new Date(),
         })
         .where(eq(sources.id, source.id));
     } catch (updateErr) {
