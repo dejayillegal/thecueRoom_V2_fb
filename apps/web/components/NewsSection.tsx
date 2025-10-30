@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react';
 import Link from 'next/link';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface FeedItem {
   id: string;
@@ -19,17 +20,17 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
   const [isLoading, setIsLoading] = useState(true);
 
   return (
-    <article className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all group shadow-sm hover:shadow-md">
+    <article className="bg-card overflow-hidden border border-border hover:border-primary/30 transition-all group shadow-sm hover:shadow-md">
       <Link href={feed.url} target="_blank" rel="noopener noreferrer" className="block">
         <div className="relative">
-          <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
+          <div className="relative h-48 sm:h-56 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
             {isLoading && (
               <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
             )}
             <img
               src={imgSrc}
               alt={feed.title}
-              className={`w-full h-full object-cover transition-transform duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+              className={`w-full h-full object-cover transition-all duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
               onLoad={() => setIsLoading(false)}
               onError={() => {
                 setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
@@ -37,43 +38,39 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
               }}
               loading="lazy"
             />
-            
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            
-            <div className="absolute inset-0 p-4 sm:p-5 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between text-xs text-white/90">
-                  <span className="font-medium truncate max-w-[60%] drop-shadow-md">
-                    {feed.source || 'Unknown Source'}
-                  </span>
-                  <span className="drop-shadow-md">{formatDate(feed.publishedAt)}</span>
-                </div>
-
-                <h3 className="text-[14px] sm:text-[15.5px] font-bold line-clamp-3 text-white leading-tight drop-shadow-lg">
-                  {feed.title}
-                </h3>
-
-                {feed.summary && (
-                  <p className="text-[13px] leading-relaxed text-white/80 line-clamp-2 drop-shadow-md">
-                    {feed.summary}
-                  </p>
-                )}
-
-                {feed.tags && feed.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {feed.tags.slice(0, 3).map((tag, idx) => (
-                      <span
-                        key={idx}
-                        className="px-3 py-1 text-[11px] font-medium bg-white/20 backdrop-blur-sm text-white border border-white/30 rounded-full hover:bg-white/30 transition-colors drop-shadow-md"
-                      >
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
+        </div>
+
+        <div className="p-4 space-y-2">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span className="font-medium truncate max-w-[60%]">
+              {feed.source || 'Unknown Source'}
+            </span>
+            <span>{formatDate(feed.publishedAt)}</span>
+          </div>
+
+          <h3 className="text-sm font-bold line-clamp-2 text-foreground group-hover:text-[#D7FF3C] transition-colors duration-200 leading-tight">
+            {feed.title}
+          </h3>
+
+          {feed.summary && (
+            <p className="text-xs leading-relaxed text-muted-foreground line-clamp-2">
+              {feed.summary}
+            </p>
+          )}
+
+          {feed.tags && feed.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {feed.tags.slice(0, 3).map((tag, idx) => (
+                <span
+                  key={idx}
+                  className="px-2 py-0.5 text-[10px] font-medium text-[#D7FF3C] border border-[#D7FF3C]/30 transition-colors"
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </Link>
     </article>
@@ -88,6 +85,8 @@ export default function NewsSection() {
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
   const observerTarget = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -188,12 +187,48 @@ export default function NewsSection() {
     return () => observer.disconnect();
   }, [hasMore, isLoadingMore, loadNewsFeeds, isLoading]);
 
+  const allTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    newsFeeds.forEach(feed => {
+      if (feed.tags) {
+        feed.tags.forEach(tag => tagSet.add(tag.toLowerCase()));
+      }
+    });
+    return Array.from(tagSet).sort();
+  }, [newsFeeds]);
+
+  const filteredFeeds = useMemo(() => {
+    if (selectedTags.size === 0) return newsFeeds;
+    
+    return newsFeeds.filter(feed => {
+      if (!feed.tags || feed.tags.length === 0) return false;
+      const feedTags = feed.tags.map(t => t.toLowerCase());
+      return Array.from(selectedTags).some(selectedTag => feedTags.includes(selectedTag));
+    });
+  }, [newsFeeds, selectedTags]);
+
+  const toggleTag = useCallback((tag: string) => {
+    setSelectedTags(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(tag)) {
+        newSet.delete(tag);
+      } else {
+        newSet.add(tag);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const clearFilters = useCallback(() => {
+    setSelectedTags(new Set());
+  }, []);
+
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-        {[...Array(8)].map((_, i) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {[...Array(6)].map((_, i) => (
           <article key={i} className="bg-card overflow-hidden border border-border shadow-sm">
-            <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-secondary/10 animate-pulse" />
+            <div className="relative h-48 sm:h-56 bg-gradient-to-br from-primary/10 to-secondary/10 animate-pulse" />
             <div className="p-4 space-y-2">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <div className="h-3 w-24 bg-gray-300 rounded animate-pulse"></div>
@@ -202,8 +237,8 @@ export default function NewsSection() {
               <div className="h-5 w-full bg-gray-300 rounded animate-pulse"></div>
               <div className="h-4 w-4/5 bg-gray-300 rounded animate-pulse"></div>
               <div className="flex gap-2">
-                <div className="h-2 w-16 bg-primary/20 rounded-full"></div>
-                <div className="h-2 w-12 bg-primary/20 rounded-full"></div>
+                <div className="h-5 w-16 bg-primary/20 rounded"></div>
+                <div className="h-5 w-12 bg-primary/20 rounded"></div>
               </div>
             </div>
           </article>
@@ -222,11 +257,74 @@ export default function NewsSection() {
 
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-        {newsFeeds.map((feed) => (
+      {allTags.length > 0 && (
+        <div className="mb-6 border border-border bg-card p-4">
+          <button
+            onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
+            className="flex items-center justify-between w-full text-left"
+          >
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <span className="text-[#D7FF3C]">⚡</span>
+              Filter by Category
+              {selectedTags.size > 0 && (
+                <span className="text-xs text-[#D7FF3C] ml-2">({selectedTags.size} active)</span>
+              )}
+            </h3>
+            {isFiltersExpanded ? (
+              <ChevronUp className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            )}
+          </button>
+          
+          {isFiltersExpanded && (
+            <div className="mt-4 space-y-3">
+              <div className="flex flex-wrap gap-2">
+                {allTags.map((tag) => (
+                  <button
+                    key={tag}
+                    onClick={() => toggleTag(tag)}
+                    className={`px-3 py-1.5 text-xs font-medium border transition-all ${
+                      selectedTags.has(tag)
+                        ? 'border-[#D7FF3C] bg-[#D7FF3C]/10 text-[#D7FF3C]'
+                        : 'border-[#D7FF3C]/30 text-[#D7FF3C] hover:bg-[#D7FF3C]/5'
+                    }`}
+                  >
+                    #{tag}
+                  </button>
+                ))}
+              </div>
+              
+              {selectedTags.size > 0 && (
+                <button
+                  onClick={clearFilters}
+                  className="text-xs text-muted-foreground hover:text-[#D7FF3C] transition-colors"
+                >
+                  Clear all filters
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {filteredFeeds.map((feed) => (
           <FeedCard key={feed.id} feed={feed} formatDate={formatDate} />
         ))}
       </div>
+
+      {filteredFeeds.length === 0 && selectedTags.size > 0 && (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">No feeds match the selected filters.</p>
+          <button
+            onClick={clearFilters}
+            className="mt-4 text-sm text-[#D7FF3C] hover:underline"
+          >
+            Clear filters
+          </button>
+        </div>
+      )}
 
       <div ref={observerTarget} className="h-20 flex items-center justify-center mt-8">
         {isLoadingMore && (
@@ -235,7 +333,7 @@ export default function NewsSection() {
             <span>Loading more feeds...</span>
           </div>
         )}
-        {!hasMore && newsFeeds.length > 0 && (
+        {!hasMore && filteredFeeds.length > 0 && (
           <p className="text-muted-foreground">You've reached the end</p>
         )}
       </div>
