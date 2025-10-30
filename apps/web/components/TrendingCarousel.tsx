@@ -80,6 +80,7 @@ TrendingCard.displayName = 'TrendingCard';
 export default function TrendingCarousel({ feeds }: { feeds: FeedItem[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | undefined>(undefined);
+  const lastTimeRef = useRef<number>(0);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
@@ -93,18 +94,24 @@ export default function TrendingCarousel({ feeds }: { feeds: FeedItem[] }) {
     }
   }, []);
 
-  const autoScroll = useCallback(() => {
-    if (scrollRef.current && isAutoScrolling && !isPaused) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+  const autoScroll = useCallback((timestamp: number) => {
+    if (!scrollRef.current || !isAutoScrolling || isPaused) return;
 
-      if (scrollLeft >= scrollWidth - clientWidth - 10) {
-        scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
-      } else {
-        scrollRef.current.scrollBy({ left: 1, behavior: 'auto' });
-      }
+    const elapsed = lastTimeRef.current ? timestamp - lastTimeRef.current : 0;
+    lastTimeRef.current = timestamp;
 
-      rafRef.current = requestAnimationFrame(autoScroll);
+    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+    const scrollSpeed = 0.05; // pixels per ms for smooth 60fps
+    const distance = elapsed * scrollSpeed;
+
+    // Infinite loop: reset to start when reaching the end
+    if (scrollLeft >= scrollWidth - clientWidth - 1) {
+      scrollRef.current.scrollLeft = 0;
+    } else {
+      scrollRef.current.scrollLeft += distance;
     }
+
+    rafRef.current = requestAnimationFrame(autoScroll);
   }, [isAutoScrolling, isPaused]);
 
   useEffect(() => {
@@ -118,13 +125,17 @@ export default function TrendingCarousel({ feeds }: { feeds: FeedItem[] }) {
 
   useEffect(() => {
     if (isAutoScrolling && !isPaused) {
+      lastTimeRef.current = 0;
       rafRef.current = requestAnimationFrame(autoScroll);
+    } else {
+      lastTimeRef.current = 0;
     }
 
     return () => {
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
       }
+      lastTimeRef.current = 0;
     };
   }, [isAutoScrolling, isPaused, autoScroll]);
 
@@ -200,11 +211,20 @@ export default function TrendingCarousel({ feeds }: { feeds: FeedItem[] }) {
 
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        className="flex gap-4 overflow-x-auto scrollbar-hide"
+        style={{ 
+          scrollbarWidth: 'none', 
+          msOverflowStyle: 'none',
+          scrollBehavior: 'auto',
+          willChange: 'scroll-position'
+        }}
       >
         {feeds.map((feed, index) => (
           <TrendingCard key={`${feed.url}-${index}`} feed={feed} index={index} />
+        ))}
+        {/* Duplicate first few items for seamless infinite scroll */}
+        {feeds.slice(0, 3).map((feed, index) => (
+          <TrendingCard key={`duplicate-${feed.url}-${index}`} feed={feed} index={index} />
         ))}
       </div>
     </div>
