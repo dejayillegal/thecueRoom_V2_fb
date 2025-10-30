@@ -22,6 +22,13 @@ The project utilizes a pnpm monorepo structure with `apps/web` for the Next.js f
 - **Design:** Focus on an advanced, modern, production-grade, fast, and responsive user interface.
 - **Feed Display:** Feeds must include title, summary, thumbnails, external links, and tags, with an emphasis on fast loading.
 - **Dashboard UI:** Updated to match pixel-perfect references, featuring a transparent header with a purple/green gradient, refined sidebar styling with yellow active state, and consistent card styling without borders.
+- **News Section UI (October 2025):** 
+  - 2-column responsive grid layout for improved readability
+  - Always-visible metadata (title, date, summary, tags) without hover requirement
+  - Lime green (#D7FF3C) hover effect with underline decoration on titles
+  - Advanced category filtering with expand/collapse functionality
+  - Sharp-edged transparent filter tags with lime green borders
+  - Infinite scroll with cursor-based pagination
 
 **Technical Implementations:**
 - **Frontend:** Next.js 15 (App Router), React 19, Tailwind CSS.
@@ -38,6 +45,8 @@ The project utilizes a pnpm monorepo structure with `apps/web` for the Next.js f
   - **PDF Export**: Professional PDF generation with social platform integration
   - **Backward Compatible**: Maintains compatibility with existing EPKStudio through rewrite endpoint
 - **Performance:** Includes fixes for memory leaks, TypeScript strict mode errors, optimized image loading with `Next.js Image` component, and robust WebSocket handling.
+  - **Background Worker Optimization (October 2025):** Parallel processing of 5 RSS sources simultaneously (reduced ingestion time from ~15s to ~13s for 25 sources)
+  - **Webpack Optimization (October 2025):** Filesystem caching, deterministic module IDs, and optimized code splitting for faster development builds
 
 **Feature Specifications:**
 - **Monorepo Architecture:** pnpm workspace with `apps/web`, and `packages/db`, `packages/ai-adapters`, `packages/shared`.
