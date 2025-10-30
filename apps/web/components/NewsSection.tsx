@@ -19,9 +19,9 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
   const [isLoading, setIsLoading] = useState(true);
 
   return (
-    <article className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all group rounded-xl shadow-sm hover:shadow-md">
+    <article className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all group shadow-sm hover:shadow-md">
       <Link href={feed.url} target="_blank" rel="noopener noreferrer" className="block">
-        <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden rounded-t-xl">
+        <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
           {isLoading && (
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
           )}
@@ -36,7 +36,7 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
             }}
             loading="lazy"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent rounded-t-lg"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
         </div>
         <div className="p-4 sm:p-5 space-y-2.5">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -46,12 +46,12 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
             <span>{formatDate(feed.publishedAt)}</span>
           </div>
 
-          <h3 className="text-base sm:text-lg font-bold line-clamp-2 text-foreground group-hover:text-primary transition-colors leading-tight">
+          <h3 className="text-[14px] sm:text-[15.5px] font-bold line-clamp-3 text-foreground group-hover:text-primary transition-colors leading-tight">
             {feed.title}
           </h3>
 
           {feed.summary && (
-            <p className="text-[13px] leading-relaxed text-muted-foreground line-clamp-3">
+            <p className="text-[13px] leading-relaxed text-muted-foreground line-clamp-2">
               {feed.summary}
             </p>
           )}
@@ -186,8 +186,8 @@ export default function NewsSection() {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
         {[...Array(8)].map((_, i) => (
-          <article key={i} className="bg-card overflow-hidden border border-border rounded-lg shadow-sm">
-            <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-secondary/10 animate-pulse rounded-t-lg" />
+          <article key={i} className="bg-card overflow-hidden border border-border shadow-sm">
+            <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-secondary/10 animate-pulse" />
             <div className="p-4 space-y-2">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <div className="h-3 w-24 bg-gray-300 rounded animate-pulse"></div>

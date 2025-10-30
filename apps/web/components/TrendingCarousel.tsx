@@ -43,8 +43,8 @@ const TrendingCard = memo(({ feed, index }: { feed: FeedItem; index: number }) =
       rel="noopener noreferrer"
       className="block group flex-shrink-0 w-56 sm:w-64 md:w-72"
     >
-      <div className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all rounded-xl shadow-sm hover:shadow-md">
-        <div className="relative h-36 sm:h-40 md:h-44 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden rounded-t-xl">
+      <div className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all shadow-sm hover:shadow-md">
+        <div className="relative h-36 sm:h-40 md:h-44 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
           {isLoading && (
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
           )}
