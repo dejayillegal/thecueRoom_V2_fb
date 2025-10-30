@@ -2,6 +2,7 @@ import { getDbClient } from '../packages/db/client';
 import { sources, feeds } from '../packages/db/schema';
 import { eq, sql } from 'drizzle-orm';
 import Parser from 'rss-parser';
+import pLimit from 'p-limit';
 
 const parser = new Parser({
   timeout: 30000,
@@ -11,6 +12,7 @@ const parser = new Parser({
 });
 
 const POLL_INTERVAL_MS = 60 * 60 * 1000; // 60 minutes
+const CONCURRENCY = 5; // Process 5 feeds at a time
 
 async function processFeed(source: any) {
   const db = getDbClient();
@@ -60,13 +62,18 @@ async function processFeed(source: any) {
         // Extract tags from categories
         const tags = item.categories || [];
 
+        // Create content hash for deduplication
+        const contentHash = Buffer.from(item.link).toString('base64').substring(0, 32);
+
         // Insert new feed item
         await db.insert(feeds).values({
           title: item.title,
           summary: item.contentSnippet || item.content?.substring(0, 300) || null,
+          content: item.content || null,
           link: item.link,
           image,
           tags,
+          contentHash,
           publishedAt,
           sourceId: source.id,
         });
@@ -129,10 +136,16 @@ async function runWorkerCycle() {
     let successCount = 0;
     let failCount = 0;
 
-    // Process feeds sequentially to avoid overwhelming the database
-    for (const source of enabledSources) {
-      const result = await processFeed(source);
+    // Process feeds in parallel with concurrency limit
+    const limit = pLimit(CONCURRENCY);
+    const results = await Promise.all(
+      enabledSources.map(source => 
+        limit(() => processFeed(source))
+      )
+    );
 
+    // Aggregate results
+    for (const result of results) {
       if (result.success) {
         successCount++;
         totalImported += result.imported;
@@ -140,9 +153,6 @@ async function runWorkerCycle() {
       } else {
         failCount++;
       }
-
-      // Small delay between requests
-      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     console.log('\n✨ Worker cycle complete!');

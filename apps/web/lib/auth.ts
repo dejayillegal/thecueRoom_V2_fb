@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
-import { db } from '@thecueroom/db';
+import { getDbClient } from '@thecueroom/db/client';
 import { users } from '@thecueroom/db/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
@@ -36,6 +36,7 @@ export async function verifyToken(token: string): Promise<UserData | null> {
 
 export async function authenticateUser(email: string, password: string): Promise<UserData | null> {
   try {
+    const db = getDbClient();
     const userRecords = await db.select().from(users).where(eq(users.email, email));
     
     if (userRecords.length === 0) {
