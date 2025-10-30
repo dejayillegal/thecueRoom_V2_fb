@@ -62,7 +62,8 @@ export default function EnhancedTechRiderPalette({ items, onChange }: EnhancedTe
       id: createModuleId(),
       type: 'custom',
       label: customLabel.trim(),
-      quantity: 1
+      quantity: 1,
+      icon: undefined // Custom items are text-only
     };
     onChange([...items, newItem]);
     setCustomLabel('');
@@ -146,7 +147,7 @@ export default function EnhancedTechRiderPalette({ items, onChange }: EnhancedTe
           </div>
         ) : (
           <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="tech-rider" isDropDisabled={false}>
+            <Droppable droppableId="tech-rider" isDropDisabled={false} isCombineEnabled={false}>
               {(provided) => (
                 <div
                   {...provided.droppableProps}
