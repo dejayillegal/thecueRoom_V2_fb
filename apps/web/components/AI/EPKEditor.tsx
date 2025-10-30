@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
@@ -7,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
-import { Download, FileText, Sparkles, Loader2, Wand2, Send, Plus, X, Eye } from 'lucide-react';
+import { Download, FileText, Sparkles, Loader2, Wand2, Send, Plus, X, Eye, Check } from 'lucide-react';
 
 interface EPKModule {
   id: string;
@@ -44,11 +43,11 @@ export function EPKEditor() {
     spotify: '',
     website: ''
   });
-  
+
   const [mixItems, setMixItems] = useState<Array<{ id: string; title: string; link: string }>>([]);
   const [selectedTemplate, setSelectedTemplate] = useState('brutalist-onepage');
   const [templates, setTemplates] = useState<Template[]>([]);
-  
+
   const [isGeneratingBio, setIsGeneratingBio] = useState(false);
   const [isImprovingBio, setIsImprovingBio] = useState(false);
   const [isGeneratingQuotes, setIsGeneratingQuotes] = useState(false);
@@ -57,7 +56,7 @@ export function EPKEditor() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [aiAvailable, setAIAvailable] = useState(false);
-  
+
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -308,7 +307,7 @@ export function EPKEditor() {
 
       const data = await response.json();
       setSuccess(`EPK queued! Job ID: ${data.jobId}`);
-      
+
       setTimeout(() => {
         window.location.href = `/epk`;
       }, 2000);
@@ -320,15 +319,17 @@ export function EPKEditor() {
   }, [artistName, bio, genre, pressQuotes, techRider, mixItems, socialLinks, selectedTemplate]);
 
   return (
-    <div className="min-h-screen bg-black p-6">
-      <div className="max-w-[1400px] mx-auto">
+    <div className="min-h-screen bg-black text-white">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
-            <FileText className="w-8 h-8 text-[#D1FF3D]" />
-            AI EPK Generator
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold mb-3 flex items-center gap-3">
+            <div className="w-12 h-12 bg-[#D1FF3D] rounded-lg flex items-center justify-center">
+              <FileText className="w-7 h-7 text-black" />
+            </div>
+            AI EPK
           </h1>
-          <p className="text-gray-400">Build a professional Electronic Press Kit with AI assistance</p>
+          <p className="text-gray-400 text-lg">Create professional press kits with AI assistance</p>
         </div>
 
         {/* Alert Messages */}
@@ -337,287 +338,208 @@ export function EPKEditor() {
             {error}
           </div>
         )}
-        
+
         {success && (
           <div className="mb-6 p-4 bg-[#D1FF3D]/10 border border-[#D1FF3D]/50 rounded-lg text-[#D1FF3D]">
             {success}
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column - Content */}
-          <Card className="p-6 bg-[#0a0a0a] border-[#1a1a1a]">
-            <div className="space-y-6">
-              {/* Artist Info */}
-              <div>
-                <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-[#D1FF3D]" />
-                  Artist Information
-                </h2>
-                
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-gray-300 text-sm mb-2">Artist Name *</Label>
-                    <Input
-                      placeholder="Your artist/DJ name"
-                      value={artistName}
-                      onChange={(e) => setArtistName(e.target.value)}
-                      className="bg-black border-[#1a1a1a] text-white focus:border-[#D1FF3D] focus:ring-[#D1FF3D]"
-                    />
-                  </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Artist Information Card */}
+            <Card className="bg-[#0a0a0a] border-[#222] p-6">
+              <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-[#D1FF3D]" />
+                Artist Information
+              </h2>
 
-                  <div>
-                    <Label className="text-gray-300 text-sm mb-2">Genre/Style</Label>
-                    <Input
-                      placeholder="e.g., Techno, House, Drum & Bass"
-                      value={genre}
-                      onChange={(e) => setGenre(e.target.value)}
-                      className="bg-black border-[#1a1a1a] text-white focus:border-[#D1FF3D] focus:ring-[#D1FF3D]"
-                    />
-                  </div>
+              <div className="space-y-5">
+                <div>
+                  <Label className="text-gray-300 text-sm mb-2 block">
+                    Artist Name <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    placeholder="Your artist/DJ name"
+                    value={artistName}
+                    onChange={(e) => setArtistName(e.target.value)}
+                    className="bg-black border-[#333] text-white h-11 focus:border-[#D1FF3D] focus:ring-1 focus:ring-[#D1FF3D]"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-gray-300 text-sm mb-2 block">Genre/Style</Label>
+                  <Input
+                    placeholder="e.g., Techno, House, Drum & Bass"
+                    value={genre}
+                    onChange={(e) => setGenre(e.target.value)}
+                    className="bg-black border-[#333] text-white h-11 focus:border-[#D1FF3D] focus:ring-1 focus:ring-[#D1FF3D]"
+                  />
                 </div>
               </div>
+            </Card>
 
-              {/* Biography */}
-              <div className="border-t border-[#1a1a1a] pt-6">
-                <div className="flex items-center justify-between mb-4">
-                  <Label className="text-gray-300 text-sm">Biography *</Label>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      onClick={handleGenerateBio}
-                      disabled={isGeneratingBio || !artistName}
-                      className="bg-[#D1FF3D] hover:bg-[#D1FF3D]/90 text-black font-bold"
-                    >
-                      {isGeneratingBio ? (
-                        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                      ) : (
-                        <Sparkles className="w-3 h-3 mr-1" />
-                      )}
-                      Generate
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleImproveBio}
-                      disabled={isImprovingBio || !bio}
-                      className="border-[#9B5CFF]/50 text-[#9B5CFF] hover:bg-[#9B5CFF]/10"
-                    >
-                      {isImprovingBio ? (
-                        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                      ) : (
-                        <Wand2 className="w-3 h-3 mr-1" />
-                      )}
-                      Improve
-                    </Button>
-                  </div>
-                </div>
-                <Textarea
-                  placeholder="Write about your musical journey, sound, and what makes you unique..."
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  className="bg-black border-[#1a1a1a] text-white min-h-[150px] focus:border-[#D1FF3D] focus:ring-[#D1FF3D]"
-                />
-                {!aiAvailable && (
-                  <p className="text-xs text-gray-500 mt-2">
-                    ℹ️ AI features available with OpenAI API key
-                  </p>
-                )}
-              </div>
-
-              {/* Press Quotes */}
-              <div className="border-t border-[#1a1a1a] pt-6">
-                <div className="flex items-center justify-between mb-4">
-                  <Label className="text-gray-300 text-sm">Press Quotes (Optional)</Label>
+            {/* Biography Card */}
+            <Card className="bg-[#0a0a0a] border-[#222] p-6">
+              <div className="flex items-center justify-between mb-4">
+                <Label className="text-gray-300 text-base font-semibold">
+                  Biography <span className="text-red-500">*</span>
+                </Label>
+                <div className="flex gap-2">
                   <Button
                     size="sm"
-                    onClick={handleGenerateQuotes}
-                    disabled={isGeneratingQuotes || !artistName}
-                    className="bg-[#9B5CFF] hover:bg-[#9B5CFF]/90 text-white"
+                    onClick={handleGenerateBio}
+                    disabled={isGeneratingBio || !artistName}
+                    className="bg-[#D1FF3D] hover:bg-[#D1FF3D]/90 text-black font-semibold h-9 px-4"
                   >
-                    {isGeneratingQuotes ? (
-                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    {isGeneratingBio ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     ) : (
-                      <Sparkles className="w-3 h-3 mr-1" />
+                      <Sparkles className="w-4 h-4 mr-2" />
                     )}
                     Generate
                   </Button>
-                </div>
-                <Textarea
-                  placeholder="Add press quotes or reviews..."
-                  value={pressQuotes}
-                  onChange={(e) => setPressQuotes(e.target.value)}
-                  className="bg-black border-[#1a1a1a] text-white min-h-[100px] focus:border-[#D1FF3D] focus:ring-[#D1FF3D]"
-                />
-              </div>
-
-              {/* Tech Rider */}
-              <div className="border-t border-[#1a1a1a] pt-6">
-                <div className="flex items-center justify-between mb-4">
-                  <Label className="text-gray-300 text-sm">Tech Rider (Optional)</Label>
                   <Button
                     size="sm"
-                    onClick={handleGenerateTechRider}
-                    disabled={isGeneratingTechRider}
-                    className="bg-[#9B5CFF] hover:bg-[#9B5CFF]/90 text-white"
+                    variant="outline"
+                    onClick={handleImproveBio}
+                    disabled={isImprovingBio || !bio}
+                    className="border-[#D1FF3D]/30 text-[#D1FF3D] hover:bg-[#D1FF3D]/10 h-9 px-4"
                   >
-                    {isGeneratingTechRider ? (
-                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    {isImprovingBio ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     ) : (
-                      <Sparkles className="w-3 h-3 mr-1" />
+                      <Wand2 className="w-4 h-4 mr-2" />
                     )}
-                    Generate
+                    Improve
                   </Button>
                 </div>
-                <Textarea
-                  placeholder="Equipment requirements, stage setup, etc..."
-                  value={techRider}
-                  onChange={(e) => setTechRider(e.target.value)}
-                  className="bg-black border-[#1a1a1a] text-white min-h-[100px] focus:border-[#D1FF3D] focus:ring-[#D1FF3D]"
-                />
               </div>
-            </div>
-          </Card>
+              <Textarea
+                placeholder="Write about your musical journey, sound, and what makes you unique..."
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                className="bg-black border-[#333] text-white min-h-[200px] focus:border-[#D1FF3D] focus:ring-1 focus:ring-[#D1FF3D] resize-none"
+              />
+            </Card>
 
-          {/* Right Column - Templates & Options */}
-          <Card className="p-6 bg-[#0a0a0a] border-[#1a1a1a]">
-            <div className="space-y-6">
-              {/* Template Selection */}
-              <div>
-                <h2 className="text-xl font-bold text-white mb-4">Choose Your Template</h2>
-                <div className="grid grid-cols-1 gap-3 mb-6">
-                  {templates.map((template) => (
-                    <button
-                      key={template.id}
-                      onClick={() => setSelectedTemplate(template.id)}
-                      className={`p-4 rounded-lg border-2 text-left transition-all ${
-                        selectedTemplate === template.id
-                          ? 'border-[#D1FF3D] bg-[#D1FF3D]/10'
-                          : 'border-[#1a1a1a] bg-black hover:border-[#D1FF3D]/50'
-                      }`}
-                    >
-                      <div className="font-bold text-white mb-1">{template.name}</div>
-                      <div className="text-xs text-gray-400">{template.description}</div>
-                      <div className="flex gap-2 mt-2">
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-[#1a1a1a] text-gray-500 uppercase">
-                          {template.category}
-                        </span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Mixes & Releases */}
-              <div className="border-t border-[#1a1a1a] pt-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold text-white">Mixes, Sets & Releases</h2>
-                  <Button
-                    size="sm"
-                    onClick={handleAddMixItem}
-                    className="bg-[#D1FF3D] hover:bg-[#D1FF3D]/90 text-black font-bold"
-                  >
-                    <Plus className="w-3 h-3 mr-1" />
-                    Add
-                  </Button>
-                </div>
-                
-                {mixItems.length > 0 && (
-                  <div className="space-y-3 mb-6">
-                    {mixItems.map((item) => (
-                      <div key={item.id} className="flex gap-2">
-                        <Input
-                          placeholder="Title"
-                          value={item.title}
-                          onChange={(e) => handleUpdateMixItem(item.id, 'title', e.target.value)}
-                          className="bg-black border-[#1a1a1a] text-white text-sm flex-1"
-                        />
-                        <Input
-                          placeholder="Link"
-                          value={item.link}
-                          onChange={(e) => handleUpdateMixItem(item.id, 'link', e.target.value)}
-                          className="bg-black border-[#1a1a1a] text-white text-sm flex-1"
-                        />
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRemoveMixItem(item.id)}
-                          className="border-red-500/50 text-red-400 hover:bg-red-500/10"
-                        >
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Social Links */}
-              <div className="border-t border-[#1a1a1a] pt-6">
-                <h2 className="text-xl font-bold text-white mb-4">Social Links</h2>
-                <div className="space-y-3">
-                  {Object.keys(socialLinks).map((platform) => (
-                    <div key={platform}>
-                      <Label className="text-gray-300 text-xs mb-1 capitalize">{platform}</Label>
-                      <Input
-                        placeholder={`https://${platform}.com/...`}
-                        value={socialLinks[platform as keyof typeof socialLinks]}
-                        onChange={(e) => setSocialLinks(prev => ({ ...prev, [platform]: e.target.value }))}
-                        className="bg-black border-[#1a1a1a] text-white text-sm"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Generate Button */}
-              <div className="border-t border-[#1a1a1a] pt-6">
-                <div className="bg-gradient-to-br from-[#D1FF3D]/10 to-[#9B5CFF]/10 p-6 rounded-lg border border-[#D1FF3D]/20">
-                  <h3 className="text-lg font-bold text-white mb-2">Generate Your EPK</h3>
-                  <p className="text-sm text-gray-400 mb-4">
-                    Create a professional PDF press kit ready to send to promoters, venues, and labels.
-                  </p>
-                  <Button
-                    onClick={handleGenerateEPK}
-                    disabled={isGeneratingEPK || !artistName || !bio}
-                    className="w-full bg-[#D1FF3D] hover:bg-[#D1FF3D]/90 text-black font-bold"
-                    size="lg"
-                  >
-                    {isGeneratingEPK ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Generating EPK...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4 mr-2" />
-                        Generate EPK PDF
-                      </>
-                    )}
-                  </Button>
-                  {(!artistName || !bio) && (
-                    <p className="text-xs text-yellow-500 mt-2 text-center">
-                      * Artist name and bio are required
-                    </p>
+            {/* Press Quotes Card */}
+            <Card className="bg-[#0a0a0a] border-[#222] p-6">
+              <div className="flex items-center justify-between mb-4">
+                <Label className="text-gray-300 text-base font-semibold">Press Quotes (Optional)</Label>
+                <Button
+                  size="sm"
+                  onClick={handleGenerateQuotes}
+                  disabled={isGeneratingQuotes || !artistName}
+                  className="bg-[#D1FF3D] hover:bg-[#D1FF3D]/90 text-black font-semibold h-9 px-4"
+                >
+                  {isGeneratingQuotes ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4 mr-2" />
                   )}
-                </div>
+                  Generate
+                </Button>
               </div>
+              <Textarea
+                placeholder="Add press quotes or reviews..."
+                value={pressQuotes}
+                onChange={(e) => setPressQuotes(e.target.value)}
+                className="bg-black border-[#333] text-white min-h-[120px] focus:border-[#D1FF3D] focus:ring-1 focus:ring-[#D1FF3D] resize-none"
+              />
+            </Card>
 
-              {/* Pro Tips */}
-              <div className="border-t border-[#1a1a1a] pt-6">
-                <div className="bg-black p-4 rounded-lg border border-[#1a1a1a]">
-                  <h4 className="text-sm font-bold text-white mb-2">💡 Pro Tips</h4>
-                  <ul className="text-xs text-gray-400 space-y-1">
-                    <li>• Use AI to generate a professional bio in seconds</li>
-                    <li>• Add your best mixes and releases to showcase your work</li>
-                    <li>• Include press quotes to build credibility</li>
-                    <li>• Tech rider helps venues prepare for your performance</li>
-                    <li>• Social links make it easy for promoters to find you</li>
-                  </ul>
-                </div>
+            {/* Tech Rider Card */}
+            <Card className="bg-[#0a0a0a] border-[#222] p-6">
+              <div className="flex items-center justify-between mb-4">
+                <Label className="text-gray-300 text-base font-semibold">Tech Rider (Optional)</Label>
+                <Button
+                  size="sm"
+                  onClick={handleGenerateTechRider}
+                  disabled={isGeneratingTechRider}
+                  className="bg-[#D1FF3D] hover:bg-[#D1FF3D]/90 text-black font-semibold h-9 px-4"
+                >
+                  {isGeneratingTechRider ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4 mr-2" />
+                  )}
+                  Generate
+                </Button>
               </div>
-            </div>
-          </Card>
+              <Textarea
+                placeholder="Equipment requirements, stage setup, etc..."
+                value={techRider}
+                onChange={(e) => setTechRider(e.target.value)}
+                className="bg-black border-[#333] text-white min-h-[120px] focus:border-[#D1FF3D] focus:ring-1 focus:ring-[#D1FF3D] resize-none"
+              />
+            </Card>
+          </div>
+
+          {/* Right Column - Templates & Settings */}
+          <div className="space-y-6">
+            {/* Social Links Card */}
+            <Card className="bg-[#0a0a0a] border-[#222] p-6">
+              <h2 className="text-lg font-bold text-white mb-4">Social Links</h2>
+              <div className="space-y-4">
+                {Object.keys(socialLinks).map((platform) => (
+                  <div key={platform}>
+                    <Label className="text-gray-400 text-xs mb-1.5 capitalize block">{platform}</Label>
+                    <Input
+                      placeholder={`https://${platform}.com/your-profile`}
+                      value={socialLinks[platform as keyof typeof socialLinks]}
+                      onChange={(e) => setSocialLinks(prev => ({ ...prev, [platform]: e.target.value }))}
+                      className="bg-black border-[#333] text-white text-sm h-10 focus:border-[#D1FF3D] focus:ring-1 focus:ring-[#D1FF3D]"
+                    />
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            {/* Generate EPK Card */}
+            <Card className="bg-gradient-to-br from-[#D1FF3D]/10 to-[#D1FF3D]/5 border-[#D1FF3D]/20 p-6">
+              <h3 className="text-lg font-bold text-white mb-3">Generate Your EPK</h3>
+              <p className="text-sm text-gray-400 mb-5">
+                Create a professional PDF press kit ready to send to promoters, venues, and labels.
+              </p>
+              <Button
+                onClick={handleGenerateEPK}
+                disabled={isGeneratingEPK || !artistName || !bio}
+                className="w-full bg-[#D1FF3D] hover:bg-[#D1FF3D]/90 text-black font-bold h-12 text-base"
+              >
+                {isGeneratingEPK ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Generating EPK...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-5 h-5 mr-2" />
+                    Generate EPK PDF
+                  </>
+                )}
+              </Button>
+              {(!artistName || !bio) && (
+                <p className="text-xs text-yellow-500 mt-3 text-center">
+                  * Artist name and bio are required
+                </p>
+              )}
+            </Card>
+
+            {/* Pro Tips Card */}
+            <Card className="bg-[#0a0a0a] border-[#222] p-5">
+              <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                💡 Pro Tips
+              </h4>
+              <ul className="text-xs text-gray-400 space-y-2">
+                <li>• Use AI to generate a professional bio in seconds</li>
+                <li>• Include your best press quotes to build credibility</li>
+                <li>• Tech rider helps venues prepare for your performance</li>
+                <li>• Social links make it easy for promoters to find your music</li>
+              </ul>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
