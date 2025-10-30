@@ -1,0 +1,243 @@
+Implement robust, free-first EPK rewrite & full EPK generator
+
+Task: Implement a production-quality, free-first AI-powered EPK (Electronic Press Kit) Generator for thecueRoom. Priority: reliable rewrite of biography/description text, full EPK editor (live preview + templates), draggable technical rider elements (CDJs/mixer/speakers icons), PDF export, safe fallbacks (no external key), good performance, no memory leaks.
+
+High-level behavior
+
+Free-first rewrite:
+
+Primary: Hugging Face Inference API (use process.env.HF_TOKEN if provided) calling an instruction-following model (e.g., google/flan-t5-large or declare-lab/flan-alpaca-large if available). Use HF Inference text-generation endpoint with max_length, temperature, and stop safety.
+
+Secondary (if HF_TOKEN missing or rate-limited): attempt an OpenAPI-compatible provider if process.env.PROVIDER_URL + PROVIDER_KEY present.
+
+Tertiary fallback (guaranteed, local): implement a deterministic, high-quality template-based rewrite function (no external API). The fallback should:
+
+Parse user bio into components (genre, experience, notable shows, press quotes, short bio sentences).
+
+Recompose with tone templates (press, concise, promotional, technical) and synonym replacements using built-in small thesaurus wordlists.
+
+Use heuristics to expand bullets into two-line sentences and produce 3-length outputs: short tagline (<= 80 chars), 90–160 char blurb (social), and 300–500 char EPK bio.
+
+Always return structured JSON: { ok:true, source:"hf"|"provider"|"fallback", outputs:{tagline, blurb, epk_bio}, tokensUsed? } or { ok:false, error }.
+
+EPK Editor UI:
+
+Page: /ai/epk (reuse dashboard layout tokens, exact theme).
+
+Left column: Editor form fields:
+
+Artist / Project name
+
+Location (city, country)
+
+Genres (tag input)
+
+Short bio textarea (editable)
+
+Full bio textarea (editable)
+
+Notable venues (multi-row)
+
+Releases (list with cover image, soundcloud/mixcloud/spotify link)
+
+Links: SoundCloud mix, Bandcamp release, Spotify, Instagram, RA profile, Booking email
+
+Tech Rider drag & drop area (stash of draggable items: CDJ3000, Technics SL-1210, Pioneer mixer, monitors, PA, in-ears; include the 3 images you provided as draggable icons)
+
+Radio / Press / Newsletters (list)
+
+Press quotes (list)
+
+Photos: upload or pick from user images (drag use)
+
+Template selector: 4 templates (One-column, Two-column, Minimal + Vinyl, Dark poster)
+
+Right column: Live preview of currently selected template with all fields rendered. Preview updates on field change with debounced updates (300ms).
+
+Controls:
+
+Suggest Rewrite button (calls rewrite endpoint)
+
+Apply Suggestion button (applies suggested text into fields)
+
+Open Canvas Editor button (for cover art overlay / quick edits)
+
+Export PDF and Download ZIP (images + text + JSON)
+
+Publish / Share (generates share URL)
+
+Technical rider drag & drop:
+
+Implement a small drag & drop area (drag icons from palette into ordered list).
+
+Each dropped item becomes a card with icon + label + quantity + optional notes.
+
+Export into EPK PDF as a horizontal spec block (like your reference image).
+
+Provide keyboard accessibility (use aria) and touch support.
+
+Server & Worker:
+
+API endpoints (Next.js App Router):
+
+POST /api/epk/rewrite — accepts { text, tone? }, returns re-written outputs (uses HF -> provider -> fallback). Validate with Zod. Always JSON.
+
+POST /api/epk/render — accepts full EPK JSON and template name. Enqueues a render job and returns { jobId, status: "queued" }.
+
+GET /api/epk/job/[jobId] — job status/progress/result (PDF/ZIP URL).
+
+GET /api/epk/template-preview?template=... — returns small HTML fragment for preview rendering (used by front-end to show live preview quickly).
+
+Worker process (packages/ai/worker.js or apps/web/worker/epk-worker.js):
+
+Handles heavy tasks: HTML → PDF via headless Chromium (Puppeteer) or html-pdf fallback; zipping assets; server-side compose of cover art if needed.
+
+Limit concurrency with EPK_WORKER_CONCURRENCY env var (default 1).
+
+Use streaming and temp files in EPK_TEMP_DIR and auto-cleanup older than X hours.
+
+Provide progress events via status file or simple in-memory map (persist to .local/state).
+
+PDF / ZIP output:
+
+Prefer Puppeteer (headless Chromium) if available; fallback to @react-pdf/renderer or html-pdf when Chromium unavailable.
+
+HTML template must be responsive and use the dashboard theme tokens and fonts.
+
+Include embedded links in PDF where applicable.
+
+ZIP contains epk.json, press-images/, cover.png, epk.pdf.
+
+Performance & safety:
+
+Debounce rewrite requests and live-preview updates.
+
+Workerize PDF generation and image composition.
+
+Limit uploaded image size (max 5MB) and auto-resize thumbnails on upload using sharp or canvas fallback.
+
+Safe fetch: never call .json() directly. Use safeFetch that reads text then attempts JSON.parse.
+
+Rate-limit rewrite endpoint per-IP (simple throttler).
+
+Ensure no memory leaks: stream files, sharp pipelines must pipe to file streams, clean up ImageBitmap and close browser instances.
+
+Fallback behavior summary:
+
+If HF_TOKEN exists, use HF. If HF fails or is rate-limited, try PROVIDER_URL if configured. If both absent or fail, use local template fallback. UI should show source so admin can see which method was used.
+
+Fields & UX details (must implement exactly):
+
+Suggestion modal shows: suggested tagline, suggested short blurb, suggested full EPK bio. Each suggestion has Accept / Edit / Reject.
+
+Allow user to pick tone: press, concise, promotional, technical.
+
+Implement toggle Auto-apply suggestions (off by default).
+
+Validate links (SoundCloud, Spotify etc.) and fetch small oEmbed preview for valid providers (use cached TTL).
+
+Tech rider palette: draggable items with icons (use your images: cdj.png, mixer.png, speaker.png). Allow multiple of same item.
+
+Template preview: show how Tech Rider will look in final PDF (icons lined up horizontally like provided reference).
+
+Developer & Replit specifics:
+
+Env vars:
+
+HF_TOKEN (optional — Hugging Face Inference)
+
+PROVIDER_URL (optional)
+
+PROVIDER_KEY (optional)
+
+EPK_TEMP_DIR=/tmp/epk
+
+EPK_WORKER_CONCURRENCY=1
+
+Dependencies to install:
+
+pnpm --filter apps/web add zod cross-fetch p-limit puppeteer sharp jszip react-dnd react-dnd-html5-backend
+
+pnpm --filter apps/web add -D vitest supertest playwright
+
+Add scripts in apps/web/package.json:
+
+"epk:worker": "node packages/ai/worker.js" (or the chosen path)
+
+"epk:diag": "node scripts/diag/epk-check.js"
+
+Add scripts/diag/epk-check.js to run a TEST_MODE flow (generate EPK from sample data and measure memory/time).
+
+Tests:
+
+Unit tests for rewrite endpoint: mock HF response, mock provider failure, assert fallback output shape.
+
+Integration test: render EPK small sample via worker in TEST_MODE and assert PDF exists and size > 0.
+
+Snapshot test: HTML preview for each template matches expected structure (so theme/layout remains stable).
+
+Admin & logging:
+
+Admin log page to view queued jobs and worker logs.
+
+Errors should be logged to logs/epk.log with correlation jobId.
+
+Accessibility & polish:
+
+Editor must be keyboard accessible; drag & drop fallback via keyboard controls (move up/down).
+
+All buttons must use IconLabelButton (icon + label) for clarity.
+
+Preview must have alt text for images and semantic markup for screen readers.
+
+Implementation deliverables (files to add/modify)
+
+apps/web/src/components/EPK/EPKEditor.tsx (main UI)
+
+apps/web/src/components/EPK/TemplatePreview.tsx
+
+apps/web/src/components/EPK/TechRiderPalette.tsx (drag & drop)
+
+apps/web/app/api/epk/rewrite/route.ts
+
+apps/web/app/api/epk/render/route.ts
+
+apps/web/app/api/epk/job/[id]/route.ts
+
+packages/ai/worker.js (or packages/epk/worker.js) — worker for render
+
+scripts/diag/epk-check.js and test files in tests/epk
+
+helper libs: apps/web/src/lib/epk-templates.ts, src/lib/safe-fetch.ts, src/lib/rewrite-fallback.ts
+
+Acceptance criteria
+
+pnpm -w tsc --noEmit → 0 errors (or only allowed warnings)
+
+pnpm --filter apps/web test:unit → tests for rewrite pass (HF mocked + fallback)
+
+Rendering an EPK in TEST_MODE produces epk.pdf and epk.zip saved to EPK_TEMP_DIR.
+
+UI: clicking Suggest Rewrite returns suggestions within 5s when HF_TOKEN available; fallback path returns suggestions within 200ms.
+
+Dragging tech items into rider shows them in preview and in generated PDF in correct order.
+
+No memory leak: scripts/diag/epk-check.js should run 3 concurrent TEST_MODE render jobs and report heap growth < 50MB.
+
+Edge cases & security
+
+Sanitize all user-provided text before embedding into SVG or HTML templates (escape < > &).
+
+Limit lengths: bio 4000 chars, tagline 120 chars, artist 80 chars.
+
+Rate-limit rewrite endpoint per IP in memory (burst allowance 5 requests/10 sec).
+
+If puppeteer cannot run on Replit, use @react-pdf/renderer fallback and document instructions to enable Puppeteer.
+
+Commit & report
+
+Commit with message: feat(epk): robust free-first rewrite + templates, preview, tech-rider, workerized PDF render
+
+After implementation run tests and produce report with: tsc output, test results, sample job id + result URL, diag memory stats.
+
+Important UI note: preserve the existing dashboard style tokens and layout for internal pages. Only landing page may differ. EPK pages should reuse the dashboard header/sidebar and the neon/black theme.
