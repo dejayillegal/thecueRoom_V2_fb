@@ -15,7 +15,7 @@ interface FeedItem {
   source: string;
 }
 
-const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date: Date) => string }) => {
+const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date: string | Date) => string }) => {
   const [imgSrc, setImgSrc] = useState(feed.image || `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -90,7 +90,7 @@ export default function NewsSection() {
   const observerTarget = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const formatDate = useCallback((date: Date) => {
+  const formatDate = useCallback((date: string | Date) => {
     const d = new Date(date);
     const now = new Date();
     const diffMs = now.getTime() - d.getTime();
