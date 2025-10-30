@@ -1,0 +1,60 @@
+tsx scripts/start-worker.ts
+
+⏰ Starting periodic worker (every 60 minutes)
+
+✅ Database client initialized
+
+🚀 Starting thecueRoom Background Feed Worker cycle...
+
+📊 Processing 25 sources...
+
+📥 Fetching RSS: DJWORX
+📥 Fetching RSS: MusicTech
+📥 Fetching RSS: Festival Sherpa
+📥 Fetching RSS: DJ TechTools
+📥 Fetching RSS: Dancing Astronaut
+📥 Fetching RSS: Digital DJ Tips
+📥 Fetching RSS: Synth Anatomy
+📥 Fetching RSS: Gearnews
+📥 Fetching RSS: EDM Identity
+📥 Fetching RSS: EDM.com Festivals
+📥 Fetching RSS: Bandcamp Daily
+📥 Fetching RSS: Rolling Stone India
+📥 Fetching RSS: Synthtopia
+📥 Fetching RSS: Earmilk
+📥 Fetching RSS: Ransom Note
+📥 Fetching RSS: XLR8R
+📥 Fetching RSS: FACT
+📥 Fetching RSS: Attack Magazine
+📥 Fetching RSS: CDM — Create Digital Music
+📥 Fetching RSS: Music Business Worldwide
+📥 Fetching RSS: Mixdown Magazine
+📥 Fetching RSS: Hypebot
+📥 Fetching RSS: Rolling Stone Music Interviews
+📥 Fetching RSS: Crossfadr
+📥 Fetching RSS: Elektronauts Forum
+❌ Earmilk: syntax error at or near "="
+❌ Synthtopia: syntax error at or near "="
+❌ Ransom Note: syntax error at or near "="
+❌ Rolling Stone India: syntax error at or near "="
+❌ CDM — Create Digital Music: syntax error at or near "="
+❌ Crossfadr: syntax error at or near "="
+❌ Festival Sherpa: syntax error at or near "="
+❌ Digital DJ Tips: syntax error at or near "="
+❌ Hypebot: syntax error at or near "="
+❌ Attack Magazine: syntax error at or near "="
+❌ DJ TechTools: syntax error at or near "="
+❌ Gearnews: syntax error at or near "="
+❌ EDM Identity: syntax error at or near "="
+❌ Synth Anatomy: syntax error at or near "="
+❌ Elektronauts Forum: syntax error at or near "="
+❌ Bandcamp Daily: syntax error at or near "="
+❌ XLR8R: syntax error at or near "="
+❌ Music Business Worldwide: syntax error at or near "="
+❌ Dancing Astronaut: syntax error at or near "="
+❌ DJWORX: syntax error at or near "="
+❌ FACT: syntax error at or near "="
+❌ Mixdown Magazine: syntax error at or near "="
+❌ Rolling Stone Music Interviews: syntax error at or near "="
+❌ MusicTech: syntax error at or near "="
+❌ EDM.com Festivals: syntax error at or near "="
