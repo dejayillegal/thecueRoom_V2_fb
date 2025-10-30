@@ -396,7 +396,7 @@ async function ingestSource(source: any) {
   }
 }
 
-async function ingestBatch(sources: any[], concurrency = 3) {
+async function ingestBatch(sources: any[], concurrency = 5) {
   const results = {
     totalImported: 0,
     totalSkipped: 0,
@@ -430,10 +430,6 @@ async function ingestBatch(sources: any[], concurrency = 3) {
         results.errors.push({ source: source.name, error: result.reason?.message || 'Unknown error' });
       }
     });
-
-    if (i + concurrency < sources.length) {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-    }
   }
 
   return results;
@@ -453,10 +449,10 @@ export async function runEnhancedIngestion() {
     return { success: false, message: 'No enabled sources' };
   }
 
-  console.log(`📊 Processing ${allSources.length} sources with enhanced image extraction...\n`);
+  console.log(`📊 Processing ${allSources.length} sources (5 parallel batches) with enhanced image extraction...\n`);
 
   const startTime = Date.now();
-  const results = await ingestBatch(allSources, 10); // Changed BATCH_SIZE to 10
+  const results = await ingestBatch(allSources, 5);
   const duration = ((Date.now() - startTime) / 1000).toFixed(2);
 
   console.log('\n============================================');

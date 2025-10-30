@@ -1,6 +1,58 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  
+  experimental: {
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-switch'],
+  },
+  
+  webpack: (config, { dev, isServer }) => {
+    if (dev) {
+      config.cache = {
+        type: 'filesystem',
+        buildDependencies: {
+          config: [import.meta.url],
+        },
+      };
+      
+      config.snapshot = {
+        managedPaths: [/^(.+?[\\/]node_modules[\\/])/],
+        immutablePaths: [],
+      };
+      
+      config.optimization = {
+        ...config.optimization,
+        moduleIds: 'deterministic',
+        runtimeChunk: isServer ? undefined : 'single',
+        splitChunks: isServer
+          ? false
+          : {
+              chunks: 'all',
+              cacheGroups: {
+                default: false,
+                vendors: false,
+                commons: {
+                  name: 'commons',
+                  chunks: 'all',
+                  minChunks: 2,
+                },
+                lib: {
+                  test: /[\\/]node_modules[\\/]/,
+                  name(module) {
+                    const packageName = module.context.match(
+                      /[\\/]node_modules[\\/](.*?)([\\/]|$)/
+                    )?.[1];
+                    return `npm.${packageName?.replace('@', '')}`;
+                  },
+                },
+              },
+            },
+      };
+    }
+    
+    return config;
+  },
+  
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**.6amgroup.com" },
