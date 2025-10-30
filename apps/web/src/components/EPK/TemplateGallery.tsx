@@ -196,11 +196,11 @@ export function TemplateGallery({ selectedTemplateId, onSelectTemplate }: Templa
                 <X className="w-6 h-6" />
               </button>
             </div>
-            <div className="p-4 bg-white overflow-auto" style={{ height: '75vh' }}>
+            <div className="p-4 bg-white overflow-auto" style={{ height: '70vh', maxHeight: '600px' }}>
               <iframe
                 ref={previewRef}
                 className="w-full bg-white"
-                style={{ border: 'none', minHeight: '800px', height: '100%' }}
+                style={{ border: 'none', height: '100%', minHeight: '500px' }}
                 title="Template Preview"
                 sandbox="allow-same-origin allow-scripts"
               />

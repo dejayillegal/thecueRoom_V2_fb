@@ -4,8 +4,15 @@
 import OpenAI from 'openai';
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const HUGGINGFACE_KEY = process.env.HUGGINGFACE_KEY || process.env.HF_API_TOKEN;
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+const PERPLEXITY_KEY = process.env.PERPLEXITY_KEY;
 
 const openai = OPENAI_API_KEY ? new OpenAI({ apiKey: OPENAI_API_KEY }) : null;
+const perplexity = PERPLEXITY_KEY ? new OpenAI({ 
+  apiKey: PERPLEXITY_KEY,
+  baseURL: 'https://api.perplexity.ai'
+}) : null;
 
 export type EPKTextType = 'bio' | 'press_quote' | 'tech_rider' | 'promo_text';
 
@@ -23,110 +30,265 @@ interface GenerateEPKTextResponse {
 }
 
 export async function generateEPKText(request: GenerateEPKTextRequest): Promise<GenerateEPKTextResponse> {
-  if (!openai || !OPENAI_API_KEY) {
-    return {
-      text: generateFallbackText(request),
-      usedAI: false
-    };
-  }
+  const prompt = buildPrompt(request);
+  const systemMessage = "You are an expert music industry copywriter specializing in Electronic Press Kits (EPKs). Create compelling, professional content for artists.";
+  
+  // Try OpenAI first (GPT-4o-mini is fast and cost-effective)
+  if (openai && OPENAI_API_KEY) {
+    try {
+      console.log('[EPK AI] Trying OpenAI GPT-4o-mini...');
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemMessage },
+          { role: "user", content: prompt }
+        ],
+        max_tokens: 800,
+        temperature: 0.7,
+      });
 
-  try {
-    const prompt = buildPrompt(request);
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert music industry copywriter specializing in Electronic Press Kits (EPKs). Create compelling, professional content for artists."
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      max_tokens: 800,
-      temperature: 0.7, // Add temperature for more creative output
-    });
-
-    const generatedText = response.choices[0].message.content?.trim() || '';
-
-    if (!generatedText || generatedText.length < 10) {
-      console.warn('[EPK AI] GPT-4o-mini returned empty/short content, using fallback');
-      return {
-        text: generateFallbackText(request),
-        usedAI: false
-      };
+      const generatedText = response.choices[0].message.content?.trim() || '';
+      
+      if (generatedText && generatedText.length >= 10) {
+        console.log('[EPK AI] ✅ OpenAI success');
+        return { text: generatedText, usedAI: true };
+      }
+    } catch (error: any) {
+      console.error('[EPK AI] OpenAI error:', error?.message || error);
     }
-
-    return {
-      text: generatedText,
-      usedAI: true
-    };
-  } catch (error) {
-    console.error('[EPK AI] GPT-4o-mini error:', error);
-    return {
-      text: generateFallbackText(request),
-      usedAI: false
-    };
   }
+
+  // Try Perplexity second
+  if (perplexity && PERPLEXITY_KEY) {
+    try {
+      console.log('[EPK AI] Trying Perplexity...');
+      const response = await perplexity.chat.completions.create({
+        model: "llama-3.1-sonar-large-128k-online",
+        messages: [
+          { role: "system", content: systemMessage },
+          { role: "user", content: prompt }
+        ],
+        max_tokens: 800,
+        temperature: 0.7,
+      });
+
+      const generatedText = response.choices[0].message.content?.trim() || '';
+      
+      if (generatedText && generatedText.length >= 10) {
+        console.log('[EPK AI] ✅ Perplexity success');
+        return { text: generatedText, usedAI: true };
+      }
+    } catch (error: any) {
+      console.error('[EPK AI] Perplexity error:', error?.message || error);
+    }
+  }
+
+  // Try Hugging Face third
+  if (HUGGINGFACE_KEY) {
+    try {
+      console.log('[EPK AI] Trying Hugging Face...');
+      const response = await fetch('https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${HUGGINGFACE_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          inputs: `${systemMessage}\n\n${prompt}`,
+          parameters: {
+            max_new_tokens: 800,
+            temperature: 0.7,
+            return_full_text: false
+          }
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const generatedText = result[0]?.generated_text?.trim() || '';
+        
+        if (generatedText && generatedText.length >= 10) {
+          console.log('[EPK AI] ✅ Hugging Face success');
+          return { text: generatedText, usedAI: true };
+        }
+      }
+    } catch (error: any) {
+      console.error('[EPK AI] Hugging Face error:', error?.message || error);
+    }
+  }
+
+  // Try Google Gemini fourth
+  if (GOOGLE_API_KEY) {
+    try {
+      console.log('[EPK AI] Trying Google Gemini...');
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GOOGLE_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: `${systemMessage}\n\n${prompt}` }]
+          }],
+          generationConfig: {
+            maxOutputTokens: 800,
+            temperature: 0.7
+          }
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const generatedText = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+        
+        if (generatedText && generatedText.length >= 10) {
+          console.log('[EPK AI] ✅ Google Gemini success');
+          return { text: generatedText, usedAI: true };
+        }
+      }
+    } catch (error: any) {
+      console.error('[EPK AI] Google Gemini error:', error?.message || error);
+    }
+  }
+
+  console.warn('[EPK AI] All AI providers failed or unavailable, using fallback');
+  return {
+    text: generateFallbackText(request),
+    usedAI: false
+  };
 }
 
 export async function improveEPKText(text: string, tone: string = 'professional'): Promise<GenerateEPKTextResponse> {
-  if (!openai || !OPENAI_API_KEY) {
-    return {
-      text: text,
-      usedAI: false
-    };
-  }
+  const toneInstructions = {
+    professional: 'Make it more professional and polished for promoters and venues',
+    edgy: 'Make it bold, edgy, and attention-grabbing for underground scenes',
+    minimal: 'Make it concise, direct, and impactful with minimal words',
+    press: 'Rewrite for press releases - newsworthy, achievement-focused, media-friendly'
+  };
 
-  try {
-    const toneInstructions = {
-      professional: 'Make it more professional and polished for promoters and venues',
-      edgy: 'Make it bold, edgy, and attention-grabbing for underground scenes',
-      minimal: 'Make it concise, direct, and impactful with minimal words',
-      press: 'Rewrite for press releases - newsworthy, achievement-focused, media-friendly'
-    };
+  const instruction = toneInstructions[tone as keyof typeof toneInstructions] || toneInstructions.professional;
+  const systemMessage = "You are an expert music industry copywriter. Improve the following text while maintaining the core message.";
+  const userPrompt = `${instruction}:\n\n${text}\n\nImproved version:`;
 
-    const instruction = toneInstructions[tone as keyof typeof toneInstructions] || toneInstructions.professional;
+  // Try OpenAI first
+  if (openai && OPENAI_API_KEY) {
+    try {
+      console.log('[EPK AI] Improving with OpenAI...');
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemMessage },
+          { role: "user", content: userPrompt }
+        ],
+        max_tokens: 800,
+        temperature: 0.7,
+      });
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert music industry copywriter. Improve the following text while maintaining the core message."
-        },
-        {
-          role: "user",
-          content: `${instruction}:\n\n${text}\n\nImproved version:`
-        }
-      ],
-      max_tokens: 800,
-      temperature: 0.7, // Add temperature for more creative output
-    });
-
-    const improved = response.choices[0].message.content?.trim() || '';
-
-    if (!improved || improved.length < 10) {
-      console.warn('[EPK AI] GPT-4o-mini improvement returned empty/short content, keeping original');
-      return {
-        text: text,
-        usedAI: false
-      };
+      const improved = response.choices[0].message.content?.trim() || '';
+      
+      if (improved && improved.length >= 10) {
+        console.log('[EPK AI] ✅ OpenAI improvement success');
+        return { text: improved, usedAI: true };
+      }
+    } catch (error: any) {
+      console.error('[EPK AI] OpenAI improvement error:', error?.message || error);
     }
-
-    return {
-      text: improved,
-      usedAI: true
-    };
-  } catch (error) {
-    console.error('[EPK AI] Improvement error:', error);
-    return {
-      text: text,
-      usedAI: false
-    };
   }
+
+  // Try Perplexity second
+  if (perplexity && PERPLEXITY_KEY) {
+    try {
+      console.log('[EPK AI] Improving with Perplexity...');
+      const response = await perplexity.chat.completions.create({
+        model: "llama-3.1-sonar-large-128k-online",
+        messages: [
+          { role: "system", content: systemMessage },
+          { role: "user", content: userPrompt }
+        ],
+        max_tokens: 800,
+        temperature: 0.7,
+      });
+
+      const improved = response.choices[0].message.content?.trim() || '';
+      
+      if (improved && improved.length >= 10) {
+        console.log('[EPK AI] ✅ Perplexity improvement success');
+        return { text: improved, usedAI: true };
+      }
+    } catch (error: any) {
+      console.error('[EPK AI] Perplexity improvement error:', error?.message || error);
+    }
+  }
+
+  // Try Hugging Face third
+  if (HUGGINGFACE_KEY) {
+    try {
+      console.log('[EPK AI] Improving with Hugging Face...');
+      const response = await fetch('https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${HUGGINGFACE_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          inputs: `${systemMessage}\n\n${userPrompt}`,
+          parameters: {
+            max_new_tokens: 800,
+            temperature: 0.7,
+            return_full_text: false
+          }
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const improved = result[0]?.generated_text?.trim() || '';
+        
+        if (improved && improved.length >= 10) {
+          console.log('[EPK AI] ✅ Hugging Face improvement success');
+          return { text: improved, usedAI: true };
+        }
+      }
+    } catch (error: any) {
+      console.error('[EPK AI] Hugging Face improvement error:', error?.message || error);
+    }
+  }
+
+  // Try Google Gemini fourth
+  if (GOOGLE_API_KEY) {
+    try {
+      console.log('[EPK AI] Improving with Google Gemini...');
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GOOGLE_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: `${systemMessage}\n\n${userPrompt}` }]
+          }],
+          generationConfig: {
+            maxOutputTokens: 800,
+            temperature: 0.7
+          }
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const improved = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+        
+        if (improved && improved.length >= 10) {
+          console.log('[EPK AI] ✅ Google Gemini improvement success');
+          return { text: improved, usedAI: true };
+        }
+      }
+    } catch (error: any) {
+      console.error('[EPK AI] Google Gemini improvement error:', error?.message || error);
+    }
+  }
+
+  console.warn('[EPK AI] All AI providers failed for improvement, keeping original text');
+  return {
+    text: text,
+    usedAI: false
+  };
 }
 
 function buildPrompt(request: GenerateEPKTextRequest): string {
@@ -191,5 +353,5 @@ function generateFallbackText(request: GenerateEPKTextRequest): string {
 }
 
 export function isAIAvailable(): boolean {
-  return !!OPENAI_API_KEY;
+  return !!(OPENAI_API_KEY || PERPLEXITY_KEY || HUGGINGFACE_KEY || GOOGLE_API_KEY);
 }
