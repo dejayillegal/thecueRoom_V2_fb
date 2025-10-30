@@ -62,7 +62,7 @@ function parseBio(text: string): {
 
   const genreKeywords = ['house', 'techno', 'trance', 'dnb', 'dubstep', 'ambient', 'electronic', 'edm', 'bass', 'minimal'];
   const genres: string[] = [];
-  
+
   const lowerText = text.toLowerCase();
   genreKeywords.forEach(genre => {
     if (lowerText.includes(genre)) {
@@ -78,7 +78,7 @@ function parseBio(text: string): {
     /(?:performed|played|appeared)\s+(?:at|in)\s+([A-Z][A-Za-z\s&]+?)(?:[,.!]|$)/g,
     /(?:headlined|supported)\s+(?:at|in)\s+([A-Z][A-Za-z\s&]+?)(?:[,.!]|$)/g
   ];
-  
+
   showPatterns.forEach(pattern => {
     let match;
     while ((match = pattern.exec(text)) !== null) {
@@ -99,7 +99,7 @@ function parseBio(text: string): {
 function applySynonymsDeterministic(text: string, seed: string): string {
   let result = text;
   const hash = simpleHash(seed);
-  
+
   Object.entries(SYNONYMS).forEach(([word, replacements], index) => {
     const regex = new RegExp(`\\b${word}\\b`, 'gi');
     if (regex.test(result)) {
@@ -114,7 +114,7 @@ function applySynonymsDeterministic(text: string, seed: string): string {
 function generateTagline(parsed: ReturnType<typeof parseBio>, tone: Tone): string {
   const template = TONE_TEMPLATES[tone];
   const genre = parsed.genres[0] || 'Electronic';
-  
+
   const taglines: Record<Tone, string> = {
     press: `${template.prefix} ${genre} artist`,
     concise: `${genre} ${template.prefix}`,
@@ -123,11 +123,11 @@ function generateTagline(parsed: ReturnType<typeof parseBio>, tone: Tone): strin
   };
 
   let tagline = taglines[tone];
-  
+
   if (tagline.length > 80) {
     tagline = tagline.substring(0, 77) + '...';
   }
-  
+
   return tagline;
 }
 
@@ -135,9 +135,9 @@ function generateBlurb(parsed: ReturnType<typeof parseBio>, tone: Tone, seed: st
   const genre = parsed.genres[0] || 'electronic music';
   const experience = parsed.experience || 'extensive experience';
   const template = TONE_TEMPLATES[tone];
-  
+
   let blurb = '';
-  
+
   switch (tone) {
     case 'press':
       blurb = `${template.prefix} ${genre} artist with ${experience} in the industry, known for ${parsed.shows.length > 0 ? 'performances at ' + parsed.shows.slice(0, 2).join(' and ') : 'captivating live sets'}.`;
@@ -154,15 +154,15 @@ function generateBlurb(parsed: ReturnType<typeof parseBio>, tone: Tone, seed: st
   }
 
   blurb = applySynonymsDeterministic(blurb, seed);
-  
+
   if (blurb.length < 90) {
     blurb = blurb + ' ' + (parsed.sentences[0] || '').substring(0, 50);
   }
-  
+
   if (blurb.length > 160) {
     blurb = blurb.substring(0, 157) + '...';
   }
-  
+
   return blurb;
 }
 
@@ -170,29 +170,29 @@ function generateEPKBio(parsed: ReturnType<typeof parseBio>, tone: Tone, seed: s
   const template = TONE_TEMPLATES[tone];
   const genre = parsed.genres.join(', ') || 'electronic music';
   const experience = parsed.experience || 'years of experience';
-  
+
   let bio = '';
-  
+
   const intro = `${template.prefix} artist in the ${genre} scene, with ${experience} delivering dynamic performances and innovative productions.`;
-  
+
   const body = parsed.sentences.slice(0, 3).join('. ') || 'Known for captivating audiences with unique sonic landscapes and technical prowess.';
-  
+
   const shows = parsed.shows.length > 0
     ? ` Notable appearances include ${parsed.shows.slice(0, 3).join(', ')}.`
     : ' Continues to push boundaries in live performance and studio production.';
-  
+
   const quotes = parsed.quotes.length > 0
     ? ` Critics have noted: "${parsed.quotes[0]}"`
     : '';
-  
+
   bio = intro + ' ' + applySynonymsDeterministic(body, seed) + shows + quotes;
-  
+
   if (bio.length > 500) {
     bio = bio.substring(0, 497) + '...';
   } else if (bio.length < 300) {
     bio = bio + ' ' + (parsed.sentences.slice(3, 5).join('. ') || 'Committed to excellence in every aspect of their craft.');
   }
-  
+
   return bio;
 }
 
@@ -207,139 +207,12 @@ export function deterministicRewrite(text: string, tone: Tone = 'press'): Rewrit
 
   const seed = text + tone;
   const parsed = parseBio(text);
-  
+
   return {
     tagline: generateTagline(parsed, tone),
     blurb: generateBlurb(parsed, tone, seed),
     epk_bio: generateEPKBio(parsed, tone, seed)
   };
-}
-
-export function sanitizeForHTML(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
-export function truncate(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength - 3) + '...';
-}
-export function deterministicRewrite(text: string, tone: 'press' | 'concise' | 'promotional' | 'technical'): {
-  tagline: string;
-  blurb: string;
-  epk_bio: string;
-} {
-  const words = text.trim().split(/\s+/);
-  
-  // Extract key information
-  const genres = extractGenres(text);
-  const venues = extractVenues(text);
-  const experience = extractExperience(text);
-  
-  // Generate tagline
-  const tagline = generateTagline(genres, tone);
-  
-  // Generate blurb (90-160 chars)
-  const blurb = generateBlurb(text, genres, tone);
-  
-  // Generate full EPK bio (250-550 chars)
-  const epk_bio = generateEPKBio(text, genres, venues, experience, tone);
-  
-  return { tagline, blurb, epk_bio };
-}
-
-function extractGenres(text: string): string[] {
-  const genreKeywords = ['techno', 'house', 'ambient', 'minimal', 'bass', 'dub', 'experimental', 'electronic', 'acid', 'trance'];
-  const found: string[] = [];
-  const lowerText = text.toLowerCase();
-  
-  genreKeywords.forEach(genre => {
-    if (lowerText.includes(genre)) {
-      found.push(genre.charAt(0).toUpperCase() + genre.slice(1));
-    }
-  });
-  
-  return found.slice(0, 3);
-}
-
-function extractVenues(text: string): string[] {
-  const venuePattern = /\b(?:Berghain|Fabric|Panorama Bar|Tresor|Printworks|Movement|Dekmantel|Awakenings|Sonar|Burning Man)\b/gi;
-  const matches = text.match(venuePattern) || [];
-  return [...new Set(matches)].slice(0, 3);
-}
-
-function extractExperience(text: string): string | null {
-  const expPattern = /(\d+)\s*(?:years?|yrs?)/i;
-  const match = text.match(expPattern);
-  return match ? match[1] : null;
-}
-
-function generateTagline(genres: string[], tone: string): string {
-  if (genres.length === 0) return 'Electronic Music Artist';
-  
-  const toneMap: Record<string, string[]> = {
-    press: ['Acclaimed', 'Celebrated', 'Innovative', 'Groundbreaking'],
-    concise: ['', '', '', ''],
-    promotional: ['Electrifying', 'Unforgettable', 'Boundary-Pushing', 'Dynamic'],
-    technical: ['Experienced', 'Specialist', 'Expert', 'Professional']
-  };
-  
-  const prefix = toneMap[tone][Math.floor(genres.join('').length % 4)];
-  const genreText = genres.length > 1 ? genres.slice(0, 2).join(' & ') : genres[0];
-  
-  return prefix ? `${prefix} ${genreText} Artist` : `${genreText} Producer & DJ`;
-}
-
-function generateBlurb(text: string, genres: string[], tone: string): string {
-  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
-  const firstSentence = sentences[0] || text.substring(0, 100);
-  
-  let blurb = firstSentence.trim();
-  
-  // Ensure it's between 90-160 chars
-  if (blurb.length < 90) {
-    const genreText = genres.length > 0 ? ` Known for ${genres[0].toLowerCase()} productions` : '';
-    blurb += genreText;
-  }
-  
-  if (blurb.length > 160) {
-    blurb = blurb.substring(0, 157) + '...';
-  }
-  
-  return blurb;
-}
-
-function generateEPKBio(text: string, genres: string[], venues: string[], experience: string | null, tone: string): string {
-  let bio = text.trim();
-  
-  // Add professional enhancements based on tone
-  if (tone === 'press' && venues.length > 0) {
-    bio += ` Known for electrifying performances at ${venues.join(', ')}.`;
-  }
-  
-  if (tone === 'promotional') {
-    bio += ' Delivering unforgettable experiences that captivate audiences worldwide.';
-  }
-  
-  if (tone === 'technical' && genres.length > 0) {
-    bio += ` Specializing in ${genres.join(', ')} with technical mastery and innovative sound design.`;
-  }
-  
-  // Ensure minimum length
-  if (bio.length < 250) {
-    bio += ' A dynamic force in the electronic music scene, pushing boundaries and creating immersive sonic experiences.';
-  }
-  
-  // Truncate if too long
-  if (bio.length > 550) {
-    bio = bio.substring(0, 547) + '...';
-  }
-  
-  return bio;
 }
 
 export function sanitizeForHTML(text: string): string {

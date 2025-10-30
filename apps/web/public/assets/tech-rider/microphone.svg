@@ -1,0 +1,27 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="360" height="512" viewBox="0 0 360 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="micTitle micDesc" fill="none">
+  <title id="micTitle">Microphone icon</title>
+  <desc id="micDesc">Classic capsule microphone with broadcast wave arcs above it.</desc>
+
+  <g stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+    <!-- capsule -->
+    <rect x="92" y="40" width="176" height="224" rx="88" fill="none"/>
+    <!-- grill lines -->
+    <g stroke-width="6" opacity="0.9">
+      <line x1="120" y1="84" x2="240" y2="84" />
+      <line x1="120" y1="112" x2="240" y2="112" />
+      <line x1="120" y1="140" x2="240" y2="140" />
+      <line x1="120" y1="168" x2="240" y2="168" />
+    </g>
+
+    <!-- stand post -->
+    <rect x="160" y="264" width="40" height="96" rx="6" fill="none"/>
+    <!-- base -->
+    <path d="M52 392 Q180 460 308 392" stroke-width="14" fill="none" />
+
+    <!-- broadcast waves -->
+    <path d="M180 14 C150 38 150 38 180 62" stroke-width="8" fill="none"/>
+    <path d="M180 -10 C130 26 130 26 180 86" stroke-width="6" fill="none" opacity="0.9"/>
+  </g>
+</svg>
