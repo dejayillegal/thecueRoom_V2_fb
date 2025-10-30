@@ -1,23 +1,42 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
+
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
 import * as schema from './schema';
 
-const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:54322/postgres';
-const client = postgres(connectionString, {
-  types: {
-    date: {
-      to: 1184,
-      from: [1082, 1083, 1114, 1184],
-      serialize: (x: any) => {
-        if (x === null || x === undefined) return null;
-        if (typeof x === 'string') return x;
-        if (x instanceof Date) return x.toISOString();
-        if (typeof x.toISOString === 'function') return x.toISOString();
-        return String(x);
-      },
-      parse: (x: string) => x,
-    },
-  },
-});
+let pool: Pool | null = null;
+let db: ReturnType<typeof drizzle> | null = null;
 
-export const db = drizzle(client, { schema });
+export function getDbClient() {
+  if (!db) {
+    const connectionString = process.env.DATABASE_URL;
+    
+    if (!connectionString) {
+      throw new Error('DATABASE_URL environment variable is not set');
+    }
+
+    pool = new Pool({
+      connectionString,
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+    });
+
+    db = drizzle(pool, { schema });
+    
+    console.log('✅ Database client initialized');
+  }
+
+  return db;
+}
+
+export async function closeDbClient() {
+  if (pool) {
+    await pool.end();
+    pool = null;
+    db = null;
+    console.log('🔌 Database connection closed');
+  }
+}
+
+export { schema };
+export type DbClient = ReturnType<typeof getDbClient>;

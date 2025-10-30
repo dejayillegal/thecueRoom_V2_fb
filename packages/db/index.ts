@@ -1,4 +1,4 @@
 
 export * from './schema';
 export * from './zodSchemas';
-export { db } from './client';
+export { getDbClient, closeDbClient, type DbClient } from './client';

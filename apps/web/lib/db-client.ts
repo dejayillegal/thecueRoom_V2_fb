@@ -1,67 +1,7 @@
-
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from '@thecueroom/db/schema';
+import { getDbClient } from '@thecueroom/db';
 
-function getConnectionString(): string {
-  const connectionString = process.env.DATABASE_URL;
-  
-  if (!connectionString) {
-    throw new Error(
-      'DATABASE_URL environment variable is required. ' +
-      'Set it in your .env file with your PostgreSQL/Supabase connection string. ' +
-      'Example: postgresql://user:password@host:5432/database'
-    );
-  }
-  
-  return connectionString;
-}
-
-let client: ReturnType<typeof postgres> | null = null;
-let dbInstance: ReturnType<typeof drizzle> | null = null;
-
-export function getDbClient() {
-  if (!dbInstance) {
-    const connectionString = getConnectionString();
-    
-    client = postgres(connectionString, {
-      max: 10,
-      idle_timeout: 20,
-      connect_timeout: 10,
-      prepare: true,
-      transform: {
-        undefined: null,
-      },
-      types: {
-        date: {
-          to: 1184,
-          from: [1082, 1083, 1114, 1184],
-          serialize: (x: any) => {
-            if (x === null || x === undefined) return null;
-            if (typeof x === 'string') return x;
-            if (x instanceof Date) return x.toISOString();
-            if (typeof x.toISOString === 'function') return x.toISOString();
-            return String(x);
-          },
-          parse: (x: string) => x,
-        },
-      },
-    });
-    
-    dbInstance = drizzle(client, { schema });
-  }
-  return dbInstance;
-}
-
-export function closeDbConnection() {
-  if (client) {
-    client.end({ timeout: 5 });
-    client = null;
-    dbInstance = null;
-  }
-}
-
-export { schema };
-
-// Export db for direct usage
-export const db = getDbClient();
+export { getDbClient };
+export type { DbClient } from '@thecueroom/db';
