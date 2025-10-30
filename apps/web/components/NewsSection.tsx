@@ -10,8 +10,8 @@ interface FeedItem {
   url: string;
   image: string | null;
   tags: string[] | null;
-  publishedAt: Date;
-  source: string | null;
+  publishedAt: string | Date;
+  source: string;
 }
 
 const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date: Date) => string }) => {
@@ -123,18 +123,26 @@ export default function NewsSection() {
         headers: { 'Accept': 'application/json' }
       });
 
-      if (!response.ok) throw new Error('Failed to fetch');
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => 'Unknown error');
+        console.error('Feed API error:', response.status, errorText);
+        throw new Error(`Failed to fetch: ${response.status}`);
+      }
 
       const data = await response.json();
 
       if (data.data && Array.isArray(data.data)) {
         setNewsFeeds(prev => isInitial ? data.data : [...prev, ...data.data]);
-        setCursor(data.nextCursor);
-        setHasMore(data.hasMore);
+        setCursor(data.nextCursor || null);
+        setHasMore(data.hasMore ?? false);
+      } else {
+        console.warn('Invalid feed data structure:', data);
+        setHasMore(false);
       }
     } catch (error: any) {
       if (error.name !== 'AbortError') {
         console.error('Failed to load news feeds:', error);
+        setHasMore(false);
       }
     } finally {
       if (isInitial) {

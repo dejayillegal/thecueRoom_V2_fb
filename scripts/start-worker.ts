@@ -1,4 +1,3 @@
-
 import { getDbClient } from '../packages/db/client';
 import { sources, feeds } from '../packages/db/schema';
 import { eq, sql } from 'drizzle-orm';
@@ -15,12 +14,12 @@ const POLL_INTERVAL_MS = 60 * 60 * 1000; // 60 minutes
 
 async function processFeed(source: any) {
   const db = getDbClient();
-  
+
   try {
     console.log(`📥 Fetching RSS: ${source.name}`);
-    
+
     const feed = await parser.parseURL(source.url);
-    
+
     if (!feed.items || feed.items.length === 0) {
       console.log(`⚠️  ${source.name}: No items found`);
       return { success: false, imported: 0, skipped: 0 };
@@ -69,7 +68,6 @@ async function processFeed(source: any) {
           image,
           tags,
           publishedAt,
-          source: source.name,
           sourceId: source.id,
         });
 
@@ -91,10 +89,10 @@ async function processFeed(source: any) {
 
     console.log(`✅ ${source.name}: ${imported} new items (${skipped} skipped)`);
     return { success: true, imported, skipped };
-    
+
   } catch (error: any) {
     console.error(`❌ ${source.name}: ${error.message}`);
-    
+
     // Update failure count
     try {
       await db
@@ -107,16 +105,16 @@ async function processFeed(source: any) {
     } catch (updateErr) {
       console.error(`  Failed to update source: ${updateErr}`);
     }
-    
+
     return { success: false, imported: 0, skipped: 0 };
   }
 }
 
 async function runWorkerCycle() {
   const db = getDbClient();
-  
+
   console.log('\n🚀 Starting thecueRoom Background Feed Worker cycle...\n');
-  
+
   try {
     // Fetch all enabled sources
     const enabledSources = await db
@@ -134,7 +132,7 @@ async function runWorkerCycle() {
     // Process feeds sequentially to avoid overwhelming the database
     for (const source of enabledSources) {
       const result = await processFeed(source);
-      
+
       if (result.success) {
         successCount++;
         totalImported += result.imported;
@@ -142,7 +140,7 @@ async function runWorkerCycle() {
       } else {
         failCount++;
       }
-      
+
       // Small delay between requests
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
@@ -152,7 +150,7 @@ async function runWorkerCycle() {
     console.log(`❌ Failed: ${failCount}/${enabledSources.length}`);
     console.log(`📝 Total items imported: ${totalImported}`);
     console.log(`⏭️  Total duplicates skipped: ${totalSkipped}`);
-    
+
   } catch (error: any) {
     console.error('❌ Worker cycle failed:', error.message);
   }
@@ -160,10 +158,10 @@ async function runWorkerCycle() {
 
 async function startPeriodicWorker() {
   console.log(`⏰ Starting periodic worker (every ${POLL_INTERVAL_MS / 60000} minutes)\n`);
-  
+
   // Run immediately on start
   await runWorkerCycle();
-  
+
   // Then run on interval
   setInterval(async () => {
     await runWorkerCycle();

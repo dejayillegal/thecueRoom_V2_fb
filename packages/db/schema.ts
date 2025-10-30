@@ -46,7 +46,6 @@ export const sources = pgTable('sources', {
 export const feeds = pgTable('feeds', {
   id: uuid('id').primaryKey().defaultRandom(),
   sourceId: uuid('source_id').notNull().references(() => sources.id, { onDelete: 'cascade' }),
-  source: text('source'),
   title: text('title').notNull(),
   summary: text('summary'),
   url: text('url').notNull().unique(),

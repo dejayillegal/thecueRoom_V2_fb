@@ -49,14 +49,12 @@ export async function GET(request: Request) {
         id: feeds.id,
         title: feeds.title,
         summary: feeds.summary,
-        link: feeds.link,
+        link: feeds.url,
         image: feeds.image,
         tags: feeds.tags,
         publishedAt: feeds.publishedAt,
-        source: {
-          id: sources.id,
-          name: sources.name,
-        },
+        sourceId: feeds.sourceId,
+        sourceName: sources.name,
       })
       .from(feeds)
       .leftJoin(sources, eq(feeds.sourceId, sources.id))
@@ -83,7 +81,7 @@ export async function GET(request: Request) {
       }),
       tags: item.tags || [],
       publishedAt: typeof item.publishedAt === 'string' ? item.publishedAt : item.publishedAt?.toISOString(),
-      source: item.source?.name || 'Unknown',
+      source: item.sourceName || 'Unknown',
     }));
 
     const nextCursor = hasMore && sanitizedItems.length > 0
