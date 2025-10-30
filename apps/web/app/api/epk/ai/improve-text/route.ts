@@ -44,3 +44,33 @@ export async function POST(request: NextRequest) {
     }, { status: 500 });
   }
 }
+import { NextRequest, NextResponse } from 'next/server';
+import { improveEPKText } from '@/lib/ai/epk-ai';
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { text, tone } = body;
+
+    if (!text || text.trim().length === 0) {
+      return NextResponse.json({
+        ok: false,
+        error: 'Text is required'
+      }, { status: 400 });
+    }
+
+    const result = await improveEPKText(text, tone || 'professional');
+
+    return NextResponse.json({
+      ok: true,
+      text: result.text,
+      usedAI: result.usedAI
+    });
+  } catch (error) {
+    console.error('[EPK AI] Improve text error:', error);
+    return NextResponse.json({
+      ok: false,
+      error: error instanceof Error ? error.message : 'Improvement failed'
+    }, { status: 500 });
+  }
+}

@@ -29,6 +29,8 @@ export function EPKEditor() {
   });
   
   const [mixItems, setMixItems] = useState<Array<{ id: string; title: string; link: string }>>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState('futuristic-gradient');
+  const [templates, setTemplates] = useState<any[]>([]);
   
   const [isGeneratingBio, setIsGeneratingBio] = useState(false);
   const [isImprovingBio, setIsImprovingBio] = useState(false);
@@ -43,12 +45,28 @@ export function EPKEditor() {
 
   useEffect(() => {
     checkAIAvailability();
+    loadTemplates();
     return () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
     };
   }, []);
+
+  const loadTemplates = async () => {
+    try {
+      const response = await fetch('/api/epk/templates');
+      const data = await response.json();
+      if (data.ok) {
+        setTemplates(data.templates);
+        if (data.templates.length > 0) {
+          setSelectedTemplate(data.templates[0].id);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load templates:', err);
+    }
+  };
 
   const checkAIAvailability = async () => {
     try {
@@ -258,7 +276,7 @@ export function EPKEditor() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          templateId: 'brutalist-onepage',
+          templateId: selectedTemplate,
           modules,
           artistName,
           releaseTitle: genre,
@@ -430,6 +448,26 @@ export function EPKEditor() {
       <Card className="p-6 bg-[#0a0a0a] border-[#1a1a1a]">
         <div className="space-y-6">
           <div>
+            <h2 className="text-xl font-bold text-white mb-4">Choose Your Template</h2>
+            <div className="grid grid-cols-1 gap-3 mb-6">
+              {templates.map((template) => (
+                <button
+                  key={template.id}
+                  onClick={() => setSelectedTemplate(template.id)}
+                  className={`p-4 rounded-lg border-2 text-left transition-all ${
+                    selectedTemplate === template.id
+                      ? 'border-primary bg-primary/10'
+                      : 'border-[#1a1a1a] bg-[#0B0B0B] hover:border-primary/50'
+                  }`}
+                >
+                  <div className="font-bold text-white mb-1">{template.name}</div>
+                  <div className="text-xs text-gray-400">{template.description}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="border-t border-[#1a1a1a] pt-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-white">Mixes, Sets & Releases</h2>
               <Button

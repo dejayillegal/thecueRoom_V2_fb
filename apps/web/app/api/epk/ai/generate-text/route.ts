@@ -46,3 +46,39 @@ export async function POST(request: NextRequest) {
     }, { status: 500 });
   }
 }
+import { NextRequest, NextResponse } from 'next/server';
+import { generateEPKText } from '@/lib/ai/epk-ai';
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { type, artistName, genre, existingText, tone } = body;
+
+    if (!artistName && !existingText) {
+      return NextResponse.json({
+        ok: false,
+        error: 'Artist name or existing text required'
+      }, { status: 400 });
+    }
+
+    const result = await generateEPKText({
+      type,
+      artistName,
+      genre,
+      existingText,
+      tone: tone || 'professional'
+    });
+
+    return NextResponse.json({
+      ok: true,
+      text: result.text,
+      usedAI: result.usedAI
+    });
+  } catch (error) {
+    console.error('[EPK AI] Generate text error:', error);
+    return NextResponse.json({
+      ok: false,
+      error: error instanceof Error ? error.message : 'Generation failed'
+    }, { status: 500 });
+  }
+}
