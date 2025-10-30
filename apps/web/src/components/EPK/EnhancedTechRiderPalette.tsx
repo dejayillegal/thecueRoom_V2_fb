@@ -25,13 +25,13 @@ const PALETTE_ITEMS: Omit<TechRiderItem, 'id'>[] = [
   { type: 'cdj', label: 'CDJ-2000NXS2', quantity: 2, icon: '/assets/tech-rider/cdj.png' },
   { type: 'mixer', label: 'DJM-900NXS2', quantity: 1, icon: '/assets/tech-rider/mixer.png' },
   { type: 'mixer', label: 'DJM-A9', quantity: 1, icon: '/assets/tech-rider/mixer.png' },
-  { type: 'turntable', label: 'Technics SL-1210', quantity: 2, icon: '/assets/tech-rider/turntable.svg' },
-  { type: 'turntable', label: 'Technics SL-1200MK7', quantity: 2, icon: '/assets/tech-rider/turntable.svg' },
+  { type: 'turntable', label: 'Technics SL-1210', quantity: 2, icon: '/assets/tech-rider/turntable.png' },
+  { type: 'turntable', label: 'Technics SL-1200MK7', quantity: 2, icon: '/assets/tech-rider/turntable.png' },
   { type: 'speakers', label: 'Monitor Speakers', quantity: 2, icon: '/assets/tech-rider/speaker.png' },
   { type: 'speakers', label: 'PA System', quantity: 1, icon: '/assets/tech-rider/speaker.png' },
   { type: 'speakers', label: 'In-Ear Monitors', quantity: 1, icon: '/assets/tech-rider/speaker.png' },
-  { type: 'microphone', label: 'Wireless Microphone', quantity: 1, icon: '/assets/tech-rider/microphone.svg' },
-  { type: 'microphone', label: 'Wired Microphone', quantity: 1, icon: '/assets/tech-rider/microphone.svg' },
+  { type: 'microphone', label: 'Wireless Microphone', quantity: 1, icon: '/assets/tech-rider/microphone.png' },
+  { type: 'microphone', label: 'Wired Microphone', quantity: 1, icon: '/assets/tech-rider/microphone.png' },
 ];
 
 export default function EnhancedTechRiderPalette({ items, onChange }: EnhancedTechRiderPaletteProps) {
