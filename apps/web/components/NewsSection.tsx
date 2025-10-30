@@ -19,9 +19,9 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
   const [isLoading, setIsLoading] = useState(true);
 
   return (
-    <article className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all group rounded-lg shadow-sm hover:shadow-md">
+    <article className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all group rounded-xl shadow-sm hover:shadow-md">
       <Link href={feed.url} target="_blank" rel="noopener noreferrer" className="block">
-        <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden rounded-t-lg">
+        <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden rounded-t-xl">
           {isLoading && (
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
           )}

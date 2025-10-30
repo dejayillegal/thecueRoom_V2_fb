@@ -17,13 +17,24 @@ export interface FeedItem {
 }
 
 const TrendingCard = memo(({ feed, index }: { feed: FeedItem; index: number }) => {
-  const [imgSrc, setImgSrc] = useState(feed.image);
+  const [imgSrc, setImgSrc] = useState(feed.image || `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    setImgSrc(feed.image);
+    const newSrc = feed.image || `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`;
+    setImgSrc(newSrc);
     setIsLoading(true);
-  }, [feed.image]);
+    setHasError(false);
+  }, [feed.image, feed.title]);
+
+  const handleError = () => {
+    if (!hasError) {
+      setHasError(true);
+      setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
+    }
+    setIsLoading(false);
+  };
 
   return (
     <Link
@@ -32,8 +43,8 @@ const TrendingCard = memo(({ feed, index }: { feed: FeedItem; index: number }) =
       rel="noopener noreferrer"
       className="block group flex-shrink-0 w-56 sm:w-64 md:w-72"
     >
-      <div className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all rounded-lg">
-        <div className="relative h-36 sm:h-40 md:h-44 bg-gradient-to-br from-primary/10 to-secondary/10">
+      <div className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all rounded-xl shadow-sm hover:shadow-md">
+        <div className="relative h-36 sm:h-40 md:h-44 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden rounded-t-xl">
           {isLoading && (
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
           )}
@@ -41,10 +52,7 @@ const TrendingCard = memo(({ feed, index }: { feed: FeedItem; index: number }) =
             src={imgSrc}
             alt={feed.title}
             className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
-            onError={() => {
-              setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
-              setIsLoading(false);
-            }}
+            onError={handleError}
             onLoad={() => setIsLoading(false)}
             loading="lazy"
           />
