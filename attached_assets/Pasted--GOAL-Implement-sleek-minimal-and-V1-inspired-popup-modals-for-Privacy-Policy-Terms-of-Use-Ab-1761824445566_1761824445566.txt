@@ -1,0 +1,253 @@
+🎯 GOAL
+
+Implement sleek, minimal, and V1-inspired popup modals for Privacy Policy, Terms of Use, About, and Contact, referencing the design style and voice of thecueRoom V1 (https://dejayillegal.github.io/thecueroom/
+).
+
+Each modal should:
+
+Reflect the brand’s underground electronic culture tone.
+
+Match the dark brutalist UI with lime (#D1FF3D) and violet (#9B5CFF) accents.
+
+Use clear, professional, legally valid content (no placeholders).
+
+Maintain dashboard layout consistency (dark background, sharp neon glow, subtle grain).
+
+Be accessible (keyboard + aria labels).
+
+Lightweight and performant (no re-rendering or scroll jank).
+
+🧩 FILES TO CREATE / UPDATE
+1. apps/web/src/components/FooterLinks.tsx
+
+Footer with four interactive links that open modal dialogs.
+
+'use client';
+import React, { useState } from 'react';
+import InfoModal from './InfoModal';
+
+export default function FooterLinks() {
+  const [modal, setModal] = useState<string | null>(null);
+
+  const links = [
+    { label: 'About', type: 'about' },
+    { label: 'Privacy', type: 'privacy' },
+    { label: 'Terms', type: 'terms' },
+    { label: 'Contact', type: 'contact' },
+  ];
+
+  return (
+    <>
+      <footer className="w-full py-6 border-t border-[#1a1a1a] text-[12px] text-[#888] flex flex-wrap justify-center gap-6 bg-black/80 backdrop-blur-sm">
+        {links.map(({ label, type }) => (
+          <button
+            key={label}
+            onClick={() => setModal(type)}
+            className="uppercase tracking-wide hover:text-[#D1FF3D] transition-all"
+          >
+            {label}
+          </button>
+        ))}
+        <span className="text-[#555]">© {new Date().getFullYear()} thecueRoom</span>
+      </footer>
+
+      {modal && <InfoModal type={modal} onClose={() => setModal(null)} />}
+    </>
+  );
+}
+
+2. apps/web/src/components/InfoModal.tsx
+
+Shared modal wrapper for all info popups.
+
+'use client';
+import React, { useEffect } from 'react';
+import { X } from 'lucide-react';
+import InfoContent from './InfoContent';
+
+export default function InfoModal({ type, onClose }: { type: string; onClose: () => void }) {
+  useEffect(() => {
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', esc);
+    return () => window.removeEventListener('keydown', esc);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl max-w-2xl w-full mx-6 max-h-[85vh] overflow-y-auto text-white shadow-[0_0_25px_rgba(209,255,61,0.05)]"
+      >
+        <header className="flex justify-between items-center px-6 py-4 border-b border-[#1a1a1a]">
+          <h2 className="text-[15px] font-semibold uppercase tracking-wide text-[#D1FF3D]">
+            {type === 'about' ? 'About thecueRoom' : type.charAt(0).toUpperCase() + type.slice(1)}
+          </h2>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="text-[#999] hover:text-[#D1FF3D] transition-colors"
+          >
+            <X size={18} />
+          </button>
+        </header>
+
+        <div className="p-6 text-[13px] leading-relaxed text-[#ccc] space-y-4">
+          <InfoContent type={type} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+3. apps/web/src/components/InfoContent.tsx
+
+Enhanced text content — factual, professional, and V1-inspired.
+
+import React from 'react';
+
+export default function InfoContent({ type }: { type: string }) {
+  switch (type) {
+    case 'about':
+      return (
+        <>
+          <p><strong>About thecueRoom</strong></p>
+          <p>
+            thecueRoom is a curated space for underground electronic artists, DJs, and producers.
+            Originating from Bangalore’s techno subculture, it blends art, technology, and
+            community-driven discovery. Our platform celebrates sonic experimentation — connecting
+            creators, collectives, and audiences through rhythm, sound, and story.
+          </p>
+          <p>
+            We provide AI-assisted creative tools for press kits, cover art, and EPKs, along with
+            real-time gig discovery and community dialogue — inspired by the global warehouse scene.
+          </p>
+          <p className="italic text-[#9B5CFF]">
+            Powered by rhythm, built by the underground.
+          </p>
+        </>
+      );
+
+    case 'privacy':
+      return (
+        <>
+          <p><strong>Privacy Policy</strong></p>
+          <p>
+            We respect the privacy of our users. thecueRoom collects only essential information —
+            such as login credentials and analytics for improving user experience. We do not sell,
+            rent, or share your data with any third party.
+          </p>
+          <p>
+            Analytics used on this site are anonymized. User-generated content remains the property
+            of the creator. You may request data deletion or account removal by emailing
+            <a href="mailto:support@thecueroom.com" className="text-[#D1FF3D]"> support@thecueroom.com</a>.
+          </p>
+          <p>
+            Our systems follow GDPR, CCPA, and India’s Digital Personal Data Protection Act guidelines.
+          </p>
+        </>
+      );
+
+    case 'terms':
+      return (
+        <>
+          <p><strong>Terms & Conditions</strong></p>
+          <p>
+            By using thecueRoom, you agree to our code of conduct and content policies.
+            Our platform exists to support underground artists — not commercial exploitation.
+            Users must not upload copyrighted or harmful material.
+          </p>
+          <p>
+            thecueRoom provides access “as-is” without any warranty. We reserve the right to remove
+            content that violates community ethics or legal standards.
+          </p>
+          <p>
+            All interactions, uploads, and shared data are subject to moderation under our guidelines.
+          </p>
+        </>
+      );
+
+    case 'contact':
+      return (
+        <>
+          <p><strong>Contact Us</strong></p>
+          <p>For general inquiries or collaborations, reach out to:</p>
+          <ul className="list-disc list-inside space-y-1">
+            <li>General / Support: <a href="mailto:support@thecueroom.com" className="text-[#D1FF3D]">support@thecueroom.com</a></li>
+            <li>Press & Partnerships: <a href="mailto:press@thecueroom.com" className="text-[#D1FF3D]">press@thecueroom.com</a></li>
+            <li>Booking / Gigs: <a href="mailto:gigs@thecueroom.com" className="text-[#D1FF3D]">gigs@thecueroom.com</a></li>
+          </ul>
+          <p className="pt-2">Headquarters: Bangalore, India — connected to the global underground.</p>
+          <p className="italic text-[#9B5CFF]">
+            Sound unites. Technology amplifies. thecueRoom connects.
+          </p>
+        </>
+      );
+
+    default:
+      return <p>Content unavailable.</p>;
+  }
+}
+
+4. Update main layout
+
+Ensure modals load globally (usually in layout.tsx or _app.tsx).
+
+import FooterLinks from '@/components/FooterLinks';
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body className="bg-black text-white font-sans relative">
+        {children}
+        <FooterLinks />
+      </body>
+    </html>
+  );
+}
+
+⚡ PERFORMANCE + DESIGN
+
+No extra dependencies — uses pure React + Tailwind.
+
+Accessible via keyboard (ESC to close).
+
+Animations: minimal opacity + scale transitions for subtle depth.
+
+Glass aesthetic: use backdrop blur only in modal background (not page-wide).
+
+Font: reuse thecueRoom’s Inter / JetBrains Mono from V1.
+
+Color palette:
+
+Background: #0A0A0A
+
+Accent 1: #D1FF3D (Lime)
+
+Accent 2: #9B5CFF (Violet Glow)
+
+Border: #1A1A1A
+
+Text dim: #AAA
+
+✅ ACCEPTANCE CHECKS
+
+Run:
+
+pnpm -w tsc --noEmit
+pnpm --filter apps/web dev
+
+
+Verify:
+
+Clicking About, Privacy, Terms, Contact opens modals.
+
+ESC or backdrop closes them instantly.
+
+Scroll smooth, no lag or GPU spike.
+
+Text content professional and aligned with brand ethos.
+
+Mobile version shows full-screen modal (responsive).
