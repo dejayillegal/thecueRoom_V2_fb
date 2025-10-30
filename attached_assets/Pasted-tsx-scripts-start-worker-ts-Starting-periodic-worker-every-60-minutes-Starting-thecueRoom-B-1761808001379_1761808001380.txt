@@ -1,0 +1,66 @@
+tsx scripts/start-worker.ts
+
+⏰ Starting periodic worker (every 60 minutes)
+
+🚀 Starting thecueRoom Background Feed Worker cycle...
+
+📊 Processing 25 sources...
+
+📥 Fetching RSS: Earmilk
+📥 Fetching RSS: Music Business Worldwide
+📥 Fetching RSS: Ransom Note
+📥 Fetching RSS: MusicTech
+📥 Fetching RSS: FACT
+📥 Fetching RSS: CDM — Create Digital Music
+📥 Fetching RSS: Hypebot
+📥 Fetching RSS: XLR8R
+📥 Fetching RSS: Rolling Stone India
+📥 Fetching RSS: Bandcamp Daily
+❌ Ransom Note: (0 , import_client.getDbClient) is not a function
+📥 Fetching RSS: Rolling Stone Music Interviews
+❌ MusicTech: (0 , import_client.getDbClient) is not a function
+📥 Fetching RSS: Mixdown Magazine
+❌ Music Business Worldwide: (0 , import_client.getDbClient) is not a function
+📥 Fetching RSS: Crossfadr
+❌ Rolling Stone Music Interviews: (0 , import_client.getDbClient) is not a function
+📥 Fetching RSS: Festival Sherpa
+❌ Crossfadr: (0 , import_client.getDbClient) is not a function
+📥 Fetching RSS: DJWORX
+❌ Earmilk: (0 , import_client.getDbClient) is not a function
+📥 Fetching RSS: Dancing Astronaut
+❌ FACT: (0 , import_client.getDbClient) is not a function
+📥 Fetching RSS: Attack Magazine
+❌ CDM — Create Digital Music: (0 , import_client.getDbClient) is not a function
+📥 Fetching RSS: Digital DJ Tips
+❌ Bandcamp Daily: (0 , import_client.getDbClient) is not a function
+📥 Fetching RSS: DJ TechTools
+❌ Attack Magazine: (0 , import_client.getDbClient) is not a function
+📥 Fetching RSS: EDM.com Festivals
+❌ Hypebot: (0 , import_client.getDbClient) is not a function
+📥 Fetching RSS: Synthtopia
+❌ Mixdown Magazine: (0 , import_client.getDbClient) is not a function
+📥 Fetching RSS: Elektronauts Forum
+❌ Rolling Stone India: (0 , import_client.getDbClient) is not a function
+📥 Fetching RSS: Gearnews
+❌ Festival Sherpa: (0 , import_client.getDbClient) is not a function
+📥 Fetching RSS: Synth Anatomy
+❌ XLR8R: (0 , import_client.getDbClient) is not a function
+📥 Fetching RSS: EDM Identity
+❌ Synthtopia: (0 , import_client.getDbClient) is not a function
+❌ DJWORX: (0 , import_client.getDbClient) is not a function
+❌ Dancing Astronaut: (0 , import_client.getDbClient) is not a function
+❌ Elektronauts Forum: (0 , import_client.getDbClient) is not a function
+❌ DJ TechTools: (0 , import_client.getDbClient) is not a function
+❌ Digital DJ Tips: (0 , import_client.getDbClient) is not a function
+❌ EDM Identity: (0 , import_client.getDbClient) is not a function
+❌ Gearnews: (0 , import_client.getDbClient) is not a function
+❌ Synth Anatomy: (0 , import_client.getDbClient) is not a function
+❌ EDM.com Festivals: (0 , import_client.getDbClient) is not a function
+
+✨ Worker cycle complete!
+✅ Successful: 0/25
+❌ Failed: 25/25
+📝 Total items imported: 0
+⏭️  Total duplicates skipped: 0
+⏱️  Cycle duration: 7.08s
+
