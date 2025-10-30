@@ -21,24 +21,7 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
   return (
     <article className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all group shadow-sm hover:shadow-md">
       <Link href={feed.url} target="_blank" rel="noopener noreferrer" className="block">
-        <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
-          {isLoading && (
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
-          )}
-          <img
-            src={imgSrc}
-            alt={feed.title}
-            className={`w-full h-full object-cover transition-transform duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
-            onLoad={() => setIsLoading(false)}
-            onError={() => {
-              setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
-              setIsLoading(false);
-            }}
-            loading="lazy"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
-        </div>
-        <div className="p-4 sm:p-5 space-y-2.5">
+        <div className="p-4 sm:p-5 space-y-2.5 bg-card">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span className="font-medium truncate max-w-[60%]">
               {feed.source || 'Unknown Source'}
@@ -68,6 +51,23 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
               ))}
             </div>
           )}
+        </div>
+        <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
+          {isLoading && (
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
+          )}
+          <img
+            src={imgSrc}
+            alt={feed.title}
+            className={`w-full h-full object-cover transition-transform duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+            onLoad={() => setIsLoading(false)}
+            onError={() => {
+              setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
+              setIsLoading(false);
+            }}
+            loading="lazy"
+          />
+          <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-black/0 group-hover:bg-black/25 transition-colors duration-300"></div>
         </div>
       </Link>
     </article>

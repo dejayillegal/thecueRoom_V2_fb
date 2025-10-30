@@ -44,6 +44,14 @@ const TrendingCard = memo(({ feed, index }: { feed: FeedItem; index: number }) =
       className="block group flex-shrink-0 w-56 sm:w-64 md:w-72"
     >
       <div className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all shadow-sm hover:shadow-md">
+        <div className="p-2.5 sm:p-3 bg-card">
+          <h4 className="text-xs sm:text-sm font-semibold line-clamp-2 mb-1 group-hover:text-primary transition-colors">
+            {feed.title}
+          </h4>
+          <div className="flex items-center gap-2 text-[10px] sm:text-xs text-muted-foreground">
+            <span className="truncate">{feed.source}</span>
+          </div>
+        </div>
         <div className="relative h-36 sm:h-40 md:h-44 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
           {isLoading && (
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
@@ -56,14 +64,7 @@ const TrendingCard = memo(({ feed, index }: { feed: FeedItem; index: number }) =
             onLoad={() => setIsLoading(false)}
             loading="lazy"
           />
-        </div>
-        <div className="p-2.5 sm:p-3">
-          <h4 className="text-xs sm:text-sm font-semibold line-clamp-2 mb-1 group-hover:text-primary transition-colors">
-            {feed.title}
-          </h4>
-          <div className="flex items-center gap-2 text-[10px] sm:text-xs text-muted-foreground">
-            <span className="truncate">{feed.source}</span>
-          </div>
+          <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-black/0 group-hover:bg-black/25 transition-colors duration-300"></div>
         </div>
       </div>
     </Link>
