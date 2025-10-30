@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
-import { Download, FileText, Sparkles, Loader2, Wand2, Send } from 'lucide-react';
+import { Download, FileText, Sparkles, Loader2, Wand2, Send, Plus, X } from 'lucide-react';
 
 interface EPKModule {
   id: string;
@@ -72,7 +72,7 @@ export function EPKEditor() {
     try {
       const response = await fetch('/api/epk/ai/check');
       const data = await response.json();
-      setAIAvailable(data.available || false);
+      setAIAvailable(data.hasAnyAI || false);
     } catch (err) {
       setAIAvailable(false);
     }
