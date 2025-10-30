@@ -68,11 +68,15 @@ export default function HomeClient({ initialItems }: { initialItems: FeedItem[] 
   }, [initialItems]);
   
   const handleTagClick = (tag: string) => {
-    setSelectedTag(tag.toLowerCase());
-    const feedPane = document.getElementById('feed-pane');
-    if (feedPane) {
-      feedPane.scrollIntoView({ behavior: 'smooth' });
-    }
+    const normalizedTag = tag.toLowerCase().trim();
+    setSelectedTag(prevTag => prevTag === normalizedTag ? null : normalizedTag);
+    
+    setTimeout(() => {
+      const feedPane = document.getElementById('feed-pane');
+      if (feedPane) {
+        feedPane.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   };
 
   const clearFilter = () => {
@@ -81,9 +85,12 @@ export default function HomeClient({ initialItems }: { initialItems: FeedItem[] 
 
   const filteredItems = useMemo(() => {
     if (!selectedTag) return allItems;
-    return allItems.filter(item => 
-      item.tags && item.tags.map(t => t.toLowerCase()).includes(selectedTag)
-    );
+    return allItems.filter(item => {
+      if (!item.tags || !Array.isArray(item.tags)) return false;
+      return item.tags.some(t => 
+        t && typeof t === 'string' && t.toLowerCase().trim() === selectedTag
+      );
+    });
   }, [allItems, selectedTag]);
 
   const heroItems = useMemo(() => {

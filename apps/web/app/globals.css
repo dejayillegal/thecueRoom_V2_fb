@@ -178,6 +178,10 @@ body {
     @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#1a1a1a] text-gray-300 text-xs border border-[#2a2a2a];
   }
 
+  .tcr-hash {
+    @apply inline-flex items-center px-2 py-0.5 rounded-md bg-neutral-800/50 text-neutral-400 text-[10px] border border-neutral-700/50 hover:bg-[#D7FF3C]/10 hover:text-[#D7FF3C] hover:border-[#D7FF3C]/30 transition-all cursor-pointer;
+  }
+
   .fade-swap {
     @apply transition-all duration-200 ease-in-out;
   }
