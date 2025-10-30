@@ -49,7 +49,7 @@ export async function GET(request: Request) {
         id: feeds.id,
         title: feeds.title,
         summary: feeds.summary,
-        link: feeds.url,
+        link: feeds.link,
         image: feeds.image,
         tags: feeds.tags,
         publishedAt: feeds.publishedAt,
