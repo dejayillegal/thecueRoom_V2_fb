@@ -63,7 +63,35 @@ The project utilizes a pnpm monorepo structure with `apps/web` for the Next.js f
   - Consistent error handling across all auth endpoints
   - Database-backed user management with Drizzle ORM
   - **Bug Fix (October 31, 2025):** Fixed InfoModal auto-showing on page load - added conditional rendering to prevent Terms modal from appearing when not triggered by user action
+  - **Username Generation (October 31, 2025):** Enhanced with 60+ underground music-themed suffixes across categories: underground culture (.mastercue, .vinylhead, .selector), genres (.subsonic, .bassline, .breakbeat), production (.beatsmith, .layerking), DJ culture (.waveform, .platter), modern styles (.trap808, .bassface). Varied format patterns for uniqueness.
+  - **Password Complexity (October 31, 2025):** Minimum 8 characters with visual strength indicator (red=Bad <8 chars, yellow=Weak 8-11 chars, green=Strong 12+ with variety). Progressive scoring based on length and character types.
   - TODO: Email service integration for password reset and verification emails
+- **Profile Settings (October 31, 2025):**
+  - Comprehensive profile management page at `/settings`
+  - Read-only fields: email, username, artistName, verified social links (protected after verification)
+  - Editable fields: displayName, firstName, lastName, bio, phone, region, genre, privacy settings
+  - API endpoints: GET `/api/profile` (fetch), PATCH `/api/profile` (update) with authentication
+  - Live save feedback with loading states
+  - Proper validation and error handling
+- **AI Verification System (October 31, 2025):**
+  - Advanced fake account detection with 15+ sophisticated checks:
+    * Disposable email patterns (10minutemail, guerrillamail, tempmail, etc.)
+    * Keyboard spam detection (qwerty, asdf patterns)
+    * URL shortener/invalid domain detection (bit.ly, t.co, tinyurl)
+    * Deleted/suspended profile indicators ("not found", "suspended", "deleted")
+    * Bot-like username patterns (bot123, test_user, random characters)
+    * Generic profile detection (identical first/last name, empty bios)
+    * Music content validation (track counts, follower ratios)
+  - Comprehensive duplicate detection (email, artist name, social URL exact and normalized)
+  - Suspicion scoring system (threshold: 40+ = rejected)
+  - Multi-factor analysis combining profile completeness, social presence, and authenticity
+- **Community Forum (October 31, 2025):**
+  - Forum interface at `/community/forum`
+  - Social profile display integration with UserProfileCard component
+  - Three card variants: inline (compact avatar+name), compact (forum threads), full (detailed profiles)
+  - Thread display shows: verified badges, bio, genre, region, social links
+  - Mock API at `/api/forum/threads` with enriched user profile data
+  - Ready for database integration when forum schema implemented
 - **Admin Console:** Planned for content management and moderation.
 
 **System Design Choices:**
