@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useCallback, memo } from 'react';
+import { useState, useCallback, memo, useEffect } from 'react';
 import { Sidebar } from '@/components/dashboard/Sidebar';
 import { Header } from '@/components/dashboard/Header';
 
@@ -16,13 +16,25 @@ export default memo(function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(() => {
-    // Default to collapsed on mobile (< 1024px), open on desktop
-    if (typeof window !== 'undefined') {
-      return window.innerWidth >= 1024;
-    }
-    return true;
-  });
+  // Always start collapsed to match server render
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  // Handle client-side only logic after mount
+  useEffect(() => {
+    const checkDesktop = () => {
+      const desktop = window.innerWidth >= 1024;
+      setIsDesktop(desktop);
+      // Auto-open on desktop on first load
+      if (desktop && !sidebarOpen) {
+        setSidebarOpen(true);
+      }
+    };
+    
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
 
   const handleSidebarToggle = useCallback(() => {
     setSidebarOpen(prev => !prev);
@@ -30,8 +42,8 @@ export default memo(function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-black">
-      {/* Mobile overlay */}
-      {sidebarOpen && (
+      {/* Mobile overlay - only show on mobile when open */}
+      {sidebarOpen && !isDesktop && (
         <div 
           className="fixed inset-0 bg-black/60 z-30 lg:hidden"
           onClick={handleSidebarToggle}
@@ -48,9 +60,9 @@ export default memo(function DashboardLayout({
         onToggleSidebar={handleSidebarToggle}
       />
       <main 
-        className="min-h-screen pt-[72px] transition-all duration-200 ease-out lg:ml-[200px]"
+        className="min-h-screen pt-[72px] transition-all duration-200 ease-out"
         style={{ 
-          marginLeft: typeof window !== 'undefined' && window.innerWidth >= 1024 
+          marginLeft: isDesktop 
             ? (sidebarOpen ? '200px' : '60px') 
             : '0px',
           willChange: 'margin-left'

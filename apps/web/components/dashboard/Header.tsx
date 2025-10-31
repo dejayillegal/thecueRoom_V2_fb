@@ -26,13 +26,7 @@ export const Header = memo(function Header({ user, sidebarOpen, onToggleSidebar 
 
   return (
     <header 
-      className="fixed top-0 right-0 h-[72px] bg-black border-b border-[#1a1a1a] flex items-center justify-between px-6 z-30 transition-all duration-200 ease-out lg:left-[200px]"
-      style={{ 
-        left: typeof window !== 'undefined' && window.innerWidth >= 1024
-          ? (sidebarOpen ? '200px' : '60px')
-          : '0px',
-        willChange: 'left'
-      }}
+      className="fixed top-0 right-0 left-0 h-[72px] bg-black border-b border-[#1a1a1a] flex items-center justify-between px-6 z-30 transition-all duration-200 ease-out lg:left-[200px]"
     >
       {/* Mobile menu button */}
       <button
