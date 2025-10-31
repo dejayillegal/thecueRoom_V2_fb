@@ -322,72 +322,93 @@ body {
     text-wrap: balance;
   }
 
-  /* Dark-themed scrollbars for the entire app */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: #2a2a2a #0B0B0B;
-  }
-
-  *::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  *::-webkit-scrollbar-track {
-    background: #0B0B0B;
-    border-radius: 4px;
-  }
-
-  *::-webkit-scrollbar-thumb {
-    background: #2a2a2a;
-    border-radius: 4px;
-    border: 2px solid #0B0B0B;
-  }
-
-  *::-webkit-scrollbar-thumb:hover {
-    background: #3a3a3a;
-  }
-
-  *::-webkit-scrollbar-thumb:active {
-    background: hsl(var(--primary) / 0.5);
-  }
-
-  *::-webkit-scrollbar-corner {
-    background: #0B0B0B;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: #2a2a2a;
-    border-radius: 3px;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: #3a3a3a;
-  }
-
-  @keyframes scroll-slow {
-    0% {
-      transform: translateY(0);
-    }
-    100% {
-      transform: translateY(-10%);
+  /* Auth Modal utilities */
+  @media (prefers-reduced-motion: reduce) {
+    .auth-modal-wrapper * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
     }
   }
 
-  .animate-scroll-slow {
-    animation: scroll-slow 20s linear infinite;
+  .modal-panel-left {
+    @apply flex-1 p-8 overflow-y-auto;
   }
 
-  .animate-scroll-slow:hover {
-    animation-play-state: paused;
+  .modal-panel-right {
+    @apply hidden md:block w-[360px] bg-[#0a0a0a] border-l border-[#2a2a2a] p-8;
   }
+
+  .modal-close {
+    @apply absolute top-4 right-4 z-10 text-muted-foreground hover:text-foreground transition-colors;
+  }
+}
+
+/* Dark-themed scrollbars for the entire app */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2a2a2a #0B0B0B;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #0B0B0B;
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+  border-radius: 4px;
+  border: 2px solid #0B0B0B;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #3a3a3a;
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background: hsl(var(--primary) / 0.5);
+}
+
+*::-webkit-scrollbar-corner {
+  background: #0B0B0B;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #3a3a3a;
+}
+
+@keyframes scroll-slow {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-10%);
+  }
+}
+
+.animate-scroll-slow {
+  animation: scroll-slow 20s linear infinite;
+}
+
+.animate-scroll-slow:hover {
+  animation-play-state: paused;
 }

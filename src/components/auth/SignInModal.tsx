@@ -1,11 +1,12 @@
 
-// components/auth/SignInModal.tsx
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/firebase/AuthProvider';
-import { useRouter } from 'next/navigation';
-import { Mail, Lock, AlertCircle, Info, X } from 'lucide-react';
+/**
+ * DEPRECATED: This file has been replaced by AuthModal.tsx
+ * 
+ * DO NOT USE OR IMPORT THIS FILE.
+ * 
+ * Migration date: 2025-01-31
+ * Use: @/src/components/Auth/AuthModal instead
+ */
 
 type View = 'signin' | 'signup' | 'forgot';
 
@@ -15,6 +16,7 @@ interface SignInModalProps {
 }
 
 export function SignInModal({ isOpen, onOpenChange }: SignInModalProps) {
+  throw new Error('SignInModal is deprecated. Use AuthModal from @/src/components/Auth/AuthModal instead.');
   const { user, signIn, signUp, signInWithGoogle, signInWithApple, resetPassword } = useAuth();
   const router = useRouter();
 

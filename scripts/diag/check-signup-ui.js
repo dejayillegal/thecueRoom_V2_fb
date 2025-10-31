@@ -122,3 +122,76 @@ async function checkSignupUI() {
 }
 
 checkSignupUI();
+#!/usr/bin/env node
+
+/**
+ * Diagnostic script to verify signup UI functionality
+ * Usage: node scripts/diag/check-signup-ui.js
+ */
+
+console.log('🔍 Signup UI Diagnostic Check\n');
+
+const checks = {
+  authModal: false,
+  authButton: false,
+  verificationModal: false,
+  availabilityHook: false,
+  usernameGenerator: false,
+};
+
+const fs = require('fs');
+const path = require('path');
+
+// Check AuthModal exists
+const authModalPath = path.join(__dirname, '../../apps/web/src/components/Auth/AuthModal.tsx');
+if (fs.existsSync(authModalPath)) {
+  checks.authModal = true;
+  console.log('✅ AuthModal.tsx exists');
+} else {
+  console.log('❌ AuthModal.tsx missing');
+}
+
+// Check AuthButton updated
+const authButtonPath = path.join(__dirname, '../../apps/web/components/auth/AuthButton.tsx');
+if (fs.existsSync(authButtonPath)) {
+  const content = fs.readFileSync(authButtonPath, 'utf-8');
+  if (content.includes('AuthModal')) {
+    checks.authButton = true;
+    console.log('✅ AuthButton uses AuthModal');
+  } else {
+    console.log('❌ AuthButton still uses old modal');
+  }
+}
+
+// Check VerificationModal exists
+const verificationModalPath = path.join(__dirname, '../../apps/web/src/components/Auth/VerificationModal.tsx');
+if (fs.existsSync(verificationModalPath)) {
+  checks.verificationModal = true;
+  console.log('✅ VerificationModal.tsx exists');
+} else {
+  console.log('❌ VerificationModal.tsx missing');
+}
+
+// Check availability hook
+const availabilityHookPath = path.join(__dirname, '../../apps/web/src/hooks/use-availability.ts');
+if (fs.existsSync(availabilityHookPath)) {
+  checks.availabilityHook = true;
+  console.log('✅ use-availability hook exists');
+} else {
+  console.log('❌ use-availability hook missing');
+}
+
+// Check username generator
+const usernameGenPath = path.join(__dirname, '../../apps/web/src/lib/username-generator.ts');
+if (fs.existsSync(usernameGenPath)) {
+  checks.usernameGenerator = true;
+  console.log('✅ username-generator utility exists');
+} else {
+  console.log('❌ username-generator utility missing');
+}
+
+const allPassed = Object.values(checks).every(v => v);
+
+console.log('\n' + (allPassed ? '✅ All checks passed!' : '❌ Some checks failed'));
+
+process.exit(allPassed ? 0 : 1);
