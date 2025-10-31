@@ -8,8 +8,10 @@ import { Progress } from '../../../components/ui/progress';
 import { CheckCircle2, Clock, XCircle, Loader2, AlertCircle } from 'lucide-react';
 
 interface VerificationModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   jobId: string;
-  onComplete: () => void;
+  onComplete?: () => void;
 }
 
 interface VerificationJob {
@@ -31,7 +33,7 @@ const PROGRESS_STEPS = [
   { key: 'deciding', label: 'Decision', value: 80 }
 ];
 
-export default function VerificationModal({ jobId, onComplete }: VerificationModalProps) {
+export default function VerificationModal({ open, onOpenChange, jobId, onComplete }: VerificationModalProps) {
   const [job, setJob] = useState<VerificationJob | null>(null);
   const [progress, setProgress] = useState(20);
   const [autoRedirectSeconds, setAutoRedirectSeconds] = useState<number | null>(null);
@@ -239,8 +241,15 @@ export default function VerificationModal({ jobId, onComplete }: VerificationMod
 
   const canClose = job?.status === 'completed' || job?.status === 'failed';
 
+  const handleClose = () => {
+    if (canClose) {
+      onOpenChange(false);
+      if (onComplete) onComplete();
+    }
+  };
+
   return (
-    <Dialog open={true} onOpenChange={canClose ? onComplete : undefined}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent
         className="max-w-2xl bg-[#0B0B0B] border-[#1a1a1a] text-white"
         onEscapeKeyDown={(e) => !canClose && e.preventDefault()}

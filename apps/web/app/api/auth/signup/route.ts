@@ -63,21 +63,25 @@ export async function POST(request: NextRequest) {
         email: validatedData.email.toLowerCase(),
         username: validatedData.username.toLowerCase(),
         passwordHash: hashedPassword,
-        firstName: validatedData.firstName,
-        lastName: validatedData.lastName,
-        isVerified: false,
-        createdAt: new Date(),
+        verified: false,
       })
       .returning();
 
     // Create profile
+    const socialLinksObj = validatedData.socialLinks.reduce((acc, link, index) => {
+      if (link) acc[`link${index + 1}`] = link;
+      return acc;
+    }, {} as Record<string, string>);
+
     await db.insert(profiles).values({
       userId: newUser.id,
+      firstName: validatedData.firstName,
+      lastName: validatedData.lastName,
       artistName: validatedData.artistName,
       region: validatedData.region,
       genre: validatedData.genre,
-      profileUrl: validatedData.profileUrl,
-      socialLinks: validatedData.socialLinks,
+      socialProfileUrl: validatedData.profileUrl,
+      socialLinks: socialLinksObj,
     });
 
     // Create verification job
@@ -90,7 +94,6 @@ export async function POST(request: NextRequest) {
           socialLinks: validatedData.socialLinks,
           artistName: validatedData.artistName,
         },
-        createdAt: new Date(),
       })
       .returning();
 
