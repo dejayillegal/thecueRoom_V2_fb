@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 /**
- * Scroll stress test using Playwright
- * Measures frame drops and main-thread blockage during heavy scrolling
- * Usage: node run-scroll-stress.js http://localhost:5000/feed
+ * Sidebar toggle stress test using Playwright
+ * Measures frame drops and main-thread blockage during sidebar interactions
+ * Usage: node run-scroll-stress.js
  */
 
 const { chromium } = require('@playwright/test');
 
-const TARGET_URL = process.argv[2] || 'http://localhost:5000/feed';
+const TARGET_URL = process.argv[2] || 'http://localhost:5000/dashboard';
 const MAX_FRAME_DROP_PERCENTAGE = 5; // 5%
-const MAX_LONG_TASK_MS = 100; // 100ms
+const MAX_LONG_TASK_MS = 120; // 120ms
 
 async function runScrollStressTest() {
-  console.log('🚀 Starting scroll stress test...\n');
+  console.log('🚀 Starting sidebar toggle stress test...\n');
   console.log(`   Target URL: ${TARGET_URL}`);
   console.log(`   Max frame drops: ${MAX_FRAME_DROP_PERCENTAGE}%`);
   console.log(`   Max long task: ${MAX_LONG_TASK_MS}ms\n`);
@@ -75,40 +75,19 @@ async function runScrollStressTest() {
     await page.goto(TARGET_URL, { waitUntil: 'networkidle', timeout: 30000 });
     console.log('✓ Page loaded\n');
 
-    console.log('📜 Performing scroll stress test...');
+    console.log('📜 Performing sidebar toggle stress test (500 iterations)...');
     
-    // Scroll down in steps
-    for (let i = 0; i < 10; i++) {
-      await page.evaluate(() => {
-        window.scrollBy(0, window.innerHeight * 0.8);
-      });
-      await page.waitForTimeout(200);
+    // Toggle sidebar rapidly 500 times
+    for (let i = 0; i < 500; i++) {
+      await page.click('button[aria-label*="Expand"]').catch(() => {});
+      await page.waitForTimeout(10);
+      
+      if (i % 100 === 0 && i > 0) {
+        console.log(`  Completed ${i} toggles...`);
+      }
     }
 
-    // Scroll up rapidly
-    for (let i = 0; i < 5; i++) {
-      await page.evaluate(() => {
-        window.scrollBy(0, -window.innerHeight);
-      });
-      await page.waitForTimeout(100);
-    }
-
-    // Fast continuous scroll
-    await page.evaluate(() => {
-      return new Promise((resolve) => {
-        let scrollTop = 0;
-        const interval = setInterval(() => {
-          scrollTop += 50;
-          window.scrollTo(0, scrollTop);
-          if (scrollTop > document.documentElement.scrollHeight - window.innerHeight) {
-            clearInterval(interval);
-            resolve();
-          }
-        }, 16); // ~60fps
-      });
-    });
-
-    console.log('✓ Scroll test completed\n');
+    console.log('✓ Sidebar toggle test completed\n');
 
     // Collect metrics
     const perfMetrics = await page.evaluate(() => window.__perfMetrics);

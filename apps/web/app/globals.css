@@ -16,11 +16,17 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+html, body {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   background-color: var(--background);
   font-family: var(--font-inter);
   font-size: 14px;
   line-height: 1.5;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -94,6 +100,20 @@ body {
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
   scroll-behavior: auto !important;
+}
+
+/* No heavy GPU effects globally for better performance */
+.no-heavy-gpu {
+  filter: none !important;
+}
+
+/* Icon-only and expanded sidebar states */
+.sidebar-icon-only {
+  width: 64px;
+}
+
+.sidebar-expanded {
+  width: 240px;
 }
 
 /* Remove expensive effects globally (landing page can override) */
