@@ -1,35 +1,28 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 export function useFormDraft<T extends Record<string, any>>(
   key: string,
-  data: T,
+  initialData: T,
   enabled: boolean = true,
   intervalMs: number = 5000
 ) {
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    if (!enabled || typeof window === 'undefined') return;
-
-    const loadDraft = () => {
-      try {
-        const saved = localStorage.getItem(`draft_${key}`);
-        if (saved) {
-          return JSON.parse(saved);
-        }
-      } catch (error) {
-        console.error('Failed to load draft:', error);
+  const [data, setData] = useState<T>(() => {
+    if (!enabled || typeof window === 'undefined') return initialData;
+    
+    try {
+      const saved = localStorage.getItem(`draft_${key}`);
+      if (saved) {
+        return JSON.parse(saved) as T;
       }
-      return null;
-    };
-
-    const initialDraft = loadDraft();
-    if (initialDraft) {
-      Object.assign(data, initialDraft);
+    } catch (error) {
+      console.error('Failed to load draft:', error);
     }
-  }, []);
+    return initialData;
+  });
+
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!enabled || typeof window === 'undefined') return;
@@ -40,7 +33,12 @@ export function useFormDraft<T extends Record<string, any>>(
 
     saveTimeoutRef.current = setTimeout(() => {
       try {
-        localStorage.setItem(`draft_${key}`, JSON.stringify(data));
+        const hasData = Object.values(data).some(v => 
+          Array.isArray(v) ? v.some(s => s) : v
+        );
+        if (hasData) {
+          localStorage.setItem(`draft_${key}`, JSON.stringify(data));
+        }
       } catch (error) {
         console.error('Failed to save draft:', error);
       }
@@ -63,5 +61,5 @@ export function useFormDraft<T extends Record<string, any>>(
     }
   };
 
-  return { clearDraft };
+  return { data, setData, clearDraft };
 }

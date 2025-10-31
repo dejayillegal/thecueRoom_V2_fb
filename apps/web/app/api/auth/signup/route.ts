@@ -89,11 +89,8 @@ export async function POST(request: NextRequest) {
       .insert(verificationJobs)
       .values({
         userId: newUser.id,
+        profileUrl: validatedData.profileUrl || socialLinksObj[Object.keys(socialLinksObj)[0]] || 'https://placeholder.com',
         status: 'queued',
-        metadata: {
-          socialLinks: validatedData.socialLinks,
-          artistName: validatedData.artistName,
-        },
       })
       .returning();
 

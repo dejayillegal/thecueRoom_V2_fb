@@ -57,6 +57,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [verificationJobId, setVerificationJobId] = useState<string | null>(null);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
 
   const debouncedArtistName = useDebounce(formData.artistName, 400);
   const debouncedEmail = useDebounce(formData.email, 400);
@@ -257,6 +258,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
       if (response.ok) {
         localStorage.removeItem('signup-draft');
         setVerificationJobId(data.jobId);
+        setShowVerificationModal(true);
       } else {
         setErrors({ submit: data.error || 'Signup failed' });
       }
@@ -291,11 +293,14 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
     return null;
   };
 
-  if (verificationJobId) {
+  if (verificationJobId && showVerificationModal) {
     return (
       <VerificationModal
+        open={showVerificationModal}
+        onOpenChange={setShowVerificationModal}
         jobId={verificationJobId}
         onComplete={() => {
+          setShowVerificationModal(false);
           onClose();
           window.location.href = '/dashboard';
         }}
