@@ -8,17 +8,31 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, MessageSquare, ThumbsUp, Award, Send } from 'lucide-react';
+import { UserProfileCard } from '@/components/forum/UserProfileCard';
+
+interface UserProfile {
+  username: string;
+  displayName?: string;
+  artistName?: string;
+  avatar?: string;
+  bio?: string;
+  region?: string;
+  genre?: string;
+  verified?: boolean;
+  socialProfileUrl?: string;
+  aiCredits?: number;
+}
 
 interface Thread {
   id: string;
   title: string;
   categoryId: string;
   userId: string;
-  userName: string;
   replyCount: number;
   upvotes: number;
   isPinned: boolean;
   createdAt: string;
+  userProfile?: UserProfile;
 }
 
 export default function ForumPage() {
@@ -120,28 +134,49 @@ export default function ForumPage() {
           </Card>
 
           {/* Thread List */}
-          <div className="lg:col-span-2 space-y-3">
-            {threads.map((thread) => (
-              <Card key={thread.id} className="bg-[#111111] border-[#1a1a1a] p-4 hover:border-[#333333] transition-colors cursor-pointer">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="text-white font-medium mb-1">{thread.title}</h3>
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <span>{thread.userName}</span>
-                      <span className="flex items-center gap-1">
-                        <MessageSquare className="w-3 h-3" />
-                        {thread.replyCount}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <ThumbsUp className="w-3 h-3" />
-                        {thread.upvotes}
-                      </span>
-                    </div>
-                  </div>
-                  {thread.isPinned && <Award className="w-4 h-4 text-[#D1FF3D]" />}
-                </div>
+          <div className="lg:col-span-2 space-y-4">
+            {threads.length === 0 ? (
+              <Card className="bg-[#111111] border-[#1a1a1a] p-8 text-center">
+                <p className="text-gray-400">No threads yet. Be the first to start a discussion!</p>
               </Card>
-            ))}
+            ) : (
+              threads.map((thread) => (
+                <Card key={thread.id} className="bg-[#111111] border-[#1a1a1a] hover:border-[#333333] transition-colors cursor-pointer overflow-hidden">
+                  <div className="p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h3 className="text-white font-semibold text-lg mb-2 hover:text-[#D7FF3C] transition-colors">
+                          {thread.title}
+                        </h3>
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <MessageSquare className="w-4 h-4" />
+                            {thread.replyCount} replies
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <ThumbsUp className="w-4 h-4" />
+                            {thread.upvotes} upvotes
+                          </span>
+                        </div>
+                      </div>
+                      {thread.isPinned && (
+                        <div className="flex items-center gap-1 px-2 py-1 bg-[#D7FF3C]/10 border border-[#D7FF3C]/30 rounded text-xs text-[#D7FF3C] font-medium">
+                          <Award className="w-3 h-3" />
+                          Pinned
+                        </div>
+                      )}
+                    </div>
+
+                    {/* User Profile Card */}
+                    {thread.userProfile && (
+                      <div className="mt-3 pt-3 border-t border-[#1a1a1a]">
+                        <UserProfileCard user={thread.userProfile} variant="compact" />
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              ))
+            )}
           </div>
 
           {/* Right Sidebar */}

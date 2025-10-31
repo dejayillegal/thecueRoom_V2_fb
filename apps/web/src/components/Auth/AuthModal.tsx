@@ -20,7 +20,7 @@ interface AuthModalProps {
 
 type ActiveTab = 'signin' | 'signup' | 'forgot';
 
-const PASSWORD_MIN_LENGTH = 10;
+const PASSWORD_MIN_LENGTH = 8;
 
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const router = useRouter();
@@ -110,17 +110,28 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   };
 
   const getPasswordStrength = (pwd: string): { level: string; color: string; width: string } => {
+    if (!pwd) return { level: '', color: 'bg-gray-700', width: '0%' };
+    
     let score = 0;
-    if (pwd.length >= 10) score++;
-    if (/[a-z]/.test(pwd)) score++;
-    if (/[A-Z]/.test(pwd)) score++;
-    if (/[0-9]/.test(pwd)) score++;
-    if (/[!@#$%^&*(),.?":{}|<>_\-+=]/.test(pwd)) score++;
+    // Length scoring
+    if (pwd.length >= 8) score += 1;
+    if (pwd.length >= 12) score += 1;
+    if (pwd.length >= 16) score += 1;
+    
+    // Character variety scoring
+    if (/[a-z]/.test(pwd)) score += 1;
+    if (/[A-Z]/.test(pwd)) score += 1;
+    if (/[0-9]/.test(pwd)) score += 1;
+    if (/[!@#$%^&*(),.?":{}|<>_\-+=]/.test(pwd)) score += 1;
 
-    if (score <= 2) return { level: 'weak', color: 'bg-red-500', width: '25%' };
-    if (score === 3) return { level: 'medium', color: 'bg-yellow-500', width: '50%' };
-    if (score === 4) return { level: 'good', color: 'bg-blue-500', width: '75%' };
-    return { level: 'strong', color: 'bg-green-500', width: '100%' };
+    // Scoring thresholds
+    if (score <= 2) {
+      return { level: 'Bad', color: 'bg-red-500', width: '33%' };
+    } else if (score <= 4) {
+      return { level: 'Weak', color: 'bg-yellow-500', width: '66%' };
+    } else {
+      return { level: 'Strong', color: 'bg-green-500', width: '100%' };
+    }
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
