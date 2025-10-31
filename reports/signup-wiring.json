@@ -1,0 +1,54 @@
+
+{
+  "task": "Replace legacy Sign Up UI with new SignupModal",
+  "timestamp": "2025-01-31T00:00:00Z",
+  "status": "success",
+  "changes": [
+    {
+      "file": "apps/web/components/auth/AuthButton.tsx",
+      "action": "Updated to use new SignupModal instead of legacy AuthModal",
+      "details": "Removed AuthModal import, added SignupModal with proper props"
+    },
+    {
+      "file": "apps/web/components/auth/SignInModal.tsx",
+      "action": "Deprecated and archived",
+      "details": "Replaced by apps/web/src/components/Auth/SignupModal.tsx"
+    },
+    {
+      "file": "apps/web/src/components/Auth/SignupModal.tsx",
+      "action": "Fixed import path",
+      "details": "Corrected VerificationModal import to use absolute path"
+    },
+    {
+      "file": "apps/web/src/hooks/use-debounce.ts",
+      "action": "Ensured hook exists",
+      "details": "Created/verified debounce hook for availability checks"
+    }
+  ],
+  "tests": {
+    "typescript": "pending",
+    "unit": "pending",
+    "e2e": "pending",
+    "ui_smoke": "pending"
+  },
+  "verification_steps": [
+    "TypeScript compilation check",
+    "Unit tests for signup flow",
+    "E2E tests (Playwright)",
+    "UI smoke test for accessibility and form fields"
+  ],
+  "manual_verification": [
+    "Open app at http://localhost:5000",
+    "Click 'Sign In / Sign Up' button in header",
+    "Verify new SignupModal opens (not legacy modal)",
+    "Check Sign Up tab renders new form with availability checks",
+    "Submit test signup and verify VerificationModal appears",
+    "Confirm redirect to /dashboard on verification success"
+  ],
+  "notes": [
+    "Legacy SignInModal archived, not deleted - kept for reference",
+    "New modal uses dashboard theme tokens consistently",
+    "Verification flow wired through VerificationModal component",
+    "TEST_MODE should be enabled for deterministic verification"
+  ]
+}

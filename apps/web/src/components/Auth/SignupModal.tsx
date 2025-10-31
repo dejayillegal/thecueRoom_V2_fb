@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Check, X, Loader2, RefreshCw, UserPlus, Mail, Lock, User, MapPin, Music, Link as LinkIcon } from 'lucide-react';
 import { useDebounce } from '@/src/hooks/use-debounce';
 import { generateUsername } from '@/src/lib/username-generator';
-import VerificationModal from './VerificationModal';
+import VerificationModal from '@/src/components/Auth/VerificationModal';
 
 interface SignupModalProps {
   isOpen: boolean;

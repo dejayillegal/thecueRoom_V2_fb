@@ -1,12 +1,18 @@
+
 'use client';
 
 import { useState } from 'react';
-import { AuthModal } from './SignInModal';
+import SignupModal from '@/src/components/Auth/SignupModal';
 import { Button } from '@/components/ui/button';
 import { LogIn } from 'lucide-react';
 
 export function AuthButton() {
   const [open, setOpen] = useState(false);
+
+  const handleSuccess = () => {
+    // SignupModal handles redirect to dashboard internally
+    setOpen(false);
+  };
 
   return (
     <>
@@ -18,7 +24,7 @@ export function AuthButton() {
         <LogIn className="w-4 h-4" />
         Sign In / Sign Up
       </Button>
-      <AuthModal open={open} onOpenChange={setOpen} />
+      <SignupModal isOpen={open} onClose={() => setOpen(false)} />
     </>
   );
 }
