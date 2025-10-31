@@ -43,10 +43,11 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
     <aside
       className={cn(
         'fixed left-0 top-0 h-screen bg-black flex flex-col z-40',
-        isOpen ? 'w-[200px]' : 'w-[60px]',
+        'lg:translate-x-0',
+        isOpen ? 'w-[200px] translate-x-0' : 'w-[60px] -translate-x-full lg:translate-x-0',
         className
       )}
-      style={{ transition: 'width 0.2s ease', willChange: 'width' }}
+      style={{ transition: 'width 0.2s ease, transform 0.2s ease', willChange: 'width, transform' }}
     >
       {/* Sidebar Header */}
       <div className="h-14 flex items-center justify-between px-4">

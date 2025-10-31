@@ -16,7 +16,13 @@ export default memo(function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    // Default to collapsed on mobile (< 1024px), open on desktop
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 1024;
+    }
+    return true;
+  });
 
   const handleSidebarToggle = useCallback(() => {
     setSidebarOpen(prev => !prev);
@@ -24,6 +30,14 @@ export default memo(function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-black">
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-30 lg:hidden"
+          onClick={handleSidebarToggle}
+        />
+      )}
+      
       <Sidebar
         isOpen={sidebarOpen}
         onToggle={handleSidebarToggle}
@@ -31,11 +45,14 @@ export default memo(function DashboardLayout({
       <Header 
         user={mockUser}
         sidebarOpen={sidebarOpen}
+        onToggleSidebar={handleSidebarToggle}
       />
       <main 
-        className="min-h-screen pt-[72px] transition-all duration-200 ease-out"
+        className="min-h-screen pt-[72px] transition-all duration-200 ease-out lg:ml-[200px]"
         style={{ 
-          marginLeft: sidebarOpen ? '200px' : '60px',
+          marginLeft: typeof window !== 'undefined' && window.innerWidth >= 1024 
+            ? (sidebarOpen ? '200px' : '60px') 
+            : '0px',
           willChange: 'margin-left'
         }}
       >
