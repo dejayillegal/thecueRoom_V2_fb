@@ -53,14 +53,28 @@ The project utilizes a pnpm monorepo structure with `apps/web` for the Next.js f
 - **Database Schema:** Comprehensive Drizzle ORM schema for users, profiles, feeds, sources, spotlights, gigs, forums, EPKs, and AI jobs.
 - **News Sources:** Over 60 worldwide news sources categorized by Scene, Industry, Gear, Regional, Features, EDM, and Community.
 - **AI Creative Tools:** AI Cover Art Studio, AI EPK Generator, and planned Meme and Avatar Generators.
-- **Authentication:** Planned Supabase Auth with admin role.
+- **Authentication (October 2025):** 
+  - Custom tab-based authentication modal (Sign In, Sign Up, Forgot Password)
+  - Modern UI with OAuth placeholders (Email Link, Google, Apple)
+  - bcrypt password hashing for security
+  - Email verification system with verification modal
+  - Admin role system (admin email: dejayillegal@gmail.com)
+  - IP-based rate limiting on forgot-password endpoint (3 requests per 15 minutes)
+  - Consistent error handling across all auth endpoints
+  - Database-backed user management with Drizzle ORM
+  - TODO: Email service integration for password reset and verification emails
 - **Admin Console:** Planned for content management and moderation.
 
 **System Design Choices:**
 - **Deployment:** Replit for development, production deployment TBD.
 - **Scalability:** Cursor-based pagination implemented for API performance.
 - **Modularity:** AI adapter pattern for flexible AI service integration.
-- **Security:** Admin credentials are managed via environment variables and password hashing (bcrypt).
+- **Security:** 
+  - bcrypt password hashing (10 rounds)
+  - IP-based rate limiting on sensitive endpoints
+  - Admin credentials: dejayillegal@gmail.com / Closer@82
+  - Consistent error responses to prevent information leakage
+  - Email enumeration protection on forgot-password flow
 
 ## External Dependencies
 - **Database:** PostgreSQL (via Supabase)
