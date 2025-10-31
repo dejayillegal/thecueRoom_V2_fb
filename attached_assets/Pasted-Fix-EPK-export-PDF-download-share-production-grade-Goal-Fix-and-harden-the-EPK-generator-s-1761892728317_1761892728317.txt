@@ -1,0 +1,339 @@
+Fix EPK export / PDF / download / share (production-grade)
+
+Goal: Fix and harden the EPK generator so that PDF export, direct download, and share links work reliably with zero JSON/HTML parsing errors, are memory-safe, fast, and preserve the dashboard theme and layout. Add server-side stamping (Artist + Release + watermark) for downloads and a robust PDF renderer with streaming output. Provide deterministic fallbacks if native modules (sharp, puppeteer) cannot be installed in Replit.
+
+Constraints & Non-negotiables:
+
+Preserve dashboard style tokens & layout across internal pages — only landing page may differ.
+
+Never call res.json() on an HTML error page. Use safeFetch and safeJson.
+
+Offload heavy tasks (PDF render, image compose) to worker process (packages/ai/worker.js or packages/worker/epk-worker.js) with configurable concurrency via EPK_WORKER_CONCURRENCY.
+
+Always return valid JSON to frontend APIs; frontend must gracefully show structured errors.
+
+Provide explicit tests and diagnostics. No TODOs in committed code.
+
+Environment / Secrets (add to Replit Secrets / .env):
+
+AI_TEMP_DIR=/tmp/thecueroom-ai
+
+EPK_WORKER_CONCURRENCY=1
+
+PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true (if using chromium installed by Replit or use headless playground)
+
+TEST_MODE=false
+
+(Optional) SHARED_HOST — base URL for share links (default http://localhost:3000)
+
+Dependencies to install (run in project root):
+
+pnpm --filter apps/web add sharp puppeteer-core express-formidable pdfkit html-pdf-node cross-fetch nanoid p-limit sanitize-html
+
+Dev: pnpm --filter apps/web add -D vitest supertest playwright
+
+If sharp or puppeteer-core fail to install in Replit, ensure TEST_MODE path is used (SVG-only PDF generation + headless HTML-to-PDF fallback using wkhtmltopdf instructions in docs).
+
+Files to create / update (implement full code — no stubs)
+(Use exact file paths; adapt to your repo layout if slightly different.)
+
+A. API endpoints (Next.js App Router)
+
+apps/web/app/api/epk/generate/route.ts (POST)
+
+Accept body (Zod-validated): { templateId, modules[], artistName, releaseTitle, meta, includeAssets:boolean }
+
+Enqueue EPK build job (returns { jobId, status: 'queued' })
+
+Use safe response patterns (see helpers below)
+
+apps/web/app/api/epk/job/[jobId]/route.ts (GET)
+
+Return job status: { jobId, status, progress, downloadUrl?, shareUrl?, error? }
+
+Pollable endpoint for frontend
+
+apps/web/app/api/epk/download/[jobId]/route.ts (GET)
+
+Streams the final PDF to client with Content-Type: application/pdf and Content-Disposition: attachment; filename="<artist>-<release>.pdf"
+
+Must support range/streaming and not load full file into memory
+
+apps/web/app/api/epk/share/route.ts (POST)
+
+Generate shareable short URL token: store mapping in ./.local/state/epk-shares.json (or DB) with TTL (configurable), return { shareId, url }
+
+GET share URL /epk/s/<shareId> must render the EPK preview page (read-only) and not require auth
+
+B. Worker & heavy tasks
+
+packages/worker/epk-worker.js (Node script)
+
+Accept jobs via IPC or watch a job queue file/DB
+
+Job types: renderEpkHtmlToPdf, composeStamp, generateAssetsPackage
+
+Use streaming for files (fs.createWriteStream) and sharp streaming when compositing
+
+Use puppeteer-core to render HTML -> PDF:
+
+Launch browserless or puppeteer-core with executablePath from env if available
+
+Use page.setContent(html, { waitUntil: 'networkidle0' }) with a small safe timeout
+
+Use page.pdf({ format: 'A4', printBackground:true, preferCSSPageSize:true }) streaming to file. Avoid in-memory buffers.
+
+If puppeteer not available, fallback to:
+
+pdfkit to assemble pages from images + text OR
+
+html-pdf-node or wkhtmltopdf (document requirement)
+
+Add concurrency control via p-limit or internal semaphore
+
+packages/worker/queue.js
+
+Minimal durable queue: jobs written to ./.local/state/epk-jobs.json (append-only) or use a simple SQLite file. Worker must atomically pick and update job status.
+
+C. Frontend components & pages
+
+apps/web/src/components/EPK/EPKStudio.tsx
+
+Tabbed UI: Tab 1 Choose Template, Tab 2 Edit Content, Tab 3 Preview & Export — keep exact dashboard style and spacing
+
+Form fields in Edit Content (full list below) with live preview update (debounced)
+
+On submit, POST /api/epk/generate → receive jobId → show polling UI linking to /api/epk/job/:jobId
+
+Show progress, errors, retry, and final Download/Share buttons
+
+apps/web/src/components/EPK/EPKPreview.tsx
+
+Renders the live HTML preview (same markup used by puppet worker) in an iframe (sandboxed) or in a server-rendered preview route to match final PDF
+
+Must be accessible and responsive
+
+Provide an "Open Editor" and "Auto-stamp + Download" buttons
+
+apps/web/src/components/EPK/EditorFields.tsx — full form with fields:
+
+Artist name (required)
+
+Release title (optional)
+
+Biography (rich text / plain with markdown support)
+
+Genre / Style
+
+Location (city, country)
+
+Years active
+
+Social links: SoundCloud, Bandcamp, Spotify, Mixcloud, YouTube, Instagram, Resident Advisor link fields
+
+Discography (repeatable items: title, label, year, release links)
+
+Press quotes (repeatable)
+
+Photo gallery (image upload with auto-resize + optimize)
+
+Tracks / Sample embed (SoundCloud, Spotify embed URLs)
+
+Tech Rider: drag & drop modules for gear icons (use provided images: turntable, mixer, speaker). Each module: name, qty, notes
+
+Contact / Booking (email, booking link)
+
+Export options: PDF (A4, US Letter), Web-EPK (one-page shareable), ZIP assets (images + JSON metadata)
+
+Watermark default: thecueRoom (toggleable)
+
+Live word/char counters for bio
+
+apps/web/src/components/EPK/ImageUploader.tsx
+
+Resize and optimize images client-side (use createImageBitmap + canvas to target sizes: 1200px longest side for hero, thumbnails at 600px)
+
+Upload via multipart to /api/epk/upload (server writes to AI_TEMP_DIR or cloud bucket) — ensure streaming and no memory bloat
+
+D. Server-side composition and stamping
+
+apps/web/app/api/epk/compose/route.ts (POST)
+
+Accept { jobId, artistName, releaseTitle, watermark: boolean }
+
+Enqueue composeStamp job to worker which:
+
+Loads base PDF or raster image, overlays vector SVG text (artist + release + watermark) as described earlier
+
+For PDF stamping: either render overlay as PDF page and merge with pdf-lib or rasterize PDF to image, composite, and re-encode. Prefer pdf-lib to embed text as vector for sharpness.
+
+Store final file and return result path
+
+The worker must stream outputs and not keep bulky buffers in memory
+
+E. Shareable read-only route
+
+apps/web/app/epk/s/[shareId]/page.tsx
+
+Read mapping for shareId, render the EPK HTML preview (server-side) for public viewing — no auth required
+
+Use absolute links for images so social sharing works (og:image tags)
+
+F. Safe fetch & error handling (repo-wide)
+
+Implement apps/web/src/lib/safe-fetch.ts with safeFetch(url, opts) and parseJsonSafe(response):
+
+If response.headers['content-type'] does not include application/json, read text and return structured error { ok:false, status, snippet: textSnippet }
+
+Use AbortController timeouts
+
+Replace all .json() direct calls across EPK code paths with these helpers
+
+G. Tests & diagnostics
+
+Unit tests (Vitest): tests/epk/epk-generate.test.ts
+
+Test /api/epk/generate returns jobId with valid payload
+
+TEST_MODE=true: worker should complete job quickly and produce downloadUrl
+
+E2E tests (Playwright):
+
+Render the EPK Studio flow: choose template → fill minimal fields → generate → poll → download PDF (assert Content-Type)
+
+Verify share URL works and iframe preview loads with HTTP 200
+
+Memory diagnostics: scripts/diag/epk-memory-check.js
+
+Spawn 3 concurrent generate+compose jobs in TEST_MODE and report heapUsed before/after (must be < ~70MB growth). Fail if huge.
+
+H. Acceptance criteria (must pass)
+
+pnpm -w tsc --noEmit → 0 errors
+
+pnpm --filter apps/web test:unit → pass
+
+E2E Playwright scenario → pass
+
+curl -X POST http://localhost:3000/api/epk/generate (valid payload) returns { jobId } and /api/epk/job/:jobId eventually returns { status:'done', downloadUrl }
+
+GET /api/epk/download/:jobId streams a valid PDF; file opens and contains Artist + Release text (for auto-stamp case)
+
+Share endpoint /epk/s/<shareId> renders public preview HTML
+
+No Failed to execute 'json' on 'Response' console errors (safe JSON handling)
+
+Worker logs show bounded memory and controlled concurrency
+
+No breaking changes to dashboard UI or theme (snapshot tests must pass for dashboard routes)
+
+I. Implementation details & best practices (must follow)
+
+Compose overlays as SVG for crisp vector text; stamp onto PDF with pdf-lib or via sharp composite of rasterized base+SVG if PDF merge is not feasible in env
+
+Use createWriteStream and pipeline to ensure streaming to disk and avoid buffering
+
+Use nanoid() for job and share IDs
+
+Use p-limit / simple semaphore to limit worker concurrency
+
+Sanitize text used in SVG (sanitize-html or escape) to avoid injection
+
+PDF metadata: add Title, Author, Keywords with the provided artist/release data
+
+Implement cleanup cron: remove temp files older than configurable TTL (e.g., 24 hours). Add scripts/diag/cleanup-temp.js
+
+Provide clear developer docs in docs/EPK_README.md explaining env vars, how to run worker, and TEST_MODE fallbacks
+
+J. Developer runbook (exact commands)
+
+Install deps:
+
+pnpm -w install
+
+pnpm --filter apps/web add sharp puppeteer-core p-limit pdf-lib sanitize-html nanoid cross-fetch
+
+pnpm --filter apps/web add -D vitest playwright supertest
+
+Start dev:
+
+pnpm --filter apps/web dev (Next dev)
+
+In another terminal: node packages/worker/epk-worker.js (or pnpm --filter packages/worker start)
+
+Run tests:
+
+pnpm -w tsc --noEmit
+
+pnpm --filter apps/web test:unit
+
+pnpm --filter apps/web test:e2e (Playwright)
+
+Generate test EPK (curl sample):
+
+curl -s -X POST "http://localhost:3000/api/epk/generate" \
+  -H "content-type: application/json" \
+  -d '{
+    "templateId":"brutalist-onepage",
+    "modules":[ "bio","gallery","tech-rider","discography"],
+    "artistName":"Illegal",
+    "releaseTitle":"Volatile Memory",
+    "meta": { "genre":"Techno", "location":"Bangalore" },
+    "includeAssets": true
+  }' | jq
+# Poll job
+curl "http://localhost:3000/api/epk/job/<jobId>" | jq
+# When done:
+curl -OJ "http://localhost:3000/api/epk/download/<jobId>"
+
+
+K. Commit & report
+
+Commit with message:
+
+feat(epk): workerized EPK render + PDF export, compose stamping, share links, robust safe-fetch & tests
+
+
+Produce final report with:
+
+git show --name-status HEAD
+
+pnpm -w tsc --noEmit output
+
+Unit & E2E test outputs
+
+Sample jobId and downloadUrl for the EPK generated in TEST_MODE
+
+Memory diagnostic summary from scripts/diag/epk-memory-check.js
+
+L. Fallbacks if Replit environment blocks native binaries
+
+If sharp fails to install: implement pure-SVG composition + svg2png JS rasterizer (node-canvas) in TEST_MODE; document how to install sharp locally and enable production mode
+
+If puppeteer cannot run on Replit: use html-pdf-node or pdf-lib assemble via images + vector text (less ideal but functional)
+
+Always ensure TEST_MODE works so tests run in CI without external dependencies
+
+M. UX & accessibility
+
+PDF downloads must include aria accessible controls, keyboard focusable buttons
+
+Share link page must include og:* meta tags for social previews (title, description, og:image)
+
+Tech rider graphical items use the supplied pixel-perfect SVG icons; drag/drop must be keyboard-accessible and have ARIA labels
+
+If any step cannot finish because the Replit runner cannot install native packages, do not fail silently. Instead:
+
+Use TEST_MODE path and mark in the commit message the missing native dependency, and include exact local commands to enable full production behavior (e.g., how to pnpm rebuild sharp --platform=linux --arch=x64 or run inside a machine with system dependencies).
+
+Deliverables (what I expect the Replit assistant to produce and commit)
+
+New/updated files (exact list above) with implementation (no TODOs).
+
+packages/worker/epk-worker.js running and picking up generate/compose jobs.
+
+Integration tests passing in TEST_MODE.
+
+Example CURL run showing completed job and downloadable PDF.
+
+A short verification report with the outputs in section K.
