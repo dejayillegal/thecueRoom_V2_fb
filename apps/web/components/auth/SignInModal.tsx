@@ -35,6 +35,13 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     setShowOnboardModal(true);
   };
 
+  const handleSignupOpen = (isOpen: boolean) => {
+    setShowSignupModal(isOpen);
+    if (isOpen) {
+      onOpenChange(false); // Close sign-in modal when signup opens
+    }
+  };
+
   useEffect(() => {
     setMounted(true);
     return () => setMounted(false);
@@ -188,9 +195,8 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                   Sign In
                 </button>
                 <button
-                  onClick={() => { 
-                    onOpenChange(false);
-                    setTimeout(() => setShowSignupModal(true), 100);
+                  onClick={() => {
+                    setShowSignupModal(true);
                   }}
                   className={`px-4 md:px-6 py-2 rounded-md text-xs md:text-sm font-medium transition-colors ${
                     view === 'signup'
@@ -462,7 +468,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
       {createPortal(modalContent, document.body)}
       <SignupModal 
         open={showSignupModal} 
-        onOpenChange={setShowSignupModal}
+        onOpenChange={handleSignupOpen}
         onSuccess={handleSignupSuccess}
       />
       <PostRegisterOnboard
