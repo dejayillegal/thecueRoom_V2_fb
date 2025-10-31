@@ -20,6 +20,7 @@ export const profiles = pgTable('profiles', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   displayName: text('display_name'),
+  artistName: text('artist_name'),
   firstName: text('first_name'),
   lastName: text('last_name'),
   bio: text('bio'),
@@ -30,6 +31,10 @@ export const profiles = pgTable('profiles', {
   socialLinks: jsonb('social_links').$type<Record<string, string>>(),
   socialProfileUrl: text('social_profile_url'),
   aiCredits: integer('ai_credits').notNull().default(100),
+  showEmail: boolean('show_email').notNull().default(false),
+  showPhone: boolean('show_phone').notNull().default(false),
+  publicReleases: boolean('public_releases').notNull().default(true),
+  allowContactRequests: boolean('allow_contact_requests').notNull().default(true),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -273,6 +278,7 @@ export const verificationJobs = pgTable('verification_jobs', {
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   profileUrl: text('profile_url').notNull(),
   status: text('status').notNull().default('queued'),
+  progress: integer('progress').notNull().default(0),
   decision: text('decision'),
   score: integer('score'),
   evidence: jsonb('evidence').$type<any>(),
@@ -286,4 +292,53 @@ export const verificationJobs = pgTable('verification_jobs', {
   statusIdx: index('verification_jobs_status_idx').on(table.status),
   userIdIdx: index('verification_jobs_user_id_idx').on(table.userId),
   createdAtIdx: index('verification_jobs_created_at_idx').on(table.createdAt),
+}));
+
+export const verificationTasks = pgTable('verification_tasks', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  jobId: uuid('job_id').references(() => verificationJobs.id, { onDelete: 'cascade' }),
+  status: text('status').notNull().default('pending'),
+  priority: text('priority').notNull().default('normal'),
+  assignedTo: uuid('assigned_to').references(() => users.id),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  resolvedAt: timestamp('resolved_at'),
+}, (table) => ({
+  statusIdx: index('verification_tasks_status_idx').on(table.status),
+  userIdIdx: index('verification_tasks_user_id_idx').on(table.userId),
+}));
+
+export const notifications = pgTable('notifications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(),
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  link: text('link'),
+  read: boolean('read').notNull().default(false),
+  data: jsonb('data').$type<any>(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index('notifications_user_id_idx').on(table.userId),
+  readIdx: index('notifications_read_idx').on(table.read),
+  createdAtIdx: index('notifications_created_at_idx').on(table.createdAt),
+}));
+
+export const auditLogs = pgTable('audit_logs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id),
+  action: text('action').notNull(),
+  resource: text('resource').notNull(),
+  resourceId: text('resource_id'),
+  changes: jsonb('changes').$type<any>(),
+  metadata: jsonb('metadata').$type<any>(),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index('audit_logs_user_id_idx').on(table.userId),
+  actionIdx: index('audit_logs_action_idx').on(table.action),
+  createdAtIdx: index('audit_logs_created_at_idx').on(table.createdAt),
 }));
