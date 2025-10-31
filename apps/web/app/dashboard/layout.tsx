@@ -20,17 +20,20 @@ export default memo(function DashboardLayout({
   // Always start collapsed to match server render
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   // Handle client-side only logic after mount
   useEffect(() => {
+    setIsMounted(true);
+    
     const checkDesktop = () => {
       const desktop = window.innerWidth >= 1024;
       setIsDesktop(desktop);
       // Auto-open on desktop on first load only
-      if (desktop) {
+      if (desktop && !isMounted) {
         setSidebarOpen(true);
-      } else {
-        // Ensure sidebar is closed on mobile
+      } else if (!desktop) {
+        // Always close sidebar on mobile
         setSidebarOpen(false);
       }
     };
@@ -38,7 +41,7 @@ export default memo(function DashboardLayout({
     checkDesktop();
     window.addEventListener('resize', checkDesktop);
     return () => window.removeEventListener('resize', checkDesktop);
-  }, []); // Empty deps - only run once on mount
+  }, [isMounted]);
 
   const handleSidebarToggle = useCallback(() => {
     setSidebarOpen(prev => !prev);
@@ -47,7 +50,7 @@ export default memo(function DashboardLayout({
   return (
     <div className="min-h-screen bg-black">
       {/* Mobile overlay - only show on mobile when sidebar is open */}
-      {sidebarOpen && (
+      {sidebarOpen && !isDesktop && (
         <div 
           className="fixed inset-0 bg-black/60 z-30 lg:hidden"
           onClick={handleSidebarToggle}
