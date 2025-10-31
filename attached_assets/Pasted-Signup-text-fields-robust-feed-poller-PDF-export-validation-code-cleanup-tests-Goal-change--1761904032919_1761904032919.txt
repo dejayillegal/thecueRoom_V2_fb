@@ -1,0 +1,280 @@
+Signup text fields, robust feed-poller, PDF export + validation, code cleanup & tests
+
+Goal: change signup to use text fields for Region & Genre, make feed polling rock-solid and fully validated, ensure PDF export downloads correctly and not corrupted, and perform a full code cleanup and verification pass. Preserve dashboard layout & theme.
+
+Do not ask questions. Implement, test, commit, and produce the acceptance report described.
+
+Edits to make (exact files or equivalent)
+1) Signup: Region & Genre become text fields
+
+Files to edit:
+
+apps/web/src/components/Auth/SignupModal.tsx
+
+apps/web/app/api/auth/register/route.ts (server validation)
+
+apps/web/src/lib/validators/auth.ts (wherever zod schemas live)
+
+apps/web/src/pages/_app or relevant form state file if used for default values/localstorage
+
+Requirements:
+
+Replace any <Select> or options for Region and Genre with plain <input type="text"> or <Textarea> for genre if you prefer multi-word entries.
+
+Frontend validation: required, trimmed, max length: Region <= 60 chars, Genre <= 120 chars.
+
+Server validation (Zod): accept region: string, genre: string, apply same limits. Return clear structured JSON on validation failure.
+
+Preserve accessibility, labels, placeholders: e.g., Region placeholder "e.g. EU — Berlin", Genre placeholder "e.g. Techno, Minimal".
+
+When user registers, store region and genre as plain text in the user record.
+
+2) Feed poller — robust rewrite + admin control
+
+Files to add/replace:
+
+packages/feeds/poller.ts — main poller implementation (worker process friendly).
+
+apps/web/app/api/admin/feed-poller/route.ts — start/stop/run-now/status endpoints (protected by x-admin in dev).
+
+apps/web/(admin)/feed-settings/page.tsx — admin UI to configure poll interval, concurrency, enabled sources.
+
+packages/feeds/feed-store.json (dev in-repo JSON) or update DB migrations for feed_sources table.
+
+scripts/diag/poller-simulate.js — simulation script for acceptance checks.
+
+apps/web/src/lib/fetcher.ts or apps/web/src/lib/safe-fetch.ts — ensure used fetch wrapper everywhere.
+
+Poller Implementation Requirements:
+
+Use a concurrency limiter (p-limit or custom semaphore). Honor env POLL_CONCURRENCY.
+
+Each fetch uses AbortController timeout (default 20s).
+
+Implement per-source exponential backoff and failure_count tracking.
+
+After FEED_FAILURE_THRESHOLD consecutive failures, mark source as disabled: true (persist).
+
+Implement jittered retry (2 retries per fetch: 500ms → 1500ms).
+
+Use streaming (node fetch with body streaming) and avoid reading entire large responses into memory. Cap content size to 5MB; abort if exceeded.
+
+Poller runs in a worker thread/child_process to avoid blocking main Node event loop:
+
+if (require.main === module) poller.start() style entry.
+
+Expose telemetry (events) and write logs to logs/feed-poller.log.
+
+Ensure poller is resilient: catches exceptions, recovers, and keeps loop alive.
+
+Admin settings must be editable from UI and saved in feed-store.json or DB.
+
+Provide runOnce() method for on-demand fetches from admin.
+
+Tests & diagnostics:
+
+tests/poller/poller.unit.test.ts:
+
+Simulate healthy feed (200 + small HTML) and failing feeds (timeout, 500).
+
+Assert disabled after threshold, concurrency honored, retries performed.
+
+scripts/diag/poller-simulate.js:
+
+spawn the poller in TEST_MODE and simulate 50 fetches and print metrics:
+
+total fetched, average time, number disabled, max concurrent.
+
+Ensure pnpm test exercises poller unit tests successfully.
+
+3) PDF Export — reliable generation + Download popup
+
+Files to add/update:
+
+Frontend export UI: apps/web/src/components/EPK/ExportPanel.tsx (or update existing EPK page).
+
+API route: apps/web/app/api/epk/export/route.ts (POST) — produce PDF and stream to client with correct headers.
+
+Server-side implementation module: packages/epk/exporter.ts
+
+Tests: tests/epk/export.test.ts
+
+Optional worker integration: packages/ai/worker.js or packages/epk/worker.js for heavy PDF assembly.
+
+PDF Implementation Requirements:
+
+Preferred approach: generate HTML for the EPK preview server-side and use headless Chromium (Puppeteer) to render PDF (best fidelity). But Puppeteer may not be available in Replit — implement robust fallbacks:
+
+Primary: puppeteer-core + host-provided Chromium (if available).
+
+Fallback A: pdf-lib or pdfkit composition from template (vector-safe).
+
+Fallback B: Pure server-side HTML→SVG→PNG→PDF pipeline (last resort).
+
+Use streaming and file streaming to avoid large buffers:
+
+res.setHeader('Content-Type','application/pdf')
+
+res.setHeader('Content-Disposition','attachment; filename="EPK-<artist>-<timestamp>.pdf"')
+
+Stream the PDF bytes to the response.
+
+Client behavior:
+
+Frontend calls POST /api/epk/export (with current EPK JSON/HTML).
+
+Use fetch with response.blob() then create URL.createObjectURL(blob) and create <a download> link to trigger download popup — ensure binary integrity.
+
+Alternatively, make the API return a presigned file URL; frontend then sets window.location to that URL to trigger native download.
+
+Validate produced PDF:
+
+Unit test opens resulting PDF bytes with pdf-lib in tests to assert parseable and not truncated.
+
+Test checks file size > minimal threshold and startsWith('%PDF') at byte 0.
+
+Ensure EPK assets (images/fonts) are embedded or use absolute URLs accessible to the headless renderer.
+
+4) Code cleanup & run validation
+
+Steps to perform programmatically:
+
+pnpm -w tsc --noEmit — fix all TypeScript errors.
+
+pnpm lint (if linter exists) or pnpm -w eslint --fix — run and auto-fix whitespace/format issues.
+
+Run unit tests: pnpm --filter apps/web test:unit and pnpm test for repo-level tests.
+
+Run snapshot tests for dashboard pages to ensure layout tokens unmodified.
+
+Run integration tests for:
+
+Signup flow with text fields (region + genre stored).
+
+Poller simulation.
+
+PDF export flow.
+
+If any external native deps (sharp, puppeteer) fail to install on Replit, agent must:
+
+Switch to TEST_MODE fallback implementations (pure JS pdf-lib, SVG-based).
+
+Print exact manual steps to install native deps locally and how to enable them.
+
+5) Logging & monitoring
+
+Add or update:
+
+logs/feed-poller.log rotation (daily or size-based).
+
+logs/epk-export.log for PDF generation errors.
+
+Add packages/diag/run-lighthouse-local.js (optional) to run quick perf checks for feed page.
+
+ENV VARS to document in .env.example
+POLL_INTERVAL_SECONDS=60
+POLL_CONCURRENCY=3
+FEED_FAILURE_THRESHOLD=5
+VERIFY_TEMP_DIR=/tmp/thecueroom/verify
+AI_WORKER_CONCURRENCY=1
+PDF_RENDERER=puppeteer|pdf-lib   # choose renderer; default tries puppeteer
+TEST_MODE=true
+
+Commands to run (agent must run these)
+
+Install:
+
+pnpm -w install
+
+pnpm --filter apps/web add p-limit cross-fetch nanoid pdf-lib puppeteer-core (and optionally puppeteer on CI)
+
+Typecheck & build:
+
+pnpm -w tsc --noEmit
+
+Lint/fix:
+
+pnpm --filter apps/web lint --fix (or repo equivalent)
+
+Unit tests:
+
+pnpm --filter apps/web test:unit
+
+Poller simulation:
+
+node scripts/diag/poller-simulate.js
+
+Run dev servers:
+
+Terminal A: pnpm --filter apps/web dev
+
+Terminal B (worker): node packages/feeds/poller.js
+
+PDF export validation:
+
+Use tests to call /api/epk/export and verify startsWith('%PDF') and parseable by pdf-lib.
+
+Acceptance checks (must pass)
+
+Type-check: pnpm -w tsc --noEmit -> 0 errors
+
+Signup:
+
+UI shows Region & Genre as text fields.
+
+POST /api/auth/register accepts region and genre strings; stored in DB/JSON.
+
+Unit test asserts saved values match submitted values.
+
+Poller:
+
+scripts/diag/poller-simulate.js completes with metrics:
+
+concurrency never exceeds POLL_CONCURRENCY,
+
+disabled feeds count increases only after FEED_FAILURE_THRESHOLD,
+
+no unhandled rejections or crash.
+
+Unit tests for retry/backoff pass.
+
+PDF Export:
+
+POST /api/epk/export returns streamable PDF with Content-Disposition: attachment.
+
+Client triggers a download popup and the saved file is parseable (%PDF header) and opens in pdf-lib test.
+
+Integration test simulates front-end flow and asserts that download blob passes integrity checks.
+
+Tests & cleanup:
+
+All unit tests pass.
+
+No TODO markers remain in committed code for critical flow files.
+
+Report: produce machine-readable JSON and short human summary:
+
+{
+  "status": "success",
+  "commit": "<sha>",
+  "files_changed": [...],
+  "tsc": "OK",
+  "unit_tests": "OK",
+  "poller_simulation": "<summary>",
+  "pdf_export_check": "<summary>",
+  "notes": "<any fallbacks used>"
+}
+
+Extra implementation detail notes (must follow)
+
+Use safeFetch for all outgoing HTTP and always parse text first then JSON.parse with try/catch.
+
+Do not load entire external HTML into memory unnecessarily; stream and parse with node-html-parser chunks if needed.
+
+For PDF streaming with Puppeteer, pass args: ['--no-sandbox','--disable-setuid-sandbox'] to Chromium; if Chromium not available, fallback to pdf-lib.
+
+For EPK images/fonts referenced in PDF ensure absolute URLs or embed them inlined (data URIs) to avoid 403/404.
+
+Add tests to check for common failure modes: feed returning HTML error page (should be handled) and PDF renderer timeout (should return structured JSON error).
+
+Preserve dashboard tokens & layout — do not change global CSS variables or theme tokens.
