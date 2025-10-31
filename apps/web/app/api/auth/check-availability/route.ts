@@ -1,12 +1,13 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@thecueroom/db/client';
 import { users, profiles } from '@thecueroom/db/schema';
-import { eq, or } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT_WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000');
-const RATE_LIMIT_MAX = parseInt(process.env.RATE_LIMIT_MAX || '20');
+const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
+const RATE_LIMIT_MAX = 20;
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
@@ -32,7 +33,7 @@ const checkSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const ip = request.headers.get('x-forwarded-for') || 'unknown';
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
     
     if (!checkRateLimit(ip)) {
       return NextResponse.json(
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
       const existing = await db
         .select()
         .from(users)
-        .where(eq(users.email, value))
+        .where(eq(users.email, value.toLowerCase()))
         .limit(1);
       
       return NextResponse.json({
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
       const existing = await db
         .select()
         .from(users)
-        .where(eq(users.username, value))
+        .where(eq(users.username, value.toLowerCase()))
         .limit(1);
       
       return NextResponse.json({
@@ -86,6 +87,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ available: false, reason: 'Invalid type' }, { status: 400 });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { available: false, reason: 'Invalid request', errors: error.errors },
+        { status: 400 }
+      );
+    }
     console.error('Availability check error:', error);
     return NextResponse.json(
       { available: false, reason: 'Internal server error' },
