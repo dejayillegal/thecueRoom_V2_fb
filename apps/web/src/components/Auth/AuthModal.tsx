@@ -864,9 +864,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       )}
 
       <InfoModal
-        isOpen={showInfoModal !== null}
+        type={showInfoModal || 'terms'}
         onClose={() => setShowInfoModal(null)}
-        section={showInfoModal || 'terms'}
       />
     </>
   );
