@@ -4,9 +4,10 @@ import { Search } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Logo } from '@/components/Logo';
 import Link from 'next/link';
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
 import { Bell, Settings, LogOut, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 interface HeaderProps {
   user?: {
@@ -19,11 +20,33 @@ interface HeaderProps {
 }
 
 export const Header = memo(function Header({ user, sidebarOpen, onToggleSidebar }: HeaderProps) {
+  const router = useRouter();
+  
   const initials = user?.name
     ?.split(' ')
     .map(n => n[0])
     .join('')
     .toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U';
+
+  const handleLogout = useCallback(async () => {
+    try {
+      // Clear session cookie
+      await fetch('/api/auth/signout', { method: 'POST' });
+      
+      // Clear any local storage
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+      
+      // Redirect to landing page and replace history to prevent back button
+      router.replace('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still redirect even if logout fails
+      router.replace('/');
+    }
+  }, [router]);
 
   return (
     <header 
@@ -60,7 +83,11 @@ export const Header = memo(function Header({ user, sidebarOpen, onToggleSidebar 
         <button className="p-2 text-white hover:bg-[#1a1a1a] rounded-md" aria-label="Settings">
           <Settings size={20} />
         </button>
-        <button className="p-2 text-white hover:bg-[#1a1a1a] rounded-md" aria-label="Logout">
+        <button 
+          onClick={handleLogout}
+          className="p-2 text-white hover:bg-[#1a1a1a] rounded-md" 
+          aria-label="Logout"
+        >
           <LogOut size={20} />
         </button>
 
