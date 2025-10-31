@@ -82,7 +82,7 @@ export default function VerificationModal({ open, onOpenChange, jobId, onComplet
       }, 1000);
       return () => clearTimeout(timer);
     } else if (autoRedirectSeconds === 0) {
-      onComplete();
+      onComplete?.();
     }
   }, [autoRedirectSeconds, onComplete]);
 
