@@ -1,0 +1,62 @@
+## Error Type
+Console Error
+
+## Error Message
+A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <ScrollAndFocusHandler segmentPath={[...]}>
+      <InnerScrollAndFocusHandler segmentPath={[...]} focusAndScrollRef={{apply:false, ...}}>
+        <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+          <LoadingBoundary loading={null}>
+            <HTTPAccessFallbackBoundary notFound={<SegmentViewNode>} forbidden={undefined} unauthorized={undefined}>
+              <HTTPAccessFallbackErrorBoundary pathname="/dashboard" notFound={<SegmentViewNode>} forbidden={undefined} ...>
+                <RedirectBoundary>
+                  <RedirectErrorBoundary router={{...}}>
+                    <InnerLayoutRouter url="/dashboard" tree={[...]} cacheNode={{lazyData:null, ...}} segmentPath={[...]}>
+                      <SegmentViewNode type="layout" pagePath="dashboard/...">
+                        <SegmentTrieNode>
+                        <ClientSegmentRoot Component={{...}} slots={{...}} params={{}}>
+                          <DashboardLayout params={Promise}>
+                            <div className="min-h-scre...">
+                              <Sidebar>
+                              <Header user={{name:"Artist", ...}} sidebarOpen={false} ...>
+                                <header
+                                  className="fixed top-0 right-0 h-[72px] bg-black border-b border-[#1a1a1a] flex item..."
++                                 style={{left:"60px"}}
+-                                 style={{left:"0px"}}
+                                >
+                              <main
+                                className="min-h-screen pt-[72px] transition-all duration-200 ease-out"
++                               style={{marginLeft:"60px"}}
+-                               style={{margin-left:"0px"}}
+                              >
+                    ...
+        ...
+
+
+
+    at header (<anonymous>:null:null)
+    at Header (components/dashboard/Header.tsx:28:5)
+    at DashboardLayout (app/dashboard/layout.tsx:61:7)
+
+## Code Frame
+  26 |
+  27 |   return (
+> 28 |     <header 
+     |     ^
+  29 |       className="fixed top-0 right-0 h-[72px] bg-black border-b border-[#1a1a1a] flex items-center justify-between px-6 z-30 transition-all duration-200 ease-out"
+  30 |       style={{
+  31 |         left: typeof window !== 'undefined' && window.innerWidth >= 1024
+
+Next.js version: 15.5.6 (Webpack)
