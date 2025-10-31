@@ -134,6 +134,8 @@ export default function EPKStudio() {
     setExportProgress(0);
 
     try {
+      // Step 1: Enqueue the job
+      setExportProgress(10);
       const jobId = await enqueueEPKJob({
         templateId,
         modules,
@@ -143,19 +145,46 @@ export default function EPKStudio() {
         includeWatermark: true
       });
 
+      console.log('[EPK Export] Job created:', jobId);
+      setExportProgress(20);
+
+      // Step 2: Poll for completion
       const result = await pollJobStatus(jobId, (progress) => {
-        setExportProgress(progress);
+        // Map progress from 20-90%
+        const mappedProgress = 20 + (progress * 0.7);
+        setExportProgress(Math.round(mappedProgress));
       });
 
+      setExportProgress(95);
+
       if (result.resultUrl) {
-        window.open(result.resultUrl, '_blank');
+        console.log('[EPK Export] Download URL:', result.resultUrl);
+        
+        // Step 3: Download the file
+        const link = document.createElement('a');
+        link.href = result.resultUrl;
+        link.download = `${artistName || 'epk'}.${format}`;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        setExportProgress(100);
+        
+        setTimeout(() => {
+          alert(`${format.toUpperCase()} exported successfully!`);
+        }, 500);
+      } else {
+        throw new Error('No download URL received');
       }
     } catch (error) {
-      console.error('Export error:', error);
-      alert('Export failed. Please try again.');
+      console.error('[EPK Export] Error:', error);
+      alert(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
-      setIsExporting(false);
-      setExportProgress(0);
+      setTimeout(() => {
+        setIsExporting(false);
+        setExportProgress(0);
+      }, 1000);
     }
   }
 
@@ -338,21 +367,38 @@ export default function EPKStudio() {
 
             <section className="dashboard-card p-4">
               <h2 className="text-lg font-semibold text-[#D7FF3C] mb-3">Export</h2>
-              <div className="space-y-2">
+              <div className="space-y-3">
+                {isExporting && exportProgress > 0 && (
+                  <div className="w-full bg-[#0B0B0B] rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-gray-400">Exporting...</span>
+                      <span className="text-xs font-bold text-[#D7FF3C]">{exportProgress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2">
+                      <div 
+                        className="bg-[#D7FF3C] h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${exportProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
                 <button
                   onClick={() => handleExport('pdf')}
                   disabled={isExporting || modules.length === 0}
                   className="w-full py-3 bg-[#D7FF3C] text-[#0B0B0B] rounded-lg hover:bg-[#c8f02e] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold"
                 >
-                  {isExporting ? `Exporting... ${exportProgress}%` : 'Export as PDF'}
+                  {isExporting ? 'Exporting...' : '📄 Export as PDF'}
                 </button>
                 <button
                   onClick={() => handleExport('zip')}
                   disabled={isExporting || modules.length === 0}
                   className="w-full py-3 bg-[#9B5CFF] text-white rounded-lg hover:bg-[#8a4dee] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold"
                 >
-                  Export as ZIP
+                  📦 Export as ZIP
                 </button>
+                {modules.length === 0 && (
+                  <p className="text-xs text-yellow-500 text-center">Add modules to enable export</p>
+                )}
               </div>
             </section>
           </div>

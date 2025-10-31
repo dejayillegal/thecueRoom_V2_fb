@@ -1,4 +1,3 @@
-
 export function createModuleId(): string {
   return `module_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
@@ -52,6 +51,65 @@ export async function enqueueEPKJob(payload: any) {
   });
 }
 
-export async function pollJobStatus(jobId: string) {
-  return safeFetch(`/api/epk/job/${jobId}`);
+export async function pollJobStatus(
+  jobId: string,
+  onProgress?: (progress: number) => void
+): Promise<{ status: string; resultUrl?: string; error?: string }> {
+  const maxAttempts = 60; // Increased timeout
+  let attempts = 0;
+
+  while (attempts < maxAttempts) {
+    try {
+      const response = await safeFetch(`/api/epk/job/${jobId}`);
+      const data = await safeParseJSON<{
+        ok: boolean;
+        job: {
+          status: string;
+          progress?: number;
+          resultUrl?: string;
+          error?: string;
+        };
+      }>(response);
+
+      if (!data.ok) {
+        throw new Error('Failed to fetch job status');
+      }
+
+      const { status, progress = 0, resultUrl, error } = data.job;
+
+      // Report progress (0-100)
+      if (onProgress) {
+        const calculatedProgress = status === 'processing'
+          ? Math.max(progress || 50, (attempts / maxAttempts) * 90)
+          : status === 'queued'
+          ? 10
+          : status === 'done'
+          ? 100
+          : progress || 0;
+
+        onProgress(Math.min(calculatedProgress, 100));
+      }
+
+      console.log(`[EPK Poll] Attempt ${attempts + 1}/${maxAttempts} - Status: ${status}, Progress: ${progress}%`);
+
+      if (status === 'done' && resultUrl) {
+        return { status, resultUrl };
+      }
+
+      if (status === 'error') {
+        throw new Error(error || 'Job failed');
+      }
+
+      // Wait before next poll
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      attempts++;
+    } catch (error) {
+      console.error('[EPK Poll] Error:', error);
+      throw new Error(
+        error instanceof Error ? error.message : 'Failed to poll job status'
+      );
+    }
+  }
+
+  throw new Error('Export timeout - please try again');
 }
