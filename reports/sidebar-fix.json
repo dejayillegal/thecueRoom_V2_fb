@@ -15,9 +15,9 @@
   },
   "listenersCheck": {
     "scriptPath": "scripts/diag/check-listeners.js",
-    "method": "addEventListener/removeEventListener wrapping",
+    "method": "addEventListener/removeEventListener wrapping with Set-based tracking",
     "fixed": true,
-    "note": "Fixed to use proper listener tracking instead of DevTools-only getEventListeners"
+    "note": "Uses Map<type, Set<function>> to track actual function references, reliably detecting leaked anonymous/inline handlers"
   },
   "timersCheck": {
     "scriptPath": "scripts/diag/check-timers.js",
