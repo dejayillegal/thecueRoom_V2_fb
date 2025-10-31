@@ -1,6 +1,7 @@
 
 const { getDbClient } = require('@thecueroom/db/client');
 const { verificationJobs } = require('@thecueroom/db/schema');
+const { eq } = require('drizzle-orm');
 
 async function simulate() {
   console.log('🧪 Verification Simulation Test');
