@@ -1,0 +1,285 @@
+Deliverables (exact)
+
+Frontend:
+
+SignupModal component (accessible, keyboard friendly) at apps/web/src/components/Auth/SignupModal.tsx
+
+Post-registration onboarding modal / flow at apps/web/src/components/Auth/PostRegisterOnboard.tsx
+
+Verification status page apps/web/app/verification/page.tsx
+
+Client logic to show verification progress and final accept/deny states
+
+Backend APIs (Next.js App Router):
+
+apps/web/app/api/auth/register/route.ts (POST) — create user record (unverified) and return session token
+
+apps/web/app/api/auth/send-reset/route.ts (optional) — existing email flows remain
+
+apps/web/app/api/verify/submit/route.ts (POST) — accept submitted social link; creates verification job and returns { jobId }
+
+apps/web/app/api/verify/status/[jobId]/route.ts (GET) — job status + evidence + decision
+
+apps/web/app/api/verify/accept/[jobId]/route.ts (POST) — admin/manual accept (protected by header in dev)
+
+apps/web/app/api/verify/reject/[jobId]/route.ts (POST) — admin/manual reject
+
+Worker / AI:
+
+packages/ai/verification-worker.js — worker script (worker_threads or child_process) that consumes verification jobs and writes status to /tmp/thecueroom/verify/<jobId>.json (or DB)
+
+packages/ai/impl/hf.js (optional) — Hugging Face inference helper (uses HF_TOKEN if present)
+
+packages/ai/impl/free-nlu.js — primary free-first verifier: pattern matching + Open-source LLM free options (e.g., local small models via inference HTTP if available), or public heuristics service; must work in TEST_MODE without external keys
+
+DB / storage:
+
+Add verification_jobs table/document schema (in existing DB / sqlite / JSON file fallback)
+
+Add users verified boolean + verification_job_id fields
+
+Admin UI:
+
+apps/web/app/(admin)/verification-queue/page.tsx — list jobs, accept/reject, view evidence (screenshots, transcripts), export.
+
+Utilities:
+
+apps/web/src/lib/safe-fetch.ts — safeFetch wrapper (already exists); use everywhere
+
+apps/web/src/lib/verify-utils.ts — scoring heuristics and evidence builder
+
+scripts/diag/verify-simulate.js — TEST_MODE simulation to create N jobs and run worker
+
+Tests:
+
+Unit tests for verification scoring, API contract tests for routes, e2e for signup→submit→auto-approve in TEST_MODE.
+
+Env vars (.env.example):
+
+HF_TOKEN= # optional - Hugging Face token (use optionally)
+
+VERIFY_TEMP_DIR=/tmp/thecueroom/verify
+
+TEST_MODE=true|false
+
+AI_WORKER_CONCURRENCY=1
+
+Commands & install:
+
+pnpm -w install
+
+Add dev deps if needed: pnpm --filter apps/web add -D supertest playwright vitest
+
+Start: pnpm --filter apps/web dev and run worker: node packages/ai/verification-worker.js (or use make dev if Makefile exists)
+
+Implementation details (copy/paste exact instructions)
+
+Implement exact features and files below. The assistant must write full code (no stubs), run tests and fix compile errors. If a native dependency cannot install (Replit constraints), use TEST_MODE fallback implementations and document exact manual steps.
+
+Frontend — Signup modal
+
+File: apps/web/src/components/Auth/SignupModal.tsx
+
+Design: Keep app theme. Modal includes:
+
+Fields: Artist / Project name (required), Email (required), Password, Region, Primary genre (select), One public profile link (URL input, placeholder examples: https://soundcloud.com/artist, https://instagram.com/artist), checkbox “I agree to Terms & Privacy”.
+
+Submit → call POST /api/auth/register with payload { name,email,password,region,genre,publicProfile }.
+
+On success, automatically call POST /api/verify/submit with { userId, profileUrl } and show PostRegisterOnboard modal with Verification progress.
+
+Visual: show steps: 1) Submit 2) Auto-check (AI) 3) Approved/Manual review. Provide icons + visible labels on all clickable controls (use existing IconLabelButton).
+
+Accessibility: aria attributes, keyboard focus, trap focus.
+
+Backend — register route
+
+File: apps/web/app/api/auth/register/route.ts
+
+Validate with zod: require email, password, name.
+
+Hash password with bcrypt (or use dev-safe argon2 if available). On ephemeral/dev Replit, store hashed password in DB or JSON.
+
+Create user row: verified=false, verification_job_id=null.
+
+Return { userId, ok:true } plus short lived token/cookie for session (if existing auth flow). Keep consistent with existing auth.
+
+Submit verification job
+
+File: apps/web/app/api/verify/submit/route.ts
+
+Validate input: { userId, profileUrl }.
+
+Create verification job record with status queued.
+
+Enqueue job to worker (append to JSON queue file or send via IPC to verification-worker.js).
+
+Return { jobId, status:'queued' }.
+
+Worker — verification job processor
+
+File: packages/ai/verification-worker.js
+
+Should support both child_process IPC and queue file read fallback:
+
+If TEST_MODE === 'true', simulate jobs with deterministic outcome: accept if profile URL contains test-accept, otherwise flag manual review.
+
+Real pipeline (free-first):
+
+HEAD request to the URL and fetch HTML (safeFetch with 10s timeout). If 200 -> valid.
+
+Parse HTML to extract signals: username, display name, bio, follower counts (where parsable), recent release links, audio embeds (SoundCloud), Instagram posts, Bandcamp releases.
+
+Heuristics scoring: presence of audio, multiple releases, follower count threshold OR evidence of event listings -> add points.
+
+Use a lightweight Open-Source model or public sandbox NLU (if HF_TOKEN exists call Hugging Face stable model) to classify “authenticity”: pass/fail/uncertain. If no HF_TOKEN, rely on heuristics + metadata.
+
+Build evidence object: { title, username, foundAudio: true|false, followerCount, lastReleaseDate, screenshots:[optional], rawHtmlSnippet }.
+
+Make decision:
+
+Score >= threshold → auto-approve (set user.verified=true)
+
+Score between low-high → manual review (status=review)
+
+Score low → reject (status=rejected)
+
+Write job result { jobId, status, score, decision, evidence } to DB/JSON and update user row.
+
+Worker resource control:
+
+Limit concurrent jobs via AI_WORKER_CONCURRENCY.
+
+Stream large downloads, abort on large content (>5MB).
+
+Use safe JSON writing to avoid corruption.
+
+Evidence & screenshots (optional)
+
+Use playwright or puppeteer in worker to screenshot the public profile for admin evidence. Only run in non-Replit-dev or when Playwright available (TEST_MODE fallback skipped). Save to VERIFY_TEMP_DIR/<jobId>-page.png.
+
+Verification status route
+
+File: apps/web/app/api/verify/status/[jobId]/route.ts
+
+GET returns { jobId, status, decision, score, evidence, updatedAt }.
+
+Accept/reject admin routes
+
+Files: apps/web/app/api/verify/accept/[jobId]/route.ts and /reject/route.ts
+
+POST; check x-admin:true header in dev. Update job + user accordingly.
+
+Admin UI queue
+
+File: apps/web/app/(admin)/verification-queue/page.tsx
+
+Paginated list of jobs, search, filters (status: queued, review, done, rejected).
+
+Each job shows evidence, screenshot, actions accept/reject and comment.
+
+When admin accepts, call /api/verify/accept/:jobId.
+
+Keep same dashboard layout and theme.
+
+Post registration onboarding UI
+
+File: apps/web/src/components/Auth/PostRegisterOnboard.tsx
+
+Show stepper of verification pipeline with progress updates pulling from /api/verify/status/:jobId via SSE or polling (poll every 2s initially then backoff).
+
+If decision: show green Verified badge + button “Go to Dashboard” — set local session / fetch refreshed user info.
+
+If review: show message “Queued for manual review — a curator will review within 24-72 hours” and show ability to appeal (send message to support).
+
+Security, rate-limits, abuse prevention
+
+Limit POST /api/verify/submit per-IP to N per hour (e.g., 3).
+
+Validate profile URL against allowed domains (soundcloud, instagram, bandcamp, mixcloud, spotify, residentadvisor, youtube).
+
+Sanitize all HTML/evidence and never return raw HTML to client.
+
+Protect admin routes: require x-admin:true header in dev and environment-provided admin token in prod.
+
+Tests & Diagnostic scripts
+
+Add tests under tests/verify/:
+
+verify-api.test.ts — register -> submit verify job -> simulate worker -> status becomes done and user.verified true in TEST_MODE
+
+heuristics.test.ts — run scoring function on sample HTML snippets
+
+Add scripts/diag/verify-simulate.js — spawn 10 jobs in TEST_MODE and assert worker finishes them within time bounds and memory stable.
+
+Acceptance Criteria (must pass)
+
+pnpm -w tsc --noEmit -> 0 errors
+
+pnpm --filter apps/web test:unit -> all verification tests pass
+
+Full flow test (simulate):
+
+Register user via /api/auth/register
+
+Submit /api/verify/submit
+
+Worker processes and sets user.verified === true for deterministic TEST_MODE acceptance case
+
+Frontend shows Verified and allows navigating to /dashboard
+
+Admin queue can accept/reject and that changes user verified state.
+
+Rate-limits block more than 3 submissions per IP per hour.
+
+All API routes return JSON and never crash on non-JSON responses (use safeFetch everywhere).
+
+Developer instructions & runbook (copy/paste)
+
+Add environment vars:
+
+create .env.local from .env.example and set TEST_MODE=true for dev.
+
+Install:
+
+pnpm -w install
+
+Start dev:
+
+Terminal A: pnpm --filter apps/web dev (Next dev server)
+
+Terminal B: node packages/ai/verification-worker.js (worker)
+
+Run tests:
+
+pnpm --filter apps/web test:unit
+
+Simulate:
+
+node scripts/diag/verify-simulate.js
+
+Commit & reporting
+
+Commit message:
+feat(auth): signup modal + AI-assisted social verification worker, admin queue, tests, rate-limit
+
+After changes run the acceptance checks above and produce a short verification report:
+
+tsc result, test results, sample jobId and status, memory summary from simulate script.
+
+Important implementation notes (must be followed)
+
+Free-first approach:
+
+If HF_TOKEN present, use Hugging Face classifier to assist scoring (but never required).
+
+Always fall back to deterministic heuristics in TEST_MODE (for Replit).
+
+Keep dashboard style & layout unchanged (only auth modals and verification pages may show verification UI inside existing layout).
+
+Do not store user passwords in plaintext — hash them.
+
+Avoid heavy browser automation in Replit by default; only run Playwright if available and in non-dev.
+
+All endpoints must return JSON, with safe error structure:
+{ ok:false, status:500, message:"human-friendly", details?:string }
