@@ -1,0 +1,96 @@
+Sign in error: SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at POST (app/api/auth/signin/route.ts:6:47)
+  4 | export async function POST(request: NextRequest) {
+  5 |   try {
+> 6 |     const { email, password } = await request.json();
+    |                                               ^
+  7 |
+  8 |     if (!email || !password) {
+  9 |       return NextResponse.json(
+Expected style "zIndex: 1px" to be unitless
+Expected style "zIndex: 1px" to be unitless
+Expected style "zIndex: 1px" to be unitless
+Expected style "zIndex: 1px" to be unitless
+ GET /api/og-fallback?title=Behringer%20BM-18M%20Cluster%20Box%3A%20Modulation%20Madness 200 in 17874ms
+ GET /api/og-fallback?title=Wicked%20Oaks%20Releases%20Official%20Statement%20Addressing%20Weather%20Impact%2C%20Refunds%2C%20and%20More 200 in 17686ms
+ GET /api/og-fallback?title=Sean%20Combs%20Transferred%20to%20Federal%20Prison%20to%20Serve%20Sentence 200 in 15625ms
+ GET /api/og-fallback?title=Xils%20Lab%20Black%20Friday%202025%3A%20save%20up%20to%2075%25%20OFF%20plugins%2C%20incl%20The%20Eighty%20Synthesizer 200 in 8377ms
+ GET / 200 in 6257ms
+ GET / 200 in 32009ms
+ GET / 200 in 32281ms
+ GET / 200 in 30392ms
+ GET / 200 in 297ms
+ GET / 200 in 329ms
+ ○ Compiling /api/feeds ...
+ ⚠ Cross origin request detected from 08b6e3db-93ad-4650-b8a6-030707fca738-00-17otqegyo2bqx.pike.replit.dev to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ ✓ Compiled /api/feeds in 1510ms (1104 modules)
+✅ Database client initialized
+ GET /api/feeds?limit=24 200 in 1146ms
+ GET /api/feeds?limit=32&offset=0 200 in 1776ms
+ GET /api/feeds?limit=24 200 in 1378ms
+ GET /api/feeds?limit=8 200 in 1789ms
+ POST /api/auth/signin 200 in 176ms
+ ○ Compiling /dashboard ...
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled /dashboard in 2.5s (1206 modules)
+✅ Database client initialized
+ GET /api/feeds?limit=24 200 in 3536ms
+ GET / 200 in 1457ms
+ ○ Compiling /api/fallback-thumb/[id] ...
+ ✓ Compiled /api/fallback-thumb/[id] in 546ms (1210 modules)
+ GET /api/fallback-thumb/46bb17b8-40a9-4107-826d-d86cbb02978c 200 in 1366ms
+[TypeError: Invalid state: Controller is already closed] {
+  code: 'ERR_INVALID_STATE'
+}
+ ⨯ uncaughtException: [TypeError: Invalid state: Controller is already closed] {
+  code: 'ERR_INVALID_STATE'
+}
+ ⨯ uncaughtException:  [TypeError: Invalid state: Controller is already closed] {
+  code: 'ERR_INVALID_STATE'
+}
+✅ Database client initialized
+ GET /api/feeds?limit=24 200 in 87ms
+ GET / 200 in 138ms
+ GET / 200 in 324ms
+ GET /api/fallback-thumb/46bb17b8-40a9-4107-826d-d86cbb02978c 200 in 72ms
+ GET / 200 in 139ms
+ GET /api/feeds?limit=24 200 in 28ms
+ GET / 200 in 60ms
+ GET / 200 in 59ms
+ GET / 200 in 57ms
+ GET /api/feeds?limit=24&cursor=2025-10-30T22%3A47%3A34.000Z_37d81ee4-63ec-43b4-8170-13d21b739e66 200 in 56ms
+ GET /api/fallback-thumb/00818778-1386-4620-8748-edc3abcfcb5b 200 in 366ms
+ GET /api/fallback-thumb/2fe7e316-adb6-47e9-8e9b-8e978afd1985 200 in 350ms
+ GET /api/fallback-thumb/6d96bf7f-d4a9-490f-8ff5-7fe7571e6346 200 in 335ms
+[TypeError: Invalid state: Controller is already closed] {
+  code: 'ERR_INVALID_STATE'
+}
+ ⨯ uncaughtException: [TypeError: Invalid state: Controller is already closed] {
+  code: 'ERR_INVALID_STATE'
+}
+ ⨯ uncaughtException:  [TypeError: Invalid state: Controller is already closed] {
+  code: 'ERR_INVALID_STATE'
+}
+ GET /api/fallback-thumb/6ec24872-2b2c-4170-b708-4e6a261d0fd9 200 in 437ms
+[TypeError: Invalid state: Controller is already closed] {
+  code: 'ERR_INVALID_STATE'
+}
+ ⨯ uncaughtException: [TypeError: Invalid state: Controller is already closed] {
+  code: 'ERR_INVALID_STATE'
+}
+ ⨯ uncaughtException:  [TypeError: Invalid state: Controller is already closed] {
+  code: 'ERR_INVALID_STATE'
+}
+ GET /api/fallback-thumb/c5fcf817-dbfa-4928-9461-cc57a0186104 200 in 427ms
+[TypeError: Invalid state: Controller is already closed] {
+  code: 'ERR_INVALID_STATE'
+}
+ ⨯ uncaughtException: [TypeError: Invalid state: Controller is already closed] {
+  code: 'ERR_INVALID_STATE'
+}
+ ⨯ uncaughtException:  [TypeError: Invalid state: Controller is already closed] {
+  code: 'ERR_INVALID_STATE'
+}
+ GET /api/fallback-thumb/c1b7a50e-1c80-401c-abbb-d2de8a2cda51 200 in 274ms
