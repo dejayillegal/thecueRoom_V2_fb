@@ -98,6 +98,9 @@ importers:
       p-limit:
         specifier: ^6.2.0
         version: 6.2.0
+      pdf-lib:
+        specifier: ^1.17.1
+        version: 1.17.1
       pdfkit:
         specifier: ^0.17.2
         version: 0.17.2
@@ -363,7 +366,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^1.1.0
-        version: 1.6.1(@types/node@20.19.23)(@vitest/ui@3.2.4)(happy-dom@17.6.3)(jsdom@23.2.0(canvas@2.11.2))
+        version: 1.6.1(@types/node@20.19.23)(@vitest/ui@3.2.4(vitest@3.2.4))(happy-dom@17.6.3)(jsdom@23.2.0(canvas@2.11.2))
 
   packages/ai:
     dependencies:
@@ -12467,7 +12470,7 @@ snapshots:
       jiti: 1.21.7
       tsx: 4.20.6
 
-  vitest@1.6.1(@types/node@20.19.23)(@vitest/ui@3.2.4)(happy-dom@17.6.3)(jsdom@23.2.0(canvas@2.11.2)):
+  vitest@1.6.1(@types/node@20.19.23)(@vitest/ui@3.2.4(vitest@3.2.4))(happy-dom@17.6.3)(jsdom@23.2.0(canvas@2.11.2)):
     dependencies:
       '@vitest/expect': 1.6.1
       '@vitest/runner': 1.6.1

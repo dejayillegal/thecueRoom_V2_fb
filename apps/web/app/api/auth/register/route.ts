@@ -8,13 +8,13 @@ import { eq } from 'drizzle-orm';
 import { setSession } from '@/lib/auth';
 
 const RegisterSchema = z.object({
-  firstName: z.string().min(1),
-  lastName: z.string().min(1),
-  artistName: z.string().min(1),
-  email: z.string().email(),
+  firstName: z.string().min(1).trim(),
+  lastName: z.string().min(1).trim(),
+  artistName: z.string().min(1).trim(),
+  email: z.string().email().trim().toLowerCase(),
   password: z.string().min(8),
-  region: z.string().optional(),
-  genre: z.string().optional(),
+  region: z.string().min(1).max(60).trim(),
+  genre: z.string().min(1).max(120).trim(),
 });
 
 export async function POST(request: NextRequest) {
@@ -49,6 +49,8 @@ export async function POST(request: NextRequest) {
       userId: user.id,
       displayName: validated.artistName,
       bio: `${validated.firstName} ${validated.lastName}`,
+      region: validated.region,
+      genre: validated.genre,
     });
 
     // Set session

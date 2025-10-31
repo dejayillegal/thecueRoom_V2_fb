@@ -19,6 +19,8 @@ export const profiles = pgTable('profiles', {
   bio: text('bio'),
   avatar: text('avatar'),
   phone: text('phone'),
+  region: varchar('region', { length: 60 }),
+  genre: varchar('genre', { length: 120 }),
   socialLinks: jsonb('social_links').$type<Record<string, string>>(),
   aiCredits: integer('ai_credits').notNull().default(100),
   createdAt: timestamp('created_at').notNull().defaultNow(),

@@ -219,9 +219,10 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
                     value={region}
                     onChange={(e) => setRegion(e.target.value)}
                     className="w-full h-10 bg-[#0B0B0B] border border-[#262626] rounded-md px-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                    placeholder="e.g., North America, Europe, Asia"
+                    placeholder="e.g. EU — Berlin"
                     required
                     minLength={2}
+                    maxLength={60}
                     autoComplete="off"
                   />
                 </div>
@@ -235,9 +236,10 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
                     value={genre}
                     onChange={(e) => setGenre(e.target.value)}
                     className="w-full h-10 bg-[#0B0B0B] border border-[#262626] rounded-md px-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                    placeholder="e.g., Techno, House, Minimal"
+                    placeholder="e.g. Techno, Minimal"
                     required
                     minLength={2}
+                    maxLength={120}
                     autoComplete="off"
                   />
                 </div>
