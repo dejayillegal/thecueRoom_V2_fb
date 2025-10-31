@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,6 +29,20 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [canCloseByBackdrop, setCanCloseByBackdrop] = useState(false);
+
+  // Allow backdrop closing after modal is fully opened
+  useEffect(() => {
+    if (open) {
+      const timer = setTimeout(() => setCanCloseByBackdrop(true), 300);
+      return () => {
+        clearTimeout(timer);
+        setCanCloseByBackdrop(false);
+      };
+    } else {
+      setCanCloseByBackdrop(false);
+    }
+  }, [open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,9 +104,15 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
 
   if (!open) return null;
 
+  const handleBackdropClick = () => {
+    if (canCloseByBackdrop) {
+      onOpenChange(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto">
-      <div className="fixed inset-0 bg-black/65 backdrop-blur-md" onClick={() => onOpenChange(false)} />
+      <div className="fixed inset-0 bg-black/65 backdrop-blur-md" onClick={handleBackdropClick} />
       
       <div className="relative w-full max-w-[920px] my-auto bg-[#0F0F0F] border border-[#262626] rounded-2xl overflow-hidden shadow-2xl">
         <button
