@@ -27,6 +27,50 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
   const [isLoading, setIsLoading] = useState(false);
   const [canCloseByBackdrop, setCanCloseByBackdrop] = useState(false);
 
+  // Validation states
+  const [emailValid, setEmailValid] = useState(false);
+  const [passwordValid, setPasswordValid] = useState(false);
+  const [artistAvailable, setArtistAvailable] = useState<boolean | null>(null);
+  const [checkingArtist, setCheckingArtist] = useState(false);
+
+  // Email validation
+  useEffect(() => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    setEmailValid(emailRegex.test(email));
+  }, [email]);
+
+  // Password validation (min 8 chars, 1 uppercase, 1 lowercase, 1 number)
+  useEffect(() => {
+    const hasMinLength = password.length >= 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    setPasswordValid(hasMinLength && hasUpperCase && hasLowerCase && hasNumber);
+  }, [password]);
+
+  // Check artist name availability
+  useEffect(() => {
+    if (!artistName || artistName.length < 2) {
+      setArtistAvailable(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setCheckingArtist(true);
+      try {
+        const res = await fetch(`/api/auth/check-artist?name=${encodeURIComponent(artistName)}`);
+        const data = await res.json();
+        setArtistAvailable(data.available);
+      } catch {
+        setArtistAvailable(null);
+      } finally {
+        setCheckingArtist(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [artistName]);
+
   // Allow backdrop closing after modal is fully opened
   useEffect(() => {
     if (open) {
@@ -142,25 +186,27 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="firstName" className="text-sm text-foreground mb-2 block">
-                    First name
+                    First name <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="firstName"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
+                    placeholder="e.g. John"
                     required
                   />
                 </div>
                 <div>
                   <Label htmlFor="lastName" className="text-sm text-foreground mb-2 block">
-                    Last name
+                    Last name <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="lastName"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
+                    placeholder="e.g. Smith"
                     required
                   />
                 </div>
@@ -168,44 +214,82 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
 
               <div>
                 <Label htmlFor="artistName" className="text-sm text-foreground mb-2 block">
-                  Artist / Project name
+                  Artist / Project name <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="artistName"
-                  value={artistName}
-                  onChange={(e) => setArtistName(e.target.value)}
-                  className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="artistName"
+                    value={artistName}
+                    onChange={(e) => setArtistName(e.target.value)}
+                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary pr-8"
+                    placeholder="e.g. DJ Phoenix"
+                    required
+                  />
+                  {checkingArtist && (
+                    <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                  )}
+                  {!checkingArtist && artistAvailable === true && artistName.length >= 2 && (
+                    <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+                  )}
+                  {!checkingArtist && artistAvailable === false && (
+                    <AlertCircle className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
+                  )}
+                </div>
+                {artistAvailable === false && (
+                  <p className="text-xs text-destructive mt-1">This artist name is already taken</p>
+                )}
               </div>
 
               <div>
                 <Label htmlFor="email" className="text-sm text-foreground mb-2 block">
-                  Email
+                  Email <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary pr-8"
+                    placeholder="e.g. artist@example.com"
+                    required
+                  />
+                  {email && emailValid && (
+                    <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+                  )}
+                  {email && !emailValid && (
+                    <AlertCircle className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
+                  )}
+                </div>
               </div>
 
               <div>
                 <Label htmlFor="password" className="text-sm text-foreground mb-2 block">
-                  Password
+                  Password <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
-                  required
-                  minLength={8}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary pr-8"
+                    placeholder="Min 8 chars, 1 uppercase, 1 number"
+                    required
+                    minLength={8}
+                  />
+                  {password && passwordValid && (
+                    <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+                  )}
+                  {password && !passwordValid && (
+                    <AlertCircle className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
+                  )}
+                </div>
+                {password && !passwordValid && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Password must have 8+ characters, uppercase, lowercase, and number
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -286,7 +370,7 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
               <div className="flex gap-3">
                 <Button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || !emailValid || !passwordValid || artistAvailable === false || !firstName || !lastName || !artistName || !region || !genre || !publicProfile || !agreeTerms}
                   className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
                 >
                   {isLoading ? (
