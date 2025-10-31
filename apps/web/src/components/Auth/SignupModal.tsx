@@ -218,10 +218,11 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
                     type="text"
                     value={region}
                     onChange={(e) => setRegion(e.target.value)}
-                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                    className="w-full h-10 bg-[#0B0B0B] border border-[#262626] rounded-md px-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     placeholder="e.g., North America, Europe, Asia"
                     required
                     minLength={2}
+                    autoComplete="off"
                   />
                 </div>
                 <div>
@@ -233,10 +234,11 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
                     type="text"
                     value={genre}
                     onChange={(e) => setGenre(e.target.value)}
-                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                    className="w-full h-10 bg-[#0B0B0B] border border-[#262626] rounded-md px-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     placeholder="e.g., Techno, House, Minimal"
                     required
                     minLength={2}
+                    autoComplete="off"
                   />
                 </div>
               </div>
