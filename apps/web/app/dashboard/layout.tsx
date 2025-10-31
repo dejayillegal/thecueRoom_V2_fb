@@ -25,16 +25,19 @@ export default memo(function DashboardLayout({
     const checkDesktop = () => {
       const desktop = window.innerWidth >= 1024;
       setIsDesktop(desktop);
-      // Auto-open on desktop on first load
-      if (desktop && !sidebarOpen) {
+      // Auto-open on desktop on first load only
+      if (desktop) {
         setSidebarOpen(true);
+      } else {
+        // Ensure sidebar is closed on mobile
+        setSidebarOpen(false);
       }
     };
     
     checkDesktop();
     window.addEventListener('resize', checkDesktop);
     return () => window.removeEventListener('resize', checkDesktop);
-  }, []);
+  }, []); // Empty deps - only run once on mount
 
   const handleSidebarToggle = useCallback(() => {
     setSidebarOpen(prev => !prev);
@@ -42,11 +45,12 @@ export default memo(function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-black">
-      {/* Mobile overlay - only show on mobile when open */}
-      {sidebarOpen && !isDesktop && (
+      {/* Mobile overlay - only show on mobile when sidebar is open */}
+      {sidebarOpen && (
         <div 
           className="fixed inset-0 bg-black/60 z-30 lg:hidden"
           onClick={handleSidebarToggle}
+          aria-hidden="true"
         />
       )}
       
@@ -62,10 +66,9 @@ export default memo(function DashboardLayout({
       <main 
         className="min-h-screen pt-[72px] transition-all duration-200 ease-out"
         style={{ 
-          marginLeft: isDesktop 
+          marginLeft: typeof window !== 'undefined' && window.innerWidth >= 1024
             ? (sidebarOpen ? '200px' : '60px') 
-            : '0px',
-          willChange: 'margin-left'
+            : '0px'
         }}
       >
         {children}
