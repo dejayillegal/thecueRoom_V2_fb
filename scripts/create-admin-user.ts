@@ -53,6 +53,7 @@ async function createAdminUser() {
       .insert(schema.users)
       .values({
         email,
+        username: 'admin',
         passwordHash,
         role: 'admin',
       })
