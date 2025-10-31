@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Check, X, Loader2, Plus, Trash2, RefreshCw } from 'lucide-react';
+import { Check, X, Loader2, Plus, Trash2, RefreshCw, UserPlus, Mail, Lock, User, MapPin, Music } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
 import { generateUsername } from '@/lib/username-generator';
 import PasswordStrength from './PasswordStrength';
@@ -237,225 +238,302 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-[#0B0B0B] border-[#1a1a1a] text-white">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-[#D7FF3C]">Create Your Account</DialogTitle>
-        </DialogHeader>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-[#0B0B0B] border border-[#1a1a1a] text-white p-0">
+        <div className="sticky top-0 z-10 bg-[#0B0B0B] border-b border-[#1a1a1a] px-6 py-4">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-[#D7FF3C] to-[#9B5CFF] bg-clip-text text-transparent">
+              Join thecueRoom
+            </DialogTitle>
+            <p className="text-sm text-gray-400 mt-1">Create your artist profile and join the community</p>
+          </DialogHeader>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="firstName">First Name *</Label>
-              <Input
-                id="firstName"
-                value={formData.firstName}
-                onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
-                aria-required="true"
-              />
-              {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="lastName">Last Name *</Label>
-              <Input
-                id="lastName"
-                value={formData.lastName}
-                onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
-                aria-required="true"
-              />
-              {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="artistName">Artist Name *</Label>
-            <div className="relative">
-              <Input
-                id="artistName"
-                value={formData.artistName}
-                onChange={(e) => setFormData(prev => ({ ...prev, artistName: e.target.value }))}
-                className="bg-[#0a0a0a] border-[#1a1a1a] text-white pr-10"
-                aria-required="true"
-              />
-              {availability.artistName === 'checking' && <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-gray-400" />}
-              {availability.artistName === 'available' && <Check className="absolute right-3 top-3 h-4 w-4 text-green-500" />}
-              {availability.artistName === 'taken' && <X className="absolute right-3 top-3 h-4 w-4 text-red-500" />}
-            </div>
-            {errors.artistName && <p className="text-red-500 text-xs mt-1">{errors.artistName}</p>}
-          </div>
-
-          <div>
-            <Label htmlFor="username">Username *</Label>
-            <div className="relative">
-              <Input
-                id="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="bg-[#0a0a0a] border-[#1a1a1a] text-white pr-10"
-                aria-required="true"
-              />
-              {availability.username === 'checking' && <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-gray-400" />}
-              {availability.username === 'available' && <Check className="absolute right-3 top-3 h-4 w-4 text-green-500" />}
-              {availability.username === 'taken' && <X className="absolute right-3 top-3 h-4 w-4 text-red-500" />}
-            </div>
-            <Button
-              type="button"
-              onClick={regenerateUsername}
-              variant="ghost"
-              size="sm"
-              className="mt-1 text-xs text-[#D7FF3C] hover:text-[#D7FF3C]/80"
-            >
-              <RefreshCw className="h-3 w-3 mr-1" />
-              Regenerate
-            </Button>
-            {usernameAlternatives.length > 0 && (
-              <div className="mt-2 space-y-1">
-                <p className="text-xs text-gray-400">Alternatives:</p>
-                {usernameAlternatives.map((alt, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => { setUsername(alt); setUsernameAlternatives([]); }}
-                    className="block text-xs text-[#9B5CFF] hover:underline"
-                  >
-                    {alt}
-                  </button>
-                ))}
-              </div>
-            )}
-            {errors.username && <p className="text-red-500 text-xs mt-1">{errors.username}</p>}
-          </div>
-
-          <div>
-            <Label htmlFor="email">Email *</Label>
-            <div className="relative">
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                className="bg-[#0a0a0a] border-[#1a1a1a] text-white pr-10"
-                aria-required="true"
-              />
-              {availability.email === 'checking' && <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-gray-400" />}
-              {availability.email === 'available' && <Check className="absolute right-3 top-3 h-4 w-4 text-green-500" />}
-              {availability.email === 'taken' && <X className="absolute right-3 top-3 h-4 w-4 text-red-500" />}
-            </div>
-            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-          </div>
-
-          <div>
-            <Label htmlFor="password">Password *</Label>
-            <Input
-              id="password"
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-              className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
-              aria-required="true"
-            />
-            <PasswordStrength password={formData.password} />
-            {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
-          </div>
-
-          <div>
-            <Label htmlFor="confirmPassword">Confirm Password *</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              value={formData.confirmPassword}
-              onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-              className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
-              aria-required="true"
-            />
-            {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="region">Region *</Label>
-              <Select value={formData.region} onValueChange={(value) => setFormData(prev => ({ ...prev, region: value }))}>
-                <SelectTrigger className="bg-[#0a0a0a] border-[#1a1a1a] text-white">
-                  <SelectValue placeholder="Select region" />
-                </SelectTrigger>
-                <SelectContent className="bg-[#0a0a0a] border-[#1a1a1a]">
-                  {REGIONS.map(region => (
-                    <SelectItem key={region} value={region} className="text-white">{region}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.region && <p className="text-red-500 text-xs mt-1">{errors.region}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="genre">Genre *</Label>
-              <Select value={formData.genre} onValueChange={(value) => setFormData(prev => ({ ...prev, genre: value }))}>
-                <SelectTrigger className="bg-[#0a0a0a] border-[#1a1a1a] text-white">
-                  <SelectValue placeholder="Select genre" />
-                </SelectTrigger>
-                <SelectContent className="bg-[#0a0a0a] border-[#1a1a1a]">
-                  {GENRES.map(genre => (
-                    <SelectItem key={genre} value={genre} className="text-white">{genre}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.genre && <p className="text-red-500 text-xs mt-1">{errors.genre}</p>}
-            </div>
-          </div>
-
-          <div>
-            <Label>Social Links (0-5)</Label>
-            {formData.socialLinks.map((link, index) => (
-              <div key={index} className="flex gap-2 mt-2">
+        <form onSubmit={handleSubmit} className="space-y-6 px-6 py-6">
+          {/* Personal Information */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-[#D7FF3C] flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Personal Information
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName" className="text-sm text-gray-300">First Name *</Label>
                 <Input
-                  value={link}
-                  onChange={(e) => updateSocialLink(index, e.target.value)}
-                  placeholder="https://soundcloud.com/yourprofile"
-                  className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
+                  id="firstName"
+                  value={formData.firstName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                  className="bg-[#0a0a0a] border-[#1a1a1a] text-white focus:border-[#D7FF3C] focus:ring-[#D7FF3C]/20"
+                  placeholder="John"
+                  aria-required="true"
                 />
-                <Button
-                  type="button"
-                  onClick={() => removeSocialLink(index)}
-                  variant="ghost"
-                  size="icon"
-                  className="text-red-500 hover:text-red-400"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                {errors.firstName && <p className="text-red-400 text-xs mt-1">{errors.firstName}</p>}
               </div>
-            ))}
-            {formData.socialLinks.length < 5 && (
+
+              <div className="space-y-2">
+                <Label htmlFor="lastName" className="text-sm text-gray-300">Last Name *</Label>
+                <Input
+                  id="lastName"
+                  value={formData.lastName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                  className="bg-[#0a0a0a] border-[#1a1a1a] text-white focus:border-[#D7FF3C] focus:ring-[#D7FF3C]/20"
+                  placeholder="Doe"
+                  aria-required="true"
+                />
+                {errors.lastName && <p className="text-red-400 text-xs mt-1">{errors.lastName}</p>}
+              </div>
+            </div>
+          </div>
+
+          {/* Artist Information */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-[#9B5CFF] flex items-center gap-2">
+              <Music className="h-4 w-4" />
+              Artist Profile
+            </h3>
+            
+            <div className="space-y-2">
+              <Label htmlFor="artistName" className="text-sm text-gray-300">Artist Name *</Label>
+              <div className="relative">
+                <Input
+                  id="artistName"
+                  value={formData.artistName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, artistName: e.target.value }))}
+                  className="bg-[#0a0a0a] border-[#1a1a1a] text-white focus:border-[#9B5CFF] focus:ring-[#9B5CFF]/20 pr-10"
+                  placeholder="DJ Phoenix"
+                  aria-required="true"
+                />
+                {availability.artistName === 'checking' && <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-gray-400" />}
+                {availability.artistName === 'available' && <Check className="absolute right-3 top-3 h-4 w-4 text-green-500" />}
+                {availability.artistName === 'taken' && <X className="absolute right-3 top-3 h-4 w-4 text-red-500" />}
+              </div>
+              {errors.artistName && <p className="text-red-400 text-xs mt-1">{errors.artistName}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="username" className="text-sm text-gray-300">Username *</Label>
+              <div className="relative">
+                <Input
+                  id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="bg-[#0a0a0a] border-[#1a1a1a] text-white focus:border-[#9B5CFF] focus:ring-[#9B5CFF]/20 pr-10"
+                  placeholder="auto-generated"
+                  aria-required="true"
+                />
+                {availability.username === 'checking' && <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-gray-400" />}
+                {availability.username === 'available' && <Check className="absolute right-3 top-3 h-4 w-4 text-green-500" />}
+                {availability.username === 'taken' && <X className="absolute right-3 top-3 h-4 w-4 text-red-500" />}
+              </div>
               <Button
                 type="button"
-                onClick={addSocialLink}
-                variant="outline"
+                onClick={regenerateUsername}
+                variant="ghost"
                 size="sm"
-                className="mt-2 border-[#1a1a1a] text-[#D7FF3C] hover:bg-[#1a1a1a]"
+                className="text-xs text-[#9B5CFF] hover:text-[#9B5CFF]/80 hover:bg-[#9B5CFF]/10 h-7"
               >
-                <Plus className="h-4 w-4 mr-1" />
-                Add Link
+                <RefreshCw className="h-3 w-3 mr-1" />
+                Regenerate Username
               </Button>
-            )}
+              {usernameAlternatives.length > 0 && (
+                <div className="mt-2 space-y-2 p-3 bg-[#0a0a0a] border border-[#1a1a1a] rounded-md">
+                  <p className="text-xs text-gray-400 font-medium">Suggestions:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {usernameAlternatives.map((alt, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => { setUsername(alt); setUsernameAlternatives([]); }}
+                        className="px-3 py-1 text-xs bg-[#9B5CFF]/10 hover:bg-[#9B5CFF]/20 text-[#9B5CFF] border border-[#9B5CFF]/30 rounded-full transition-colors"
+                      >
+                        {alt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {errors.username && <p className="text-red-400 text-xs mt-1">{errors.username}</p>}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="region" className="text-sm text-gray-300 flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  Region *
+                </Label>
+                <Select value={formData.region} onValueChange={(value) => setFormData(prev => ({ ...prev, region: value }))}>
+                  <SelectTrigger className="bg-[#0a0a0a] border-[#1a1a1a] text-white focus:border-[#9B5CFF] focus:ring-[#9B5CFF]/20">
+                    <SelectValue placeholder="Select region" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#0a0a0a] border-[#1a1a1a]">
+                    {REGIONS.map(region => (
+                      <SelectItem key={region} value={region} className="text-white hover:bg-[#1a1a1a] focus:bg-[#1a1a1a]">{region}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.region && <p className="text-red-400 text-xs mt-1">{errors.region}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="genre" className="text-sm text-gray-300 flex items-center gap-1">
+                  <Music className="h-3 w-3" />
+                  Primary Genre *
+                </Label>
+                <Select value={formData.genre} onValueChange={(value) => setFormData(prev => ({ ...prev, genre: value }))}>
+                  <SelectTrigger className="bg-[#0a0a0a] border-[#1a1a1a] text-white focus:border-[#9B5CFF] focus:ring-[#9B5CFF]/20">
+                    <SelectValue placeholder="Select genre" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#0a0a0a] border-[#1a1a1a]">
+                    {GENRES.map(genre => (
+                      <SelectItem key={genre} value={genre} className="text-white hover:bg-[#1a1a1a] focus:bg-[#1a1a1a]">{genre}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.genre && <p className="text-red-400 text-xs mt-1">{errors.genre}</p>}
+              </div>
+            </div>
           </div>
 
-          {errors.submit && <p className="text-red-500 text-sm">{errors.submit}</p>}
+          {/* Account Security */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-[#D7FF3C] flex items-center gap-2">
+              <Lock className="h-4 w-4" />
+              Account Security
+            </h3>
+            
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm text-gray-300 flex items-center gap-1">
+                <Mail className="h-3 w-3" />
+                Email *
+              </Label>
+              <div className="relative">
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  className="bg-[#0a0a0a] border-[#1a1a1a] text-white focus:border-[#D7FF3C] focus:ring-[#D7FF3C]/20 pr-10"
+                  placeholder="artist@example.com"
+                  aria-required="true"
+                />
+                {availability.email === 'checking' && <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-gray-400" />}
+                {availability.email === 'available' && <Check className="absolute right-3 top-3 h-4 w-4 text-green-500" />}
+                {availability.email === 'taken' && <X className="absolute right-3 top-3 h-4 w-4 text-red-500" />}
+              </div>
+              {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
+            </div>
 
-          <Button
-            type="submit"
-            disabled={!isFormValid || isSubmitting}
-            className="w-full bg-[#D7FF3C] text-black hover:bg-[#D7FF3C]/90 font-semibold"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating Account...
-              </>
-            ) : (
-              'Sign Up'
-            )}
-          </Button>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm text-gray-300">Password *</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                  className="bg-[#0a0a0a] border-[#1a1a1a] text-white focus:border-[#D7FF3C] focus:ring-[#D7FF3C]/20"
+                  placeholder="Min 10 chars"
+                  aria-required="true"
+                />
+                <PasswordStrength password={formData.password} />
+                {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-sm text-gray-300">Confirm Password *</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                  className="bg-[#0a0a0a] border-[#1a1a1a] text-white focus:border-[#D7FF3C] focus:ring-[#D7FF3C]/20"
+                  placeholder="Re-enter password"
+                  aria-required="true"
+                />
+                {errors.confirmPassword && <p className="text-red-400 text-xs mt-1">{errors.confirmPassword}</p>}
+              </div>
+            </div>
+          </div>
+
+          {/* Social Links */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm text-gray-300">Social Links (Optional, max 5)</Label>
+              {formData.socialLinks.length < 5 && (
+                <Button
+                  type="button"
+                  onClick={addSocialLink}
+                  variant="outline"
+                  size="sm"
+                  className="h-7 border-[#1a1a1a] text-[#D7FF3C] hover:bg-[#D7FF3C]/10 hover:text-[#D7FF3C] hover:border-[#D7FF3C]"
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Add Link
+                </Button>
+              )}
+            </div>
+            <div className="space-y-2">
+              {formData.socialLinks.map((link, index) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    value={link}
+                    onChange={(e) => updateSocialLink(index, e.target.value)}
+                    placeholder="https://soundcloud.com/yourprofile"
+                    className="bg-[#0a0a0a] border-[#1a1a1a] text-white focus:border-[#9B5CFF] focus:ring-[#9B5CFF]/20"
+                  />
+                  {formData.socialLinks.length > 1 && (
+                    <Button
+                      type="button"
+                      onClick={() => removeSocialLink(index)}
+                      variant="ghost"
+                      size="icon"
+                      className="text-red-400 hover:text-red-300 hover:bg-red-400/10 shrink-0"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500">Add links to SoundCloud, Spotify, Instagram, or other platforms</p>
+          </div>
+
+          {errors.submit && (
+            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-md">
+              <p className="text-sm text-red-400">{errors.submit}</p>
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-4 border-t border-[#1a1a1a]">
+            <Button
+              type="submit"
+              disabled={!isFormValid || isSubmitting}
+              className="flex-1 bg-gradient-to-r from-[#D7FF3C] to-[#9B5CFF] text-black hover:opacity-90 font-semibold h-11 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                <>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Create Account
+                </>
+              )}
+            </Button>
+            <Button
+              type="button"
+              onClick={onClose}
+              variant="outline"
+              className="border-[#1a1a1a] text-gray-300 hover:bg-[#1a1a1a] hover:text-white h-11"
+            >
+              Cancel
+            </Button>
+          </div>
+
+          <p className="text-xs text-gray-500 text-center">
+            By signing up, you agree to our Terms of Service and Privacy Policy
+          </p>
         </form>
       </DialogContent>
     </Dialog>
