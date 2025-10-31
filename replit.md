@@ -62,6 +62,7 @@ The project utilizes a pnpm monorepo structure with `apps/web` for the Next.js f
   - IP-based rate limiting on forgot-password endpoint (3 requests per 15 minutes)
   - Consistent error handling across all auth endpoints
   - Database-backed user management with Drizzle ORM
+  - **Bug Fix (October 31, 2025):** Fixed InfoModal auto-showing on page load - added conditional rendering to prevent Terms modal from appearing when not triggered by user action
   - TODO: Email service integration for password reset and verification emails
 - **Admin Console:** Planned for content management and moderation.
 
@@ -69,6 +70,10 @@ The project utilizes a pnpm monorepo structure with `apps/web` for the Next.js f
 - **Deployment:** Replit for development, production deployment TBD.
 - **Scalability:** Cursor-based pagination implemented for API performance.
 - **Modularity:** AI adapter pattern for flexible AI service integration.
+- **Database Setup (October 31, 2025):** 
+  - Database migrations must be run after import: `pnpm --filter db migrate`
+  - To populate feeds, run setup script: `pnpm setup` (includes migrations, admin seeding, source seeding, and initial feed ingestion)
+  - Feed API requires populated database tables to display content
 - **Security:** 
   - bcrypt password hashing (10 rounds)
   - IP-based rate limiting on sensitive endpoints
