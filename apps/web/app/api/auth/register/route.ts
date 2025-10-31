@@ -8,13 +8,13 @@ import { eq } from 'drizzle-orm';
 import { setSession } from '@/lib/auth';
 
 const RegisterSchema = z.object({
-  firstName: z.string().min(1).trim(),
-  lastName: z.string().min(1).trim(),
-  artistName: z.string().min(1).trim(),
-  email: z.string().email().trim().toLowerCase(),
+  firstName: z.string().trim().min(1),
+  lastName: z.string().trim().min(1),
+  artistName: z.string().trim().min(1),
+  email: z.string().trim().toLowerCase().email(),
   password: z.string().min(8),
-  region: z.string().min(1).max(60).trim(),
-  genre: z.string().min(1).max(120).trim(),
+  region: z.string().trim().min(1).max(60),
+  genre: z.string().trim().min(1).max(120),
 });
 
 export async function POST(request: NextRequest) {

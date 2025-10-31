@@ -14,7 +14,7 @@ export interface EPKData {
   socialLinks?: Record<string, string>;
 }
 
-export async function generateEPKPDF(data: EPKData): Promise{
+export async function generateEPKPDF(data: EPKData): Promise<{ success: boolean; data?: Buffer; error?: string }> {
   try {
     // Create a new PDFDocument
     const pdfDoc = await PDFDocument.create();
