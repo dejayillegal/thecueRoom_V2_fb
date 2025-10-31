@@ -227,6 +227,117 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
     }
   };
 
+  // Handle Sign Up
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrors({});
+    setIsSubmitting(true);
+
+    try {
+      // Validate required fields
+      const newErrors: Record<string, string> = {};
+      
+      if (!formData.firstName) newErrors.firstName = 'First name is required';
+      if (!formData.lastName) newErrors.lastName = 'Last name is required';
+      if (!formData.artistName) newErrors.artistName = 'Artist name is required';
+      if (!formData.email) newErrors.email = 'Email is required';
+      if (!formData.region) newErrors.region = 'Region is required';
+      if (!formData.genre) newErrors.genre = 'Genre is required';
+      
+      const passwordError = validatePassword(formData.password);
+      if (passwordError) newErrors.password = passwordError;
+      
+      if (formData.password !== formData.confirmPassword) {
+        newErrors.confirmPassword = 'Passwords do not match';
+      }
+
+      // Check availability
+      if (availability.artistName.available === false) {
+        newErrors.artistName = 'Artist name is not available';
+      }
+      if (availability.email.available === false) {
+        newErrors.email = 'Email is already registered';
+      }
+      if (availability.username.available === false) {
+        newErrors.submit = 'Username is not available';
+      }
+
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        return;
+      }
+
+      // Submit signup
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          artistName: formData.artistName,
+          email: formData.email,
+          password: formData.password,
+          username: autoUsername,
+          region: formData.region,
+          genre: formData.genre,
+          socialLinks: formData.socialLinks.filter(link => link.trim() !== ''),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrors({ submit: data.error || 'Failed to create account' });
+        return;
+      }
+
+      // Show verification modal
+      setVerificationJobId(data.jobId);
+      setShowVerificationModal(true);
+    } catch (error) {
+      console.error('Sign up error:', error);
+      setErrors({ submit: 'An error occurred. Please try again.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle Forgot Password
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotError('');
+    setForgotSuccess(false);
+    setIsSendingReset(true);
+
+    try {
+      if (!forgotEmail) {
+        setForgotError('Please enter your email address');
+        return;
+      }
+
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setForgotError(data.error || 'Failed to send reset email');
+        return;
+      }
+
+      setForgotSuccess(true);
+      setForgotEmail('');
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      setForgotError('An error occurred. Please try again.');
+    } finally {
+      setIsSendingReset(false);
+    }
+  };
+
   // Reset form when modal closes
   useEffect(() => {
     if (!isOpen) {
@@ -679,8 +790,8 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
 
       {verificationJobId && (
         <VerificationModal
-          isOpen={showVerificationModal}
-          onClose={() => setShowVerificationModal(false)}
+          open={showVerificationModal}
+          onOpenChange={setShowVerificationModal}
           jobId={verificationJobId}
           onComplete={() => {
             setShowVerificationModal(false);
