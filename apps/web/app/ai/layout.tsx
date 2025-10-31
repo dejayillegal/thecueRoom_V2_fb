@@ -33,8 +33,8 @@ export default memo(function AILayout({
         sidebarOpen={sidebarOpen}
       />
       <main 
-        className="min-h-screen pt-[72px] transition-all duration-300 ease-in-out"
-        style={{ marginLeft: sidebarOpen ? '200px' : '60px' }}
+        className="min-h-screen pt-[72px] ml-0 lg:ml-[60px] transition-all duration-300 ease-in-out"
+        style={{ marginLeft: sidebarOpen ? '240px' : '64px' }}
       >
         {children}
       </main>
