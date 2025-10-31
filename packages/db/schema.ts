@@ -6,6 +6,8 @@ export const users = pgTable('users', {
   email: text('email').notNull().unique(),
   passwordHash: text('password_hash'),
   role: text('role').notNull().default('user'),
+  verified: boolean('verified').notNull().default(false),
+  verificationJobId: uuid('verification_job_id'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -255,4 +257,24 @@ export const ingestionJobs = pgTable('ingestion_jobs', {
 }, (table) => ({
   statusIdx: index('ingestion_jobs_status_idx').on(table.status),
   createdAtIdx: index('ingestion_jobs_created_at_idx').on(table.createdAt),
+}));
+
+export const verificationJobs = pgTable('verification_jobs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  profileUrl: text('profile_url').notNull(),
+  status: text('status').notNull().default('queued'),
+  decision: text('decision'),
+  score: integer('score'),
+  evidence: jsonb('evidence').$type<any>(),
+  error: text('error'),
+  reviewedBy: text('reviewed_by'),
+  reviewNotes: text('review_notes'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  completedAt: timestamp('completed_at'),
+}, (table) => ({
+  statusIdx: index('verification_jobs_status_idx').on(table.status),
+  userIdIdx: index('verification_jobs_user_id_idx').on(table.userId),
+  createdAtIdx: index('verification_jobs_created_at_idx').on(table.createdAt),
 }));

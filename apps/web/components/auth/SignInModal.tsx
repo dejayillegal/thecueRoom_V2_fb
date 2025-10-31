@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -24,6 +23,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showSignupModal, setShowSignupModal] = useState(false); // State to control the signup modal
 
   useEffect(() => {
     setMounted(true);
@@ -149,7 +149,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
         onClick={handleCancel}
         style={{ position: 'fixed' }}
       />
-      
+
       {/* Modal container */}
       <div className="relative w-full max-w-[920px] my-auto bg-[#0F0F0F] border border-[#262626] rounded-2xl overflow-hidden shadow-2xl" style={{ zIndex: 10000 }}>
         <button
@@ -164,7 +164,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
           <div className="p-6 md:p-8 lg:p-10 max-h-[calc(90vh-4rem)] overflow-y-auto">
             <div className="mb-6 md:mb-8">
               <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6">Sign In</h2>
-              
+
               {/* Tabs */}
               <div className="flex gap-2 mb-6 md:mb-8">
                 <button
@@ -178,7 +178,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                   Sign In
                 </button>
                 <button
-                  onClick={() => setView('signup')}
+                  onClick={() => { setShowSignupModal(true); onOpenChange(false); }} // Modified handler
                   className={`px-4 md:px-6 py-2 rounded-md text-xs md:text-sm font-medium transition-colors ${
                     view === 'signup'
                       ? 'bg-primary text-primary-foreground'
