@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +9,8 @@ import { Check, X, Loader2, RefreshCw, AlertCircle, Radio, MapPin, Music2 } from
 import { useDebounce } from '@/src/hooks/use-debounce';
 import { generateUsername } from '@/src/lib/username-generator';
 import VerificationModal from '@/src/components/Auth/VerificationModal';
+import { useRouter } from 'next/navigation';
+
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -26,7 +27,15 @@ interface AvailabilityState {
 
 const PASSWORD_MIN_LENGTH = 10;
 
+const curatedNews = [
+  { city: 'Berlin', genre: 'Techno', icon: Radio },
+  { city: 'Detroit', genre: 'House', icon: Music2 },
+  { city: 'London', genre: 'Bass', icon: MapPin },
+];
+
+
 export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<ActiveTab>('signin');
   
   // Sign In state
@@ -184,136 +193,76 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
     return null;
   };
 
+  // Handle Sign In
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setSignInError('');
-
-    if (!signInEmail || !signInPassword) {
-      setSignInError('Please enter both email and password');
-      return;
-    }
-
     setIsSigningIn(true);
 
     try {
       const response = await fetch('/api/auth/signin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: signInEmail, password: signInPassword }),
+        body: JSON.stringify({
+          email: signInEmail,
+          password: signInPassword,
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        setSignInError(data.message || 'Sign in failed');
-        setIsSigningIn(false);
+        setSignInError(data.error || 'Invalid email or password');
         return;
       }
 
-      window.location.href = '/dashboard';
-    } catch (err) {
+      onClose();
+      router.push('/dashboard');
+      router.refresh();
+    } catch (error) {
+      console.error('Sign in error:', error);
       setSignInError('An error occurred. Please try again.');
+    } finally {
       setIsSigningIn(false);
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrors({});
-
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.firstName.trim()) newErrors.firstName = 'Required';
-    if (!formData.lastName.trim()) newErrors.lastName = 'Required';
-    if (!formData.artistName.trim()) newErrors.artistName = 'Required';
-    if (!formData.email.trim()) newErrors.email = 'Required';
-    else if (!formData.email.includes('@')) newErrors.email = 'Invalid email';
-    
-    const passwordError = validatePassword(formData.password);
-    if (passwordError) newErrors.password = passwordError;
-    
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    if (!formData.region.trim()) newErrors.region = 'Required';
-    if (!formData.genre.trim()) newErrors.genre = 'Required';
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    if (!availability.artistName.available || !availability.email.available || !availability.username.available) {
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          firstName: formData.firstName.trim(),
-          lastName: formData.lastName.trim(),
-          artistName: formData.artistName.trim(),
-          email: formData.email.trim(),
-          password: formData.password,
-          username: autoUsername,
-          region: formData.region.trim(),
-          genre: formData.genre.trim(),
-          socialLinks: formData.socialLinks.filter(link => link.trim())
-        })
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSignInEmail('');
+      setSignInPassword('');
+      setSignInError('');
+      setActiveTab('signin');
+      setFormData({
+        firstName: '',
+        lastName: '',
+        artistName: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        region: '',
+        genre: '',
+        socialLinks: ['']
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setVerificationJobId(data.jobId);
-        setShowVerificationModal(true);
-        onClose();
-      } else {
-        setErrors({ submit: data.error || 'Signup failed' });
-      }
-    } catch (error) {
-      setErrors({ submit: 'Network error. Please try again.' });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setForgotError('');
-    setForgotSuccess(false);
-
-    if (!forgotEmail || !forgotEmail.includes('@')) {
-      setForgotError('Please enter a valid email address');
-      return;
-    }
-
-    setIsSendingReset(true);
-
-    try {
-      const response = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: forgotEmail }),
+      setErrors({});
+      setAutoUsername('');
+      setUsernameAlternatives([]);
+      setShowAlternatives(false);
+      setAvailability({
+        artistName: { checking: false, available: null },
+        email: { checking: false, available: null },
+        username: { checking: false, available: null }
       });
-
-      if (response.ok) {
-        setForgotSuccess(true);
-      } else {
-        const data = await response.json();
-        setForgotError(data.message || 'Failed to send reset email');
-      }
-    } catch (err) {
-      setForgotError('An error occurred. Please try again.');
-    } finally {
+      setForgotEmail('');
+      setForgotError('');
+      setForgotSuccess(false);
       setIsSendingReset(false);
+      setVerificationJobId(null);
+      setShowVerificationModal(false);
     }
-  };
+  }, [isOpen]);
+
 
   const AvailabilityIndicator = ({ state }: { state: AvailabilityState }) => {
     if (state.checking) {
@@ -328,23 +277,24 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
     return null;
   };
 
-  if (verificationJobId && showVerificationModal) {
-    return (
-      <VerificationModal
-        open={showVerificationModal}
-        onOpenChange={setShowVerificationModal}
-        jobId={verificationJobId}
-        onComplete={() => {
-          setShowVerificationModal(false);
-          window.location.href = '/dashboard';
-        }}
-      />
-    );
-  }
+  // No longer needed as VerificationModal is rendered conditionally at the end
+  // if (verificationJobId && showVerificationModal) {
+  //   return (
+  //     <VerificationModal
+  //       open={showVerificationModal}
+  //       onOpenChange={setShowVerificationModal}
+  //       jobId={verificationJobId}
+  //       onComplete={() => {
+  //         setShowVerificationModal(false);
+  //         window.location.href = '/dashboard';
+  //       }}
+  //     />
+  //   );
+  // }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[920px] max-h-[90vh] bg-black border border-[#1a1a1a] text-white p-0 gap-0 overflow-hidden">
+      <DialogContent className="max-w-[900px] max-h-[85vh] bg-black border border-[#1a1a1a] text-white p-0 gap-0 overflow-hidden">
         <DialogTitle className="sr-only">
           {activeTab === 'signin' ? 'Sign In' : activeTab === 'signup' ? 'Sign Up' : 'Forgot Password'}
         </DialogTitle>
@@ -687,33 +637,27 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
               </p>
               
               <div className="space-y-2">
-                <div className="flex items-center justify-between p-2 bg-black/50 rounded text-xs">
-                  <div className="flex items-center gap-2">
-                    <Radio className="h-3 w-3" />
-                    <span>Berlin</span>
-                  </div>
-                  <span className="text-gray-400">Techno</span>
-                </div>
-                <div className="flex items-center justify-between p-2 bg-black/50 rounded text-xs">
-                  <div className="flex items-center gap-2">
-                    <Music2 className="h-3 w-3" />
-                    <span>Detroit</span>
-                  </div>
-                  <span className="text-gray-400">House</span>
-                </div>
-                <div className="flex items-center justify-between p-2 bg-black/50 rounded text-xs">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-3 w-3" />
-                    <span>London</span>
-                  </div>
-                  <span className="text-gray-400">Bass</span>
-                </div>
+                {curatedNews.map((item, idx) => {
+                  const Icon = item.icon;
+                  return (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-3 bg-black/50 rounded text-xs hover:bg-black/70 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon className="h-3 w-3 text-[#D1FF3D]" />
+                        <span className="text-white">{item.city}</span>
+                      </div>
+                      <span className="text-gray-400">{item.genre}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
             <div>
               <h3 className="font-semibold mb-2 text-sm">What happens next?</h3>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-400 leading-relaxed">
                 After you press Sign In, we authenticate and route you to the News interface with your filters remembered. If password reset, we'll send a 6-digit code and prompt you to enter it.
               </p>
             </div>
@@ -731,5 +675,19 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
         </div>
       </DialogContent>
     </Dialog>
+
+    {verificationJobId && (
+      <VerificationModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        jobId={verificationJobId}
+        onComplete={() => {
+          setShowVerificationModal(false);
+          router.push('/dashboard');
+          router.refresh();
+        }}
+      />
+    )}
+  </>
   );
 }
