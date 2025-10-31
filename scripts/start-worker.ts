@@ -3,6 +3,7 @@ import { sources, feeds } from '../packages/db/schema';
 import { eq, sql } from 'drizzle-orm';
 import Parser from 'rss-parser';
 import pLimit from 'p-limit';
+import crypto from 'crypto'; // Import crypto module
 
 const parser = new Parser({
   timeout: 30000,
@@ -13,6 +14,16 @@ const parser = new Parser({
 
 const POLL_INTERVAL_MS = 60 * 60 * 1000; // 60 minutes
 const CONCURRENCY = 5; // Process 5 feeds at a time
+
+// Updated hash generation function to include published date
+function generateHash(title: string, link: string, publishedAt?: Date): string {
+  const baseString = `${link}|${title}${publishedAt ? `|${publishedAt.toISOString()}` : ''}`;
+  return crypto
+    .createHash('sha256')
+    .update(baseString)
+    .digest('hex')
+    .substring(0, 64);
+}
 
 async function processFeed(source: any) {
   const db = getDbClient();
@@ -62,8 +73,8 @@ async function processFeed(source: any) {
         // Extract tags from categories
         const tags = item.categories || [];
 
-        // Create content hash for deduplication
-        const contentHash = Buffer.from(item.link).toString('base64').substring(0, 32);
+        // Create content hash for deduplication using the updated function
+        const contentHash = generateHash(item.title, item.link, publishedAt);
 
         // Insert new feed item
         await db.insert(feeds).values({

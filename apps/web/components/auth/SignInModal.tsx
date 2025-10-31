@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Mail, Lock, AlertCircle, CheckCircle2, Loader2, X, LogIn, UserPlus, Send } from 'lucide-react';
+import { SignupModal } from '@/src/components/Auth/SignupModal';
+import { PostRegisterOnboard } from '@/src/components/Auth/PostRegisterOnboard';
 
 interface AuthModalProps {
   open: boolean;
@@ -23,7 +25,15 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [showSignupModal, setShowSignupModal] = useState(false); // State to control the signup modal
+  const [showSignupModal, setShowSignupModal] = useState(false);
+  const [showOnboardModal, setShowOnboardModal] = useState(false);
+  const [onboardJobId, setOnboardJobId] = useState('');
+
+  const handleSignupSuccess = (userId: string, jobId: string) => {
+    setShowSignupModal(false);
+    setOnboardJobId(jobId);
+    setShowOnboardModal(true);
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -178,7 +188,10 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                   Sign In
                 </button>
                 <button
-                  onClick={() => { setShowSignupModal(true); onOpenChange(false); }} // Modified handler
+                  onClick={() => { 
+                    onOpenChange(false);
+                    setTimeout(() => setShowSignupModal(true), 100);
+                  }}
                   className={`px-4 md:px-6 py-2 rounded-md text-xs md:text-sm font-medium transition-colors ${
                     view === 'signup'
                       ? 'bg-primary text-primary-foreground'
@@ -444,5 +457,19 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     </div>
   );
 
-  return mounted ? createPortal(modalContent, document.body) : null;
+  return mounted ? (
+    <>
+      {createPortal(modalContent, document.body)}
+      <SignupModal 
+        open={showSignupModal} 
+        onOpenChange={setShowSignupModal}
+        onSuccess={handleSignupSuccess}
+      />
+      <PostRegisterOnboard
+        open={showOnboardModal}
+        jobId={onboardJobId}
+        onOpenChange={setShowOnboardModal}
+      />
+    </>
+  ) : null;
 }
