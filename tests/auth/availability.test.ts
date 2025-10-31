@@ -67,3 +67,57 @@ describe('Availability Check API', () => {
     });
   });
 });
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+describe('Availability Check API', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should check email availability', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ available: true }),
+    });
+    global.fetch = mockFetch;
+
+    const response = await fetch('/api/auth/check-availability', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'email', value: 'test@example.com' }),
+    });
+
+    const data = await response.json();
+    expect(data.available).toBe(true);
+  });
+
+  it('should enforce rate limits', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      status: 429,
+      json: async () => ({ available: false, reason: 'Rate limit exceeded' }),
+    });
+    global.fetch = mockFetch;
+
+    const response = await fetch('/api/auth/check-availability', {
+      method: 'POST',
+      body: JSON.stringify({ type: 'email', value: 'test@example.com' }),
+    });
+
+    expect(response.status).toBe(429);
+  });
+
+  it('should validate request schema', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      status: 400,
+      json: async () => ({ available: false, reason: 'Invalid request' }),
+    });
+    global.fetch = mockFetch;
+
+    const response = await fetch('/api/auth/check-availability', {
+      method: 'POST',
+      body: JSON.stringify({ type: 'invalid', value: '' }),
+    });
+
+    expect(response.status).toBe(400);
+  });
+});

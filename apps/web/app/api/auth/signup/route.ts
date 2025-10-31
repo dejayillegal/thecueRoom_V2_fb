@@ -6,143 +6,106 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 
 const signupSchema = z.object({
-  artistName: z.string().min(2).max(100),
-  email: z.string().email(),
-  password: z.string().min(10),
-  confirmPassword: z.string(),
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),
+  artistName: z.string().min(2).max(100),
+  email: z.string().email(),
+  password: z.string().min(10).regex(/[0-9!@#$%^&*(),.?":{}|<>_\-+=]/, 'Must include number or special char'),
+  username: z.string().min(3).max(50),
   region: z.string().min(1).max(60),
   genre: z.string().min(1).max(120),
+  profileUrl: z.string().url().optional(),
   socialLinks: z.array(z.string().url()).max(5).default([]),
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
 });
-
-function generateAutoUsername(artistName: string): string {
-  const suffixes = ['sub', 'grid', 'void', 'flux', 'prime', 'edge', 'freq', 'rave', 'drift'];
-  const normalized = artistName
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, '')
-    .trim()
-    .replace(/\s+/g, '.');
-  
-  const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
-  const random = Math.random().toString(36).substring(2, 5);
-  
-  return `${normalized}.${suffix}${random}`;
-}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const validated = signupSchema.parse(body);
+    const validatedData = signupSchema.parse(body);
 
     const db = getDbClient();
 
+    // Check if email already exists
     const existingEmail = await db
       .select()
       .from(users)
-      .where(eq(users.email, validated.email))
+      .where(eq(users.email, validatedData.email.toLowerCase()))
       .limit(1);
 
     if (existingEmail.length > 0) {
       return NextResponse.json(
-        { ok: false, error: 'Email already exists' },
+        { ok: false, error: 'Email already registered' },
         { status: 400 }
       );
     }
 
-    const existingArtistName = await db
+    // Check if username already exists
+    const existingUsername = await db
       .select()
-      .from(profiles)
-      .where(eq(profiles.artistName, validated.artistName))
+      .from(users)
+      .where(eq(users.username, validatedData.username.toLowerCase()))
       .limit(1);
 
-    if (existingArtistName.length > 0) {
+    if (existingUsername.length > 0) {
       return NextResponse.json(
-        { ok: false, error: 'Artist name already taken' },
+        { ok: false, error: 'Username already taken' },
         { status: 400 }
       );
     }
 
-    const autoUsername = generateAutoUsername(validated.artistName);
-    let uniqueUsername = autoUsername;
-    let attempt = 0;
-    
-    while (attempt < 5) {
-      const existingUsername = await db
-        .select()
-        .from(users)
-        .where(eq(users.username, uniqueUsername))
-        .limit(1);
-      
-      if (existingUsername.length === 0) break;
-      uniqueUsername = generateAutoUsername(validated.artistName);
-      attempt++;
-    }
+    // Hash password
+    const hashedPassword = await bcrypt.hash(validatedData.password, 10);
 
-    const passwordHash = await bcrypt.hash(validated.password, 10);
-
-    const [user] = await db
+    // Create user
+    const [newUser] = await db
       .insert(users)
       .values({
-        email: validated.email,
-        username: uniqueUsername,
-        passwordHash,
-        verificationStatus: 'pending_ai',
-        verified: false,
+        email: validatedData.email.toLowerCase(),
+        username: validatedData.username.toLowerCase(),
+        passwordHash: hashedPassword,
+        firstName: validatedData.firstName,
+        lastName: validatedData.lastName,
+        isVerified: false,
+        createdAt: new Date(),
       })
       .returning();
 
+    // Create profile
     await db.insert(profiles).values({
-      userId: user.id,
-      artistName: validated.artistName,
-      firstName: validated.firstName,
-      lastName: validated.lastName,
-      displayName: validated.artistName,
-      region: validated.region,
-      genre: validated.genre,
-      socialLinks: validated.socialLinks.reduce((acc, link, idx) => {
-        acc[`link${idx + 1}`] = link;
-        return acc;
-      }, {} as Record<string, string>),
+      userId: newUser.id,
+      artistName: validatedData.artistName,
+      region: validatedData.region,
+      genre: validatedData.genre,
+      profileUrl: validatedData.profileUrl,
+      socialLinks: validatedData.socialLinks,
     });
 
-    const socialLinksForVerif = validated.socialLinks.length > 0 
-      ? validated.socialLinks[0] 
-      : `https://example.com/${uniqueUsername}`;
-
-    const [verificationJob] = await db
+    // Create verification job
+    const [job] = await db
       .insert(verificationJobs)
       .values({
-        userId: user.id,
-        profileUrl: socialLinksForVerif,
+        userId: newUser.id,
         status: 'queued',
-        progress: 0,
+        metadata: {
+          socialLinks: validatedData.socialLinks,
+          artistName: validatedData.artistName,
+        },
+        createdAt: new Date(),
       })
       .returning();
-
-    await db
-      .update(users)
-      .set({ verificationJobId: verificationJob.id })
-      .where(eq(users.id, user.id));
 
     return NextResponse.json({
       ok: true,
-      userId: user.id,
-      jobId: verificationJob.id,
-      username: uniqueUsername,
+      userId: newUser.id,
+      jobId: job.id,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { ok: false, error: 'Validation failed', details: error.errors },
+        { ok: false, error: 'Validation failed', errors: error.errors },
         { status: 400 }
       );
     }
-    
     console.error('Signup error:', error);
     return NextResponse.json(
       { ok: false, error: 'Internal server error' },

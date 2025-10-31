@@ -1,3 +1,4 @@
+
 const CREATIVE_SUFFIXES = ['sub', 'grid', 'void', 'flux', 'edge', 'freq', 'rave', 'wave', 'core', 'drop', 'sync', 'beat'];
 
 function normalize(input: string): string {

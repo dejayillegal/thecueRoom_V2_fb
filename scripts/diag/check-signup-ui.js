@@ -62,3 +62,63 @@ async function checkSignupUI() {
 }
 
 checkSignupUI();
+#!/usr/bin/env node
+
+const puppeteer = require('puppeteer');
+
+async function checkSignupUI() {
+  const browser = await puppeteer.launch({ headless: true });
+  const page = await browser.newPage();
+
+  try {
+    console.log('🔍 Running signup UI smoke test...');
+
+    await page.goto('http://localhost:5000', { waitUntil: 'networkidle2' });
+
+    // Check if signup button exists
+    const signupButton = await page.$('button:has-text("Sign Up")');
+    if (!signupButton) throw new Error('Signup button not found');
+    console.log('✅ Signup button exists');
+
+    // Click signup
+    await signupButton.click();
+    await page.waitForSelector('text=Join thecueRoom', { timeout: 5000 });
+    console.log('✅ Signup modal opens');
+
+    // Check form fields
+    const fields = ['firstName', 'lastName', 'artistName', 'email', 'password', 'confirmPassword', 'region', 'genre'];
+    for (const field of fields) {
+      const input = await page.$(`#${field}`);
+      if (!input) throw new Error(`Field ${field} not found`);
+      
+      const ariaRequired = await input.evaluate(el => el.getAttribute('aria-required'));
+      if (ariaRequired !== 'true' && field !== 'confirmPassword') {
+        throw new Error(`Field ${field} missing aria-required`);
+      }
+    }
+    console.log('✅ All required fields exist with ARIA attributes');
+
+    // Check buttons have icons and labels
+    const registerButton = await page.$('button:has-text("Register")');
+    if (!registerButton) throw new Error('Register button not found');
+    
+    const hasIcon = await registerButton.evaluate(el => el.querySelector('svg') !== null);
+    if (!hasIcon) throw new Error('Register button missing icon');
+    console.log('✅ Register button has icon and label');
+
+    // Check availability indicators
+    const availabilityStatus = await page.$('#artistName-status');
+    if (!availabilityStatus) throw new Error('Availability status indicator not found');
+    console.log('✅ Availability indicators present');
+
+    console.log('\n✅ All UI smoke tests passed!');
+    process.exit(0);
+  } catch (error) {
+    console.error('\n❌ UI smoke test failed:', error.message);
+    process.exit(1);
+  } finally {
+    await browser.close();
+  }
+}
+
+checkSignupUI();
