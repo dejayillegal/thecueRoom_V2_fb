@@ -6,7 +6,6 @@ import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Mail, Lock, AlertCircle, CheckCircle2, Loader2, X, LogIn, UserPlus, Send, Link as LinkIcon } from 'lucide-react';
 
 interface AuthModalProps {
@@ -15,9 +14,6 @@ interface AuthModalProps {
 }
 
 type AuthView = 'signin' | 'signup' | 'forgot';
-
-const REGIONS = ['North America', 'Europe', 'Asia', 'South America', 'Africa', 'Oceania'];
-const GENRES = ['Techno', 'House', 'Minimal', 'Electro', 'Ambient', 'Experimental', 'DnB', 'Dubstep'];
 
 export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [view, setView] = useState<AuthView>('signin');
@@ -72,7 +68,19 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
         }
 
         if (!region || !genre) {
-          setError('Please select both region and genre');
+          setError('Please enter both region and genre');
+          setIsLoading(false);
+          return;
+        }
+        
+        if (region.length > 60) {
+          setError('Region must be 60 characters or less');
+          setIsLoading(false);
+          return;
+        }
+        
+        if (genre.length > 120) {
+          setError('Genre must be 120 characters or less');
           setIsLoading(false);
           return;
         }
@@ -187,19 +195,6 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     setSuccess('');
     onOpenChange(false);
   }, [onOpenChange]);
-
-  // Memoize region and genre options for better performance
-  const regionOptions = useMemo(() => REGIONS.map(r => (
-    <SelectItem key={r} value={r} className="cursor-pointer hover:bg-accent focus:bg-accent">
-      {r}
-    </SelectItem>
-  )), []);
-
-  const genreOptions = useMemo(() => GENRES.map(g => (
-    <SelectItem key={g} value={g} className="cursor-pointer hover:bg-accent focus:bg-accent">
-      {g}
-    </SelectItem>
-  )), []);
 
   if (!open || !mounted) return null;
 
@@ -397,27 +392,39 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                     <Label htmlFor="region" className="text-sm text-foreground mb-2 block">
                       Region <span className="text-destructive">*</span>
                     </Label>
-                    <Select value={region} onValueChange={setRegion}>
-                      <SelectTrigger id="region" className="bg-[#0B0B0B] border-[#262626]">
-                        <SelectValue placeholder="Select region..." />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#0B0B0B] border-[#262626] max-h-[300px]">
-                        {regionOptions}
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      id="region"
+                      type="text"
+                      value={region}
+                      onChange={(e) => setRegion(e.target.value.slice(0, 60))}
+                      className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
+                      placeholder="e.g. EU — Berlin"
+                      required
+                      maxLength={60}
+                      autoComplete="off"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {region.length}/60 characters
+                    </p>
                   </div>
                   <div>
                     <Label htmlFor="genre" className="text-sm text-foreground mb-2 block">
                       Primary genre <span className="text-destructive">*</span>
                     </Label>
-                    <Select value={genre} onValueChange={setGenre}>
-                      <SelectTrigger id="genre" className="bg-[#0B0B0B] border-[#262626]">
-                        <SelectValue placeholder="Choose genre..." />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#0B0B0B] border-[#262626] max-h-[300px]">
-                        {genreOptions}
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      id="genre"
+                      type="text"
+                      value={genre}
+                      onChange={(e) => setGenre(e.target.value.slice(0, 120))}
+                      className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
+                      placeholder="e.g. Techno, Minimal"
+                      required
+                      maxLength={120}
+                      autoComplete="off"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {genre.length}/120 characters
+                    </p>
                   </div>
                 </div>
 
