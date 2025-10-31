@@ -344,10 +344,10 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[920px] h-auto bg-black border border-[#1a1a1a] text-white p-0 gap-0">
-        <div className="grid grid-cols-[1fr_320px]">
+      <DialogContent className="max-w-[920px] max-h-[90vh] bg-black border border-[#1a1a1a] text-white p-0 gap-0 overflow-hidden">
+        <div className="grid grid-cols-[1fr_320px] h-full max-h-[85vh]">
           {/* Left Column - Auth Forms */}
-          <div className="p-8">
+          <div className="p-8 overflow-y-auto">
             {/* Header with Tabs */}
             <div className="mb-8">
               <h2 className="text-lg font-semibold mb-4">Sign in to TheCueRoom</h2>
@@ -462,7 +462,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
 
             {/* Sign Up Form */}
             {activeTab === 'signup' && (
-              <form onSubmit={handleSignUp} className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+              <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-sm text-gray-400">First Name *</Label>
@@ -676,7 +676,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
           </div>
 
           {/* Right Column - Curated News Rail */}
-          <div className="bg-[#0a0a0a] border-l border-[#1a1a1a] p-6 space-y-6">
+          <div className="bg-[#0a0a0a] border-l border-[#1a1a1a] p-6 space-y-6 overflow-y-auto">
             <div>
               <h3 className="font-semibold mb-3 text-sm">Curated News Rail</h3>
               <p className="text-xs text-gray-400 mb-4">
