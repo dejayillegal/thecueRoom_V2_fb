@@ -1,0 +1,245 @@
+Fix Signup UI & Verification UX (implement exactly)
+
+Drop this entire prompt into the Replit Assistant and let it run. It must update the signup modal UI so it matches the project requirements you described (modern dashboard style, mandatory fields, live availability ticks, auto-username generation, verification modal start, TEST_MODE fallback). Do not prompt for clarification — implement, test, fix, commit, and produce the verification report.
+
+High level goal (one line)
+
+Replace the old signup UI with a production-grade Sign Up tab/modal and verification flow that is visually identical to the dashboard theme, mobile-friendly, fast, memory-safe, accessible, and fully tested.
+
+UX + Functional requirements (must be implemented exactly)
+
+Single Sign Up Modal/Tab UI
+
+Keep same dashboard layout/theme (no global token changes).
+
+Show tabs: Sign In, Sign Up (active), Forgot.
+
+Sign Up form fields (all mandatory):
+
+First name (text)
+
+Last name (text)
+
+Artist / Project name (artistName) — live availability check & unique tick
+
+Email — live availability check & unique tick
+
+Password & Confirm password (validation, show strength)
+
+Region (text input, not dropdown) — placeholder e.g. EU — Berlin
+
+Primary genre (text input, not dropdown) — placeholder e.g. Techno, Minimal
+
+Public profile URL (optional)
+
+Social links input group (0..5): support SoundCloud, Bandcamp, Instagram, Mixcloud, Spotify (text inputs)
+
+All mandatory fields must show inline validation; disabled Submit until valid.
+
+Buttons: Register (primary lime), Cancel (ghost). Buttons must have icon + visible label.
+
+Realtime availability checks (artistName & email)
+
+Debounced (400ms) calls to POST /api/auth/check-availability with { type, value }.
+
+Visual feedback: spinner while checking, green tick if available, red X + reason if taken.
+
+Rate-limit availability checks per IP on server side.
+
+Auto-username
+
+Show a non-editable Auto-generated username preview under artistName after artistName blur.
+
+Generation rules:
+
+Normalize artistName (lowercase, remove punctuation, spaces → .).
+
+If collision -> append creative suffix from [sub, grid, void, flux, edge, freq, rave] plus 2-char base36 (e.g., .sub7q).
+
+Provide a Regenerate control showing three alternatives.
+
+Verify username uniqueness via /api/auth/check-availability (type: username).
+
+Password rules
+
+Minimum 10 chars; require at least one number or special char. Show strength meter.
+
+Confirm password must match; inline error otherwise.
+
+Submit behavior
+
+On Register: POST to /api/auth/signup with Zod validation on server.
+
+Server returns { ok:true, userId, jobId } or structured errors.
+
+On success, open Verification Progress Modal with returned jobId and start polling /api/verification/job/:jobId (or use SSE if available).
+
+Verification Progress Modal
+
+Show stepper: Queued → Fetching links → Analyzing → Decision.
+
+Poll every 1.5s until status is verified | pending_admin | rejected.
+
+If verified: show success, Verified badge, link/button Go to Dashboard (auto-redirect after 2s).
+
+If pending_admin: show clear message "Pending manual verification — Admin notified" with ETA estimate and "View status" button.
+
+If rejected: show feedback and "Edit Links & Retry" button.
+
+UX polish & accessibility
+
+All clickable controls must have icon + label (use existing icons).
+
+Keyboard accessible, aria-live announcements for verification progress and availability results.
+
+Respect reduced-motion: no heavy animations.
+
+Forms must save draft to localStorage every 5s to avoid lost input.
+
+Server & worker
+
+Ensure /api/auth/check-availability handles type: email|artist|username and rate-limits.
+
+Ensure /api/auth/signup validates with Zod and enqueues verification job to packages/verification/worker.js.
+
+Worker handles TEST_MODE deterministic results.
+
+Tests & diagnostics
+
+Add unit tests:
+
+tests/auth/availability.test.ts (mock API responses, rate limit test).
+
+tests/auth/signup-flow.test.ts (server side).
+
+Add e2e Playwright test:
+
+tests/e2e/signup.spec.ts: fill signup, check ticks, submit, poll verification → success in TEST_MODE.
+
+Add scripts/diag/check-signup-ui.js to run a headless UI smoke test verifying form elements exist and are accessible.
+
+Files to CHANGE / ADD (implement full code — no stubs)
+
+Edit or create the following (exact paths preferred; use equivalent if project structure differs):
+
+Frontend
+
+apps/web/src/components/Auth/SignupModal.tsx — NEW/REPLACE
+
+apps/web/src/components/Auth/VerificationModal.tsx — NEW
+
+apps/web/src/hooks/use-availability.ts — NEW (debounce + abort + rate-limit client-side)
+
+apps/web/src/lib/auto-username.ts — NEW (generation logic)
+
+apps/web/src/components/ui/IconLabelButton.tsx — ensure exists and used by signup buttons
+
+Update any pages importing old signup to use new component.
+
+API / Backend
+
+apps/web/app/api/auth/check-availability/route.ts — NEW/UPDATE
+
+apps/web/app/api/auth/signup/route.ts — NEW/UPDATE (Zod validation)
+
+apps/web/app/api/verification/job/[jobId]/route.ts — VERIFY/UPDATE
+
+packages/verification/worker.js — ensure it supports queued jobs, TEST_MODE deterministic outputs
+
+Tests & Diagnostics
+
+tests/auth/availability.test.ts
+
+tests/auth/signup-flow.test.ts
+
+tests/e2e/signup.spec.ts
+
+scripts/diag/check-signup-ui.js
+
+Docs / Env
+
+.env.example add TEST_MODE, VERIF_CONCURRENCY if not present.
+
+Add README.md snippet with "How to run signup tests" commands.
+
+Server behavior & safety
+
+All endpoints MUST return JSON. Handle HTML/error pages gracefully — use safeFetch helpers if calling external services.
+
+Use Zod for inputs. Return 400 with structured error { ok:false, errors: [...] }.
+
+Rate-limit availability checks (simple in-memory map with TTL in dev/Replit).
+
+Password must be hashed (bcrypt). Do not log raw passwords.
+
+Enqueue verification job and respond quickly; worker does heavy work.
+
+Acceptance checks (must run and pass)
+
+Run these after implementation. Fix until all pass.
+
+Typecheck & lint:
+
+pnpm -w tsc --noEmit → 0 errors
+
+Unit tests:
+
+pnpm --filter apps/web test:unit → pass
+
+E2E:
+
+pnpm --filter apps/web test:e2e (Playwright) or run node tests/e2e/signup.spec.js → sign-up → verification success in TEST_MODE.
+
+UI smoke:
+
+node scripts/diag/check-signup-ui.js → verifies fields, buttons, ticks, aria attributes.
+
+Manual QA steps (agent must run headless where possible):
+
+Fill form, artistName taken => red X shown.
+
+Fill valid artistName/email => green tick shown.
+
+Auto-username generated (unique).
+
+Submit → verification modal opens and progresses; final state verified for TEST_MODE.
+
+Commit created with message (exact):
+
+feat(auth): modern signup modal + realtime availability, auto-username, verification modal, tests
+
+Commands the agent must run (in order)
+
+pnpm -w install
+
+pnpm -w tsc --noEmit
+
+pnpm --filter apps/web test:unit
+
+pnpm --filter apps/web test:e2e (or Playwright commands)
+
+node scripts/diag/check-signup-ui.js
+
+git add -A && git commit -m "feat(auth): modern signup modal + realtime availability, auto-username, verification modal, tests"
+
+Produce reports/signup-fix.json containing:
+
+commit, tsc output, unit_tests results, e2e results, diag summary, sampleJobId with verification final status.
+
+Implementation constraints & fallbacks
+
+If Replit cannot run Playwright or sharp or native modules, run tests in TEST_MODE and mark unavailable tests as skipped with a clear note in the report.
+
+The verification worker must have deterministic TEST_MODE behavior so e2e passes without external AI keys.
+
+No global dashboard tokens to be changed.
+
+Deliverables (what the agent must return when finished)
+
+reports/signup-fix.json (machine readable)
+
+Human summary (5 lines) describing changes and any manual steps (e.g., set SMTP_URL, HF_TOKEN for production).
+
+git show --name-status HEAD output.
+
+Outputs of the acceptance checks (tsc, tests, diag).
