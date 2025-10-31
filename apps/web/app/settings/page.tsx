@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { User, Bell, Lock, Palette } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const mockUser = {
   name: 'Artist',
@@ -17,7 +18,7 @@ const mockUser = {
 };
 
 export default memo(function SettingsPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleSidebarToggle = useCallback(() => {
     setSidebarOpen(prev => !prev);
@@ -34,8 +35,11 @@ export default memo(function SettingsPage() {
         sidebarOpen={sidebarOpen}
       />
       <main 
-        className="min-h-screen pt-[72px] ml-0 lg:ml-[60px] transition-all duration-300 ease-in-out"
-        style={{ marginLeft: sidebarOpen ? '240px' : '64px' }}
+        className={cn(
+          "min-h-screen pt-[72px] transition-all duration-200 ease-out",
+          "ml-0 lg:ml-[60px]",
+          sidebarOpen && "lg:ml-[200px]"
+        )}
       >
         <div className="px-6 py-6 max-w-4xl">
           <h1 className="text-3xl font-bold text-white mb-2">Settings</h1>

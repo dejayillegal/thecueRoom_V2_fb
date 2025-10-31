@@ -4,6 +4,7 @@
 import { useState, useCallback, memo } from 'react';
 import { Sidebar } from '@/components/dashboard/Sidebar';
 import { Header } from '@/components/dashboard/Header';
+import { cn } from '@/lib/utils';
 
 const mockUser = {
   name: 'Artist',
@@ -16,7 +17,7 @@ export default memo(function AILayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleSidebarToggle = useCallback(() => {
     setSidebarOpen(prev => !prev);
@@ -33,8 +34,11 @@ export default memo(function AILayout({
         sidebarOpen={sidebarOpen}
       />
       <main 
-        className="min-h-screen pt-[72px] ml-0 lg:ml-[60px] transition-all duration-300 ease-in-out"
-        style={{ marginLeft: sidebarOpen ? '240px' : '64px' }}
+        className={cn(
+          "min-h-screen pt-[72px] transition-all duration-200 ease-out",
+          "ml-0 lg:ml-[60px]",
+          sidebarOpen && "lg:ml-[200px]"
+        )}
       >
         {children}
       </main>

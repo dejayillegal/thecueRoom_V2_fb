@@ -159,24 +159,45 @@ async function processJob(jobId: string) {
         timestamp: new Date().toISOString(),
       };
     } else {
-      // Real verification
+      // Real verification with AI
       const profileData = await fetchProfileData(job.profileUrl);
       
-      if (profileData.error) {
-        throw new Error(`Failed to fetch profile: ${profileData.error}`);
+      let profileHtml = '';
+      if (!profileData.error && profileData.html) {
+        profileHtml = profileData.html;
       }
 
-      const signals = extractSignals(profileData.html, job.profileUrl);
-      score = calculateScore(signals, job.profileUrl);
-      decision = makeDecision(score);
+      // Use AI verification for duplicate and fake account detection
+      const { verifyUserProfile } = await import('../apps/web/src/lib/ai-verification');
+      const aiResult = await verifyUserProfile(job.userId, job.profileUrl, profileHtml);
 
-      evidence = {
-        profileUrl: job.profileUrl,
-        signals,
-        score,
-        fetchedAt: new Date().toISOString(),
-        htmlSnippet: profileData.html.substring(0, 500),
-      };
+      decision = aiResult.decision;
+      score = aiResult.score;
+      evidence = aiResult.evidence;
+
+      // Send admin notification if manual review is required
+      if (aiResult.requiresManualReview && aiResult.adminMessage) {
+        console.log(`[Worker] Manual review required for user ${job.userId}: ${aiResult.adminMessage}`);
+        
+        await db.update(verificationJobs)
+          .set({
+            reviewNotes: aiResult.adminMessage,
+            updatedAt: new Date(),
+          })
+          .where(eq(verificationJobs.id, jobId));
+        
+        // Log admin notification (can be extended to email/Slack in future)
+        writeFileSync(
+          join(VERIFY_TEMP_DIR, `admin-review-${jobId}.json`),
+          JSON.stringify({
+            jobId,
+            userId: job.userId,
+            message: aiResult.adminMessage,
+            timestamp: new Date().toISOString(),
+            evidence: aiResult.evidence,
+          }, null, 2)
+        );
+      }
     }
 
     // Update job with result
@@ -191,17 +212,40 @@ async function processJob(jobId: string) {
       })
       .where(eq(verificationJobs.id, jobId));
 
-    // If approved, update user
+    // Update user based on decision
     if (decision === 'approved') {
       await db.update(users)
         .set({
           verified: true,
+          verificationStatus: 'approved',
           verificationJobId: jobId,
           updatedAt: new Date(),
         })
         .where(eq(users.id, job.userId));
       
-      console.log(`[Worker] User ${job.userId} verified`);
+      console.log(`[Worker] User ${job.userId} verified and approved`);
+    } else if (decision === 'rejected') {
+      await db.update(users)
+        .set({
+          verified: false,
+          verificationStatus: 'rejected',
+          verificationJobId: jobId,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, job.userId));
+      
+      console.log(`[Worker] User ${job.userId} verification rejected`);
+    } else if (decision === 'review') {
+      await db.update(users)
+        .set({
+          verified: false,
+          verificationStatus: 'manual_review',
+          verificationJobId: jobId,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, job.userId));
+      
+      console.log(`[Worker] User ${job.userId} flagged for manual review`);
     }
 
     // Write result to file

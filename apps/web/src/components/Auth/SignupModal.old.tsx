@@ -1,12 +1,11 @@
+
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { AlertCircle, CheckCircle2, Loader2, X, UserPlus, RefreshCw } from 'lucide-react';
-import { PasswordStrength } from './PasswordStrength';
-import { generateMusicUsername } from '@/lib/username-generator';
+import { AlertCircle, CheckCircle2, Loader2, X, UserPlus, Link as LinkIcon } from 'lucide-react';
 
 interface SignupModalProps {
   open: boolean;
@@ -17,11 +16,9 @@ interface SignupModalProps {
 export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [username, setUsername] = useState('');
   const [artistName, setArtistName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [region, setRegion] = useState('');
   const [genre, setGenre] = useState('');
   const [publicProfile, setPublicProfile] = useState('');
@@ -29,56 +26,29 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [canCloseByBackdrop, setCanCloseByBackdrop] = useState(false);
-  const [showPasswordStrength, setShowPasswordStrength] = useState(false);
 
-  const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null);
-  const [checkingEmail, setCheckingEmail] = useState(false);
+  // Validation states
+  const [emailValid, setEmailValid] = useState(false);
+  const [passwordValid, setPasswordValid] = useState(false);
   const [artistAvailable, setArtistAvailable] = useState<boolean | null>(null);
   const [checkingArtist, setCheckingArtist] = useState(false);
-  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
-  const [checkingUsername, setCheckingUsername] = useState(false);
 
-  const isPasswordValid = password.length >= 8 && 
-    /[A-Z]/.test(password) && 
-    /[a-z]/.test(password) && 
-    /[0-9]/.test(password) &&
-    /[!@#$%^&*(),.?":{}|<>_\-+=]/.test(password);
-
-  const passwordsMatch = password === confirmPassword && password.length > 0;
-
-  const generateUsername = useCallback(() => {
-    const newUsername = generateMusicUsername();
-    setUsername(newUsername);
-  }, []);
-
+  // Email validation
   useEffect(() => {
-    if (open && !username) {
-      generateUsername();
-    }
-  }, [open, username, generateUsername]);
-
-  useEffect(() => {
-    if (!email || email.length < 3 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setEmailAvailable(null);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      setCheckingEmail(true);
-      try {
-        const res = await fetch(`/api/auth/check-email?email=${encodeURIComponent(email)}`);
-        const data = await res.json();
-        setEmailAvailable(data.available);
-      } catch {
-        setEmailAvailable(null);
-      } finally {
-        setCheckingEmail(false);
-      }
-    }, 500);
-
-    return () => clearTimeout(timer);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    setEmailValid(emailRegex.test(email));
   }, [email]);
 
+  // Password validation (min 8 chars, 1 uppercase, 1 lowercase, 1 number)
+  useEffect(() => {
+    const hasMinLength = password.length >= 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    setPasswordValid(hasMinLength && hasUpperCase && hasLowerCase && hasNumber);
+  }, [password]);
+
+  // Check artist name availability
   useEffect(() => {
     if (!artistName || artistName.length < 2) {
       setArtistAvailable(null);
@@ -101,28 +71,7 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
     return () => clearTimeout(timer);
   }, [artistName]);
 
-  useEffect(() => {
-    if (!username || username.length < 3) {
-      setUsernameAvailable(null);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      setCheckingUsername(true);
-      try {
-        const res = await fetch(`/api/auth/check-username?username=${encodeURIComponent(username)}`);
-        const data = await res.json();
-        setUsernameAvailable(data.available);
-      } catch {
-        setUsernameAvailable(null);
-      } finally {
-        setCheckingUsername(false);
-      }
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [username]);
-
+  // Allow backdrop closing after modal is fully opened
   useEffect(() => {
     if (open) {
       const timer = setTimeout(() => setCanCloseByBackdrop(true), 300);
@@ -146,32 +95,19 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
       return;
     }
 
-    if (!passwordsMatch) {
-      setError('Passwords do not match');
-      setIsLoading(false);
-      return;
-    }
-
-    if (!isPasswordValid) {
-      setError('Password does not meet security requirements');
-      setIsLoading(false);
-      return;
-    }
-
     try {
+      // Register user
       const registerRes = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           firstName,
           lastName,
-          username,
           artistName,
           email,
           password,
           region,
           genre,
-          socialProfileUrl: publicProfile,
         }),
       });
 
@@ -182,6 +118,7 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
 
       const { userId } = await registerRes.json();
 
+      // Submit verification
       const verifyRes = await fetch('/api/verify/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -212,11 +149,6 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
       onOpenChange(false);
     }
   };
-
-  const isFormValid = firstName && lastName && username && artistName && email && 
-    password && confirmPassword && region && genre && publicProfile && 
-    agreeTerms && emailAvailable === true && artistAvailable === true && 
-    usernameAvailable === true && isPasswordValid && passwordsMatch;
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto">
@@ -281,44 +213,6 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
               </div>
 
               <div>
-                <Label htmlFor="username" className="text-sm text-foreground mb-2 block">
-                  Username <span className="text-destructive">*</span>
-                  <span className="text-xs text-muted-foreground ml-2">(Auto-generated, click refresh for new)</span>
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))}
-                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary pr-16"
-                    placeholder="e.g. bassselector303"
-                    required
-                    maxLength={30}
-                  />
-                  <button
-                    type="button"
-                    onClick={generateUsername}
-                    className="absolute right-8 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    title="Generate new username"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                  </button>
-                  {checkingUsername && (
-                    <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
-                  )}
-                  {!checkingUsername && usernameAvailable === true && username.length >= 3 && (
-                    <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
-                  )}
-                  {!checkingUsername && usernameAvailable === false && (
-                    <AlertCircle className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
-                  )}
-                </div>
-                {usernameAvailable === false && (
-                  <p className="text-xs text-destructive mt-1">This username is already taken</p>
-                )}
-              </div>
-
-              <div>
                 <Label htmlFor="artistName" className="text-sm text-foreground mb-2 block">
                   Artist / Project name <span className="text-destructive">*</span>
                 </Label>
@@ -355,77 +249,48 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
                     id="email"
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value.toLowerCase())}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="bg-[#0B0B0B] border-[#262626] focus:border-primary pr-8"
                     placeholder="e.g. artist@example.com"
                     required
                   />
-                  {checkingEmail && (
-                    <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
-                  )}
-                  {!checkingEmail && emailAvailable === true && email.length >= 3 && (
+                  {email && emailValid && (
                     <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
                   )}
-                  {!checkingEmail && emailAvailable === false && (
+                  {email && !emailValid && (
                     <AlertCircle className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
                   )}
                 </div>
-                {emailAvailable === false && (
-                  <p className="text-xs text-destructive mt-1">This email is already registered</p>
-                )}
               </div>
 
               <div>
                 <Label htmlFor="password" className="text-sm text-foreground mb-2 block">
                   Password <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onFocus={() => setShowPasswordStrength(true)}
-                  className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
-                  placeholder="Create a strong password"
-                  required
-                  minLength={8}
-                  maxLength={128}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="confirmPassword" className="text-sm text-foreground mb-2 block">
-                  Confirm Password <span className="text-destructive">*</span>
-                </Label>
                 <div className="relative">
                   <Input
-                    id="confirmPassword"
+                    id="password"
                     type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     className="bg-[#0B0B0B] border-[#262626] focus:border-primary pr-8"
-                    placeholder="Re-enter your password"
+                    placeholder="Min 8 chars, 1 uppercase, 1 number"
                     required
                     minLength={8}
-                    maxLength={128}
                   />
-                  {confirmPassword && passwordsMatch && (
+                  {password && passwordValid && (
                     <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
                   )}
-                  {confirmPassword && !passwordsMatch && (
+                  {password && !passwordValid && (
                     <AlertCircle className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
                   )}
                 </div>
-                {confirmPassword && !passwordsMatch && (
-                  <p className="text-xs text-destructive mt-1">Passwords do not match</p>
+                {password && !passwordValid && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Password must have 8+ characters, uppercase, lowercase, and number
+                  </p>
                 )}
               </div>
-
-              {showPasswordStrength && password && (
-                <div className="bg-[#0B0B0B] border border-[#262626] rounded-lg p-4">
-                  <PasswordStrength password={password} confirmPassword={confirmPassword} />
-                </div>
-              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -470,7 +335,10 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
 
               <div>
                 <Label htmlFor="publicProfile" className="text-sm text-foreground mb-2 block">
-                  Social Profile URL <span className="text-destructive">*</span>
+                  <span className="inline-flex items-center gap-1">
+                    <LinkIcon className="h-3 w-3" />
+                    Public profile URL
+                  </span>
                 </Label>
                 <Input
                   id="publicProfile"
@@ -482,7 +350,7 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
                   required
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Your primary social/profile URL for verification (SoundCloud, Instagram, Spotify, Bandcamp, Beatport, Mixcloud, etc.)
+                  Paste any social/profile URL (Instagram, SoundCloud, Spotify, Bandcamp, Beatport, Mixcloud, etc.)
                 </p>
               </div>
 
@@ -493,17 +361,16 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
                   checked={agreeTerms}
                   onChange={(e) => setAgreeTerms(e.target.checked)}
                   className="mt-1"
-                  required
                 />
                 <Label htmlFor="agreeTerms" className="text-xs text-muted-foreground cursor-pointer">
-                  I agree to Terms and Privacy <span className="text-destructive">*</span>
+                  I agree to Terms and Privacy
                 </Label>
               </div>
 
               <div className="flex gap-3">
                 <Button
                   type="submit"
-                  disabled={isLoading || !isFormValid}
+                  disabled={isLoading || !emailValid || !passwordValid || artistAvailable === false || !firstName || !lastName || !artistName || !region || !genre || !publicProfile || !agreeTerms}
                   className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
                 >
                   {isLoading ? (
@@ -527,7 +394,7 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
 
               <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
                 <AlertCircle className="h-3 w-3" />
-                AI will verify your profile post-registration to ensure community authenticity.
+                Our AI will verify your artist profile post-registration to keep the community high-signal and curated.
               </p>
             </form>
           </div>
