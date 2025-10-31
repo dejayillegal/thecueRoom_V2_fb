@@ -16,7 +16,7 @@ const config: Config = {
           foreground: "#ffffff",
         },
         primary: {
-          DEFAULT: "#D1FF3D",
+          DEFAULT: "#D7FF3C",
           foreground: "#000000",
         },
         secondary: {
@@ -29,7 +29,7 @@ const config: Config = {
         },
         border: "#2a2a2a",
         input: "#0a0a0a",
-        ring: "#D1FF3D",
+        ring: "#D7FF3C",
       },
       fontFamily: {
         sans: ['var(--font-inter)'],

@@ -151,16 +151,16 @@ body {
     --foreground: 0 0% 100%;
     --card: 0 0% 6%;
     --card-foreground: 0 0% 100%;
-    --primary: 70 86% 51%;
+    --primary: 70 86% 60%;
     --primary-foreground: 0 0% 0%;
     --secondary: 265 100% 68%;
     --secondary-foreground: 0 0% 100%;
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 60%;
     --border: 0 0% 10%;
-    --ring: 70 86% 51%;
+    --ring: 70 86% 60%;
     --surface: 0 0% 6.7%;
-    --tcr-accent: #D1FF3D;
+    --tcr-accent: #D7FF3C;
   }
 }
 
@@ -304,7 +304,7 @@ body {
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-::root {
+:root {
   --tcr-accent: #D7FF3C;
   --tcr-accent-2: #9B5CFF;
 }
