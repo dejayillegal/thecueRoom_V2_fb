@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
@@ -66,7 +65,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Register error:', error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { ok: false, message: 'Invalid input', details: error.errors },

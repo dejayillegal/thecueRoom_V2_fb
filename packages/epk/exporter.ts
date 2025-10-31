@@ -1,3 +1,4 @@
+
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 
 export interface EPKData {
@@ -16,15 +17,11 @@ export interface EPKData {
 
 export async function generateEPKPDF(data: EPKData): Promise<{ success: boolean; data?: Buffer; error?: string }> {
   try {
-    // Create a new PDFDocument
     const pdfDoc = await PDFDocument.create();
-    
-    // Embed fonts
     const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
     
-    // Add a page
-    let page = pdfDoc.addPage([595, 842]); // A4 size
+    let page = pdfDoc.addPage([595, 842]); // A4
     const { width, height } = page.getSize();
     
     let yPosition = height - 60;
@@ -37,14 +34,14 @@ export async function generateEPKPDF(data: EPKData): Promise<{ success: boolean;
       y: yPosition,
       size: 24,
       font: fontBold,
-      color: rgb(0.85, 1, 0.24), // Lime color
+      color: rgb(0.85, 1, 0.24),
     });
     
     yPosition -= 40;
 
     // Genre & Region
     if (data.genre || data.region) {
-      const subtitle = [data.genre, data.region].filter(Boolean).join(' • ');
+      const subtitle = [data.region, data.genre].filter(Boolean).join(' • ');
       page.drawText(subtitle, {
         x: margin,
         y: yPosition,
@@ -55,7 +52,7 @@ export async function generateEPKPDF(data: EPKData): Promise<{ success: boolean;
       yPosition -= 30;
     }
 
-    // Bio section
+    // Bio
     if (data.bio) {
       page.drawText('Biography', {
         x: margin,
@@ -116,7 +113,6 @@ export async function generateEPKPDF(data: EPKData): Promise<{ success: boolean;
         });
         yPosition -= lineHeight;
       }
-      yPosition -= 20;
     }
 
     // Press Quotes
@@ -156,11 +152,17 @@ export async function generateEPKPDF(data: EPKData): Promise<{ success: boolean;
       }
     }
 
-    // Generate PDF bytes
     const pdfBytes = await pdfDoc.save();
+    const buffer = Buffer.from(pdfBytes);
     
-    return { success: true, data: Buffer.from(pdfBytes) };
+    // Validate PDF
+    if (!buffer.toString('utf-8', 0, 4).startsWith('%PDF')) {
+      throw new Error('Generated PDF is invalid');
+    }
+    
+    return { success: true, data: buffer };
   } catch (error: any) {
+    console.error('PDF generation error:', error);
     return { success: false, error: error.message };
   }
 }

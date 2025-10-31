@@ -1,24 +1,29 @@
+
 /**
- * Robust feed poller with admin-configurable settings
+ * Robust feed poller with concurrency control, exponential backoff, and failure tracking
  * Features:
- * - AbortController for request timeouts
- * - Exponential backoff on failures
- * - Automatic source disabling after threshold
- * - Worker thread execution for non-blocking operation
- * - Configurable concurrency and intervals
+ * - p-limit concurrency control
+ * - AbortController with timeout
+ * - Exponential backoff with jitter
+ * - Automatic source disabling after failure threshold
+ * - Streaming response handling with size limits
+ * - Worker-friendly architecture
  */
 
-import { Worker } from 'worker_threads';
 import pLimit from 'p-limit';
 import { getDbClient } from '@thecueroom/db/client';
-import { feeds, sources } from '@thecueroom/db/schema';
+import { sources, feeds } from '@thecueroom/db/schema';
 import { eq } from 'drizzle-orm';
+import { createWriteStream } from 'fs';
+import { mkdir } from 'fs/promises';
+import { join } from 'path';
 
 export interface PollerConfig {
   pollIntervalSeconds: number;
   pollConcurrency: number;
   failureThreshold: number;
-  perFetchTimeoutMs?: number;
+  fetchTimeoutMs: number;
+  maxContentSizeMB: number;
 }
 
 export interface FeedSource {
@@ -26,7 +31,7 @@ export interface FeedSource {
   url: string;
   name: string;
   enabled: boolean;
-  failureCount?: number;
+  failureCount: number;
   lastFetch?: Date;
 }
 
@@ -35,325 +40,286 @@ interface FetchResult {
   success: boolean;
   itemCount?: number;
   error?: string;
+  bytesRead?: number;
 }
 
 const DEFAULT_CONFIG: PollerConfig = {
-  pollIntervalSeconds: parseInt(process.env.POLL_INTERVAL_SECONDS || '60'),
-  pollConcurrency: parseInt(process.env.POLL_CONCURRENCY || '3'),
-  failureThreshold: parseInt(process.env.FEED_FAILURE_THRESHOLD || '5'),
-  perFetchTimeoutMs: 30000, // 30 seconds per feed
+  pollIntervalSeconds: parseInt(process.env.POLL_INTERVAL_SECONDS || '60', 10),
+  pollConcurrency: parseInt(process.env.POLL_CONCURRENCY || '3', 10),
+  failureThreshold: parseInt(process.env.FEED_FAILURE_THRESHOLD || '5', 10),
+  fetchTimeoutMs: 20000,
+  maxContentSizeMB: 5,
 };
 
-/**
- * Fetches a single feed with timeout and error handling
- */
-async function fetchFeedWithTimeout(
-  source: FeedSource,
-  timeoutMs: number
-): Promise<FetchResult> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+const LOG_DIR = join(process.cwd(), 'logs');
 
-  try {
-    const response = await fetch(source.url, {
-      signal: controller.signal,
-      headers: {
-        'User-Agent': 'thecueRoom/2.0 Feed Poller',
-      },
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      return {
-        sourceId: source.id,
-        success: false,
-        error: `HTTP ${response.status}: ${response.statusText}`,
-      };
-    }
-
-    // Parse RSS/JSON (simplified - actual implementation would use RSS parser)
-    const contentType = response.headers.get('content-type') || '';
-    let itemCount = 0;
-
-    if (contentType.includes('xml') || contentType.includes('rss')) {
-      const text = await response.text();
-      // Simple count of <item> or <entry> tags
-      const items = text.match(/<item>|<entry>/gi);
-      itemCount = items ? items.length : 0;
-    } else if (contentType.includes('json')) {
-      const json = await response.json();
-      itemCount = Array.isArray(json) ? json.length : (json.items?.length || 0);
-    }
-
-    return {
-      sourceId: source.id,
-      success: true,
-      itemCount,
-    };
-
-  } catch (error) {
-    clearTimeout(timeoutId);
-
-    if (error instanceof Error && error.name === 'AbortError') {
-      return {
-        sourceId: source.id,
-        success: false,
-        error: `Timeout after ${timeoutMs}ms`,
-      };
-    }
-
-    return {
-      sourceId: source.id,
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
-  }
-}
-
-/**
- * Calculates exponential backoff delay
- */
-function getBackoffDelay(failureCount: number, baseDelay: number = 1000): number {
-  const maxDelay = 300000; // 5 minutes max
-  const delay = Math.min(baseDelay * Math.pow(2, failureCount), maxDelay);
-  return delay;
-}
-
-/**
- * Main poller class
- */
-export class FeedPoller {
+class FeedPoller {
   private config: PollerConfig;
-  private sources: Map<string, FeedSource>;
-  private isRunning: boolean;
-  private intervalHandle: NodeJS.Timeout | null;
   private limit: ReturnType<typeof pLimit>;
+  private isRunning: boolean = false;
+  private intervalHandle: NodeJS.Timeout | null = null;
+  private logStream: any = null;
 
   constructor(config: Partial<PollerConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
-    this.sources = new Map();
-    this.isRunning = false;
-    this.intervalHandle = null;
     this.limit = pLimit(this.config.pollConcurrency);
   }
 
-  /**
-   * Adds or updates a feed source
-   */
-  addSource(source: FeedSource): void {
-    this.sources.set(source.id, {
-      ...source,
-      failureCount: source.failureCount || 0,
-      lastFetch: source.lastFetch || undefined,
-    });
+  async initialize() {
+    // Ensure log directory exists
+    await mkdir(LOG_DIR, { recursive: true });
+    this.logStream = createWriteStream(join(LOG_DIR, 'feed-poller.log'), { flags: 'a' });
+    this.log('Poller initialized', this.config);
   }
 
-  /**
-   * Removes a feed source
-   */
-  removeSource(sourceId: string): void {
-    this.sources.delete(sourceId);
-  }
-
-  /**
-   * Updates poller configuration
-   */
-  updateConfig(config: Partial<PollerConfig>): void {
-    this.config = { ...this.config, ...config };
-    this.limit = pLimit(this.config.pollConcurrency);
-
-    // Restart with new config if already running
-    if (this.isRunning) {
-      this.stop();
-      this.start();
+  private log(message: string, data?: any) {
+    const timestamp = new Date().toISOString();
+    const logEntry = `[${timestamp}] ${message} ${data ? JSON.stringify(data) : ''}\n`;
+    console.log(logEntry.trim());
+    if (this.logStream) {
+      this.logStream.write(logEntry);
     }
   }
 
-  /**
-   * Fetches all enabled sources with concurrency control
-   */
-  private async fetchAllSources(): Promise<void> {
-    const enabledSources = Array.from(this.sources.values()).filter(s => s.enabled);
+  private async fetchWithTimeout(
+    url: string,
+    timeoutMs: number,
+    maxBytes: number
+  ): Promise<{ text: string; bytesRead: number }> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-    if (enabledSources.length === 0) {
-      console.log('[FeedPoller] No enabled sources to fetch');
-      return;
+    try {
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'thecueRoom/2.0 Feed Poller',
+        },
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      // Stream with size limit
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response body');
+
+      const chunks: Uint8Array[] = [];
+      let bytesRead = 0;
+      const maxBytesAllowed = maxBytes * 1024 * 1024;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        bytesRead += value.length;
+        if (bytesRead > maxBytesAllowed) {
+          reader.cancel();
+          throw new Error(`Content exceeds ${maxBytes}MB limit`);
+        }
+
+        chunks.push(value);
+      }
+
+      const allChunks = new Uint8Array(bytesRead);
+      let position = 0;
+      for (const chunk of chunks) {
+        allChunks.set(chunk, position);
+        position += chunk.length;
+      }
+
+      const text = new TextDecoder().decode(allChunks);
+      return { text, bytesRead };
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error(`Timeout after ${timeoutMs}ms`);
+      }
+      throw error;
     }
-
-    console.log(`[FeedPoller] Fetching ${enabledSources.length} sources (concurrency: ${this.config.pollConcurrency})`);
-
-    const results = await Promise.all(
-      enabledSources.map(source =>
-        this.limit(() => this.fetchSource(source))
-      )
-    );
-
-    // Summary
-    const successful = results.filter((r: FetchResult) => r.success).length;
-    const failed = results.filter((r: FetchResult) => !r.success).length;
-    const totalItems = results.reduce((sum: number, r: FetchResult) => sum + (r.itemCount || 0), 0);
-
-    console.log(`[FeedPoller] Completed: ${successful} successful, ${failed} failed, ${totalItems} items`);
   }
 
-  /**
-   * Fetches a single source with backoff and failure tracking
-   */
+  private async fetchWithRetry(
+    url: string,
+    retries: number = 2
+  ): Promise<{ text: string; bytesRead: number }> {
+    const delays = [500, 1500]; // ms
+    let lastError: Error | null = null;
+
+    for (let i = 0; i <= retries; i++) {
+      try {
+        return await this.fetchWithTimeout(
+          url,
+          this.config.fetchTimeoutMs,
+          this.config.maxContentSizeMB
+        );
+      } catch (error: any) {
+        lastError = error;
+        if (i < retries) {
+          const delay = delays[i] + Math.random() * 200; // Add jitter
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+
+    throw lastError || new Error('Fetch failed');
+  }
+
+  private calculateBackoff(failureCount: number): number {
+    const baseDelay = 60000; // 1 minute
+    const maxDelay = 3600000; // 1 hour
+    const delay = Math.min(baseDelay * Math.pow(2, failureCount), maxDelay);
+    return delay;
+  }
+
   private async fetchSource(source: FeedSource): Promise<FetchResult> {
-    // Check if source should be backed off
-    if (source.failureCount && source.failureCount > 0) {
-      const backoffDelay = getBackoffDelay(source.failureCount);
-      const timeSinceLastFetch = source.lastFetch
-        ? Date.now() - source.lastFetch.getTime()
-        : Infinity;
-
-      if (timeSinceLastFetch < backoffDelay) {
+    // Check backoff
+    if (source.failureCount > 0 && source.lastFetch) {
+      const backoffDelay = this.calculateBackoff(source.failureCount);
+      const timeSinceLast = Date.now() - source.lastFetch.getTime();
+      if (timeSinceLast < backoffDelay) {
         return {
           sourceId: source.id,
           success: false,
-          error: `Backed off (${Math.round(backoffDelay / 1000)}s remaining)`,
+          error: `Backed off (${Math.round((backoffDelay - timeSinceLast) / 1000)}s remaining)`,
         };
       }
     }
 
-    const result = await fetchFeedWithTimeout(
-      source,
-      this.config.perFetchTimeoutMs!
-    );
+    try {
+      const { text, bytesRead } = await this.fetchWithRetry(source.url);
 
-    source.lastFetch = new Date();
-
-    if (result.success) {
-      // Reset failure count on success
-      source.failureCount = 0;
-      console.log(`[FeedPoller] ✓ ${source.name}: ${result.itemCount} items`);
-    } else {
-      // Increment failure count
-      source.failureCount = (source.failureCount || 0) + 1;
-      console.log(`[FeedPoller] ✗ ${source.name}: ${result.error} (failures: ${source.failureCount})`);
-
-      // Disable source if it exceeds threshold
-      if (source.failureCount >= this.config.failureThreshold) {
-        source.enabled = false;
-        console.log(`[FeedPoller] ⚠️  Disabled ${source.name} after ${source.failureCount} failures`);
+      // Simple item count (look for <item> or <entry> tags, or JSON array)
+      let itemCount = 0;
+      if (text.includes('<item>') || text.includes('<entry>')) {
+        const matches = text.match(/<item>|<entry>/gi);
+        itemCount = matches ? matches.length : 0;
+      } else {
+        try {
+          const json = JSON.parse(text);
+          itemCount = Array.isArray(json) ? json.length : (json.items?.length || 0);
+        } catch {
+          // Not JSON, that's okay
+        }
       }
-    }
 
-    this.sources.set(source.id, source);
-    return result;
+      // Update source: reset failure count
+      const db = await getDbClient();
+      await db.update(sources)
+        .set({ failureCount: 0, lastFetch: new Date() })
+        .where(eq(sources.id, source.id));
+
+      this.log(`✓ ${source.name}: ${itemCount} items, ${bytesRead} bytes`);
+
+      return {
+        sourceId: source.id,
+        success: true,
+        itemCount,
+        bytesRead,
+      };
+    } catch (error: any) {
+      const newFailureCount = source.failureCount + 1;
+      const shouldDisable = newFailureCount >= this.config.failureThreshold;
+
+      // Update source: increment failure, maybe disable
+      const db = await getDbClient();
+      await db.update(sources)
+        .set({
+          failureCount: newFailureCount,
+          lastFetch: new Date(),
+          enabled: shouldDisable ? false : source.enabled,
+        })
+        .where(eq(sources.id, source.id));
+
+      this.log(`✗ ${source.name}: ${error.message} (failures: ${newFailureCount}${shouldDisable ? ', DISABLED' : ''})`);
+
+      return {
+        sourceId: source.id,
+        success: false,
+        error: error.message,
+      };
+    }
   }
 
-  /**
-   * Starts the poller
-   */
-  start(): void {
+  async runOnce(): Promise<void> {
+    const db = await getDbClient();
+    const enabledSources = await db.select().from(sources).where(eq(sources.enabled, true));
+
+    if (enabledSources.length === 0) {
+      this.log('No enabled sources to fetch');
+      return;
+    }
+
+    this.log(`Fetching ${enabledSources.length} sources (concurrency: ${this.config.pollConcurrency})`);
+
+    const results = await Promise.all(
+      enabledSources.map(source =>
+        this.limit(() => this.fetchSource(source as FeedSource))
+      )
+    );
+
+    const successful = results.filter(r => r.success).length;
+    const failed = results.filter(r => !r.success).length;
+    const totalItems = results.reduce((sum, r) => sum + (r.itemCount || 0), 0);
+
+    this.log(`Completed: ${successful} successful, ${failed} failed, ${totalItems} items`);
+  }
+
+  start() {
     if (this.isRunning) {
-      console.log('[FeedPoller] Already running');
+      this.log('Already running');
       return;
     }
 
     this.isRunning = true;
-    console.log(`[FeedPoller] Started (interval: ${this.config.pollIntervalSeconds}s)`);
+    this.log(`Started (interval: ${this.config.pollIntervalSeconds}s)`);
 
-    // Initial fetch
-    this.fetchAllSources();
+    // Initial run
+    this.runOnce().catch(err => this.log('Error in runOnce:', err));
 
-    // Set up interval
-    this.intervalHandle = setInterval(
-      () => this.fetchAllSources(),
-      this.config.pollIntervalSeconds * 1000
-    );
+    // Set interval
+    this.intervalHandle = setInterval(() => {
+      this.runOnce().catch(err => this.log('Error in runOnce:', err));
+    }, this.config.pollIntervalSeconds * 1000);
   }
 
-  /**
-   * Stops the poller
-   */
-  stop(): void {
+  stop() {
     if (this.intervalHandle) {
       clearInterval(this.intervalHandle);
       this.intervalHandle = null;
     }
     this.isRunning = false;
-    console.log('[FeedPoller] Stopped');
+    if (this.logStream) {
+      this.logStream.end();
+      this.logStream = null;
+    }
+    this.log('Stopped');
   }
 
-  /**
-   * Gets current status
-   */
   getStatus() {
-    const sources = Array.from(this.sources.values());
     return {
       isRunning: this.isRunning,
       config: this.config,
-      sources: {
-        total: sources.length,
-        enabled: sources.filter(s => s.enabled).length,
-        disabled: sources.filter(s => !s.enabled).length,
-      },
-      failureCounts: sources.reduce((acc, s) => {
-        acc[s.id] = s.failureCount || 0;
-        return acc;
-      }, {} as Record<string, number>),
     };
   }
 }
 
-/**
- * CLI entry point for testing
- */
+// CLI entry point
 if (require.main === module) {
   const poller = new FeedPoller();
-
-  // Add some test sources
-  poller.addSource({
-    id: '1',
-    name: 'Test Feed 1',
-    url: 'https://example.com/feed.xml',
-    enabled: true,
-  });
-
-  poller.addSource({
-    id: '2',
-    name: 'Test Feed 2',
-    url: 'https://invalid-domain-that-will-fail-12345.com/feed.xml',
-    enabled: true,
-  });
-
-  // Handle CLI args
-  const args = process.argv.slice(2);
-  if (args.includes('--simulate')) {
-    const numSources = parseInt(args[args.indexOf('--simulate') + 1] || '10');
-    const duration = parseInt(args[args.indexOf('--duration') + 1] || '30');
-
-    console.log(`Simulating ${numSources} sources for ${duration} seconds...\n`);
-
-    for (let i = 0; i < numSources; i++) {
-      poller.addSource({
-        id: `sim-${i}`,
-        name: `Simulated Feed ${i}`,
-        url: i % 3 === 0
-          ? 'https://invalid-domain.com/feed.xml'  // 1/3 will fail
-          : 'https://example.com/feed.xml',
-        enabled: true,
-      });
-    }
-
+  
+  poller.initialize().then(() => {
     poller.start();
 
-    setTimeout(() => {
-      poller.stop();
-      console.log('\nFinal status:', JSON.stringify(poller.getStatus(), null, 2));
-      process.exit(0);
-    }, duration * 1000);
-  } else {
-    poller.start();
-
-    // Graceful shutdown
     process.on('SIGINT', () => {
       console.log('\nShutting down...');
       poller.stop();
       process.exit(0);
     });
-  }
+  });
 }
+
+export { FeedPoller };

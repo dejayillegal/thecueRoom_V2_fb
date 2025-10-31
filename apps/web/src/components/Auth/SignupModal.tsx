@@ -217,14 +217,16 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
                     id="region"
                     type="text"
                     value={region}
-                    onChange={(e) => setRegion(e.target.value)}
-                    className="w-full h-10 bg-[#0B0B0B] border border-[#262626] rounded-md px-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                    onChange={(e) => setRegion(e.target.value.slice(0, 60))}
+                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
                     placeholder="e.g. EU — Berlin"
                     required
-                    minLength={2}
                     maxLength={60}
                     autoComplete="off"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {region.length}/60 characters
+                  </p>
                 </div>
                 <div>
                   <Label htmlFor="genre" className="text-sm text-foreground mb-2 block">
@@ -234,14 +236,16 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
                     id="genre"
                     type="text"
                     value={genre}
-                    onChange={(e) => setGenre(e.target.value)}
-                    className="w-full h-10 bg-[#0B0B0B] border border-[#262626] rounded-md px-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                    onChange={(e) => setGenre(e.target.value.slice(0, 120))}
+                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
                     placeholder="e.g. Techno, Minimal"
                     required
-                    minLength={2}
                     maxLength={120}
                     autoComplete="off"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {genre.length}/120 characters
+                  </p>
                 </div>
               </div>
 
