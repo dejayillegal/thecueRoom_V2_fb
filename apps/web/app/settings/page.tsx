@@ -37,7 +37,7 @@ export default memo(function SettingsPage() {
         className="min-h-screen pt-[72px] transition-all duration-300 ease-in-out"
         style={{ marginLeft: sidebarOpen ? '200px' : '60px' }}
       >
-        <div className="p-6 max-w-4xl">
+        <div className="px-6 py-6 max-w-4xl">
           <h1 className="text-3xl font-bold text-white mb-2">Settings</h1>
           <p className="text-gray-400 mb-8">Manage your account preferences and settings</p>
 
