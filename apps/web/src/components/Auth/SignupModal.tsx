@@ -231,7 +231,9 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
             {/* Left Column - Auth Forms */}
             <div className="p-8">
               {/* Header with Tabs */}
-              <h2 className="text-xl font-semibold mb-6">Sign In</h2>
+              <h2 className="text-xl font-semibold mb-6">
+                {activeTab === 'signin' ? 'Sign In' : activeTab === 'signup' ? 'Sign Up' : 'Forgot Password'}
+              </h2>
               <div className="flex gap-1 mb-8">
                 <button
                   onClick={() => setActiveTab('signin')}

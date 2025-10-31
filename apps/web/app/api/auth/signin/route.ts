@@ -11,14 +11,21 @@ export async function POST(request: NextRequest) {
       password = body.password;
     } catch (error) {
       return NextResponse.json(
-        { message: 'Invalid request body' },
+        { error: 'Invalid request body' },
         { status: 400 }
       );
     }
 
     if (!email || !password) {
       return NextResponse.json(
-        { message: 'Email and password are required' },
+        { error: 'Email and password are required' },
+        { status: 400 }
+      );
+    }
+
+    if (typeof email !== 'string' || typeof password !== 'string') {
+      return NextResponse.json(
+        { error: 'Invalid input format' },
         { status: 400 }
       );
     }
@@ -27,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { message: 'Invalid email or password' },
+        { error: 'Invalid email or password' },
         { status: 401 }
       );
     }
@@ -46,7 +53,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Sign in error:', error);
     return NextResponse.json(
-      { message: error.message || 'Authentication failed' },
+      { error: error.message || 'Authentication failed' },
       { status: 500 }
     );
   }
