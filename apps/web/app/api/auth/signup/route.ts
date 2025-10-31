@@ -5,6 +5,17 @@ import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 
+const ALLOWED_PROFILE_DOMAINS = [
+  'soundcloud.com',
+  'bandcamp.com',
+  'spotify.com',
+  'mixcloud.com',
+  'residentadvisor.net',
+  'beatport.com',
+  'instagram.com',
+  'youtube.com',
+];
+
 const signupSchema = z.object({
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),
@@ -14,7 +25,7 @@ const signupSchema = z.object({
   username: z.string().min(3).max(50),
   region: z.string().min(1).max(60),
   genre: z.string().min(1).max(120),
-  profileUrl: z.string().url().optional(),
+  profileUrl: z.string().url(),
   socialLinks: z.array(z.string().url()).max(5).default([]),
 });
 
@@ -22,6 +33,19 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const validatedData = signupSchema.parse(body);
+
+    // Validate profile URL domain
+    const profileUrlObj = new URL(validatedData.profileUrl);
+    const isAllowedDomain = ALLOWED_PROFILE_DOMAINS.some(domain => 
+      profileUrlObj.hostname.includes(domain)
+    );
+    
+    if (!isAllowedDomain) {
+      return NextResponse.json(
+        { ok: false, error: 'Profile URL must be from a recognized music platform' },
+        { status: 400 }
+      );
+    }
 
     const db = getDbClient();
 
@@ -49,6 +73,20 @@ export async function POST(request: NextRequest) {
     if (existingUsername.length > 0) {
       return NextResponse.json(
         { ok: false, error: 'Username already taken' },
+        { status: 400 }
+      );
+    }
+
+    // Check for duplicate profile URLs
+    const existingProfile = await db
+      .select()
+      .from(profiles)
+      .where(eq(profiles.socialProfileUrl, validatedData.profileUrl))
+      .limit(1);
+
+    if (existingProfile.length > 0) {
+      return NextResponse.json(
+        { ok: false, error: 'This profile URL is already registered by another user' },
         { status: 400 }
       );
     }
@@ -84,13 +122,21 @@ export async function POST(request: NextRequest) {
       socialLinks: socialLinksObj,
     });
 
-    // Create verification job
+    // Create verification job for AI-based profile verification
+    // This will check if the profile URL is legitimate, matches the artist name,
+    // and is not a fake/duplicate account
     const [job] = await db
       .insert(verificationJobs)
       .values({
         userId: newUser.id,
-        profileUrl: validatedData.profileUrl || socialLinksObj[Object.keys(socialLinksObj)[0]] || 'https://placeholder.com',
+        profileUrl: validatedData.profileUrl,
         status: 'queued',
+        metadata: {
+          artistName: validatedData.artistName,
+          email: validatedData.email,
+          region: validatedData.region,
+          genre: validatedData.genre,
+        },
       })
       .returning();
 

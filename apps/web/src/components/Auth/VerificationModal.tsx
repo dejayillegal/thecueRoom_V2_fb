@@ -28,9 +28,9 @@ interface VerificationJob {
 
 const PROGRESS_STEPS = [
   { key: 'queued', label: 'Queued', value: 20 },
-  { key: 'fetching', label: 'Fetching Links', value: 40 },
-  { key: 'analyzing', label: 'Analyzing', value: 60 },
-  { key: 'deciding', label: 'Decision', value: 80 }
+  { key: 'fetching', label: 'Fetching Profile', value: 40 },
+  { key: 'analyzing', label: 'AI Verification', value: 60 },
+  { key: 'deciding', label: 'Validating', value: 80 }
 ];
 
 export default function VerificationModal({ open, onOpenChange, jobId, onComplete }: VerificationModalProps) {
@@ -202,8 +202,8 @@ export default function VerificationModal({ open, onOpenChange, jobId, onComplet
       <div className="space-y-6">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-[#D7FF3C] mx-auto mb-4" aria-hidden="true" />
-          <h3 className="text-xl font-semibold text-white mb-2">Verifying Your Account</h3>
-          <p className="text-gray-400">Please wait while we verify your information...</p>
+          <h3 className="text-xl font-semibold text-white mb-2">AI Profile Verification in Progress</h3>
+          <p className="text-gray-400">Our AI is verifying your profile URL and checking for authenticity...</p>
         </div>
 
         <div className="space-y-2" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
@@ -256,7 +256,7 @@ export default function VerificationModal({ open, onOpenChange, jobId, onComplet
         onPointerDownOutside={(e) => !canClose && e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-[#D7FF3C]">Account Verification</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-[#D7FF3C]">AI Profile Verification</DialogTitle>
         </DialogHeader>
 
         <div className="mt-4">

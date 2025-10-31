@@ -172,6 +172,28 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         return;
       }
 
+      // Validate allowed domains for public profile URL
+      const allowedDomains = [
+        'soundcloud.com',
+        'bandcamp.com',
+        'spotify.com',
+        'mixcloud.com',
+        'residentadvisor.net',
+        'beatport.com',
+        'instagram.com',
+        'youtube.com',
+      ];
+      
+      const profileUrlObj = new URL(publicProfileUrl);
+      const isAllowedDomain = allowedDomains.some(domain => 
+        profileUrlObj.hostname.includes(domain)
+      );
+      
+      if (!isAllowedDomain) {
+        setError('Public profile URL must be from a recognized music platform (SoundCloud, Bandcamp, Spotify, etc.)');
+        return;
+      }
+
       if (!agreeTerms) {
         setError('You must agree to the Terms and Privacy Policy');
         return;
@@ -222,7 +244,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         return;
       }
 
-      // Show verification modal
+      // Show verification modal with AI verification progress
       setVerificationJobId(data.jobId);
       setShowVerificationModal(true);
       onClose();
@@ -302,10 +324,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           <div className="grid md:grid-cols-[1fr_360px] overflow-hidden flex-1">
             {/* Left Column - Auth Forms */}
             <div className="p-8 overflow-y-auto scrollbar-thin max-h-[calc(90vh-2rem)]">
-              {/* Header with Tabs */}
-              <h2 className="text-xl font-semibold mb-6">
-                {activeTab === 'signin' ? 'Sign In' : activeTab === 'signup' ? 'Sign Up' : 'Forgot Password'}
-              </h2>
+              {/* Header */}
+              <h2 className="text-2xl font-bold mb-6 text-[#D7FF3C]">Welcome to thecueRoom</h2>
+              
+              {/* Tabs */}
               <div className="flex gap-1 mb-8">
                 <button
                   onClick={() => setActiveTab('signin')}
@@ -616,7 +638,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       disabled={isLoading}
                       required
                     />
-                    <p className="text-xs text-gray-500">Required: SoundCloud, Bandcamp, Spotify, etc.</p>
+                    <p className="text-xs text-gray-500">
+                      Required music platform link. Will be verified by AI to prevent fake/duplicate accounts.
+                    </p>
                   </div>
 
                   <div className="space-y-2">
