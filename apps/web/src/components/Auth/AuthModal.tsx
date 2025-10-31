@@ -10,6 +10,7 @@ import { Loader2, Mail, Info, CheckCircle2, XCircle, AlertCircle } from 'lucide-
 import { useAvailability } from '@/src/hooks/use-availability';
 import { generateUsername } from '@/src/lib/username-generator';
 import VerificationModal from './VerificationModal';
+import InfoModal from '@/components/InfoModal';
 import { useRouter } from 'next/navigation';
 
 interface AuthModalProps {
@@ -54,6 +55,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   // Verification state
   const [verificationJobId, setVerificationJobId] = useState<string | null>(null);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
+
+  // Info modal state
+  const [showInfoModal, setShowInfoModal] = useState<'terms' | 'privacy' | null>(null);
 
   // Reset form when modal closes or tab changes
   useEffect(() => {
@@ -697,7 +701,23 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       disabled={isLoading}
                     />
                     <Label htmlFor="agree-terms" className="text-xs text-gray-400 cursor-pointer">
-                      I agree to the Terms and Privacy Policy *
+                      I agree to the{' '}
+                      <button
+                        type="button"
+                        onClick={() => setShowInfoModal('terms')}
+                        className="text-[#D7FF3C] hover:underline"
+                      >
+                        Terms
+                      </button>
+                      {' '}and{' '}
+                      <button
+                        type="button"
+                        onClick={() => setShowInfoModal('privacy')}
+                        className="text-[#D7FF3C] hover:underline"
+                      >
+                        Privacy Policy
+                      </button>
+                      {' '}*
                     </Label>
                   </div>
 
@@ -842,6 +862,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           }}
         />
       )}
+
+      <InfoModal
+        isOpen={showInfoModal !== null}
+        onClose={() => setShowInfoModal(null)}
+        section={showInfoModal || 'terms'}
+      />
     </>
   );
 }
