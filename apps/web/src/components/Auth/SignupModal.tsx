@@ -280,7 +280,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
 
   const AvailabilityIndicator = ({ state }: { state: AvailabilityState }) => {
     if (state.checking) {
-      return <Loader2 className="h-4 w-4 animate-spin text-gray-400" />;
+      return <Loader2 className="h-4 w-4 animate-spin text-gray-400" aria-live="polite" aria-label="Checking availability" />;
     }
     if (state.available === true) {
       return <Check className="h-4 w-4 text-green-500" aria-label="Available" />;
@@ -340,7 +340,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
                       aria-required="true"
                       aria-invalid={!!errors.firstName}
                     />
-                    {errors.firstName && <p className="text-red-400 text-xs">{errors.firstName}</p>}
+                    {errors.firstName && <p className="text-red-400 text-xs" role="alert">{errors.firstName}</p>}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Last Name *</Label>
@@ -352,7 +352,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
                       aria-required="true"
                       aria-invalid={!!errors.lastName}
                     />
-                    {errors.lastName && <p className="text-red-400 text-xs">{errors.lastName}</p>}
+                    {errors.lastName && <p className="text-red-400 text-xs" role="alert">{errors.lastName}</p>}
                   </div>
                 </div>
               </div>
@@ -375,12 +375,12 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
                       aria-required="true"
                       aria-describedby="artistName-status"
                     />
-                    <div className="absolute right-3 top-3" id="artistName-status" aria-live="polite">
+                    <div className="absolute right-3 top-3" id="artistName-status">
                       <AvailabilityIndicator state={availability.artistName} />
                     </div>
                   </div>
                   {availability.artistName.reason && (
-                    <p className="text-red-400 text-xs">{availability.artistName.reason}</p>
+                    <p className="text-red-400 text-xs" role="alert">{availability.artistName.reason}</p>
                   )}
                 </div>
 
@@ -394,7 +394,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
                       className="bg-[#0a0a0a] border-[#1a1a1a] pr-10"
                       aria-describedby="username-status"
                     />
-                    <div className="absolute right-3 top-3" id="username-status" aria-live="polite">
+                    <div className="absolute right-3 top-3" id="username-status">
                       <AvailabilityIndicator state={availability.username} />
                     </div>
                   </div>
@@ -442,7 +442,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
                       className="bg-[#0a0a0a] border-[#1a1a1a]"
                       aria-required="true"
                     />
-                    {errors.region && <p className="text-red-400 text-xs">{errors.region}</p>}
+                    {errors.region && <p className="text-red-400 text-xs" role="alert">{errors.region}</p>}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="genre">Primary Genre *</Label>
@@ -455,7 +455,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
                       className="bg-[#0a0a0a] border-[#1a1a1a]"
                       aria-required="true"
                     />
-                    {errors.genre && <p className="text-red-400 text-xs">{errors.genre}</p>}
+                    {errors.genre && <p className="text-red-400 text-xs" role="alert">{errors.genre}</p>}
                   </div>
                 </div>
               </div>
@@ -482,12 +482,12 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
                       aria-required="true"
                       aria-describedby="email-status"
                     />
-                    <div className="absolute right-3 top-3" id="email-status" aria-live="polite">
+                    <div className="absolute right-3 top-3" id="email-status">
                       <AvailabilityIndicator state={availability.email} />
                     </div>
                   </div>
                   {availability.email.reason && (
-                    <p className="text-red-400 text-xs">{availability.email.reason}</p>
+                    <p className="text-red-400 text-xs" role="alert">{availability.email.reason}</p>
                   )}
                 </div>
 
@@ -511,12 +511,16 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
                               getPasswordStrength(formData.password) < 75 ? 'bg-yellow-500' : 'bg-green-500'
                             }`}
                             style={{ width: `${getPasswordStrength(formData.password)}%` }}
+                            role="progressbar"
+                            aria-valuenow={getPasswordStrength(formData.password)}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
                           />
                         </div>
                         <p className="text-xs text-gray-400">Min {PASSWORD_MIN_LENGTH} chars, 1 number/symbol</p>
                       </div>
                     )}
-                    {errors.password && <p className="text-red-400 text-xs">{errors.password}</p>}
+                    {errors.password && <p className="text-red-400 text-xs" role="alert">{errors.password}</p>}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword">Confirm Password *</Label>
@@ -528,7 +532,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
                       className="bg-[#0a0a0a] border-[#1a1a1a]"
                       aria-required="true"
                     />
-                    {errors.confirmPassword && <p className="text-red-400 text-xs">{errors.confirmPassword}</p>}
+                    {errors.confirmPassword && <p className="text-red-400 text-xs" role="alert">{errors.confirmPassword}</p>}
                   </div>
                 </div>
               </div>
@@ -567,6 +571,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
                         variant="ghost"
                         size="icon"
                         className="text-red-400 hover:text-red-300"
+                        aria-label="Remove link"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -577,7 +582,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
               </div>
 
               {errors.submit && (
-                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-md">
+                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-md" role="alert">
                   <p className="text-sm text-red-400">{errors.submit}</p>
                 </div>
               )}
