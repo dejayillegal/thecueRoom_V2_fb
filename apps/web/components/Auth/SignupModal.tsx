@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CheckCircle2, XCircle, Loader2, RefreshCw } from 'lucide-react';
-import { VerificationModal } from './VerificationModal';
+import { VerificationModal } from '../Auth/VerificationModal';
 
 interface SignupModalProps {
   open: boolean;

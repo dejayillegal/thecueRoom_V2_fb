@@ -73,7 +73,9 @@ export function PublicProfile({ user, profile, stats, isOwnProfile, currentUserI
                 {profile.displayName || profile.artistName || user.username}
               </h1>
               {user.verified && (
-                <CheckCircle2 className="w-7 h-7 text-lime-400" title="Verified Artist" />
+                <span title="Verified Artist">
+                  <CheckCircle2 className="w-7 h-7 text-lime-400" />
+                </span>
               )}
             </div>
             
