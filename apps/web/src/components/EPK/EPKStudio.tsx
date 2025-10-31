@@ -34,7 +34,7 @@ export default function EPKStudio() {
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [aiRewriting, setAiRewriting] = useState(false);
-  
+
   const previewRef = useRef<HTMLIFrameElement>(null);
 
   const updatePreview = debounce(async () => {
@@ -97,13 +97,13 @@ export default function EPKStudio() {
     const newModules = Array.from(modules);
     const [reorderedItem] = newModules.splice(result.source.index, 1);
     newModules.splice(result.destination.index, 0, reorderedItem);
-    
+
     setModules(newModules.map((m, i) => ({ ...m, order: i })));
   }
 
   async function handleAIRewrite(moduleId: string, text: string) {
     if (!text.trim()) return;
-    
+
     setAiRewriting(true);
     try {
       const response = await safeFetch('/api/epk/ai/rewrite', {
@@ -113,7 +113,7 @@ export default function EPKStudio() {
       });
 
       const data = await safeParseJSON<{ ok: boolean; rewritten: string; usedHF?: boolean }>(response);
-      
+
       if (data.ok) {
         updateModuleData(moduleId, { text: data.rewritten });
       }
@@ -213,7 +213,12 @@ export default function EPKStudio() {
                 <p className="text-gray-500 text-sm">No modules added yet</p>
               ) : (
                 <DragDropContext onDragEnd={handleDragEnd}>
-                  <Droppable droppableId="modules">
+                  <Droppable 
+                    droppableId="epk-modules"
+                    isDropDisabled={false}
+                    isCombineEnabled={false}
+                    ignoreContainerClipping={false}
+                  >
                     {(provided) => (
                       <div
                         {...provided.droppableProps}
@@ -286,7 +291,7 @@ export default function EPKStudio() {
                 <h2 className="text-lg font-semibold text-[#D7FF3C] mb-3">
                   Edit {MODULE_PALETTE.find(p => p.type === selectedModule.type)?.label}
                 </h2>
-                
+
                 {selectedModule.type === 'bio' && (
                   <div className="space-y-3">
                     <textarea

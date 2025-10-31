@@ -147,7 +147,7 @@ export default function EnhancedTechRiderPalette({ items, onChange }: EnhancedTe
           </div>
         ) : (
           <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="tech-rider" isDropDisabled={false} isCombineEnabled={false}>
+            <Droppable droppableId="tech-rider" isDropDisabled={false} isCombineEnabled={false} ignoreContainerClipping={false}>
               {(provided) => (
                 <div
                   {...provided.droppableProps}

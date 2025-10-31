@@ -123,14 +123,14 @@ export default function TechRiderEditor({ items, onChange }: TechRiderEditorProp
         <h4 className="text-sm font-semibold text-[#D7FF3C] mb-2">
           Tech Rider ({items.length} {items.length === 1 ? 'item' : 'items'})
         </h4>
-        
+
         {items.length === 0 ? (
           <div className="dashboard-card p-6 text-center text-gray-500">
             No equipment added yet. Add gear from the presets above or create custom items.
           </div>
         ) : (
           <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="tech-rider">
+            <Droppable droppableId="tech-rider" ignoreContainerClipping={false}>
               {(provided) => (
                 <div
                   {...provided.droppableProps}
