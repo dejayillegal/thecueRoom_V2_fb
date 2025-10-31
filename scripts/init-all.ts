@@ -1,6 +1,4 @@
 
-#!/usr/bin/env tsx
-
 import { execSync } from 'child_process';
 import { getDbClient } from '../packages/db';
 import { sql } from 'drizzle-orm';
@@ -60,7 +58,7 @@ async function main() {
     
     // Step 4: Create admin user
     await runCommand(
-      'tsx scripts/seed-admin.ts',
+      'tsx scripts/create-admin-user.ts',
       'Step 3/4: Creating admin user'
     );
     
@@ -83,7 +81,7 @@ async function main() {
     console.log(`   Email: ${process.env.ADMIN_EMAIL || 'dejayillegal@gmail.com'}`);
     console.log(`   Password: ${process.env.ADMIN_PASSWORD || 'Closer@82'}`);
     console.log('\n💡 Next steps:');
-    console.log('   1. Click the Run button to start the server');
+    console.log('   1. The server is already running');
     console.log('   2. Visit the app in the webview');
     console.log('   3. Sign in with admin credentials\n');
     
