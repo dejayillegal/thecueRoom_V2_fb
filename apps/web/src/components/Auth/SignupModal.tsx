@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -345,6 +345,9 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[920px] max-h-[90vh] bg-black border border-[#1a1a1a] text-white p-0 gap-0 overflow-hidden">
+        <DialogTitle className="sr-only">
+          {activeTab === 'signin' ? 'Sign In' : activeTab === 'signup' ? 'Sign Up' : 'Forgot Password'}
+        </DialogTitle>
         <div className="grid grid-cols-[1fr_320px] h-full max-h-[85vh]">
           {/* Left Column - Auth Forms */}
           <div className="p-8 overflow-y-auto">
