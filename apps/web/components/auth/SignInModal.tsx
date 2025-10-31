@@ -71,6 +71,12 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
           return;
         }
 
+        if (!region || !genre) {
+          setError('Please select both region and genre');
+          setIsLoading(false);
+          return;
+        }
+
         // Register user
         const registerRes = await fetch('/api/auth/register', {
           method: 'POST',
@@ -376,9 +382,9 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="region" className="text-sm text-foreground mb-2 block">
-                      Region
+                      Region <span className="text-destructive">*</span>
                     </Label>
-                    <Select value={region} onValueChange={setRegion} required>
+                    <Select value={region} onValueChange={setRegion}>
                       <SelectTrigger className="bg-[#0B0B0B] border-[#262626]">
                         <SelectValue placeholder="Select region..." />
                       </SelectTrigger>
@@ -391,9 +397,9 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                   </div>
                   <div>
                     <Label htmlFor="genre" className="text-sm text-foreground mb-2 block">
-                      Primary genre
+                      Primary genre <span className="text-destructive">*</span>
                     </Label>
-                    <Select value={genre} onValueChange={setGenre} required>
+                    <Select value={genre} onValueChange={setGenre}>
                       <SelectTrigger className="bg-[#0B0B0B] border-[#262626]">
                         <SelectValue placeholder="Choose genre..." />
                       </SelectTrigger>
