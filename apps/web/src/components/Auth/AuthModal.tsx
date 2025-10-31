@@ -161,8 +161,14 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
     try {
       // Validation
-      if (!email || !password || !firstName || !lastName || !artistName || !region || !genre) {
+      if (!email || !password || !firstName || !lastName || !artistName || !region || !genre || !publicProfileUrl) {
         setError('Please fill in all required fields');
+        return;
+      }
+
+      // Validate profile URL format
+      if (!publicProfileUrl.startsWith('http://') && !publicProfileUrl.startsWith('https://')) {
+        setError('Public profile URL must be a valid URL (starting with http:// or https://)');
         return;
       }
 
@@ -289,13 +295,13 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-[920px] bg-black border border-[#2a2a2a] text-white p-0 gap-0 overflow-hidden max-h-[90vh]">
+        <DialogContent className="max-w-[920px] bg-black border border-[#2a2a2a] text-white p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col">
           <DialogTitle className="sr-only">
             {activeTab === 'signin' ? 'Sign In' : activeTab === 'signup' ? 'Sign Up' : 'Forgot Password'}
           </DialogTitle>
-          <div className="grid md:grid-cols-[1fr_360px] overflow-hidden h-full">
+          <div className="grid md:grid-cols-[1fr_360px] overflow-hidden flex-1">
             {/* Left Column - Auth Forms */}
-            <div className="p-8 overflow-y-auto scrollbar-thin">
+            <div className="p-8 overflow-y-auto scrollbar-thin max-h-[calc(90vh-2rem)]">
               {/* Header with Tabs */}
               <h2 className="text-xl font-semibold mb-6">
                 {activeTab === 'signin' ? 'Sign In' : activeTab === 'signup' ? 'Sign Up' : 'Forgot Password'}
@@ -600,7 +606,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-sm text-gray-400">Public Profile URL (Optional)</Label>
+                    <Label className="text-sm text-gray-400">Public Profile URL *</Label>
                     <Input
                       type="url"
                       value={publicProfileUrl}
@@ -608,7 +614,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       placeholder="https://soundcloud.com/yourname"
                       className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
                       disabled={isLoading}
+                      required
                     />
+                    <p className="text-xs text-gray-500">Required: SoundCloud, Bandcamp, Spotify, etc.</p>
                   </div>
 
                   <div className="space-y-2">
@@ -672,7 +680,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   <div className="flex gap-3 pt-2">
                     <Button
                       type="submit"
-                      disabled={isLoading || !emailAvailability.available || !artistAvailability.available || !agreeTerms}
+                      disabled={isLoading || !emailAvailability.available || !artistAvailability.available || !agreeTerms || !publicProfileUrl}
                       className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold h-11 px-8"
                     >
                       {isLoading ? (
