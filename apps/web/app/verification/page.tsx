@@ -33,12 +33,19 @@ export default function VerificationStatusPage() {
       return;
     }
 
+    let interval: NodeJS.Timeout;
+
     const loadStatus = async () => {
       try {
         const res = await fetch(`/api/verify/status/${jobId}`);
         if (res.ok) {
           const data = await res.json();
           setJobStatus(data);
+          
+          // Stop polling if job reached terminal state
+          if (data.status === 'completed' || data.status === 'failed' || data.status === 'rejected') {
+            clearInterval(interval);
+          }
         } else {
           setError('Failed to load verification status');
         }
@@ -52,7 +59,7 @@ export default function VerificationStatusPage() {
     loadStatus();
     
     // Poll every 5 seconds if still processing
-    const interval = setInterval(loadStatus, 5000);
+    interval = setInterval(loadStatus, 5000);
     return () => clearInterval(interval);
   }, [jobId]);
 

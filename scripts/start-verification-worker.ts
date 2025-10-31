@@ -1,9 +1,14 @@
+import { getDbClient } from '../packages/db/client';
+import { verificationJobs, users } from '../packages/db/schema';
+import { eq } from 'drizzle-orm';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
 
-const { getDbClient } = require('@thecueroom/db/client');
-const { verificationJobs, users } = require('@thecueroom/db/schema');
-const { eq } = require('drizzle-orm');
-const { readFileSync, writeFileSync, existsSync, mkdirSync } = require('fs');
-const { join } = require('path');
+// Environment validation
+if (!process.env.DATABASE_URL) {
+  console.error('[Verification Worker] ERROR: DATABASE_URL environment variable is required');
+  process.exit(1);
+}
 
 const TEST_MODE = process.env.TEST_MODE === 'true';
 const VERIFY_TEMP_DIR = process.env.VERIFY_TEMP_DIR || '/tmp/thecueroom/verify';
@@ -12,11 +17,17 @@ const CONCURRENCY = parseInt(process.env.AI_WORKER_CONCURRENCY || '1');
 console.log('[Verification Worker] Starting...');
 console.log('[Verification Worker] Test Mode:', TEST_MODE);
 console.log('[Verification Worker] Concurrency:', CONCURRENCY);
+console.log('[Verification Worker] Temp Dir:', VERIFY_TEMP_DIR);
 
 // Ensure temp dir exists
-mkdirSync(VERIFY_TEMP_DIR, { recursive: true });
+try {
+  mkdirSync(VERIFY_TEMP_DIR, { recursive: true });
+} catch (err) {
+  console.error('[Verification Worker] ERROR: Failed to create temp directory:', err);
+  process.exit(1);
+}
 
-async function fetchProfileData(url) {
+async function fetchProfileData(url: string) {
   try {
     const response = await fetch(url, {
       headers: {
@@ -35,12 +46,12 @@ async function fetchProfileData(url) {
     const limitedHtml = html.substring(0, 50000);
     
     return { html: limitedHtml, status: response.status };
-  } catch (error) {
+  } catch (error: any) {
     return { error: error.message };
   }
 }
 
-function extractSignals(html, url) {
+function extractSignals(html: string, url: string) {
   const signals = {
     foundAudio: false,
     foundVideo: false,
@@ -80,7 +91,7 @@ function extractSignals(html, url) {
   return signals;
 }
 
-function calculateScore(signals, url) {
+function calculateScore(signals: any, url: string) {
   let score = 0;
 
   // Audio/video presence
@@ -103,13 +114,13 @@ function calculateScore(signals, url) {
   return Math.min(score, 100);
 }
 
-function makeDecision(score) {
+function makeDecision(score: number) {
   if (score >= 70) return 'approved';
   if (score >= 40) return 'review';
   return 'rejected';
 }
 
-async function processJob(jobId) {
+async function processJob(jobId: string) {
   const db = getDbClient();
   
   try {
@@ -198,7 +209,7 @@ async function processJob(jobId) {
     writeFileSync(resultFile, JSON.stringify({ jobId, decision, score, evidence }, null, 2));
 
     console.log(`[Worker] Job ${jobId} completed: ${decision} (score: ${score})`);
-  } catch (error) {
+  } catch (error: any) {
     console.error(`[Worker] Job ${jobId} failed:`, error);
     
     await db.update(verificationJobs)
@@ -261,6 +272,7 @@ async function run() {
   }
 }
 
+// Start the worker
 run().catch(err => {
   console.error('[Worker] Fatal error:', err);
   process.exit(1);

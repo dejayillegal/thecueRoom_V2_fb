@@ -26,6 +26,10 @@ args = "Background Worker"
 task = "workflow.run"
 args = "EPK Worker"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Verification Worker"
+
 [[workflows.workflow]]
 name = "Server"
 author = "agent"
@@ -60,6 +64,17 @@ outputType = "console"
 task = "shell.exec"
 args = "EPK_TEST_MODE=true TEST_MODE=true node packages/epk/worker.mjs"
 
+[[workflows.workflow]]
+name = "Verification Worker"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "TEST_MODE=true VERIFY_TEMP_DIR=/tmp/thecueroom/verify AI_WORKER_CONCURRENCY=1 tsx scripts/start-verification-worker.ts"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
@@ -75,3 +90,10 @@ externalPort = 3002
 [[ports]]
 localPort = 42433
 externalPort = 3001
+
+[userenv]
+
+[userenv.development]
+TEST_MODE = "true"
+VERIFY_TEMP_DIR = "/tmp/thecueroom/verify"
+AI_WORKER_CONCURRENCY = "1"
