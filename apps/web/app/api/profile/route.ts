@@ -17,8 +17,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Parse session to get user ID
-    const session = JSON.parse(decodeURIComponent(sessionCookie.value));
-    const userId = session.userId;
+    let userId: string;
+    try {
+      const session = JSON.parse(decodeURIComponent(sessionCookie.value));
+      userId = session.userId || session.uid;
+    } catch (parseError) {
+      // If JSON parse fails, try to extract from plain text
+      const sessionValue = decodeURIComponent(sessionCookie.value);
+      const uidMatch = sessionValue.match(/uid[:"']([^"',}]+)/);
+      const userIdMatch = sessionValue.match(/userId[:"']([^"',}]+)/);
+      userId = uidMatch?.[1] || userIdMatch?.[1] || '';
+    }
 
     if (!userId) {
       return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
@@ -73,8 +82,16 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const session = JSON.parse(decodeURIComponent(sessionCookie.value));
-    const userId = session.userId;
+    let userId: string;
+    try {
+      const session = JSON.parse(decodeURIComponent(sessionCookie.value));
+      userId = session.userId || session.uid;
+    } catch (parseError) {
+      const sessionValue = decodeURIComponent(sessionCookie.value);
+      const uidMatch = sessionValue.match(/uid[:"']([^"',}]+)/);
+      const userIdMatch = sessionValue.match(/userId[:"']([^"',}]+)/);
+      userId = uidMatch?.[1] || userIdMatch?.[1] || '';
+    }
 
     if (!userId) {
       return NextResponse.json({ error: 'Invalid session' }, { status: 401 });

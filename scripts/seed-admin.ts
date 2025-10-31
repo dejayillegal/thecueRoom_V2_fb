@@ -28,13 +28,17 @@ async function seedAdmin() {
       console.log('✅ Admin user already exists');
       userId = existingUser[0].id;
 
-      // Update to ensure admin role
+      // Update to ensure admin role and verified status
       await db
         .update(users)
-        .set({ role: 'admin' })
-        .where(eq(users.id, userId));
-      
-      console.log('✅ Admin role updated');
+        .set({ 
+          role: 'admin',
+          verified: true,
+          verificationStatus: 'verified_admin'
+        })
+        .where(eq(users.email, ADMIN_EMAIL));
+
+      console.log('✅ Admin role and verification status updated');
     } else {
       // Hash password
       const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, 10);
@@ -47,6 +51,8 @@ async function seedAdmin() {
           username: 'admin',
           passwordHash,
           role: 'admin',
+          verified: true, // Mark as verified
+          verificationStatus: 'verified_admin' // Set specific verification status for admin
         })
         .returning();
 

@@ -199,6 +199,8 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
     try {
       const validSocialLinks = socialLinks.filter(link => link.trim() !== '');
       
+      const validSocialLinks = socialLinks.filter(link => link.trim() !== '');
+      
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -209,8 +211,10 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
           email,
           password,
           confirmPassword,
+          username: selectedUsername,
           region,
           genre,
+          profileUrl: validSocialLinks[0] || '',
           socialLinks: validSocialLinks,
         }),
       });

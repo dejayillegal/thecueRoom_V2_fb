@@ -17,16 +17,20 @@ const ALLOWED_PROFILE_DOMAINS = [
 ];
 
 const signupSchema = z.object({
-  firstName: z.string().min(1).max(100),
-  lastName: z.string().min(1).max(100),
-  artistName: z.string().min(2).max(100),
-  email: z.string().email(),
-  password: z.string().min(10).regex(/[0-9!@#$%^&*(),.?":{}|<>_\-+=]/, 'Must include number or special char'),
-  username: z.string().min(3).max(50),
-  region: z.string().min(1).max(60),
-  genre: z.string().min(1).max(120),
-  profileUrl: z.string().url(),
+  firstName: z.string().min(1, 'First name is required').max(100),
+  lastName: z.string().min(1, 'Last name is required').max(100),
+  artistName: z.string().min(2, 'Artist name must be at least 2 characters').max(100),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(10, 'Password must be at least 10 characters').regex(/[0-9!@#$%^&*(),.?":{}|<>_\-+=]/, 'Password must include a number or special character'),
+  confirmPassword: z.string().min(1, 'Please confirm your password'),
+  username: z.string().min(3, 'Username must be at least 3 characters').max(50),
+  region: z.string().min(1, 'Region is required').max(60),
+  genre: z.string().min(1, 'Genre is required').max(120),
+  profileUrl: z.string().url('Invalid profile URL'),
   socialLinks: z.array(z.string().url()).max(5).default([]),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
 export async function POST(request: NextRequest) {

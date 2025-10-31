@@ -207,6 +207,14 @@ export default function SettingsPage() {
                 <CardTitle className="flex items-center gap-2 text-white">
                   <Shield size={20} />
                   Account Information
+                  {userProfile?.user.verified && (
+                    <CheckCircle2 className="w-5 h-5 text-green-500 ml-2" />
+                  )}
+                  {userProfile?.user.role === 'admin' && (
+                    <span className="ml-2 px-2 py-1 text-xs bg-[#D7FF3C] text-black rounded font-semibold">
+                      ADMIN
+                    </span>
+                  )}
                 </CardTitle>
                 <CardDescription>View your account details (read-only)</CardDescription>
               </CardHeader>
@@ -237,6 +245,27 @@ export default function SettingsPage() {
                     className="bg-[#1a1a1a] border-[#333] text-gray-500 cursor-not-allowed"
                   />
                   <p className="text-xs text-gray-500">Artist name cannot be changed</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-gray-300">Verification Status</Label>
+                  <div className="flex items-center gap-2">
+                    <Input 
+                      value={userProfile?.user.verificationStatus || 'pending'}
+                      disabled
+                      className="bg-[#1a1a1a] border-[#333] text-gray-500 cursor-not-allowed flex-1 capitalize"
+                    />
+                    {userProfile?.user.verified && (
+                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-gray-300">Account Role</Label>
+                  <Input 
+                    value={userProfile?.user.role || 'user'}
+                    disabled
+                    className="bg-[#1a1a1a] border-[#333] text-gray-500 cursor-not-allowed uppercase"
+                  />
                 </div>
                 {userProfile?.profile?.socialProfileUrl && (
                   <div className="space-y-2">
