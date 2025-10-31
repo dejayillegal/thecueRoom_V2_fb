@@ -1,566 +1,463 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { AlertCircle, CheckCircle2, Loader2, X, UserPlus, RefreshCw } from 'lucide-react';
-import { PasswordStrength } from './PasswordStrength';
-import { generateMusicUsername } from '@/lib/username-generator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Check, X, Loader2, Plus, Trash2, RefreshCw } from 'lucide-react';
+import { useDebounce } from '@/hooks/use-debounce';
+import { generateUsername } from '@/lib/username-generator';
+import PasswordStrength from './PasswordStrength';
+import VerificationModal from './VerificationModal';
 
 interface SignupModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSuccess: (userId: string, jobId: string) => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps) {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+interface AvailabilityStatus {
+  email: 'checking' | 'available' | 'taken' | 'idle';
+  artistName: 'checking' | 'available' | 'taken' | 'idle';
+  username: 'checking' | 'available' | 'taken' | 'idle';
+}
+
+const REGIONS = ['North America', 'Europe', 'Asia', 'South America', 'Africa', 'Oceania', 'Middle East'];
+const GENRES = ['House', 'Techno', 'Trance', 'Drum & Bass', 'Dubstep', 'Hip Hop', 'Pop', 'Rock', 'Electronic', 'Ambient', 'Other'];
+
+export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    artistName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    region: '',
+    genre: '',
+    socialLinks: ['']
+  });
+
   const [username, setUsername] = useState('');
-  const [artistName, setArtistName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [region, setRegion] = useState('');
-  const [genre, setGenre] = useState('');
-  const [publicProfile, setPublicProfile] = useState('');
-  const [agreeTerms, setAgreeTerms] = useState(false);
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [canCloseByBackdrop, setCanCloseByBackdrop] = useState(false);
-  const [showPasswordStrength, setShowPasswordStrength] = useState(false);
+  const [usernameAlternatives, setUsernameAlternatives] = useState<string[]>([]);
+  const [availability, setAvailability] = useState<AvailabilityStatus>({
+    email: 'idle',
+    artistName: 'idle',
+    username: 'idle'
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [verificationJobId, setVerificationJobId] = useState<string | null>(null);
 
-  const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null);
-  const [checkingEmail, setCheckingEmail] = useState(false);
-  const [artistAvailable, setArtistAvailable] = useState<boolean | null>(null);
-  const [checkingArtist, setCheckingArtist] = useState(false);
-  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
-  const [checkingUsername, setCheckingUsername] = useState(false);
+  const debouncedEmail = useDebounce(formData.email, 500);
+  const debouncedArtistName = useDebounce(formData.artistName, 500);
+  const debouncedUsername = useDebounce(username, 500);
 
-  const isPasswordValid = password.length >= 8 && 
-    /[A-Z]/.test(password) && 
-    /[a-z]/.test(password) && 
-    /[0-9]/.test(password) &&
-    /[!@#$%^&*(),.?":{}|<>_\-+=]/.test(password);
-
-  const passwordsMatch = password === confirmPassword && password.length > 0;
-
-  const generateUsername = useCallback(() => {
-    const newUsername = generateMusicUsername();
-    setUsername(newUsername);
-  }, []);
-
+  // Check email availability
   useEffect(() => {
-    if (open && !username) {
-      generateUsername();
+    if (debouncedEmail && debouncedEmail.includes('@')) {
+      checkAvailability('email', debouncedEmail);
     }
-  }, [open, username, generateUsername]);
+  }, [debouncedEmail]);
 
+  // Check artist name availability
   useEffect(() => {
-    if (!email || email.length < 3 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setEmailAvailable(null);
-      return;
+    if (debouncedArtistName && debouncedArtistName.length >= 2) {
+      checkAvailability('artistName', debouncedArtistName);
     }
+  }, [debouncedArtistName]);
 
-    const timer = setTimeout(async () => {
-      setCheckingEmail(true);
-      try {
-        const res = await fetch(`/api/auth/check-email?email=${encodeURIComponent(email)}`);
-        const data = await res.json();
-        setEmailAvailable(data.available);
-      } catch {
-        setEmailAvailable(null);
-      } finally {
-        setCheckingEmail(false);
+  // Check username availability
+  useEffect(() => {
+    if (debouncedUsername && debouncedUsername.length >= 3) {
+      checkAvailability('username', debouncedUsername);
+    }
+  }, [debouncedUsername]);
+
+  // Generate username when artist name is entered
+  useEffect(() => {
+    if (formData.artistName && formData.artistName.length >= 2) {
+      const generated = generateUsername(formData.artistName);
+      setUsername(generated);
+      setUsernameAlternatives([]);
+    }
+  }, [formData.artistName]);
+
+  const checkAvailability = async (field: keyof AvailabilityStatus, value: string) => {
+    setAvailability(prev => ({ ...prev, [field]: 'checking' }));
+
+    try {
+      const response = await fetch('/api/auth/check-availability', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ field, value })
+      });
+
+      const data = await response.json();
+
+      if (response.status === 429) {
+        setErrors(prev => ({ ...prev, [field]: 'Too many requests. Please wait.' }));
+        setAvailability(prev => ({ ...prev, [field]: 'idle' }));
+        return;
       }
-    }, 500);
 
-    return () => clearTimeout(timer);
-  }, [email]);
+      setAvailability(prev => ({ ...prev, [field]: data.available ? 'available' : 'taken' }));
 
-  useEffect(() => {
-    if (!artistName || artistName.length < 2) {
-      setArtistAvailable(null);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      setCheckingArtist(true);
-      try {
-        const res = await fetch(`/api/auth/check-artist?name=${encodeURIComponent(artistName)}`);
-        const data = await res.json();
-        setArtistAvailable(data.available);
-      } catch {
-        setArtistAvailable(null);
-      } finally {
-        setCheckingArtist(false);
+      if (!data.available) {
+        setErrors(prev => ({ ...prev, [field]: `This ${field} is already taken` }));
+      } else {
+        setErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[field];
+          return newErrors;
+        });
       }
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [artistName]);
-
-  useEffect(() => {
-    if (!username || username.length < 3) {
-      setUsernameAvailable(null);
-      return;
+    } catch (error) {
+      console.error('Availability check failed:', error);
+      setAvailability(prev => ({ ...prev, [field]: 'idle' }));
     }
+  };
 
-    const timer = setTimeout(async () => {
-      setCheckingUsername(true);
-      try {
-        const res = await fetch(`/api/auth/check-username?username=${encodeURIComponent(username)}`);
-        const data = await res.json();
-        setUsernameAvailable(data.available);
-      } catch {
-        setUsernameAvailable(null);
-      } finally {
-        setCheckingUsername(false);
+  const regenerateUsername = () => {
+    if (!formData.artistName) return;
+
+    const alternatives = Array.from({ length: 3 }, () => generateUsername(formData.artistName));
+    setUsernameAlternatives(alternatives);
+  };
+
+  const addSocialLink = () => {
+    if (formData.socialLinks.length < 5) {
+      setFormData(prev => ({
+        ...prev,
+        socialLinks: [...prev.socialLinks, '']
+      }));
+    }
+  };
+
+  const removeSocialLink = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      socialLinks: prev.socialLinks.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateSocialLink = (index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      socialLinks: prev.socialLinks.map((link, i) => i === index ? value : link)
+    }));
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.firstName) newErrors.firstName = 'First name is required';
+    if (!formData.lastName) newErrors.lastName = 'Last name is required';
+    if (!formData.artistName) newErrors.artistName = 'Artist name is required';
+    if (!formData.email) newErrors.email = 'Email is required';
+    if (!formData.email.includes('@')) newErrors.email = 'Invalid email format';
+    if (!formData.password) newErrors.password = 'Password is required';
+    if (formData.password.length < 10) newErrors.password = 'Password must be at least 10 characters';
+    if (!/[0-9!@#$%^&*]/.test(formData.password)) newErrors.password = 'Password must include a number or symbol';
+    if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
+    if (!formData.region) newErrors.region = 'Region is required';
+    if (!formData.genre) newErrors.genre = 'Genre is required';
+    if (!username) newErrors.username = 'Username is required';
+
+    // Validate social links
+    formData.socialLinks.forEach((link, i) => {
+      if (link && !link.match(/^https?:\/\/.+/)) {
+        newErrors[`socialLink${i}`] = 'Must be a valid URL starting with http:// or https://';
       }
-    }, 500);
+    });
 
-    return () => clearTimeout(timer);
-  }, [username]);
-
-  useEffect(() => {
-    if (open) {
-      const timer = setTimeout(() => setCanCloseByBackdrop(true), 300);
-      return () => {
-        clearTimeout(timer);
-        setCanCloseByBackdrop(false);
-      };
-    } else {
-      setCanCloseByBackdrop(false);
-    }
-  }, [open]);
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setIsLoading(true);
 
-    if (!agreeTerms) {
-      setError('You must agree to the Terms and Privacy Policy');
-      setIsLoading(false);
+    if (!validateForm()) return;
+
+    if (availability.email !== 'available' || availability.artistName !== 'available' || availability.username !== 'available') {
       return;
     }
 
-    if (!passwordsMatch) {
-      setError('Passwords do not match');
-      setIsLoading(false);
-      return;
-    }
-
-    if (!isPasswordValid) {
-      setError('Password does not meet security requirements');
-      setIsLoading(false);
-      return;
-    }
+    setIsSubmitting(true);
 
     try {
-      const registerRes = await fetch('/api/auth/register', {
+      const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          firstName,
-          lastName,
+          ...formData,
           username,
-          artistName,
-          email,
-          password,
-          region,
-          genre,
-          socialProfileUrl: publicProfile,
-        }),
+          socialLinks: formData.socialLinks.filter(link => link.trim() !== '')
+        })
       });
 
-      if (!registerRes.ok) {
-        const data = await registerRes.json();
-        throw new Error(data.message || 'Registration failed');
+      const data = await response.json();
+
+      if (response.ok) {
+        setVerificationJobId(data.verificationJobId);
+      } else {
+        setErrors({ submit: data.message || 'Signup failed' });
       }
-
-      const { userId } = await registerRes.json();
-
-      const verifyRes = await fetch('/api/verify/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          profileUrl: publicProfile,
-        }),
-      });
-
-      if (!verifyRes.ok) {
-        const data = await verifyRes.json();
-        throw new Error(data.message || 'Verification submission failed');
-      }
-
-      const { jobId } = await verifyRes.json();
-      onSuccess(userId, jobId);
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
+    } catch (error) {
+      setErrors({ submit: 'Network error. Please try again.' });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  if (!open) return null;
+  const isFormValid = 
+    availability.email === 'available' &&
+    availability.artistName === 'available' &&
+    availability.username === 'available' &&
+    formData.firstName &&
+    formData.lastName &&
+    formData.password.length >= 10 &&
+    formData.password === formData.confirmPassword &&
+    formData.region &&
+    formData.genre;
 
-  const handleBackdropClick = () => {
-    if (canCloseByBackdrop) {
-      onOpenChange(false);
-    }
-  };
-
-  const isFormValid = firstName && lastName && username && artistName && email && 
-    password && confirmPassword && region && genre && publicProfile && 
-    agreeTerms && emailAvailable === true && artistAvailable === true && 
-    usernameAvailable === true && isPasswordValid && passwordsMatch;
+  if (verificationJobId) {
+    return (
+      <VerificationModal
+        jobId={verificationJobId}
+        onComplete={() => {
+          onClose();
+          window.location.href = '/dashboard';
+        }}
+      />
+    );
+  }
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto">
-      <div className="fixed inset-0 bg-black/65 backdrop-blur-md" onClick={handleBackdropClick} />
-      
-      <div className="relative w-full max-w-[920px] my-auto bg-[#0F0F0F] border border-[#262626] rounded-2xl overflow-hidden shadow-2xl">
-        <button
-          onClick={() => onOpenChange(false)}
-          className="absolute top-4 right-4 z-10 text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="Close signup modal"
-        >
-          <X className="h-5 w-5" />
-        </button>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-[#0B0B0B] border-[#1a1a1a] text-white">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold text-[#D7FF3C]">Create Your Account</DialogTitle>
+        </DialogHeader>
 
-        <div className="grid md:grid-cols-[1fr_320px]">
-          <div className="p-6 md:p-8 lg:p-10 max-h-[calc(90vh-4rem)] overflow-y-auto">
-            <div className="mb-6">
-              <h2 className="text-xl md:text-2xl font-bold mb-2">Create your account</h2>
-              <p className="text-sm text-muted-foreground">
-                <span className="inline-flex items-center gap-1">
-                  <UserPlus className="h-3 w-3" />
-                  Invite-only: access currently open to curated artists.
-                </span>
-              </p>
+        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="firstName">First Name *</Label>
+              <Input
+                id="firstName"
+                value={formData.firstName}
+                onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
+                aria-required="true"
+              />
+              {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
             </div>
 
-            {error && (
-              <div className="mb-4 p-3 bg-destructive/10 border border-destructive/50 rounded-md flex items-start gap-2">
-                <AlertCircle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-destructive">{error}</p>
+            <div>
+              <Label htmlFor="lastName">Last Name *</Label>
+              <Input
+                id="lastName"
+                value={formData.lastName}
+                onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
+                aria-required="true"
+              />
+              {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="artistName">Artist Name *</Label>
+            <div className="relative">
+              <Input
+                id="artistName"
+                value={formData.artistName}
+                onChange={(e) => setFormData(prev => ({ ...prev, artistName: e.target.value }))}
+                className="bg-[#0a0a0a] border-[#1a1a1a] text-white pr-10"
+                aria-required="true"
+              />
+              {availability.artistName === 'checking' && <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-gray-400" />}
+              {availability.artistName === 'available' && <Check className="absolute right-3 top-3 h-4 w-4 text-green-500" />}
+              {availability.artistName === 'taken' && <X className="absolute right-3 top-3 h-4 w-4 text-red-500" />}
+            </div>
+            {errors.artistName && <p className="text-red-500 text-xs mt-1">{errors.artistName}</p>}
+          </div>
+
+          <div>
+            <Label htmlFor="username">Username *</Label>
+            <div className="relative">
+              <Input
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="bg-[#0a0a0a] border-[#1a1a1a] text-white pr-10"
+                aria-required="true"
+              />
+              {availability.username === 'checking' && <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-gray-400" />}
+              {availability.username === 'available' && <Check className="absolute right-3 top-3 h-4 w-4 text-green-500" />}
+              {availability.username === 'taken' && <X className="absolute right-3 top-3 h-4 w-4 text-red-500" />}
+            </div>
+            <Button
+              type="button"
+              onClick={regenerateUsername}
+              variant="ghost"
+              size="sm"
+              className="mt-1 text-xs text-[#D7FF3C] hover:text-[#D7FF3C]/80"
+            >
+              <RefreshCw className="h-3 w-3 mr-1" />
+              Regenerate
+            </Button>
+            {usernameAlternatives.length > 0 && (
+              <div className="mt-2 space-y-1">
+                <p className="text-xs text-gray-400">Alternatives:</p>
+                {usernameAlternatives.map((alt, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => { setUsername(alt); setUsernameAlternatives([]); }}
+                    className="block text-xs text-[#9B5CFF] hover:underline"
+                  >
+                    {alt}
+                  </button>
+                ))}
               </div>
             )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="firstName" className="text-sm text-foreground mb-2 block">
-                    First name <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="firstName"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
-                    placeholder="e.g. John"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="lastName" className="text-sm text-foreground mb-2 block">
-                    Last name <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="lastName"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
-                    placeholder="e.g. Smith"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="username" className="text-sm text-foreground mb-2 block">
-                  Username <span className="text-destructive">*</span>
-                  <span className="text-xs text-muted-foreground ml-2">(Auto-generated, click refresh for new)</span>
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))}
-                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary pr-16"
-                    placeholder="e.g. bassselector303"
-                    required
-                    maxLength={30}
-                  />
-                  <button
-                    type="button"
-                    onClick={generateUsername}
-                    className="absolute right-8 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    title="Generate new username"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                  </button>
-                  {checkingUsername && (
-                    <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
-                  )}
-                  {!checkingUsername && usernameAvailable === true && username.length >= 3 && (
-                    <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
-                  )}
-                  {!checkingUsername && usernameAvailable === false && (
-                    <AlertCircle className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
-                  )}
-                </div>
-                {usernameAvailable === false && (
-                  <p className="text-xs text-destructive mt-1">This username is already taken</p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="artistName" className="text-sm text-foreground mb-2 block">
-                  Artist / Project name <span className="text-destructive">*</span>
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="artistName"
-                    value={artistName}
-                    onChange={(e) => setArtistName(e.target.value)}
-                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary pr-8"
-                    placeholder="e.g. DJ Phoenix"
-                    required
-                  />
-                  {checkingArtist && (
-                    <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
-                  )}
-                  {!checkingArtist && artistAvailable === true && artistName.length >= 2 && (
-                    <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
-                  )}
-                  {!checkingArtist && artistAvailable === false && (
-                    <AlertCircle className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
-                  )}
-                </div>
-                {artistAvailable === false && (
-                  <p className="text-xs text-destructive mt-1">This artist name is already taken</p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="email" className="text-sm text-foreground mb-2 block">
-                  Email <span className="text-destructive">*</span>
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value.toLowerCase())}
-                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary pr-8"
-                    placeholder="e.g. artist@example.com"
-                    required
-                  />
-                  {checkingEmail && (
-                    <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
-                  )}
-                  {!checkingEmail && emailAvailable === true && email.length >= 3 && (
-                    <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
-                  )}
-                  {!checkingEmail && emailAvailable === false && (
-                    <AlertCircle className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
-                  )}
-                </div>
-                {emailAvailable === false && (
-                  <p className="text-xs text-destructive mt-1">This email is already registered</p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="password" className="text-sm text-foreground mb-2 block">
-                  Password <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onFocus={() => setShowPasswordStrength(true)}
-                  className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
-                  placeholder="Create a strong password"
-                  required
-                  minLength={8}
-                  maxLength={128}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="confirmPassword" className="text-sm text-foreground mb-2 block">
-                  Confirm Password <span className="text-destructive">*</span>
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary pr-8"
-                    placeholder="Re-enter your password"
-                    required
-                    minLength={8}
-                    maxLength={128}
-                  />
-                  {confirmPassword && passwordsMatch && (
-                    <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
-                  )}
-                  {confirmPassword && !passwordsMatch && (
-                    <AlertCircle className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
-                  )}
-                </div>
-                {confirmPassword && !passwordsMatch && (
-                  <p className="text-xs text-destructive mt-1">Passwords do not match</p>
-                )}
-              </div>
-
-              {showPasswordStrength && password && (
-                <div className="bg-[#0B0B0B] border border-[#262626] rounded-lg p-4">
-                  <PasswordStrength password={password} confirmPassword={confirmPassword} />
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="region" className="text-sm text-foreground mb-2 block">
-                    Region <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="region"
-                    type="text"
-                    value={region}
-                    onChange={(e) => setRegion(e.target.value.slice(0, 60))}
-                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
-                    placeholder="e.g. EU — Berlin"
-                    required
-                    maxLength={60}
-                    autoComplete="off"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {region.length}/60 characters
-                  </p>
-                </div>
-                <div>
-                  <Label htmlFor="genre" className="text-sm text-foreground mb-2 block">
-                    Primary genre <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="genre"
-                    type="text"
-                    value={genre}
-                    onChange={(e) => setGenre(e.target.value.slice(0, 120))}
-                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
-                    placeholder="e.g. Techno, Minimal"
-                    required
-                    maxLength={120}
-                    autoComplete="off"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {genre.length}/120 characters
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="publicProfile" className="text-sm text-foreground mb-2 block">
-                  Social Profile URL <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="publicProfile"
-                  type="url"
-                  value={publicProfile}
-                  onChange={(e) => setPublicProfile(e.target.value)}
-                  className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
-                  placeholder="https://soundcloud.com/artist"
-                  required
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Your primary social/profile URL for verification (SoundCloud, Instagram, Spotify, Bandcamp, Beatport, Mixcloud, etc.)
-                </p>
-              </div>
-
-              <div className="flex items-start gap-2">
-                <input
-                  type="checkbox"
-                  id="agreeTerms"
-                  checked={agreeTerms}
-                  onChange={(e) => setAgreeTerms(e.target.checked)}
-                  className="mt-1"
-                  required
-                />
-                <Label htmlFor="agreeTerms" className="text-xs text-muted-foreground cursor-pointer">
-                  I agree to Terms and Privacy <span className="text-destructive">*</span>
-                </Label>
-              </div>
-
-              <div className="flex gap-3">
-                <Button
-                  type="submit"
-                  disabled={isLoading || !isFormValid}
-                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      <UserPlus className="h-4 w-4" />
-                      Register
-                    </>
-                  )}
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => onOpenChange(false)}
-                  variant="outline"
-                  className="flex-1 border-[#262626] hover:bg-accent"
-                >
-                  Cancel
-                </Button>
-              </div>
-
-              <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                AI will verify your profile post-registration to ensure community authenticity.
-              </p>
-            </form>
+            {errors.username && <p className="text-red-500 text-xs mt-1">{errors.username}</p>}
           </div>
 
-          <div className="bg-[#0B0B0B] border-t md:border-t-0 md:border-l border-[#262626] p-6 md:p-8">
-            <h3 className="text-base font-semibold mb-3">Why join TheCueRoom</h3>
-            
-            <ul className="space-y-3 mb-6">
-              <li className="flex items-start gap-2 text-xs">
-                <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-muted-foreground">Curated News Rail: underground techno/house by genre + region.</span>
-              </li>
-              <li className="flex items-start gap-2 text-xs">
-                <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-muted-foreground">Gigs, cover art marketplace, and invite-only drops.</span>
-              </li>
-              <li className="flex items-start gap-2 text-xs">
-                <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-muted-foreground">Private, invite-first community. No noise.</span>
-              </li>
-            </ul>
+          <div>
+            <Label htmlFor="email">Email *</Label>
+            <div className="relative">
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                className="bg-[#0a0a0a] border-[#1a1a1a] text-white pr-10"
+                aria-required="true"
+              />
+              {availability.email === 'checking' && <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-gray-400" />}
+              {availability.email === 'available' && <Check className="absolute right-3 top-3 h-4 w-4 text-green-500" />}
+              {availability.email === 'taken' && <X className="absolute right-3 top-3 h-4 w-4 text-red-500" />}
+            </div>
+            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+          </div>
 
-            <div className="border-t border-[#262626] pt-4">
-              <h4 className="text-sm font-semibold mb-2">Trusted curators</h4>
-              <ul className="space-y-2">
-                <li className="text-xs text-muted-foreground">• MIXROOM</li>
-                <li className="text-xs text-muted-foreground">• Deep Cut</li>
-                <li className="text-xs text-muted-foreground">• Void FM</li>
-              </ul>
+          <div>
+            <Label htmlFor="password">Password *</Label>
+            <Input
+              id="password"
+              type="password"
+              value={formData.password}
+              onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+              className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
+              aria-required="true"
+            />
+            <PasswordStrength password={formData.password} />
+            {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+          </div>
+
+          <div>
+            <Label htmlFor="confirmPassword">Confirm Password *</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              value={formData.confirmPassword}
+              onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+              className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
+              aria-required="true"
+            />
+            {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="region">Region *</Label>
+              <Select value={formData.region} onValueChange={(value) => setFormData(prev => ({ ...prev, region: value }))}>
+                <SelectTrigger className="bg-[#0a0a0a] border-[#1a1a1a] text-white">
+                  <SelectValue placeholder="Select region" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#0a0a0a] border-[#1a1a1a]">
+                  {REGIONS.map(region => (
+                    <SelectItem key={region} value={region} className="text-white">{region}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.region && <p className="text-red-500 text-xs mt-1">{errors.region}</p>}
+            </div>
+
+            <div>
+              <Label htmlFor="genre">Genre *</Label>
+              <Select value={formData.genre} onValueChange={(value) => setFormData(prev => ({ ...prev, genre: value }))}>
+                <SelectTrigger className="bg-[#0a0a0a] border-[#1a1a1a] text-white">
+                  <SelectValue placeholder="Select genre" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#0a0a0a] border-[#1a1a1a]">
+                  {GENRES.map(genre => (
+                    <SelectItem key={genre} value={genre} className="text-white">{genre}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.genre && <p className="text-red-500 text-xs mt-1">{errors.genre}</p>}
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+
+          <div>
+            <Label>Social Links (0-5)</Label>
+            {formData.socialLinks.map((link, index) => (
+              <div key={index} className="flex gap-2 mt-2">
+                <Input
+                  value={link}
+                  onChange={(e) => updateSocialLink(index, e.target.value)}
+                  placeholder="https://soundcloud.com/yourprofile"
+                  className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
+                />
+                <Button
+                  type="button"
+                  onClick={() => removeSocialLink(index)}
+                  variant="ghost"
+                  size="icon"
+                  className="text-red-500 hover:text-red-400"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            {formData.socialLinks.length < 5 && (
+              <Button
+                type="button"
+                onClick={addSocialLink}
+                variant="outline"
+                size="sm"
+                className="mt-2 border-[#1a1a1a] text-[#D7FF3C] hover:bg-[#1a1a1a]"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add Link
+              </Button>
+            )}
+          </div>
+
+          {errors.submit && <p className="text-red-500 text-sm">{errors.submit}</p>}
+
+          <Button
+            type="submit"
+            disabled={!isFormValid || isSubmitting}
+            className="w-full bg-[#D7FF3C] text-black hover:bg-[#D7FF3C]/90 font-semibold"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating Account...
+              </>
+            ) : (
+              'Sign Up'
+            )}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
