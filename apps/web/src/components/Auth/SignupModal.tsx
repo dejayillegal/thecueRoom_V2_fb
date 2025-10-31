@@ -8,8 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Check, X, Loader2, RefreshCw, UserPlus, Mail, Lock, User, MapPin, Music, Link as LinkIcon } from 'lucide-react';
-import { useDebounce } from '@/hooks/use-debounce';
-import { generateUsername } from '@/lib/username-generator';
+import { useDebounce } from '@/src/hooks/use-debounce';
+import { generateUsername } from '@/src/lib/username-generator';
 import VerificationModal from './VerificationModal';
 
 interface SignupModalProps {
