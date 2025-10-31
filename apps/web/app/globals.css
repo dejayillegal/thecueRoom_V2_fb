@@ -344,6 +344,30 @@ body {
   }
 }
 
+/* Scrollbar theming */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a3a;
+}
+
+/* Dialog sharp edges */
+[role="dialog"] {
+  border-radius: 0 !important;
+}
+
 /* Dark-themed scrollbars for the entire app */
 * {
   scrollbar-width: thin;

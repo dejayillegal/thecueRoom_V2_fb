@@ -317,7 +317,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-[920px] bg-black border border-[#2a2a2a] text-white p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col">
+        <DialogContent className="max-w-[920px] bg-black border border-[#2a2a2a] text-white p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col rounded-none">
           <DialogTitle className="sr-only">
             {activeTab === 'signin' ? 'Sign In' : activeTab === 'signup' ? 'Sign Up' : 'Forgot Password'}
           </DialogTitle>
@@ -331,7 +331,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               <div className="flex gap-1 mb-8">
                 <button
                   onClick={() => setActiveTab('signin')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors rounded ${
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
                     activeTab === 'signin'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-transparent text-gray-400 hover:text-white'
@@ -341,7 +341,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 </button>
                 <button
                   onClick={() => setActiveTab('signup')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors rounded ${
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
                     activeTab === 'signup'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-transparent text-gray-400 hover:text-white'
@@ -351,7 +351,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 </button>
                 <button
                   onClick={() => setActiveTab('forgot')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors rounded ${
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
                     activeTab === 'forgot'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-transparent text-gray-400 hover:text-white'
@@ -475,6 +475,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       <Input
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
+                        placeholder="e.g. Alex"
                         className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
                         disabled={isLoading}
                         required
@@ -485,6 +486,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       <Input
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
+                        placeholder="e.g. Rivera"
                         className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
                         disabled={isLoading}
                         required
@@ -498,6 +500,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       <Input
                         value={artistName}
                         onChange={(e) => setArtistName(e.target.value)}
+                        placeholder="e.g. Midnight Echo"
                         className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C] pr-10"
                         disabled={isLoading}
                         required
@@ -529,6 +532,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        placeholder="e.g. alex@example.com"
                         className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C] pr-10"
                         disabled={isLoading}
                         required
@@ -555,6 +559,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        placeholder="e.g. Strong@Pass123"
                         className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
                         disabled={isLoading}
                         required
@@ -566,6 +571,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                         type="password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="e.g. Strong@Pass123"
                         className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
                         disabled={isLoading}
                         required
