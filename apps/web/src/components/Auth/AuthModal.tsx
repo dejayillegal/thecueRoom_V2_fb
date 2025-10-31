@@ -295,7 +295,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </DialogTitle>
           <div className="grid md:grid-cols-[1fr_360px] overflow-hidden h-full">
             {/* Left Column - Auth Forms */}
-            <div className="p-8 overflow-y-auto">
+            <div className="p-8 overflow-y-auto scrollbar-thin">
               {/* Header with Tabs */}
               <h2 className="text-xl font-semibold mb-6">
                 {activeTab === 'signin' ? 'Sign In' : activeTab === 'signup' ? 'Sign Up' : 'Forgot Password'}
@@ -305,7 +305,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   onClick={() => setActiveTab('signin')}
                   className={`px-4 py-2 text-sm font-medium transition-colors rounded ${
                     activeTab === 'signin'
-                      ? 'bg-[#D7FF3C] text-black'
+                      ? 'bg-primary text-primary-foreground'
                       : 'bg-transparent text-gray-400 hover:text-white'
                   }`}
                 >
@@ -315,7 +315,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   onClick={() => setActiveTab('signup')}
                   className={`px-4 py-2 text-sm font-medium transition-colors rounded ${
                     activeTab === 'signup'
-                      ? 'bg-[#D7FF3C] text-black'
+                      ? 'bg-primary text-primary-foreground'
                       : 'bg-transparent text-gray-400 hover:text-white'
                   }`}
                 >
@@ -325,7 +325,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   onClick={() => setActiveTab('forgot')}
                   className={`px-4 py-2 text-sm font-medium transition-colors rounded ${
                     activeTab === 'forgot'
-                      ? 'bg-[#D7FF3C] text-black'
+                      ? 'bg-primary text-primary-foreground'
                       : 'bg-transparent text-gray-400 hover:text-white'
                   }`}
                 >
@@ -384,7 +384,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     <Button
                       type="submit"
                       disabled={isLoading}
-                      className="bg-[#D7FF3C] text-black hover:bg-[#c5ed2a] font-semibold h-11 px-8"
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold h-11 px-8"
                     >
                       {isLoading ? (
                         <>
@@ -392,7 +392,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                           Signing in...
                         </>
                       ) : (
-                        'Continue'
+                        <>
+                          <CheckCircle2 className="mr-2 h-4 w-4" />
+                          Continue
+                        </>
                       )}
                     </Button>
                     <Button
@@ -402,6 +405,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       className="border-[#2a2a2a] bg-transparent text-white hover:bg-[#1a1a1a] h-11 px-8"
                       disabled={isLoading}
                     >
+                      <XCircle className="mr-2 h-4 w-4" />
                       Cancel
                     </Button>
                   </div>
@@ -669,7 +673,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     <Button
                       type="submit"
                       disabled={isLoading || !emailAvailability.available || !artistAvailability.available || !agreeTerms}
-                      className="bg-[#D7FF3C] text-black hover:bg-[#c5ed2a] font-semibold h-11 px-8"
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold h-11 px-8"
                     >
                       {isLoading ? (
                         <>
@@ -677,7 +681,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                           Creating...
                         </>
                       ) : (
-                        'Continue'
+                        <>
+                          <CheckCircle2 className="mr-2 h-4 w-4" />
+                          Continue
+                        </>
                       )}
                     </Button>
                     <Button
@@ -687,6 +694,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       className="border-[#2a2a2a] bg-transparent text-white hover:bg-[#1a1a1a] h-11 px-8"
                       disabled={isLoading}
                     >
+                      <XCircle className="mr-2 h-4 w-4" />
                       Cancel
                     </Button>
                   </div>
@@ -725,7 +733,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     <Button
                       type="submit"
                       disabled={isLoading}
-                      className="bg-[#D7FF3C] text-black hover:bg-[#c5ed2a] font-semibold h-11 px-8"
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold h-11 px-8"
                     >
                       {isLoading ? (
                         <>
@@ -733,7 +741,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                           Sending...
                         </>
                       ) : (
-                        'Send Reset Link'
+                        <>
+                          <Mail className="mr-2 h-4 w-4" />
+                          Send Reset Link
+                        </>
                       )}
                     </Button>
                     <Button
@@ -743,6 +754,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       className="border-[#2a2a2a] bg-transparent text-white hover:bg-[#1a1a1a] h-11 px-8"
                       disabled={isLoading}
                     >
+                      <XCircle className="mr-2 h-4 w-4" />
                       Cancel
                     </Button>
                   </div>
@@ -751,7 +763,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             </div>
 
             {/* Right Column - Welcome Panel */}
-            <div className="hidden md:block bg-[#0a0a0a] border-l border-[#2a2a2a] p-8">
+            <div className="hidden md:block bg-[#0a0a0a] border-l border-[#2a2a2a] p-8 overflow-y-auto scrollbar-thin">
               <h2 className="text-xl font-semibold mb-4 text-[#D7FF3C]">Welcome to thecueRoom</h2>
               <p className="text-sm text-gray-400 mb-6">
                 Invite-first platform. Approved members get access to the gated dashboard.
