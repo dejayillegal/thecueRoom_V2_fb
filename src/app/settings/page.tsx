@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -122,7 +121,7 @@ export default function SettingsPage() {
             setNewPassword('');
             toast({ title: 'Success', description: 'Password updated successfully.' });
         }
-        
+
         if (email !== user.email) {
             await updateEmail(user, email);
             if (userProfileRef) {
@@ -130,7 +129,7 @@ export default function SettingsPage() {
             }
             toast({ title: 'Success', description: 'Email updated. Please verify your new address.' });
         }
-        
+
         setCurrentPassword('');
 
     } catch (error: any) {
@@ -149,7 +148,7 @@ export default function SettingsPage() {
     if (!user || !userProfileRef || !formData.submittedLink) return;
     setIsSaving(true);
     try {
-        await updateDoc(userProfileRef, { 
+        await updateDoc(userProfileRef, {
             submittedLink: formData.submittedLink,
             verificationStatus: 'queued',
         });
@@ -215,21 +214,12 @@ export default function SettingsPage() {
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="primaryGenre">Primary Genre</Label>
-                  <Select
+                  <Input
+                    id="primaryGenre"
                     value={formData.primaryGenre || ''}
-                    onValueChange={(value) => handleInputChange('primaryGenre', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select genre..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="techno">Techno</SelectItem>
-                        <SelectItem value="house">House</SelectItem>
-                        <SelectItem value="minimal">Minimal</SelectItem>
-                        <SelectItem value="electro">Electro</SelectItem>
-                        <SelectItem value="leftfield">Leftfield</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    onChange={(e) => handleInputChange('primaryGenre', e.target.value)}
+                    placeholder="Enter your genre..."
+                  />
                 </div>
               </div>
               <Separator />
@@ -253,22 +243,12 @@ export default function SettingsPage() {
               </div>
               <div className="space-y-1">
                 <Label htmlFor="region">Region</Label>
-                <Select
+                <Input
+                    id="region"
                     value={formData.region || ''}
-                    onValueChange={(value) => handleInputChange('region', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select region..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="north-america">North America</SelectItem>
-                        <SelectItem value="europe">Europe</SelectItem>
-                        <SelectItem value="asia">Asia</SelectItem>
-                        <SelectItem value="south-america">South America</SelectItem>
-                        <SelectItem value="africa">Africa</SelectItem>
-                        <SelectItem value="australia">Australia</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    onChange={(e) => handleInputChange('region', e.target.value)}
+                    placeholder="Enter your region..."
+                  />
               </div>
             </CardContent>
             <CardFooter>
