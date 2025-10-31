@@ -94,7 +94,7 @@ export function SignInModal({ isOpen, onOpenChange }: SignInModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-md">
-      <div className="relative w-full max-w-[920px] max-h-[90vh] overflow-hidden bg-[#0F0F0F] border border-[#262626] rounded-2xl shadow-2xl">
+      <div className="relative w-full max-w-[920px] max-h-[90vh] bg-[#0F0F0F] border border-[#262626] rounded-2xl shadow-2xl flex flex-col">
         <button
           onClick={() => onOpenChange(false)}
           className="absolute top-4 right-4 z-10 text-muted-foreground hover:text-foreground transition-colors"
@@ -103,9 +103,9 @@ export function SignInModal({ isOpen, onOpenChange }: SignInModalProps) {
           <X className="h-5 w-5" />
         </button>
 
-        <div className="grid md:grid-cols-[1fr_340px] min-h-[500px]">
+        <div className="grid md:grid-cols-[1fr_340px] overflow-hidden flex-1">
           {/* Left Panel - Auth Forms */}
-          <div className="p-8 md:p-10 overflow-y-auto max-h-[90vh]">
+          <div className="p-8 md:p-10 overflow-y-auto">
             <div className="mb-6">
               <h2 className="text-xl font-semibold mb-4">
                 {view === 'signin' && 'Sign In'}
@@ -117,7 +117,7 @@ export function SignInModal({ isOpen, onOpenChange }: SignInModalProps) {
                 <div className="flex gap-2 mb-6">
                   <button
                     onClick={() => { setView('signin'); setActiveTab('signin'); }}
-                    className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    className={`px-4 py-2 text-sm font-medium transition-colors rounded ${
                       activeTab === 'signin'
                         ? 'bg-[#D7FF3C] text-black'
                         : 'bg-transparent text-gray-400 hover:text-white'
@@ -127,7 +127,7 @@ export function SignInModal({ isOpen, onOpenChange }: SignInModalProps) {
                   </button>
                   <button
                     onClick={() => { setView('signup'); setActiveTab('signup'); }}
-                    className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    className={`px-4 py-2 text-sm font-medium transition-colors rounded ${
                       activeTab === 'signup'
                         ? 'bg-[#D7FF3C] text-black'
                         : 'bg-transparent text-gray-400 hover:text-white'
