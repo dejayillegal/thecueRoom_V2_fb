@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -180,13 +180,26 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     }
   };
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setEmail('');
     setPassword('');
     setError('');
     setSuccess('');
     onOpenChange(false);
-  };
+  }, [onOpenChange]);
+
+  // Memoize region and genre options for better performance
+  const regionOptions = useMemo(() => REGIONS.map(r => (
+    <SelectItem key={r} value={r} className="cursor-pointer hover:bg-accent focus:bg-accent">
+      {r}
+    </SelectItem>
+  )), []);
+
+  const genreOptions = useMemo(() => GENRES.map(g => (
+    <SelectItem key={g} value={g} className="cursor-pointer hover:bg-accent focus:bg-accent">
+      {g}
+    </SelectItem>
+  )), []);
 
   if (!open || !mounted) return null;
 
@@ -385,13 +398,11 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                       Region <span className="text-destructive">*</span>
                     </Label>
                     <Select value={region} onValueChange={setRegion}>
-                      <SelectTrigger className="bg-[#0B0B0B] border-[#262626]">
+                      <SelectTrigger id="region" className="bg-[#0B0B0B] border-[#262626]">
                         <SelectValue placeholder="Select region..." />
                       </SelectTrigger>
-                      <SelectContent>
-                        {REGIONS.map(r => (
-                          <SelectItem key={r} value={r}>{r}</SelectItem>
-                        ))}
+                      <SelectContent className="bg-[#0B0B0B] border-[#262626] max-h-[300px]">
+                        {regionOptions}
                       </SelectContent>
                     </Select>
                   </div>
@@ -400,13 +411,11 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                       Primary genre <span className="text-destructive">*</span>
                     </Label>
                     <Select value={genre} onValueChange={setGenre}>
-                      <SelectTrigger className="bg-[#0B0B0B] border-[#262626]">
+                      <SelectTrigger id="genre" className="bg-[#0B0B0B] border-[#262626]">
                         <SelectValue placeholder="Choose genre..." />
                       </SelectTrigger>
-                      <SelectContent>
-                        {GENRES.map(g => (
-                          <SelectItem key={g} value={g}>{g}</SelectItem>
-                        ))}
+                      <SelectContent className="bg-[#0B0B0B] border-[#262626] max-h-[300px]">
+                        {genreOptions}
                       </SelectContent>
                     </Select>
                   </div>
