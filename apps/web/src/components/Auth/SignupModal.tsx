@@ -217,31 +217,27 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
                   <Label htmlFor="region" className="text-sm text-foreground mb-2 block">
                     Region
                   </Label>
-                  <Select value={region} onValueChange={setRegion} required>
-                    <SelectTrigger className="bg-[#0B0B0B] border-[#262626]">
-                      <SelectValue placeholder="Select region..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {REGIONS.map(r => (
-                        <SelectItem key={r} value={r}>{r}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    id="region"
+                    value={region}
+                    onChange={(e) => setRegion(e.target.value)}
+                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
+                    placeholder="Enter your region..."
+                    required
+                  />
                 </div>
                 <div>
                   <Label htmlFor="genre" className="text-sm text-foreground mb-2 block">
                     Primary genre
                   </Label>
-                  <Select value={genre} onValueChange={setGenre} required>
-                    <SelectTrigger className="bg-[#0B0B0B] border-[#262626]">
-                      <SelectValue placeholder="Choose genre..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {GENRES.map(g => (
-                        <SelectItem key={g} value={g}>{g}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    id="genre"
+                    value={genre}
+                    onChange={(e) => setGenre(e.target.value)}
+                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
+                    placeholder="Enter your genre..."
+                    required
+                  />
                 </div>
               </div>
 
