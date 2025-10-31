@@ -50,25 +50,25 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Close sidebar on navigation for mobile
+  // Close sidebar on navigation for mobile only
   useEffect(() => {
     if (isMobile && isOpen) {
       onToggle();
     }
-  }, [pathname]);
+  }, [pathname, isMobile, onToggle]);
 
   return (
     <aside
       className={cn(
         'fixed left-0 top-0 h-screen bg-black flex flex-col z-40 border-r border-[#1a1a1a]',
         'transition-all duration-200 ease-out',
-        // Mobile: icon-only width (60px), slide in/out
-        // Desktop: expand/collapse between 60px and 200px
-        'lg:translate-x-0',
-        isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-        // Width: mobile always 60px, desktop toggles
-        'w-[60px]',
-        isOpen && 'lg:w-[200px]',
+        // Mobile: always 60px width, slide in/out from left
+        // Desktop: always visible, toggle width between 60px and 200px
+        isMobile ? (
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        ) : 'translate-x-0',
+        // Width control
+        isMobile ? 'w-[60px]' : (isOpen ? 'w-[200px]' : 'w-[60px]'),
         className
       )}
     >
@@ -103,7 +103,7 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
                 <Link
                   href={item.href}
                   className={cn(
-                    'flex items-center gap-2 px-2.5 py-2 text-[13px] transition-all duration-200',
+                    'flex items-center gap-2 px-2.5 py-2 text-[13px] transition-all duration-200 rounded-md',
                     isActive 
                       ? 'bg-[var(--tcr-accent)] text-black font-medium' 
                       : 'text-gray-400 hover:bg-[#1a1a1a] hover:text-white',
@@ -125,7 +125,7 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
         <Link
           href="/settings"
           className={cn(
-            'flex items-center gap-2 px-2.5 py-2 text-[13px] transition-all duration-200',
+            'flex items-center gap-2 px-2.5 py-2 text-[13px] transition-all duration-200 rounded-md',
             pathname === '/settings'
               ? 'bg-[var(--tcr-accent)] text-black font-medium'
               : 'text-gray-400 hover:bg-[#1a1a1a] hover:text-white',
@@ -141,7 +141,7 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
         {!isMobile && (
           <button
             onClick={onToggle}
-            className="w-full flex items-center justify-center gap-1.5 px-2.5 py-2 text-gray-400 hover:bg-[#1a1a1a] hover:text-white transition-all duration-200"
+            className="w-full flex items-center justify-center gap-1.5 px-2.5 py-2 text-gray-400 hover:bg-[#1a1a1a] hover:text-white transition-all duration-200 rounded-md"
             aria-label={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
           >
             {isOpen ? (

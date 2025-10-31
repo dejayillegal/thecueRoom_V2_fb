@@ -17,23 +17,17 @@ export default memo(function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Always start collapsed to match server render
+  // Start collapsed by default on all devices
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
 
   // Handle client-side only logic after mount
   useEffect(() => {
-    setIsMounted(true);
-    
     const checkDesktop = () => {
       const desktop = window.innerWidth >= 1024;
       setIsDesktop(desktop);
-      // Auto-open on desktop on first load only
-      if (desktop && !isMounted) {
-        setSidebarOpen(true);
-      } else if (!desktop) {
-        // Always close sidebar on mobile
+      // On mobile, always close sidebar when resizing
+      if (!desktop) {
         setSidebarOpen(false);
       }
     };
@@ -41,7 +35,7 @@ export default memo(function DashboardLayout({
     checkDesktop();
     window.addEventListener('resize', checkDesktop);
     return () => window.removeEventListener('resize', checkDesktop);
-  }, [isMounted]);
+  }, []);
 
   const handleSidebarToggle = useCallback(() => {
     setSidebarOpen(prev => !prev);
