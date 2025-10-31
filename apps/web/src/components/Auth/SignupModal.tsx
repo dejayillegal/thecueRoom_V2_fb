@@ -293,14 +293,15 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
   // }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[900px] max-h-[85vh] bg-black border border-[#1a1a1a] text-white p-0 gap-0 overflow-hidden">
-        <DialogTitle className="sr-only">
-          {activeTab === 'signin' ? 'Sign In' : activeTab === 'signup' ? 'Sign Up' : 'Forgot Password'}
-        </DialogTitle>
-        <div className="grid grid-cols-[1fr_320px] h-full max-h-[85vh]">
-          {/* Left Column - Auth Forms */}
-          <div className="p-8 overflow-y-auto">
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-[900px] max-h-[85vh] bg-black border border-[#1a1a1a] text-white p-0 gap-0 overflow-hidden">
+          <DialogTitle className="sr-only">
+            {activeTab === 'signin' ? 'Sign In' : activeTab === 'signup' ? 'Sign Up' : 'Forgot Password'}
+          </DialogTitle>
+          <div className="grid grid-cols-[1fr_320px] h-full max-h-[85vh]">
+            {/* Left Column - Auth Forms */}
+            <div className="p-8 overflow-y-auto">
             {/* Header with Tabs */}
             <div className="mb-8">
               <h2 className="text-lg font-semibold mb-4">Sign in to TheCueRoom</h2>
@@ -673,21 +674,21 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
             </div>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
 
-    {verificationJobId && (
-      <VerificationModal
-        isOpen={showVerificationModal}
-        onClose={() => setShowVerificationModal(false)}
-        jobId={verificationJobId}
-        onComplete={() => {
-          setShowVerificationModal(false);
-          router.push('/dashboard');
-          router.refresh();
-        }}
-      />
-    )}
-  </>
+      {verificationJobId && (
+        <VerificationModal
+          isOpen={showVerificationModal}
+          onClose={() => setShowVerificationModal(false)}
+          jobId={verificationJobId}
+          onComplete={() => {
+            setShowVerificationModal(false);
+            router.push('/dashboard');
+            router.refresh();
+          }}
+        />
+      )}
+    </>
   );
 }
