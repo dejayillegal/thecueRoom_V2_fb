@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
+import { Progress } from '../../../components/ui/progress';
 import { CheckCircle2, Clock, XCircle, Loader2, AlertCircle } from 'lucide-react';
 
 interface VerificationModalProps {
