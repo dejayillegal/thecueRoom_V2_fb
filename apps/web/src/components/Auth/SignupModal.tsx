@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertCircle, CheckCircle2, Loader2, X, UserPlus, Link as LinkIcon } from 'lucide-react';
 
 interface SignupModalProps {
@@ -13,9 +12,6 @@ interface SignupModalProps {
   onOpenChange: (open: boolean) => void;
   onSuccess: (userId: string, jobId: string) => void;
 }
-
-const REGIONS = ['North America', 'Europe', 'Asia', 'South America', 'Africa', 'Oceania'];
-const GENRES = ['Techno', 'House', 'Minimal', 'Electro', 'Ambient', 'Experimental', 'DnB', 'Dubstep'];
 
 export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps) {
   const [firstName, setFirstName] = useState('');
@@ -215,28 +211,32 @@ export function SignupModal({ open, onOpenChange, onSuccess }: SignupModalProps)
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="region" className="text-sm text-foreground mb-2 block">
-                    Region
+                    Region <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="region"
+                    type="text"
                     value={region}
                     onChange={(e) => setRegion(e.target.value)}
-                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
-                    placeholder="Enter your region..."
+                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                    placeholder="e.g., North America, Europe, Asia"
                     required
+                    minLength={2}
                   />
                 </div>
                 <div>
                   <Label htmlFor="genre" className="text-sm text-foreground mb-2 block">
-                    Primary genre
+                    Primary genre <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="genre"
+                    type="text"
                     value={genre}
                     onChange={(e) => setGenre(e.target.value)}
-                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
-                    placeholder="Enter your genre..."
+                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                    placeholder="e.g., Techno, House, Minimal"
                     required
+                    minLength={2}
                   />
                 </div>
               </div>
