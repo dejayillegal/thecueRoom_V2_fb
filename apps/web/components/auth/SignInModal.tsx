@@ -6,9 +6,8 @@ import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Mail, Lock, AlertCircle, CheckCircle2, Loader2, X, LogIn, UserPlus, Send } from 'lucide-react';
-import { SignupModal } from '@/src/components/Auth/SignupModal';
-import { PostRegisterOnboard } from '@/src/components/Auth/PostRegisterOnboard';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Mail, Lock, AlertCircle, CheckCircle2, Loader2, X, LogIn, UserPlus, Send, Link as LinkIcon } from 'lucide-react';
 
 interface AuthModalProps {
   open: boolean;
@@ -16,6 +15,9 @@ interface AuthModalProps {
 }
 
 type AuthView = 'signin' | 'signup' | 'forgot';
+
+const REGIONS = ['North America', 'Europe', 'Asia', 'South America', 'Africa', 'Oceania'];
+const GENRES = ['Techno', 'House', 'Minimal', 'Electro', 'Ambient', 'Experimental', 'DnB', 'Dubstep'];
 
 export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [view, setView] = useState<AuthView>('signin');
@@ -25,22 +27,15 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [showSignupModal, setShowSignupModal] = useState(false);
-  const [showOnboardModal, setShowOnboardModal] = useState(false);
-  const [onboardJobId, setOnboardJobId] = useState('');
-
-  const handleSignupSuccess = (userId: string, jobId: string) => {
-    setShowSignupModal(false);
-    setOnboardJobId(jobId);
-    setShowOnboardModal(true);
-  };
-
-  const handleSignupOpen = (isOpen: boolean) => {
-    setShowSignupModal(isOpen);
-    if (isOpen) {
-      onOpenChange(false); // Close sign-in modal when signup opens
-    }
-  };
+  
+  // Signup fields
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [artistName, setArtistName] = useState('');
+  const [region, setRegion] = useState('');
+  const [genre, setGenre] = useState('');
+  const [publicProfile, setPublicProfile] = useState('');
+  const [agreeTerms, setAgreeTerms] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -70,19 +65,50 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
         // Redirect to dashboard
         window.location.href = '/dashboard';
       } else if (view === 'signup') {
-        // Sign up logic
-        const response = await fetch('/api/auth/signup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        });
-
-        if (!response.ok) {
-          const data = await response.json();
-          throw new Error(data.message || 'Sign up failed');
+        if (!agreeTerms) {
+          setError('You must agree to the Terms and Privacy Policy');
+          setIsLoading(false);
+          return;
         }
 
-        setSuccess('Account created! Redirecting to dashboard...');
+        // Register user
+        const registerRes = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            firstName,
+            lastName,
+            artistName,
+            email,
+            password,
+            region,
+            genre,
+          }),
+        });
+
+        if (!registerRes.ok) {
+          const data = await registerRes.json();
+          throw new Error(data.message || 'Registration failed');
+        }
+
+        const { userId } = await registerRes.json();
+
+        // Submit verification
+        const verifyRes = await fetch('/api/verify/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            profileUrl: publicProfile,
+          }),
+        });
+
+        if (!verifyRes.ok) {
+          const data = await verifyRes.json();
+          throw new Error(data.message || 'Verification submission failed');
+        }
+
+        setSuccess('Account created! Check your email for verification.');
         setTimeout(() => {
           window.location.href = '/dashboard';
         }, 1500);
@@ -195,9 +221,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                   Sign In
                 </button>
                 <button
-                  onClick={() => {
-                    setShowSignupModal(true);
-                  }}
+                  onClick={() => setView('signup')}
                   className={`px-4 md:px-6 py-2 rounded-md text-xs md:text-sm font-medium transition-colors ${
                     view === 'signup'
                       ? 'bg-primary text-primary-foreground'
@@ -278,6 +302,174 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                   </Button>
                 </div>
               </div>
+            ) : view === 'signup' ? (
+              <form onSubmit={handleAuth} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="firstName" className="text-sm text-foreground mb-2 block">
+                      First name
+                    </Label>
+                    <Input
+                      id="firstName"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="lastName" className="text-sm text-foreground mb-2 block">
+                      Last name
+                    </Label>
+                    <Input
+                      id="lastName"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="artistName" className="text-sm text-foreground mb-2 block">
+                    Artist / Project name
+                  </Label>
+                  <Input
+                    id="artistName"
+                    value={artistName}
+                    onChange={(e) => setArtistName(e.target.value)}
+                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="email" className="text-sm text-foreground mb-2 block">
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="password" className="text-sm text-foreground mb-2 block">
+                    Password
+                  </Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
+                    required
+                    minLength={8}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="region" className="text-sm text-foreground mb-2 block">
+                      Region
+                    </Label>
+                    <Select value={region} onValueChange={setRegion} required>
+                      <SelectTrigger className="bg-[#0B0B0B] border-[#262626]">
+                        <SelectValue placeholder="Select region..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {REGIONS.map(r => (
+                          <SelectItem key={r} value={r}>{r}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="genre" className="text-sm text-foreground mb-2 block">
+                      Primary genre
+                    </Label>
+                    <Select value={genre} onValueChange={setGenre} required>
+                      <SelectTrigger className="bg-[#0B0B0B] border-[#262626]">
+                        <SelectValue placeholder="Choose genre..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GENRES.map(g => (
+                          <SelectItem key={g} value={g}>{g}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="publicProfile" className="text-sm text-foreground mb-2 block">
+                    <span className="inline-flex items-center gap-1">
+                      <LinkIcon className="h-3 w-3" />
+                      Public profile URL
+                    </span>
+                  </Label>
+                  <Input
+                    id="publicProfile"
+                    type="url"
+                    value={publicProfile}
+                    onChange={(e) => setPublicProfile(e.target.value)}
+                    className="bg-[#0B0B0B] border-[#262626] focus:border-primary"
+                    placeholder="https://soundcloud.com/artist"
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Paste any social/profile URL (Instagram, SoundCloud, Spotify, Bandcamp, etc.)
+                  </p>
+                </div>
+
+                <div className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    id="agreeTerms"
+                    checked={agreeTerms}
+                    onChange={(e) => setAgreeTerms(e.target.checked)}
+                    className="mt-1"
+                  />
+                  <Label htmlFor="agreeTerms" className="text-xs text-muted-foreground cursor-pointer">
+                    I agree to Terms and Privacy
+                  </Label>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <UserPlus className="h-4 w-4" />
+                        Register
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleCancel}
+                    variant="outline"
+                    className="flex-1 border-[#262626] hover:bg-accent"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+
+                <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  Our AI will verify your artist profile post-registration.
+                </p>
+              </form>
             ) : (
               <form onSubmit={handleAuth} className="space-y-6">
                 <div>
@@ -463,19 +655,5 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     </div>
   );
 
-  return mounted ? (
-    <>
-      {createPortal(modalContent, document.body)}
-      <SignupModal 
-        open={showSignupModal} 
-        onOpenChange={handleSignupOpen}
-        onSuccess={handleSignupSuccess}
-      />
-      <PostRegisterOnboard
-        open={showOnboardModal}
-        jobId={onboardJobId}
-        onOpenChange={setShowOnboardModal}
-      />
-    </>
-  ) : null;
+  return mounted ? createPortal(modalContent, document.body) : null;
 }
