@@ -1,0 +1,127 @@
+Work to perform (in order)
+
+Search & Replace usages
+
+Search the repo for any legacy signup/signin modal implementations or SignUp components still being imported or used. Example targets:
+
+SignInModal, AuthModal, AuthPopup, LegacySignup, OldSignup, SignUpForm, or any components/Auth/* files other than the new SignupModal.tsx, VerificationModal.tsx.
+
+Replace all Sign Up tab rendering logic inside the global Auth modal with the new SignupModal component.
+
+File(s) to update (likely): apps/web/src/components/Auth/AuthModal.tsx, apps/web/src/components/Header/AuthButton.tsx, apps/web/src/pages/_app.tsx or any page-level auth popups. Search for Sign Up label strings to find all places.
+
+Where the modal previously had inline JSX for the Sign Up tab, remove it and import and render:
+
+import SignupModal from "apps/web/src/components/Auth/SignupModal";
+// inside modal's tab rendering
+<SignupModal onSuccess={handleSignupSuccess} />
+
+
+Ensure Sign In tab still renders SignIn logic (do not change Sign In unless it references replaced markup).
+
+Ensure there’s only one SignupModal component used — remove duplicate components or dead files (move to /archive if needed).
+
+Ensure component exports & default
+
+Confirm apps/web/src/components/Auth/SignupModal.tsx has a default export and correct props:
+
+export default function SignupModal({ onSuccess }: { onSuccess?: (userId:string) => void }) { ... }
+
+
+If necessary, add a small adapter apps/web/src/components/Auth/SignupModalWrapper.tsx that matches the modal API used by the rest of the app and forwards props.
+
+Wire verification modal flow
+
+If SignupModal uses VerificationModal internally, ensure VerificationModal is imported from apps/web/src/components/Auth/VerificationModal.tsx.
+
+Ensure SignupModal triggers VerificationModal on successful signup (server returned jobId/userId) and that verification modal polls /api/verification/job/:jobId.
+
+Client-side routing & redirect
+
+On verified success, SignupModal should:
+
+show final toast/success UI
+
+auto-redirect to /dashboard after 1.5–3s
+
+allow immediate Go to Dashboard button
+
+Ensure this behavior is wired via useRouter().push('/dashboard') and does not run when user is still pending_admin or rejected.
+
+Remove old CSS/HTML collisions
+
+Check for old styles or hard-coded classes used by legacy signup UI that could affect new modal visuals. Remove or scope them so the new modal uses dashboard tokens and components only.
+
+Debounce hook & imports
+
+Confirm apps/web/src/hooks/use-debounce.ts exists and is exported.
+
+Fix any import path mismatches (e.g., relative vs absolute imports). Use the project’s standard path alias if present.
+
+Sanity tests & fixes
+
+Run TypeScript check:
+
+pnpm -w tsc --noEmit
+
+If any errors appear, fix them (imports, types, missing props).
+
+Run unit tests:
+
+pnpm --filter apps/web test:unit
+
+If tests fail that target the SignUp flow, fix mocks or update tests to use the new SignupModal API.
+
+Run e2e (playwright) test for signup flow:
+
+pnpm --filter apps/web test:e2e (or pnpm --filter apps/web test:playwright depending on your scripts)
+
+Ensure tests run in TEST_MODE so verification finishes deterministically.
+
+Run UI smoke script:
+
+node scripts/diag/check-signup-ui.js
+
+Fix any issues the smoke test reports (missing ARIA, missing fields, non-focusable controls).
+
+Cross-check runtime behavior manually (automated where possible)
+
+Start the dev server: pnpm --filter apps/web dev (or the project dev command).
+
+Programmatically open the Auth modal route in headless test or do a Playwright check:
+
+Confirm clicking header auth button opens modal.
+
+Confirm clicking Sign Up tab renders the new SignupModal component (assert DOM contains new component IDs/classes).
+
+Confirm availability checks fire (mocked or real) and ticks appear.
+
+Submit a TEST_MODE signup and observe verification modal flow until verified and redirect occurs.
+
+Cleanup & commit
+
+Run pnpm -w lint --fix if linting exists.
+
+Stage changed files and commit with EXACT message:
+
+fix(auth): wire new SignupModal into Auth popup, remove legacy signup UI, run tests
+
+
+Push or leave commit in repo.
+
+Report
+
+Produce a short JSON report reports/signup-wiring.json in project root with:
+
+{
+  "status": "success" | "failed",
+  "commit": "<sha>",
+  "tsc": "<output summary>",
+  "unit_tests": "<summary>",
+  "e2e": "<summary or skipped>",
+  "diag_smoke": "<summary>",
+  "manual_check": "<pass|fail with notes>"
+}
+
+
+Print the human summary (5 lines) describing what was changed and any manual steps (e.g., if Playwright cannot run in Replit, note it).
