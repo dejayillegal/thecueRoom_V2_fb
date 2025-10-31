@@ -6,6 +6,7 @@ import { Logo } from '@/components/Logo';
 import Link from 'next/link';
 import { memo } from 'react';
 import { Bell, Settings, LogOut, Menu } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface HeaderProps {
   user?: {
@@ -26,12 +27,11 @@ export const Header = memo(function Header({ user, sidebarOpen, onToggleSidebar 
 
   return (
     <header 
-      className="fixed top-0 right-0 h-[72px] bg-black border-b border-[#1a1a1a] flex items-center justify-between px-6 z-30 transition-all duration-200 ease-out"
-      style={{
-        left: typeof window !== 'undefined' && window.innerWidth >= 1024
-          ? (sidebarOpen ? '200px' : '60px')
-          : '0px'
-      }}
+      className={cn(
+        "fixed top-0 right-0 h-[72px] bg-black border-b border-[#1a1a1a] flex items-center justify-between px-6 z-30 transition-all duration-200 ease-out",
+        "left-0 lg:left-[60px]",
+        sidebarOpen && "lg:left-[200px]"
+      )}
     >
       {/* Mobile menu button */}
       <button

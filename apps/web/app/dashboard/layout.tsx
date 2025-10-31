@@ -4,6 +4,7 @@
 import { useState, useCallback, memo, useEffect } from 'react';
 import { Sidebar } from '@/components/dashboard/Sidebar';
 import { Header } from '@/components/dashboard/Header';
+import { cn } from '@/lib/utils';
 
 const mockUser = {
   name: 'Artist',
@@ -64,12 +65,11 @@ export default memo(function DashboardLayout({
         onToggleSidebar={handleSidebarToggle}
       />
       <main 
-        className="min-h-screen pt-[72px] transition-all duration-200 ease-out"
-        style={{ 
-          marginLeft: typeof window !== 'undefined' && window.innerWidth >= 1024
-            ? (sidebarOpen ? '200px' : '60px') 
-            : '0px'
-        }}
+        className={cn(
+          "min-h-screen pt-[72px] transition-all duration-200 ease-out",
+          "ml-0 lg:ml-[60px]",
+          sidebarOpen && "lg:ml-[200px]"
+        )}
       >
         {children}
       </main>
