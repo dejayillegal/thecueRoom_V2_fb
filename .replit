@@ -53,16 +53,20 @@ outputType = "console"
 name = "EPK Worker"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node packages/epk/worker.mjs"
-
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "EPK_TEST_MODE=true TEST_MODE=true node packages/epk/worker.mjs"
 
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 41489
+externalPort = 3003
 
 [[ports]]
 localPort = 41663
