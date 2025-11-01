@@ -197,34 +197,84 @@ export const forumThreads = pgTable('forum_threads', {
   userId: uuid('user_id').references(() => users.id),
   title: text('title').notNull(),
   slug: text('slug').notNull().unique(),
-  content: text('content').notNull(),
+  body: text('body').notNull(),
   tags: jsonb('tags').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
   isPinned: boolean('is_pinned').default(false),
   isLocked: boolean('is_locked').default(false),
+  isHidden: boolean('is_hidden').default(false),
   viewCount: integer('view_count').default(0),
   replyCount: integer('reply_count').default(0),
-  upvotes: integer('upvotes').default(0),
-  commentCount: integer('comment_count').notNull().default(0),
+  likesCount: integer('likes_count').default(0),
+  aiSummary: text('ai_summary'),
+  toxicityScore: integer('toxicity_score').default(0),
+  moderationStatus: text('moderation_status').default('approved'),
+  embedLinks: jsonb('embed_links').$type<string[]>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
   createdAtIdx: index('forum_threads_created_at_idx').on(table.createdAt),
-  upvotesIdx: index('forum_threads_upvotes_idx').on(table.upvotes),
+  likesCountIdx: index('forum_threads_likes_count_idx').on(table.likesCount),
+  categoryIdIdx: index('forum_threads_category_id_idx').on(table.categoryId),
+  moderationStatusIdx: index('forum_threads_moderation_status_idx').on(table.moderationStatus),
 }));
 
-export const forumPosts = pgTable('forum_posts', {
+export const forumReplies = pgTable('forum_replies', {
   id: uuid('id').primaryKey().defaultRandom(),
-  threadId: uuid('thread_id').references(() => forumThreads.id),
-  userId: uuid('user_id').references(() => users.id),
-  content: text('content').notNull(),
-  imageUrl: text('image_url'),
-  upvotes: integer('upvotes').default(0),
-  isFlagged: boolean('is_flagged').default(false),
+  threadId: uuid('thread_id').notNull().references(() => forumThreads.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  body: text('body').notNull(),
+  toxicityScore: integer('toxicity_score').default(0),
+  aiFlags: jsonb('ai_flags').$type<string[]>(),
+  moderationStatus: text('moderation_status').default('approved'),
+  likesCount: integer('likes_count').default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
-  threadIdIdx: index('forum_posts_thread_id_idx').on(table.threadId),
-  createdAtIdx: index('forum_posts_created_at_idx').on(table.createdAt),
+  threadIdIdx: index('forum_replies_thread_id_idx').on(table.threadId),
+  createdAtIdx: index('forum_replies_created_at_idx').on(table.createdAt),
+  moderationStatusIdx: index('forum_replies_moderation_status_idx').on(table.moderationStatus),
+}));
+
+export const userReputation = pgTable('user_reputation', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
+  karmaPoints: integer('karma_points').notNull().default(0),
+  badges: jsonb('badges').$type<string[]>().default(sql`'[]'::jsonb`),
+  weeklyRank: integer('weekly_rank'),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('user_reputation_user_id_idx').on(table.userId),
+  karmaPointsIdx: index('user_reputation_karma_points_idx').on(table.karmaPoints),
+}));
+
+export const forumReports = pgTable('forum_reports', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  targetType: text('target_type').notNull(),
+  targetId: uuid('target_id').notNull(),
+  reporterId: uuid('reporter_id').notNull().references(() => users.id),
+  reason: text('reason').notNull(),
+  aiConfidence: integer('ai_confidence'),
+  status: text('status').notNull().default('open'),
+  resolvedBy: uuid('resolved_by').references(() => users.id),
+  resolvedAt: timestamp('resolved_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  statusIdx: index('forum_reports_status_idx').on(table.status),
+  targetTypeIdx: index('forum_reports_target_type_idx').on(table.targetType),
+  createdAtIdx: index('forum_reports_created_at_idx').on(table.createdAt),
+}));
+
+export const modActions = pgTable('mod_actions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  moderatorId: uuid('moderator_id').notNull().references(() => users.id),
+  action: text('action').notNull(),
+  targetType: text('target_type').notNull(),
+  targetId: uuid('target_id').notNull(),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  moderatorIdIdx: index('mod_actions_moderator_id_idx').on(table.moderatorId),
+  createdAtIdx: index('mod_actions_created_at_idx').on(table.createdAt),
 }));
 
 export const aiJobs = pgTable('ai_jobs', {
