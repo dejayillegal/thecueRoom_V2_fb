@@ -25,14 +25,38 @@ async function getUserIdFromSession(request: NextRequest): Promise<string | null
     console.log('[Profile API] Found session cookie:', sessionCookie.name);
 
     try {
+      // First try to parse as JSON
       const session = JSON.parse(decodeURIComponent(sessionCookie.value));
       const userId = session.userId || session.uid || session.id || null;
-      console.log('[Profile API] Extracted userId from session:', userId ? 'found' : 'not found');
+      console.log('[Profile API] Extracted userId from JSON session:', userId ? 'found' : 'not found');
       return userId;
     } catch (parseError) {
-      // If not JSON, might be just the user ID
-      console.log('[Profile API] Session is not JSON, using raw value as userId');
-      return sessionCookie.value;
+      // If not JSON, check if it's a JWT token
+      const cookieValue = sessionCookie.value;
+      
+      if (cookieValue.includes('.')) {
+        // Looks like a JWT token, decode it
+        try {
+          const parts = cookieValue.split('.');
+          if (parts.length === 3) {
+            const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf8'));
+            const userId = payload.uid || payload.userId || payload.id || payload.sub || null;
+            console.log('[Profile API] Extracted userId from JWT:', userId ? 'found' : 'not found');
+            return userId;
+          }
+        } catch (jwtError) {
+          console.error('[Profile API] Failed to decode JWT:', jwtError);
+        }
+      }
+      
+      // Last resort: treat as raw userId (UUID format check)
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cookieValue)) {
+        console.log('[Profile API] Using raw value as userId (valid UUID)');
+        return cookieValue;
+      }
+      
+      console.log('[Profile API] Could not extract userId from cookie');
+      return null;
     }
   } catch (error) {
     console.error('[Profile API] Session retrieval error:', error);
