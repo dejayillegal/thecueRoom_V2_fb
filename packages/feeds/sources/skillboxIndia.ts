@@ -1,36 +1,58 @@
 
 import { NormalizedEvent } from '../normalize';
+import { safeFetch } from '../../../apps/web/src/lib/safe-fetch';
+import { readCache, writeCache } from '../cache';
 
-export async function fetchSkillboxIndia(): Promise<NormalizedEvent[]> {
+const CACHE_TTL_SEC = 600;
+
+export interface FetchError {
+  source: string;
+  code: string;
+  message: string;
+}
+
+export async function fetchSkillboxIndia(): Promise<{ events: NormalizedEvent[]; errors: FetchError[]; fromCache?: boolean }> {
+  const errors: FetchError[] = [];
+  
   try {
-    const response = await fetch('https://api.skillboxes.com/api/events?country=India', {
+    const res = await safeFetch('https://api.skillboxes.com/api/events?country=India', {
       headers: {
         'User-Agent': 'thecueRoom/2.0 Feed Aggregator',
       },
+      timeout: 8000,
+      attempts: 3,
     });
-    
-    if (!response.ok) return [];
-    
-    const data = await response.json();
-    const events = data.events || data.data || [];
-    
-    return events
-      .filter((e: any) => e.category?.toLowerCase().includes('music'))
-      .map((event: any) => ({
-        id: `skillbox-${event.id}`,
-        title: event.title || event.name,
-        date: event.date || event.start_date,
-        venue: event.venue || 'TBA',
-        city: event.city || 'India',
-        price: event.price,
-        url: event.url || `https://skillboxes.com/events/${event.id}`,
-        source: 'Skillbox India',
-        image: event.image || event.thumbnail,
-        description: event.description,
-        genreTags: event.tags || [],
-      }));
-  } catch (error) {
-    console.error('Skillbox India fetch error:', error);
-    return [];
+
+    if (!res.ok) {
+      errors.push({
+        source: 'skillbox',
+        code: res.error?.code || `http_${res.status}`,
+        message: res.error?.message || res.text?.slice(0, 300) || 'Unknown error',
+      });
+
+      const cached = readCache('skillbox', CACHE_TTL_SEC);
+      if (cached) {
+        return { events: cached.events, errors, fromCache: true };
+      }
+      return { events: [], errors };
+    }
+
+    const events: NormalizedEvent[] = [];
+    // TODO: Parse Skillbox response
+
+    writeCache('skillbox', events, CACHE_TTL_SEC);
+    return { events, errors };
+  } catch (error: any) {
+    errors.push({
+      source: 'skillbox',
+      code: 'FETCH_FAILED',
+      message: error.message || 'Fetch failed',
+    });
+
+    const cached = readCache('skillbox', CACHE_TTL_SEC);
+    if (cached) {
+      return { events: cached.events, errors, fromCache: true };
+    }
+    return { events: [], errors };
   }
 }

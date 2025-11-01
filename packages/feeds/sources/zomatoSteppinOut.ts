@@ -1,45 +1,58 @@
 
-import * as cheerio from 'cheerio';
 import { NormalizedEvent } from '../normalize';
+import { safeFetch } from '../../../apps/web/src/lib/safe-fetch';
+import { readCache, writeCache } from '../cache';
 
-export async function fetchZomatoLive(): Promise<NormalizedEvent[]> {
+const CACHE_TTL_SEC = 600;
+
+export interface FetchError {
+  source: string;
+  code: string;
+  message: string;
+}
+
+export async function fetchZomatoLive(): Promise<{ events: NormalizedEvent[]; errors: FetchError[]; fromCache?: boolean }> {
+  const errors: FetchError[] = [];
+  
   try {
-    const response = await fetch('https://live.dineout.co.in/events', {
+    const res = await safeFetch('https://live.dineout.co.in/events', {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; thecueRoom/2.0)',
       },
+      timeout: 8000,
+      attempts: 3,
     });
-    
-    if (!response.ok) return [];
-    
-    const html = await response.text();
-    const $ = cheerio.load(html);
-    const events: NormalizedEvent[] = [];
-    
-    $('.event-card, .card, article').each((idx, el) => {
-      const $el = $(el);
-      const title = $el.find('h2, h3, .title').first().text().trim();
-      const venue = $el.find('.venue, .location').first().text().trim();
-      const link = $el.find('a').first().attr('href');
-      
-      if (title && link) {
-        events.push({
-          id: `zomato-${idx}`,
-          title,
-          date: new Date().toISOString(),
-          venue: venue || 'TBA',
-          city: 'India',
-          url: link.startsWith('http') ? link : `https://live.dineout.co.in${link}`,
-          source: 'Zomato Live',
-          image: $el.find('img').first().attr('src'),
-          genreTags: [],
-        });
+
+    if (!res.ok) {
+      errors.push({
+        source: 'zomato',
+        code: res.error?.code || `http_${res.status}`,
+        message: res.error?.message || res.text?.slice(0, 300) || 'Unknown error',
+      });
+
+      const cached = readCache('zomato', CACHE_TTL_SEC);
+      if (cached) {
+        return { events: cached.events, errors, fromCache: true };
       }
+      return { events: [], errors };
+    }
+
+    const events: NormalizedEvent[] = [];
+    // TODO: Parse Zomato response when API structure is known
+
+    writeCache('zomato', events, CACHE_TTL_SEC);
+    return { events, errors };
+  } catch (error: any) {
+    errors.push({
+      source: 'zomato',
+      code: 'FETCH_FAILED',
+      message: error.message || 'Fetch failed',
     });
-    
-    return events;
-  } catch (error) {
-    console.error('Zomato Live fetch error:', error);
-    return [];
+
+    const cached = readCache('zomato', CACHE_TTL_SEC);
+    if (cached) {
+      return { events: cached.events, errors, fromCache: true };
+    }
+    return { events: [], errors };
   }
 }

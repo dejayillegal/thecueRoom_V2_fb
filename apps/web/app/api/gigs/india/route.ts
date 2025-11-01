@@ -1,5 +1,7 @@
+
 import { NextResponse } from 'next/server';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import pLimit from 'p-limit';
+import { writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import {
   fetchRollingStoneIndia,
@@ -15,44 +17,100 @@ import { deduplicateEvents, enrichWithAI, NormalizedEvent } from '@thecueroom/fe
 
 export const dynamic = 'force-dynamic';
 
-const CACHE_FILE = join(process.cwd(), '.local', 'feeds', 'india_gigs_cache.json');
-const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+const LOG_DIR = join(process.cwd(), 'logs');
+const LOG_FILE = join(LOG_DIR, 'feeds.log');
 
-interface CacheData {
-  timestamp: number;
-  events: NormalizedEvent[];
+interface FetchError {
+  source: string;
+  code: string;
+  message: string;
+  timestamp?: string;
 }
 
-async function fetchAllSources(): Promise<NormalizedEvent[]> {
+interface FetchAllResult {
+  events: NormalizedEvent[];
+  errors: FetchError[];
+}
+
+function logFetchError(error: FetchError) {
+  try {
+    if (!existsSync(LOG_DIR)) {
+      mkdirSync(LOG_DIR, { recursive: true });
+    }
+    
+    const logEntry = `[${new Date().toISOString()}] ${error.source} - ${error.code}: ${error.message}\n`;
+    writeFileSync(LOG_FILE, logEntry, { flag: 'a' });
+  } catch (err) {
+    console.error('Failed to write to feeds.log:', err);
+  }
+}
+
+async function fetchAllSources(): Promise<FetchAllResult> {
   console.log('🇮🇳 Fetching India gigs from all sources...');
 
+  const limit = pLimit(3); // Concurrency limit
+  const allErrors: FetchError[] = [];
+  const allEvents: NormalizedEvent[] = [];
+
   const sources = [
-    fetchRollingStoneIndia,
-    fetchSortMyScene,
-    fetchDiceIndia,
-    fetchSkillboxIndia,
-    fetchPaytmInsider,
-    fetchBookMyShow,
-    fetchZomatoLive,
-    fetchSwiggyEvents,
+    { name: 'Rolling Stone India', fn: fetchRollingStoneIndia },
+    { name: 'SortMyScene', fn: fetchSortMyScene },
+    { name: 'DICE India', fn: fetchDiceIndia },
+    { name: 'Skillbox India', fn: fetchSkillboxIndia },
+    { name: 'Paytm Insider', fn: fetchPaytmInsider },
+    { name: 'BookMyShow', fn: fetchBookMyShow },
+    { name: 'Zomato Live', fn: fetchZomatoLive },
+    { name: 'Swiggy Events', fn: fetchSwiggyEvents },
   ];
 
-  const results = await Promise.allSettled(sources.map(fn => fn()));
+  const results = await Promise.allSettled(
+    sources.map(({ name, fn }) =>
+      limit(async () => {
+        try {
+          const result = await fn();
+          
+          // Handle new return format with errors
+          if (result && typeof result === 'object' && 'events' in result) {
+            const { events, errors, fromCache } = result as any;
+            
+            if (errors && errors.length > 0) {
+              errors.forEach((err: FetchError) => {
+                const enrichedError = { ...err, timestamp: new Date().toISOString() };
+                allErrors.push(enrichedError);
+                logFetchError(enrichedError);
+              });
+            }
+            
+            console.log(`${fromCache ? '📦' : '✅'} ${name}: ${events.length} events${fromCache ? ' (cached)' : ''}`);
+            return events;
+          }
+          
+          // Legacy format - array of events
+          console.log(`✅ ${name}: ${result.length} events`);
+          return result;
+        } catch (error: any) {
+          const fetchError: FetchError = {
+            source: name,
+            code: error.code || 'UNKNOWN',
+            message: error.message || 'Fetch failed',
+            timestamp: new Date().toISOString(),
+          };
+          allErrors.push(fetchError);
+          logFetchError(fetchError);
+          console.error(`❌ ${name} failed:`, error.message);
+          return [];
+        }
+      })
+    )
+  );
 
-  const allEvents: NormalizedEvent[] = [];
-  let successCount = 0;
-
-  results.forEach((result, idx) => {
-    if (result.status === 'fulfilled') {
+  results.forEach((result) => {
+    if (result.status === 'fulfilled' && Array.isArray(result.value)) {
       allEvents.push(...result.value);
-      successCount++;
-      console.log(`✅ Source ${idx + 1}: ${result.value.length} events`);
-    } else {
-      console.error(`❌ Source ${idx + 1} failed:`, result.reason);
     }
   });
 
-  console.log(`📊 Total: ${allEvents.length} events from ${successCount}/${sources.length} sources`);
+  console.log(`📊 Total: ${allEvents.length} events from sources (${allErrors.length} errors)`);
 
   // Deduplicate and enrich
   const deduplicated = deduplicateEvents(allEvents);
@@ -65,80 +123,45 @@ async function fetchAllSources(): Promise<NormalizedEvent[]> {
   // Sort by date
   futureEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  return futureEvents;
-}
-
-function loadCache(): CacheData | null {
-  try {
-    if (!existsSync(CACHE_FILE)) return null;
-    const data = readFileSync(CACHE_FILE, 'utf-8');
-    return JSON.parse(data);
-  } catch {
-    return null;
-  }
-}
-
-function saveCache(events: NormalizedEvent[]): void {
-  try {
-    const dir = join(process.cwd(), '.local', 'feeds');
-    if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true });
-    }
-
-    const cache: CacheData = {
-      timestamp: Date.now(),
-      events,
-    };
-
-    writeFileSync(CACHE_FILE, JSON.stringify(cache, null, 2));
-  } catch (error) {
-    console.error('Cache write error:', error);
-  }
+  return {
+    events: futureEvents,
+    errors: allErrors,
+  };
 }
 
 export async function GET() {
   try {
-    // Check cache
-    const cache = loadCache();
-    const now = Date.now();
+    const { events, errors } = await fetchAllSources();
 
-    if (cache && (now - cache.timestamp) < CACHE_TTL) {
-      console.log('📦 Serving from cache');
-      return NextResponse.json({
-        gigs: cache.events,
-        total: cache.events.length,
-        cached: true,
-      });
-    }
-
-    // Fetch fresh data
-    const events = await fetchAllSources();
-
-    // Save to cache
-    saveCache(events);
-
-    return NextResponse.json({
-      gigs: events,
-      total: events.length,
-      cached: false,
-    });
-  } catch (error) {
-    console.error('India gigs error:', error);
-
-    // Fallback to cache on error
-    const cache = loadCache();
-    if (cache) {
-      return NextResponse.json({
-        gigs: cache.events,
-        total: cache.events.length,
-        cached: true,
-        error: 'Using cached data due to fetch error',
-      });
-    }
-
+    // Always return valid JSON with both events and errors
     return NextResponse.json(
-      { error: 'Failed to fetch gigs', gigs: [] },
-      { status: 500 }
+      {
+        ok: true,
+        events,
+        errors,
+        total: events.length,
+        errorCount: errors.length,
+      },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    console.error('India gigs critical error:', error);
+
+    // Even on catastrophic failure, return valid JSON
+    return NextResponse.json(
+      {
+        ok: true,
+        events: [],
+        errors: [{
+          source: 'system',
+          code: 'CRITICAL_ERROR',
+          message: error.message || 'Unknown system error',
+          timestamp: new Date().toISOString(),
+        }],
+        total: 0,
+        errorCount: 1,
+      },
+      { status: 200 }
     );
   }
 }
