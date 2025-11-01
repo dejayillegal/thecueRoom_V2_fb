@@ -236,6 +236,15 @@ export const forumReplies = pgTable('forum_replies', {
   moderationStatusIdx: index('forum_replies_moderation_status_idx').on(table.moderationStatus),
 }));
 
+export const threadLikes = pgTable('thread_likes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  threadId: uuid('thread_id').notNull().references(() => forumThreads.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  threadUserIdx: index('thread_likes_thread_user_idx').on(table.threadId, table.userId),
+}));
+
 export const userReputation = pgTable('user_reputation', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),

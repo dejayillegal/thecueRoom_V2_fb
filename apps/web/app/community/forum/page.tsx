@@ -140,6 +140,9 @@ export default function ForumPage() {
                   <TrendingUp className="w-4 h-4" />
                   {thread.viewCount} views
                 </span>
+                <span className="text-xs">
+                  {new Date(thread.createdAt).toLocaleDateString()} at {new Date(thread.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
               </div>
             </div>
             {thread.isPinned && (

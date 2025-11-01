@@ -71,7 +71,9 @@ export default function ThreadPage() {
           <ThumbsUp className="w-4 h-4" />
           {reply.likesCount}
         </span>
-        <span className="text-xs">{new Date(reply.createdAt).toLocaleDateString()}</span>
+        <span className="text-xs">
+          {new Date(reply.createdAt).toLocaleDateString()} at {new Date(reply.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </span>
       </div>
     </Card>
   );

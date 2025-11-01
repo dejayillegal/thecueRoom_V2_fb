@@ -33,7 +33,7 @@ export async function POST(
 
     const replyId = crypto.randomUUID();
 
-    await db.insert(forumReplies).values({
+    const [newReply] = await db.insert(forumReplies).values({
       id: replyId,
       threadId,
       userId: session.uid,
@@ -43,9 +43,9 @@ export async function POST(
       moderationStatus,
       createdAt: new Date(),
       updatedAt: new Date(),
-    });
+    }).returning();
 
-    // Update thread reply count
+    // Update thread reply count only for approved replies
     if (moderationStatus === 'approved') {
       await db.update(forumThreads)
         .set({ 
@@ -89,8 +89,25 @@ export async function POST(
       }
     }
 
+    // Fetch user data for the reply
+    const userInfo = await db
+      .select({
+        username: users.username,
+        displayName: profiles.displayName,
+        avatar: profiles.avatar,
+      })
+      .from(users)
+      .leftJoin(profiles, eq(users.id, profiles.userId))
+      .where(eq(users.id, session.uid))
+      .limit(1);
+
     return NextResponse.json({ 
-      replyId,
+      reply: {
+        ...newReply,
+        username: userInfo[0]?.username,
+        displayName: userInfo[0]?.displayName,
+        avatar: userInfo[0]?.avatar,
+      },
       moderation: modResult,
       status: moderationStatus,
     }, { status: 201 });

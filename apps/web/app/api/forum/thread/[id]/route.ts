@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@thecueroom/db/client';
-import { forumThreads, forumReplies, users, profiles } from '@thecueroom/db/schema';
+import { forumThreads, forumReplies, users, profiles, threadLikes } from '@thecueroom/db/schema';
 import { eq, desc, and, sql } from 'drizzle-orm';
 import { getSession } from '@/lib/auth';
 
@@ -12,6 +12,7 @@ export async function GET(
 ) {
   try {
     const { id: threadId } = await params;
+    const session = await getSession();
 
     // Increment view count
     await db.update(forumThreads)
@@ -49,14 +50,14 @@ export async function GET(
 
     const replies = await db.select({
       id: forumReplies.id,
-      body: forumReplies.body,
-      likesCount: forumReplies.likesCount,
-      createdAt: forumReplies.createdAt,
+      threadId: forumReplies.threadId,
       userId: forumReplies.userId,
+      body: forumReplies.body,
       username: users.username,
       displayName: profiles.displayName,
       avatar: profiles.avatar,
-      verified: users.verified,
+      likesCount: forumReplies.likesCount,
+      createdAt: forumReplies.createdAt,
     })
     .from(forumReplies)
     .leftJoin(users, eq(forumReplies.userId, users.id))
@@ -67,8 +68,24 @@ export async function GET(
     ))
     .orderBy(forumReplies.createdAt);
 
+    // Check if current user liked this thread
+    let liked = false;
+    if (session?.uid) {
+      const userLike = await db
+        .select()
+        .from(threadLikes)
+        .where(
+          and(
+            eq(threadLikes.threadId, threadId),
+            eq(threadLikes.userId, session.uid)
+          )
+        )
+        .limit(1);
+      liked = userLike.length > 0;
+    }
+
     return NextResponse.json({ 
-      thread: thread[0], 
+      thread: { ...thread[0], liked }, 
       replies 
     });
 

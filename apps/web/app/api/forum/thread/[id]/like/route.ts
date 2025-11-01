@@ -1,8 +1,7 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@thecueroom/db/client';
-import { forumThreads } from '@thecueroom/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { forumThreads, threadLikes } from '@thecueroom/db/schema';
+import { eq, sql, and } from 'drizzle-orm';
 import { getSession } from '@/lib/auth';
 
 const db = getDbClient();
@@ -19,28 +18,68 @@ export async function POST(
 
     const { id: threadId } = await params;
 
-    // For now, simple toggle logic (in production, track in a separate likes table)
-    // This is a simplified version - you'd want a proper likes table
-    const thread = await db.select().from(forumThreads).where(eq(forumThreads.id, threadId)).limit(1);
-    
-    if (!thread || thread.length === 0) {
-      return NextResponse.json({ error: 'Thread not found' }, { status: 404 });
+    // Check if user already liked this thread
+    const existingLike = await db
+      .select()
+      .from(threadLikes)
+      .where(
+        and(
+          eq(threadLikes.threadId, threadId),
+          eq(threadLikes.userId, session.uid)
+        )
+      )
+      .limit(1);
+
+    let liked = false;
+
+    if (existingLike.length > 0) {
+      // Unlike: remove like and decrement count
+      await db
+        .delete(threadLikes)
+        .where(
+          and(
+            eq(threadLikes.threadId, threadId),
+            eq(threadLikes.userId, session.uid)
+          )
+        );
+
+      await db.update(forumThreads)
+        .set({ 
+          likesCount: sql`GREATEST(${forumThreads.likesCount} - 1, 0)`,
+        })
+        .where(eq(forumThreads.id, threadId));
+
+      liked = false;
+    } else {
+      // Like: add like and increment count
+      await db.insert(threadLikes).values({
+        threadId,
+        userId: session.uid,
+        createdAt: new Date(),
+      });
+
+      await db.update(forumThreads)
+        .set({ 
+          likesCount: sql`${forumThreads.likesCount} + 1`,
+        })
+        .where(eq(forumThreads.id, threadId));
+
+      liked = true;
     }
 
-    // Simplified: just toggle the count (production should use a proper user_thread_likes table)
-    const currentLikes = thread[0].likesCount || 0;
-    const newLikes = currentLikes + 1; // Simplified - should check if user already liked
-
-    await db.update(forumThreads)
-      .set({ likesCount: newLikes })
-      .where(eq(forumThreads.id, threadId));
+    // Get updated count
+    const thread = await db.select({ likesCount: forumThreads.likesCount })
+      .from(forumThreads)
+      .where(eq(forumThreads.id, threadId))
+      .limit(1);
 
     return NextResponse.json({ 
-      liked: true, 
-      likesCount: newLikes 
+      liked,
+      likesCount: thread[0]?.likesCount || 0,
     });
+
   } catch (error) {
-    console.error('[Forum] Like error:', error);
+    console.error('Like thread error:', error);
     return NextResponse.json(
       { error: 'Failed to toggle like' },
       { status: 500 }
