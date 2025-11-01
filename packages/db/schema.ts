@@ -188,6 +188,7 @@ export const forumCategories = pgTable('forum_categories', {
   name: text('name').notNull(),
   slug: text('slug').notNull().unique(),
   description: text('description'),
+  threadCount: integer('thread_count').notNull().default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

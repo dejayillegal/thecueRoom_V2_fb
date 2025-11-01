@@ -88,7 +88,6 @@ export async function GET(request: NextRequest) {
       id: forumThreads.id,
       title: forumThreads.title,
       slug: forumThreads.slug,
-      body: forumThreads.body,
       categoryId: forumThreads.categoryId,
       userId: forumThreads.userId,
       isPinned: forumThreads.isPinned,
