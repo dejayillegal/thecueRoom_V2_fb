@@ -1,0 +1,305 @@
+Robust India gigs fetcher
+
+Goal: Fix and harden /api/gigs/india so it reliably aggregates real gig/event data for India from many sources (APIs, RSS, HTML pages, headless JS where needed), maps each event to a ticketing/landing link when available, gracefully handles DNS/network blocks, and exposes admin controls and diagnostics. Must be fast, memory-safe, paginated, and return deterministic normalized JSON.
+
+Do not ask questions — implement the changes, run tests, commit, and provide the verification outputs asked below.
+
+High level plan (what to implement)
+
+Safe fetch layer with retries, backoff, timeout and structured errors.
+
+Source adapters for each target (RSS, REST API, HTML scrape, headless for JS-heavy sites).
+
+Headless fallback using Playwright when page requires JS to render or returns empty HTML.
+
+Caching & persistence: file-based cache + optional DB caching; TTLs and fallback-to-cache behavior.
+
+Concurrency control using p-limit and environment-configurable concurrency.
+
+Ticket link mapping: try to extract ticket/buy links (BookMyShow, Paytm Insider, Resident Advisor, Festicket, Dice) and include them in normalized event data.
+
+Admin UI + API to enable/disable sources and set poller params. Include endpoint to re-fetch per-source on demand.
+
+Diagnostics & logs: per-source status, error reasons, fetch time, and simple health endpoint.
+
+Tests: unit tests for adapters, safefetch, caching fallback; e2e test script that runs the poller in TEST_MODE and asserts outputs.
+
+Acceptance checks that must pass.
+
+Files to create / update (implement full code — no stubs)
+Utilities
+
+apps/web/src/lib/safe-fetch.ts
+
+Export safeFetch(url, opts) returning { ok, status?, json?, text?, error? }. Implement: AbortController timeout, attempts with exponential backoff, parse JSON safely, return structured error objects for DNS failures (ENOTFOUND), timeouts, non-JSON responses.
+
+packages/feeds/cache.ts
+
+readCache(key, ttlSec), writeCache(key, payload). Atomic writes. Store under .local/cache/gigs/<key>.json.
+
+packages/feeds/normalize.ts
+
+normalizeEvent(raw, sourceMeta) -> NormalizedEvent with fields:
+
+type NormalizedEvent = {
+  id: string; // deterministic: hash(source+sourceId+start)
+  source: string;
+  title: string;
+  description?: string;
+  venue?: { name?:string; address?:string; city?:string; lat?:number; lon?:number };
+  startAt?: string; // ISO
+  endAt?: string | null;
+  timezone?: string;
+  ticketUrl?: string | null;
+  price?: string | null;
+  image?: string | null;
+  raw?: any;
+  fetchedAt: string;
+  fromCache?: boolean;
+}
+
+Poller & Runner
+
+packages/feeds/poller.ts
+
+fetchAllSources({ concurrency, enabledOnly }) returns { events: NormalizedEvent[], errors: FetchError[] }.
+
+Use p-limit to control concurrency. Each source runs in try/catch and pushes structured errors.
+
+packages/feeds/sources/* — create adapters:
+
+rollingstoneIndia.ts (RSS): https://rollingstoneindia.com/?feed=gigpress (RSS)
+
+bookmyshow.ts (scrape / API) — BookMyShow pages often require scraping.
+
+paytm_insider.ts
+
+zomato_live.ts (if available, otherwise fallback to Zomato events endpoints or scrape)
+
+swiggy_events.ts (steppinout — use headless fallback)
+
+dice.ts (Dice API / pages)
+
+sortMyScene.ts
+
+residentAdvisorEvents.ts — fetch ra.co/events/IN (scrape .event-item)
+
+songkick.ts / bandsintown.ts / eventbrite_in.ts (if available) — use public APIs where possible.
+
+Each adapter should:
+
+Use safeFetch.
+
+Attempt RSS / public API first.
+
+If response empty or JS-rendered, try Playwright headless snapshot (see headless fallback below).
+
+Normalize events and write cache on success.
+
+Headless fallback
+
+packages/feeds/headless.ts
+
+Small helper that uses Playwright (headless) to render a URL and extract article list via a CSS selector passed by adapter. Use a short timeout (10s). Run headless only when necessary (adapter decides).
+
+Important: spawn Playwright in a separate child process (or run with low concurrency) to avoid blocking server. Make sure Playwright installed as dev dependency and the code handles environments where Playwright can't initiate (detect and skip gracefully).
+
+API endpoint
+
+apps/web/app/api/gigs/india/route.ts (GET)
+
+Accept query params: ?page=1&pageSize=30&source=rollingstone&city=bengaluru&refresh=true
+
+On refresh=true or admin-run, force re-fetch; otherwise use cached merged result.
+
+Response: { ok: true, events: NormalizedEvent[], meta: { total, page, pageSize }, errors: FetchError[] }
+
+Ensure always returns JSON and never throws to client.
+
+Admin endpoints/UI
+
+apps/web/app/(admin)/feed-settings/page.tsx
+
+Show list of sources, enabled toggles, last fetched, last error, test-fetch button.
+
+apps/web/app/api/admin/gigs/sources/route.ts
+
+GET/POST/PATCH to manage sources and poller settings (poll interval, concurrency, cacheTTL).
+
+Protect in dev with x-admin header.
+
+Logs & diagnostics
+
+logs/gigs.log — append structured logs (timestamp, source, status, message).
+
+scripts/diag/check-gigs-integrity.js — run fetchAllSources in TEST_MODE, print summary.
+
+Tests
+
+tests/feeds/safefetch.test.ts — mock fetch errors, ensure safeFetch returns structured errors and retries.
+
+tests/feeds/adapter.test.ts — mocking HTTP responses for each adapter; one happy path per adapter.
+
+tests/feeds/poller.test.ts — run poller with small concurrency and ensure aggregated list non-empty for at least one upstream (use RollingStone mock fixture).
+
+Add pnpm test script entries.
+
+Implementation details & best-practice logic (must be followed)
+
+Parallel & bounded: Run source adapters in parallel but bounded by POLL_CONCURRENCY env var (default 4).
+
+Graceful fallback to cache: If an adapter fails due to DNS/timeout or Playwright not available, return cached results (if available) and mark fromCache:true.
+
+Headless only when required: Adapters attempt simple HTTP/RSS first. If result is empty or HTML contains markers like <script id="__NEXT_DATA__">, call headless helper.
+
+Rate limits & politeness: Add User-Agent: thecueRoom/2.0 (contacts@thecueroom.example) header and respect robots.txt — skip scraping when disallowed.
+
+Ticket link extraction: For each adapter, extract known selectors for ticket links (e.g., .buy-ticket a, a[href*="bookmyshow.com"], a[href*="paytm.com"], a[href*="ra.co"], a[href*="dice.fm"]). Normalize to absolute URLs.
+
+Deduplication: Use deterministic id hashing (sha1 of source+sourceId+startAt) and dedupe by id.
+
+Location normalization: Attempt to map venue city using simple regex or optional geocoding (optional, off by default).
+
+Caching TTLs: default 15 minutes for event sources, admin-configurable per-source.
+
+Avoid blocking main thread: Playwright and heavy scraping must run in child processes or worker threads. Use child_process.fork() or worker_threads with limited concurrency.
+
+Sanitize HTML: Remove scripts from scraped snippets before storing raw.
+
+Failure reporting: Include a human-friendly errors[] array in API response with items like { source, code, message, fromCache }.
+
+Environment variables (add to .env.example)
+POLL_CONCURRENCY=4
+POLL_INTERVAL_SECONDS=300
+GIGS_CACHE_TTL_SECONDS=900
+POLL_RETRY_ATTEMPTS=3
+PLAYWRIGHT_ENABLED=true   # false on Replit if not supported
+PLAYWRIGHT_BINARY_PATH=   # optional
+AI_WORKER_CONCURRENCY=1
+
+Source list (adapters to implement — include CSS selectors / API hints)
+
+Implement adapters for these sources (order: RSS/API → HTML → headless scrape). Where public API exists prefer it.
+
+Rolling Stone India (RSS)
+
+URL: https://rollingstoneindia.com/?feed=gigpress (RSS)
+
+Type: rss
+
+BookMyShow (scrape event listing by city / search)
+
+Example: https://in.bookmyshow.com/explore/home/bengaluru
+
+Extract event cards, ticket link a[href*="bookmyshow.com"]
+
+Paytm Insider
+
+Example event pages & APIs — scrape listing pages; ticket a[href*="paytm.com"]
+
+Dice (if DICE India present)
+
+https://dice.fm / https://dice.fm/ — use API or page scrape for events in India
+
+Zomato Live / Zomato Events
+
+If domain unreachable, fallback to catalog scrapes or other local sources
+
+Swiggy Events (SteppinOut)
+
+https://steppinout.swiggy.com/ — likely JS heavy; use headless.
+
+SortMyScene
+
+https://sortmyscene.com/ or related (scrape event list)
+
+Songkick / Bandsintown / Eventbrite (India)
+
+Use public endpoints where possible
+
+Resident Advisor — Events India
+
+https://ra.co/events/IN — scrape .event-item, ticket links sometimes to RA event pages.
+
+Festival Sherpa, EDM.com Festivals, Festivals listings (for large events)
+
+Note: if a source is blocked from Replit outbound or DNS fails, code must fallback to cache and log structured error.
+
+Acceptance checks (must be run and pass)
+
+Typecheck
+
+pnpm -w tsc --noEmit
+
+
+→ 0 errors.
+
+Unit tests
+
+pnpm --filter apps/web test:unit
+
+
+→ safefetch + adapter tests pass.
+
+Local run & endpoint
+
+Start dev server, then:
+
+curl 'http://localhost:3000/api/gigs/india?page=1&pageSize=20'
+
+
+Response must be valid JSON: { ok: true, events: [...], meta: {...}, errors: [...] }
+
+events length >= 1 (unless no live sources available, in which case show cached events).
+
+errors should not cause a 5xx; they must be present but structured.
+
+Headless fallback verification
+
+In TEST_MODE with PLAYWRIGHT_ENABLED=true, at least one JS-heavy source should be fetched via headless and produce events (if those sites are up). If Playwright not available, code must not crash and must use cache.
+
+Caching behavior
+
+Simulate ENOTFOUND for a source (use test/mocking). The endpoint should return cached events for that source and an errors entry indicating network issue and fromCache:true flag on events.
+
+Admin actions
+
+Admin API can disable a source; after disabling, /api/gigs/india should not call that source.
+
+Performance
+
+A single full fetchAllSources run with default concurrency must finish within a reasonable time (e.g., under 15s for many sources in normal conditions). Use p-limit to avoid saturating CPU.
+
+Dev commands to run after changes
+# install dependencies (if not present)
+pnpm --filter apps/web add p-limit cross-fetch playwright
+pnpm -w install
+
+# typecheck
+pnpm -w tsc --noEmit
+
+# unit tests
+pnpm --filter apps/web test:unit
+
+# quick diag
+node scripts/diag/check-gigs-integrity.js
+# run server and test endpoint
+pnpm --filter apps/web dev
+curl 'http://localhost:3000/api/gigs/india'
+
+Commit message (use this)
+fix(gigs): robust India gigs fetcher — safeFetch, headless fallback, cache fallback, adapters for RollingStone/BookMyShow/Paytm/Swiggy/Dice/SortMyScene/RA, admin toggles, diagnostics & tests
+
+Output required from Replit Assistant after implementing
+
+git show --name-status HEAD
+
+pnpm -w tsc --noEmit output
+
+pnpm --filter apps/web test:unit output
+
+Sample curl 'http://localhost:3000/api/gigs/india' output (pretty-printed JSON)
+
+node scripts/diag/check-gigs-integrity.js summary
+
+Logs excerpt logs/gigs.log showing any structured errors and cache fallbacks
