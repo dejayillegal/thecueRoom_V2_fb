@@ -1,0 +1,324 @@
+0) Branch & install
+
+Create a branch and install deps:
+
+git checkout -b feat/gigs-profiles-ticketing
+pnpm install
+# add required packages (if any fail, fallback behavior will be used)
+pnpm --filter apps/web add axios p-limit node-html-parser qrcode uuid sharp dayjs jsdom fast-xml-parser cross-fetch
+pnpm --filter apps/web add -D vitest playwright supertest
+
+
+Environment variables to add to .env or Replit secrets:
+
+AI_PROVIDER=hf|none         # default 'none' -> use heuristics fallback. If 'hf', REPLIT must provide HF_TOKEN.
+HF_TOKEN=                    # optional; if present, use Hugging Face Inference API
+AI_WORKER_CONCURRENCY=2
+AI_TEMP_DIR=/tmp/thecueroom-ai
+POLL_INTERVAL_SECONDS=60
+POLL_CONCURRENCY=3
+FEED_FAILURE_THRESHOLD=5
+ROLLINGSTONE_FEED=https://rollingstoneindia.com/?feed=gigpress
+
+1) High-level architecture & files to implement
+
+Add/modify the following files. Implement full code (no stubs). Keep UI theme tokens unchanged.
+
+Backend (Next.js App Router / Node workers)
+
+apps/web/app/api/users/public/[username]/route.ts
+
+GET: returns public profile JSON with privacy-safe fields only.
+
+Ensure fields are the opt-in subset: displayName, avatarUrl, bio_public, genres, region, verifiedBadge, links_public[], releases[], eventsPublic[].
+
+Never return private fields (email, phone, exact address, social verification tokens).
+
+apps/web/app/api/users/me/route.ts
+
+GET/PUT: authenticated user profile settings (private + public flags).
+
+Fields: fullName, displayName, email, bio_private, bio_public, avatar, links (object with types), genres, region, privacyFlags (showEmail, showLinksPublic), verificationStatus, createdAt.
+
+PUT must validate inputs, restrict fields only to allowed edits.
+
+apps/web/app/api/admin/settings/route.ts
+
+GET/POST: admin-only poller & gigs settings (poll interval, concurrency, allowed sources, feed blacklist).
+
+Protect in dev with header x-admin: true.
+
+packages/feeds/poller.ts (new package)
+
+Implement robust poller with concurrency control (p-limit), AbortController, per-fetch timeout 20s, exponential backoff, disable on repeated failure threshold, write feed_sources.json and feed_metadata.json in ./.local/feeds/.
+
+Provide startPoller(), stopPoller(), runOnce(), simulate() interfaces.
+
+Ready to ingest RSS/Atom and custom HTML feed pages (use fast-xml-parser & node-html-parser).
+
+Example: include ingesters/rollingstoneIndia.ts which knows the RollingStone India feed format.
+
+apps/web/app/api/gigs/ingest/route.ts
+
+POST: trigger a single ingest run (admin header required in dev).
+
+GET: list recent ingestion runs & stats.
+
+apps/web/app/api/gigs/list/route.ts
+
+GET: paginated list of gigs from DB or feed cache. Accept filters: location, date range, genre, source.
+
+apps/web/app/api/gigs/submit/route.ts
+
+POST: user-submitted event. Accepts event payload + user's id.
+
+Persist to events_pending.json (dev) and queue verification job via worker.
+
+apps/web/app/api/gigs/verify/route.ts
+
+POST: admin or worker can call to mark event verified/denied. Returns structured JSON.
+
+packages/ai/worker.js (update/create)
+
+Worker process to handle heavy tasks:
+
+verifyEvent job: given an event payload, check links (HEAD requests), check presence in other feeds (search), validate ticketing links, then call HF inference if AI_PROVIDER=hf is set (else use heuristics), produce score and decision (approve / needs_manual_review / deny) with reasons.
+
+renderTicket job: compose graphical ticket with base template + QR code + text overlay. Use sharp streaming or fallback to HTML→SVG→raster with streaming to avoid memory spikes.
+
+Limit concurrency with AI_WORKER_CONCURRENCY.
+
+Write outputs to AI_TEMP_DIR/<jobId>.png and metadata JSON.
+
+apps/web/app/api/gigs/ticket/route.ts
+
+POST: enqueue ticket render job (user or admin) and return jobId.
+
+GET /api/gigs/ticket/[jobId] returns job status and download URL.
+
+apps/web/app/api/gigs/user/[userId]/route.ts
+
+GET: list events created by a user (with status pending/verified/denied).
+
+apps/web/app/api/feeds/fallback/route.ts
+
+Serve a rotating fallback thumbnail set: fallback_1.png...fallback_4.png (the images you uploaded).
+
+Endpoint returns headers optimized for caching.
+
+Frontend (React - reuse app theme)
+
+apps/web/src/pages/gigs/page.tsx (or app/gigs/page.tsx)
+
+New Gigs listing with filter UI (region, date, genre), map/compact card views, infinite scroll using virtualization.
+
+Each event card shows: title, date/time, venue, price (Free / RSVP), source, small thumbnail (use centralized feed-image logic).
+
+apps/web/src/components/Gigs/GigCard.tsx
+
+Card shows core details and CTAs: RSVP / Get Ticket (for Free / RSVP events), Submit correction, Report.
+
+apps/web/src/components/Gigs/GigSubmitForm.tsx
+
+Full submission UI: event title, artist, date/time, venue, address, region text field, genre text field, ticket type (Free RSVP / Paid link), ticket URL, poster image, additional notes.
+
+On submit: POST to /api/gigs/submit.
+
+Show instant client-side validation, image auto-resize, and local preview.
+
+apps/web/src/components/Gigs/TicketViewer.tsx
+
+Shows rendered ticket when ready and Download button. Use object URL or direct fetch from /api/gigs/ticket/[jobId].
+
+apps/web/src/pages/profile/[username]/page.tsx
+
+Public profile page with privacy controls in rendering:
+
+Show public bio, releases, upcoming public events only.
+
+Link buttons (SoundCloud, Bandcamp, Instagram) show only if user opted-in.
+
+If user not found -> 404.
+
+apps/web/src/pages/settings/personal/page.tsx
+
+User Settings page for profile details and privacy toggles, avatar upload (auto-resize), verification status & button to re-trigger verification.
+
+apps/web/src/pages/settings/admin/page.tsx
+
+Admin settings page to control feed poller settings, enable/disable sources, view ingest logs, manage pending events.
+
+apps/web/src/components/Gigs/GigAdminPanel.tsx
+
+Admin list of pending events with links to verify/deny, view evidence, quick-edit event.
+
+UI tickets & download
+
+Ticket rendering templates (3 styles) placed in apps/web/src/components/Gigs/ticket-templates/ as SVG templates. Worker will composite text + QR onto SVG and rasterize to PNG for download (1024x512 or 600x900 depending on orientation). Provide "Download PNG" and "Download PDF" (server can generate PDF via sharp or puppeteer fallback).
+
+QR contains verification URL /api/gigs/ticket/verify/<ticketId> or ticket metadata.
+
+2) AI verification: free-first design
+
+Use two-layer verification:
+
+Heuristics fallback (default): free, deterministic checks:
+
+Validate event date/time format and future date.
+
+HEAD request to ticket URL or venue website; check HTTP 200.
+
+Check presence on at least one external feed (site search, feed cache).
+
+Domain trust list scoring (example: domains in trusted_sources.json get +score).
+
+Producer consistency checks: artist links, known release links.
+
+Output score (0-100) and decision:
+
+score >= 85 → auto_approve
+
+60 <= score < 85 → needs_manual_review
+
+< 60 → suspect (deny or require more info)
+
+Optional HF inference: if AI_PROVIDER=hf and HF_TOKEN present:
+
+Call Hugging Face model with a short prompt that summarizes checks and asks for a judgement. Respect rate limits and timeouts. Use safeFetch and safeJson parsing.
+
+Merge HF output with heuristics; prefer structured decision from HF only when heuristics not deterministic. Always license HF as optional.
+
+Always store verification reasoning in event metadata for admin audit.
+
+3) Privacy & Public Profile rules
+
+Profiles have two text fields: bio_public (shown on public pages) and bio_private (visible only to user & admin).
+
+All social links: user can mark each link public or private.
+
+Public profile endpoint must strip all private fields and any trace of contact info.
+
+Admin endpoints can see private fields (protected by x-admin: true in dev).
+
+Users must explicitly opt-in to make events/public links visible.
+
+4) Ticket generation & RSVP
+
+Free RSVP flow:
+
+User clicks RSVP on event card; POST to /api/gigs/rsvp with userId & eventId.
+
+Create ticket record { ticketId, userId, eventId, issuedAt } and enqueue renderTicket job.
+
+Worker will generate a polished ticket PNG with:
+
+Event title, host, date/time, venue, seat/free, QR code containing ticket verification URL.
+
+Use brand tokens/colors, retina-ready, downloadable.
+
+Return jobId; front-end polls ticket job status and downloads when ready.
+
+Ticket download must trigger browser download with correct headers and content-type. Provide direct /api/gigs/ticket/download/[jobId] returning Content-Disposition: attachment.
+
+Admin may toggle ticket templates & watermark (show app watermark by default).
+
+5) Ingest RollingStoneIndia feed
+
+Implement ingester:
+
+packages/feeds/ingesters/rollingstoneIndia.ts
+
+Fetch ROLLINGSTONE_FEED URL, parse XML, map fields to internal gig schema.
+
+Normalize dates (use dayjs).
+
+Cache items, avoid duplicates (identify via hashed title+date+venue).
+
+Add tags, source link, and original HTML excerpt.
+
+Add this source to feed_sources.json default.
+
+6) Tests & Diagnostics
+
+Add tests and diag scripts:
+
+tests/gigs/ingest.test.ts — run poller simulate with ROLLINGSTONE_FEED and assert items parsed.
+
+tests/gigs/submit-verify.test.ts — submit an event in TEST_MODE, ensure worker yields needs_manual_review or auto_approve deterministically.
+
+tests/gigs/ticket.test.ts — enqueue ticket job and assert PNG exists and returns Content-Type: image/png.
+
+scripts/diag/run-gigs-poller.js — simulate poller and produce summary.
+
+scripts/diag/check-ticket-render.js — enqueue 3 ticket jobs and verify memory use <50MB per job.
+
+Run test commands:
+
+pnpm -w tsc --noEmit
+pnpm --filter apps/web test:unit
+node scripts/diag/run-gigs-poller.js
+node scripts/diag/check-ticket-render.js
+
+7) Acceptance checks (must pass)
+
+Typecheck: pnpm -w tsc --noEmit → 0 errors.
+
+Unit tests: pnpm --filter apps/web test:unit → all tests pass.
+
+Ingest simulation: node scripts/diag/run-gigs-poller.js should fetch RollingStone feed items and store them in feeds cache.
+
+Event submit & verify: submit a test event and worker returns decision and stores reasoning JSON.
+
+RSVP & ticket: RSVP flow returns ticket job; rendered ticket accessible at /api/gigs/ticket/download/[jobId] and downloads as valid PNG (and PDF if requested).
+
+Public profile: GET /api/users/public/<username> returns only public fields; sensitive fields absent.
+
+Admin settings: admin can change poll interval and enable/disable a feed source; poller picks up new config.
+
+Memory & perf: scripts/diag/check-ticket-render.js shows <50MB growth per job in TEST_MODE.
+
+8) Deliverables & commit
+
+When done:
+
+git add -A
+
+git commit -m "feat(gigs+profiles+tickets): public profiles, robust feed poller incl. RollingStoneIndia, event submission + AI verification, RSVP ticketing + render worker, admin settings, tests"
+
+Provide the following in the assistant report:
+
+git show --name-status HEAD
+
+pnpm -w tsc --noEmit output
+
+pnpm --filter apps/web test:unit output
+
+node scripts/diag/run-gigs-poller.js summary
+
+sample event submission + verification job log (jobId + decision)
+
+sample ticket generation job (jobId + resulting download URL)
+
+sample public profile JSON from GET /api/users/public/<username>
+
+short security/privacy checklist (ensuring no private fields leaked)
+
+list of changed files
+
+9) Implementation notes & constraints
+
+Free-first AI: default to heuristics; HF is optional (controlled by AI_PROVIDER=hf).
+
+Workerization: heavy tasks (verification, ticket rendering) must run in worker process (child_process.fork or worker_threads). Limit concurrency via env var.
+
+Streaming: use streaming APIs for all image writes (sharp streams) to avoid buffering.
+
+Cache & dedupe: maintain small LRU caches and hashed dedupe for feeds and events.
+
+Privacy: all public endpoints must enforce data filtering. Admin routes protected by x-admin: true header until a full auth system exists.
+
+Fallbacks: if sharp unavailable, fallback to SVG composition + @svg2png-js or node-canvas to rasterize.
+
+Security: sanitize all user-provided HTML or strings used in SVG overlays (escape to prevent injection).
+
+Rate limits: apply simple rate-limiter to event submit/verify APIs (per-IP).
