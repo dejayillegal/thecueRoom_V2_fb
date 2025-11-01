@@ -1,0 +1,172 @@
+Deliverables (automated tasks)
+
+Add safeFetch utility that:
+
+Uses AbortController + timeout.
+
+Handles non-JSON responses safely (res.text() fallback).
+
+Retries on transient failures with exponential backoff (configurable attempts).
+
+Catches DNS errors (ENOTFOUND), network errors, and returns a structured error object rather than throwing.
+
+Add caching layer:
+
+Simple file-based cache in .local/cache/gigs/<source>.json with TTL.
+
+On fetch error (DNS/unreachable/timeouts), return cached data if within TTL and mark fromCache: true in the event items.
+
+Add scripts/diag/clear-gigs-cache.js.
+
+Per-source admin toggles:
+
+API route app/api/admin/feed-sources/route.ts (GET/POST) to enable/disable sources.
+
+Store source metadata in .local/state/feed-sources.json.
+
+Update source fetchers (e.g. packages/feeds/sources/*.ts):
+
+Wrap every network call with safeFetch.
+
+On failures, return [] and push an error record into a shared errors[] collector.
+
+Always sanitize and validate normalized events.
+
+app/api/gigs/india/route.ts:
+
+Change to:
+
+call fetchAllSources() which returns { events: NormalizedEvent[], errors: FetchError[] }
+
+ALWAYS return { ok: true, events, errors } JSON (no HTML, no thrown error).
+
+If all sources failed and there's no cache, return events: [] and a single errors entry explaining the problem and instructions for admin.
+
+Logging & telemetry:
+
+Add logs/feeds.log write entries with time, source, error.message, error.code.
+
+Add an admin endpoint app/api/admin/feed-logs/route.ts to fetch recent logs (dev only).
+
+Tests:
+
+tests/feeds/safefetch.test.ts — unit tests for safeFetch to confirm timeouts, retries and ENOTFOUND handling.
+
+tests/feeds/cache-fallback.test.ts — simulate failed fetch and confirm cached output used.
+
+Update CI scripts to run these tests.
+
+Diagnostics command:
+
+node scripts/diag/check-feed-integrity.js outputs per-source status (ok/cached/failure) and lastFetchTime.
+
+Implementation details — exactly what to change/create
+A. New util: apps/web/src/lib/safe-fetch.ts
+
+Implement safeFetch(url, opts):
+
+Default timeout 10s.
+
+attempts default 3.
+
+Exponential backoff: 300ms * (2 ** attempt).
+
+On ENOTFOUND / EAI_AGAIN / ECONNREFUSED / ETIMEDOUT capture error.code and error.errno and return structured { ok:false, error: { message, code, retried } }.
+
+For HTTP non-200, read text and return { ok:false, status, textSnippet }.
+
+On success try to return json() but if JSON parse fails return { ok:true, type:'text', text }.
+
+Export type FetchResult = { ok: boolean; status?: number; json?: any; text?: string; error?: { code?: string; message: string } }.
+
+B. Caching helper: packages/feeds/cache.ts
+
+Exports readCache(sourceName, ttlSeconds) and writeCache(sourceName, data).
+
+Use atomic write (fs.writeFileSync(temp) -> rename) to avoid partial files.
+
+Add TTL check and lastFetched metadata.
+
+C. Update each source file (e.g. packages/feeds/sources/swiggyEvents.ts)
+
+Replace raw fetch(url) with:
+
+const res = await safeFetch(url, { timeout: 8000, attempts: 3 });
+if (!res.ok) {
+  errors.push({ source: 'swiggy', code: res.error?.code || `http_${res.status}`, message: res.error?.message || res.text?.slice(0,300) });
+  // try cache fallback:
+  const cached = readCache('swiggy', CACHE_TTL_SEC);
+  if (cached) return { events: cached.events, fromCache: true };
+  return [];
+}
+const text = res.json ?? res.text;
+parse text...
+writeCache('swiggy', { events, lastFetched: Date.now() });
+return events;
+
+D. Update app/api/gigs/india/route.ts
+
+New shape:
+
+export async function GET(req) {
+  const { events, errors } = await fetchAllSources({ enabledOnly: true });
+  return NextResponse.json({ ok: true, events, errors }, { status: 200 });
+}
+
+
+fetchAllSources() runs sources in parallel with a concurrency limit (use p-limit), collects events[] and errors[]. Ensure a per-source timeout.
+
+E. Admin toggles & logs
+
+Create app/api/admin/feed-sources/route.ts CRUD (dev-auth via header x-admin: true).
+
+Add logs/feeds.log writer.
+
+F. Tests & diag
+
+Add the tests described above (use msw or jest-fetch-mock to simulate ENOTFOUND/timeouts).
+
+Add scripts/diag/check-feed-integrity.js to run fetchAllSources() and print a readable summary and exit code 0 (non-fatal) — if a majority of sources failed print a NOTICE but still exit 0.
+
+Acceptance Criteria / Commands to run
+
+Typecheck:
+
+pnpm -w tsc --noEmit
+
+
+→ 0 errors.
+
+Unit tests:
+
+pnpm --filter apps/web test:unit
+
+
+→ safefetch.test and cache-fallback.test pass.
+
+Manual run:
+
+node scripts/diag/check-feed-integrity.js
+
+
+→ Prints: per-source status (OK/CACHED/FAILED), number of events aggregated, and top 3 error messages if any.
+
+Endpoint behaviour:
+
+Start server and request GET /api/gigs/india.
+
+Response always JSON: { ok: true, events: [...], errors: [...] }.
+
+On ENOTFOUND for a source, that source adds a structured entry in errors[] (include source, code, message) and system returns cached events where available.
+
+Logging:
+
+logs/feeds.log contains recent fetch errors with timestamps.
+
+Notes & optional enhancements (choose if you want)
+
+If Replit blocks outbound traffic to specific domains, consider using an internal admin toggle to mark the host as blocked and avoid attempts (save time).
+
+Optionally add a light proxy list env FEED_PROXY_URL that the worker can use for hard-to-reach hosts (documented but off by default).
+
+Optionally, schedule poller to re-check failed sources less aggressively (backoff schedule).
