@@ -1,0 +1,189 @@
+🎛️ GOALS
+
+Aggregate event data from at least 8 sources:
+
+✅ Rolling Stone India — RSS (already supported)
+
+✅ SortMyScene — event list pages
+
+✅ DICE.fm India — API or HTML event listings
+
+✅ BookMyShow — limited scraping (music category)
+
+✅ SkillBox — JSON API for India gigs
+
+✅ Paytm Insider — public REST events endpoint
+
+✅ Zomato Live / SteppinOut by Dineout — HTML scraping
+
+✅ Swiggy SteppinOut — fallback feed if Zomato fails
+
+Normalize events into a common schema:
+
+{
+  id: string;
+  title: string;
+  date: string;
+  time?: string;
+  venue: string;
+  city?: string;
+  price?: string;
+  url: string;
+  source: string;
+  image?: string;
+  description?: string;
+  genreTags?: string[];
+}
+
+
+Validate and enrich with AI if possible (free model or local heuristics).
+
+Expose unified gigs via /api/gigs/list.
+
+Cache results and dedupe by event title + date + venue.
+
+Include ticket URLs and verify that each link is reachable (HTTP 200).
+
+Enable admin control via /api/admin/feed-sources and /api/admin/poller.
+
+Display gigs in a modern, performant grid UI with filters (genre, city, date).
+
+⚙️ IMPLEMENTATION DETAILS
+
+Backend structure
+
+packages/feeds/
+  ├── poller.ts                # Core scheduler
+  ├── sources/
+  │   ├── rollingstoneIndia.ts
+  │   ├── diceIndia.ts
+  │   ├── sortmyscene.ts
+  │   ├── skillboxIndia.ts
+  │   ├── paytmInsider.ts
+  │   ├── bookmyshowIndia.ts
+  │   ├── zomatoSteppinOut.ts
+  │   ├── swiggyEvents.ts
+  │   └── index.ts
+  └── normalize.ts             # Normalizes to common schema
+
+
+Each source file:
+
+Fetches the feed using axios or fetch.
+
+Parses with fast-xml-parser or node-html-parser.
+
+Extracts events into the normalized structure.
+
+Adds source identifier (source field).
+
+Returns an array of normalized events.
+
+Caching:
+Use a local cache file .local/feeds/events_cache.json and update only new/modified events.
+
+Rate limiting:
+Throttle each source to one fetch per 10 minutes per city.
+
+Validation:
+
+HEAD request to each event URL.
+
+Ignore broken links or outdated events.
+
+🧠 FREE AI ENRICHMENT
+
+When AI_PROVIDER=none, use a local heuristic model (packages/ai/enrichEvent.ts):
+
+Infer genreTags from title/description.
+
+Detect duplicate venues.
+
+Predict missing city names using keyword matching (e.g., “BLR”, “Hyd” → city names).
+
+Auto-categorize as “Techno”, “House”, “Live”, etc.
+
+If AI_PROVIDER=hf with HF_TOKEN, call Hugging Face distilbert-base-multilingual-cased zero-shot classifier to tag genres.
+
+🌐 ADMIN CONTROLS
+
+Create API routes:
+
+/api/admin/feed-sources → list sources, last fetched, errors, enable/disable.
+
+/api/admin/poller → GET status, POST trigger manual refresh.
+
+/api/gigs/list → Unified feed output with filters (genre, city, date).
+
+🎨 FRONTEND
+
+UI Path: apps/web/app/gigs/page.tsx
+
+Responsive grid and list view.
+
+Filters (Genre, City, Date).
+
+“Buy / RSVP Ticket” button → opens event.url.
+
+“Share Event” → Web Share API.
+
+Performance:
+
+Use virtualization for long lists.
+
+Prefetch images lazily.
+
+Cache last feed results in IndexedDB for offline read.
+
+📡 SOURCES + FETCH LOGIC (FREE ENDPOINTS)
+Platform	Type	URL / API	Notes
+Rolling Stone India	RSS	https://rollingstoneindia.com/?feed=gigpress
+	✅ Stable XML feed
+SortMyScene	HTML	https://sortmyscene.com/events
+	Parse .event-card elements
+DICE.fm India	JSON	https://api.dice.fm/api/v1/events?country=IN
+	Public API
+BookMyShow	HTML	https://in.bookmyshow.com/explore/music-bangalore
+	Scrape .card__event-name
+SkillBox	JSON	https://api.skillboxes.com/api/events?country=India
+	Filter by music category
+Paytm Insider	REST	https://api.insider.in/all-cities/events/music
+	Valid CORS JSON
+Zomato Live (SteppinOut)	HTML	https://live.dineout.co.in/events
+	Scrape .event-card
+Swiggy SteppinOut	JSON	https://steppinout.swiggy.com/api/events
+	Public endpoint
+Lollapalooza India	RSS	https://lollaindia.com/feed
+	Optional
+Bangalore Underground FB	HTML	https://www.facebook.com/pg/bangaloreunderground/events
+	Fallback
+🧩 TESTS
+
+Add:
+
+tests/feeds/ingest-india.test.ts
+
+Mocks all source fetches and ensures normalized output shape.
+
+scripts/diag/check-feed-integrity.js
+
+Fetches all sources and logs summary of total gigs and errors.
+
+🧾 ACCEPTANCE CHECKS
+
+Run:
+
+pnpm -w tsc --noEmit
+pnpm --filter apps/web test:unit
+node scripts/diag/check-feed-integrity.js
+
+
+Pass criteria:
+
+≥ 6 sources return valid events (HTTP 200).
+
+Deduplication working.
+
+No stale or broken URLs.
+
+/api/gigs/list returns ≤ 500ms (cached).
