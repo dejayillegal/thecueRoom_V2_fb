@@ -14,22 +14,28 @@ async function getUserIdFromSession(request: NextRequest): Promise<string | null
     // Try multiple cookie names
     const sessionCookie = cookieStore.get('session') ||
                          cookieStore.get('auth-token') ||
-                         cookieStore.get('user-session');
+                         cookieStore.get('user-session') ||
+                         cookieStore.get('__session');
 
     if (!sessionCookie) {
-      console.log('No session cookie found');
+      console.log('[Profile API] No session cookie found. Available cookies:', cookieStore.getAll().map(c => c.name));
       return null;
     }
 
+    console.log('[Profile API] Found session cookie:', sessionCookie.name);
+
     try {
       const session = JSON.parse(decodeURIComponent(sessionCookie.value));
-      return session.userId || session.uid || session.id || null;
+      const userId = session.userId || session.uid || session.id || null;
+      console.log('[Profile API] Extracted userId from session:', userId ? 'found' : 'not found');
+      return userId;
     } catch (parseError) {
       // If not JSON, might be just the user ID
+      console.log('[Profile API] Session is not JSON, using raw value as userId');
       return sessionCookie.value;
     }
   } catch (error) {
-    console.error('Session retrieval error:', error);
+    console.error('[Profile API] Session retrieval error:', error);
     return null;
   }
 }
@@ -40,9 +46,11 @@ export async function GET(request: NextRequest) {
     const userId = await getUserIdFromSession(request);
 
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      console.log('[Profile API] No userId found in session');
+      return NextResponse.json({ error: 'Unauthorized - No valid session' }, { status: 401 });
     }
 
+    console.log('[Profile API] Fetching profile for userId:', userId);
     const db = getDbClient();
 
     // Fetch user and profile data
@@ -53,8 +61,11 @@ export async function GET(request: NextRequest) {
       .limit(1);
 
     if (!user) {
+      console.log('[Profile API] User not found in database for userId:', userId);
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+
+    console.log('[Profile API] User found:', user.username);
 
     const [profile] = await db
       .select()

@@ -75,7 +75,14 @@ export default function SettingsPage() {
       const response = await fetch('/api/profile');
       
       if (!response.ok) {
-        throw new Error('Failed to fetch profile');
+        if (response.status === 401) {
+          // User is not logged in, redirect to home
+          console.error('User not authenticated, redirecting to home');
+          window.location.href = '/';
+          return;
+        }
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || 'Failed to fetch profile');
       }
 
       const data: UserProfile = await response.json();
