@@ -1,0 +1,296 @@
+Important constraints
+
+Keep server-only code (Playwright worker, raw scraping) out of client bundle.
+
+Keep poller non-blocking and limited concurrency.
+
+Always return valid JSON from /api/gigs/india.
+
+Use short timeouts and retries, but never block the main request longer than e.g. 5s — return cached/stale data if needed.
+
+Provide clear acceptance checks and logging.
+
+High-level strategy (multi-step fallback for each source)
+
+Primary — RSS / JSON / Official API
+
+Query official RSS, JSON, or public API endpoints first.
+
+Use safeFetch (canonicalized) with HEAD checks for image/endpoint validity.
+
+Secondary — Structured data (LD+JSON / microdata)
+
+GET site landing or event pages and parse <script type="application/ld+json"> for Event objects (often present).
+
+Parse microdata / schema.org markup as robust structured fallback.
+
+Tertiary — Sitemap / calendar endpoints
+
+Try /sitemap.xml, /events/sitemap.xml, /feed, .ics, or /index.xml to locate event pages.
+
+Quaternary — AJAX / XHR endpoints (hidden JSON)
+
+Inspect XHR network patterns for each target site (BookMyShow, Paytm Insider, Zomato Live, Swiggy/SteppinOut) and call the same JSON endpoints used by their web apps (simulate headers/cookies).
+
+Final resort — Headless render (Playwright/Puppeteer) via server-only worker
+
+Offload JS-rendered pages to packages/feeds/headless-worker.js (child_process.fork), parse result HTML with Cheerio.
+
+Headless calls are rate-limited, guarded behind PLAYWRIGHT_ENABLED env var; when disabled, return cached/stale results.
+
+Global fallbacks
+
+If a site returns 403 or ENOTFOUND, attempt:
+
+Change User-Agent to common desktop/mobile UA.
+
+Add Accept-Language, Referer, Origin, and common cookies headers.
+
+Try alternate hostnames (e.g., https://in.bookmyshow.com/ vs https://in.bookmyshow.com/), mobile subdomains.
+
+Use the headless worker.
+
+If still fails, mark source disabled and serve cached last-good data, and schedule re-checks at a lower frequency.
+
+Files to create/update (exact suggestions)
+Canonical utils & safety
+
+apps/web/src/lib/safe-fetch.ts — ensure single canonical implementation (see earlier canonical code). Use it everywhere.
+
+packages/feeds/cache.ts — simple JSON-file LRU cache + TTL (used for fallback serve).
+
+packages/feeds/normalize.ts — functions to normalize a source-specific event into NormalizedEvent shape: { id, title, venue, start: ISO, end?: ISO, url, ticketUrl?, city, source, raw }
+
+Headless worker (server-only)
+
+packages/feeds/headless-worker.js — Node worker that accepts IPC messages { id, url, waitForSelector?, timeout? }, uses Playwright inside worker, returns { id, ok, html, error }. Do not import or require this file in any client-bundled code.
+
+packages/feeds/headless.ts — server-side helper that fork()s the worker and manages concurrency with p-limit. Returns { ok, html, error }. Respect PLAYWRIGHT_ENABLED and PLAYWRIGHT_CONCURRENCY.
+
+Per-source adapters (server-only)
+
+packages/feeds/sources/bookmyshowIndia.ts
+
+packages/feeds/sources/zomatoLive.ts
+
+packages/feeds/sources/swiggyEvents.ts (or steppinout)
+
+packages/feeds/sources/paytmInsider.ts
+
+packages/feeds/sources/sortMyScene.ts
+
+packages/feeds/sources/skillbox.ts
+
+packages/feeds/sources/diceIndia.ts
+
+Each adapter must:
+
+Try RSS/JSON endpoints first.
+
+Next, fetch top-level pages and parse LD+JSON (cheerio).
+
+Next, attempt AJAX endpoints (use safeFetch with cookies/headers).
+
+Finally, call renderPageWithHeadless(url, { waitForSelector, timeout }) if necessary.
+
+Use try...catch and always return NormalizedEvent[] (possibly empty) with a fromCache flag if cached.
+
+Log (structured) successes and failures to logs/feed-<source>.log and to console.
+
+Aggregator & Poller
+
+packages/feeds/poller.ts — robust poller with:
+
+Admin-configurable poll_interval_seconds, poll_concurrency, failure_threshold (read/write via apps/web/app/api/admin/feed-settings/route.ts or a JSON file).
+
+Concurrency controlled with p-limit.
+
+For each source: await Promise.race([adapterFetch(), timeoutPromise]).
+
+Exponential backoff retries (2 retries).
+
+If 403 or repeated failure, attempt header/cookie variants, then headless, then mark disabled and log.
+
+Write success results to packages/feeds/cache.ts with TTL and lastFetchedAt metadata.
+
+Emit progress events (EventEmitter) for diagnostics and admin UI.
+
+apps/web/app/api/gigs/india/route.ts — adapt to:
+
+Immediately return cached results (if fresh) for fast UX.
+
+Trigger background poll (non-blocking) to refresh cache when stale.
+
+Provide ?force=true or ?simulate=true for debug.
+
+Return JSON { ok: true, sources: [...], events: [...], meta: { total, fromCache, timings } }.
+
+Controller closed fix
+
+Audit usage of AbortController across safeFetch, poller, and headless invocations. Ensure:
+
+A new AbortController instance per fetch attempt.
+
+Never call controller.abort() after res.body fully consumed; ensure try/finally clear timeouts and not reuse controllers.
+
+Tests + Diagnostics
+
+scripts/diag/gigs-poller-test.js:
+
+Simulate poller against test fixtures and real endpoints.
+
+Report which sources succeeded, which used fallback headless, which returned 403.
+
+Add small Playwright test script packages/feeds/headless-test.js to run local headless worker on a sample page (only when PLAYWRIGHT_ENABLED=true).
+
+Per-source implementation hints (site-specific tips)
+
+BookMyShow
+
+403 likely due to bot detection. Strategy:
+
+Try BookMyShow JSON endpoints used by their SPA: inspect network calls for city endpoints like /city/MT.../events.
+
+Use mobile UA Mozilla/5.0 (Linux; Android 10; Mobile) with referer and common headers.
+
+If still 403, use headless worker with --no-sandbox and wait for .card or .event selectors.
+
+If BookMyShow blocks cloud-hosted IPs, provide admin setting to use an external proxy (optional).
+
+Zomato Live
+
+Use https://www.zomato.com/ related event endpoints; they often expose feed via /events or internal API; headless fallback works well here.
+
+Swiggy / SteppinOut
+
+Swiggy's steppinout subdomain often uses /api/events JSON endpoints — try /api/events?city=....
+
+If ENOTFOUND earlier, try https://steppinout.swiggy.com with mobile UA and headless fallback.
+
+Paytm Insider / Paytm
+
+They sometimes provide events.json endpoints or /pages that embed LD+JSON. Fetch list pages and parse schema.
+
+SortMyScene / Skillbox / DICE
+
+DICE has public API endpoints in some countries; check /api/events for country-specific calls.
+
+Skillbox likely small — try direct HTML parse.
+
+General parsing technique for HTML:
+
+Use cheerio.load(html).
+
+First try $('script[type="application/ld+json"]').map(...) and parse Event objects.
+
+Otherwise search for known selectors .event-card, .event-list, .event-item, .event and extract fields.
+
+For ticket/shop links, prefer canonical a[href*="ticket"] or the data-ticket-url attrs.
+
+Environment variables to add (in .env.example)
+PLAYWRIGHT_ENABLED=false
+PLAYWRIGHT_CONCURRENCY=1
+POLL_INTERVAL_SECONDS=300
+POLL_CONCURRENCY=4
+POLL_RETRY_ATTEMPTS=2
+NODE_FETCH_TIMEOUT_MS=10000
+FEEDS_CACHE_TTL_SECONDS=900
+FEEDS_CACHE_PATH=.local/feeds-cache.json
+FEED_USER_AGENT="thecueRoomBot/2.0 (+https://thecueroom.example)"
+USE_PROXY_FOR_SCRAPING=false
+SCRAPING_PROXY_URL=             # optional, e.g. http://username:pass@proxy:port
+
+Acceptance tests & commands (run in Replit after changes)
+
+Typecheck & build:
+
+pnpm -w tsc --noEmit
+pnpm --filter apps/web build
+
+
+Start app and poller (dev):
+
+PLAYWRIGHT_ENABLED=false pnpm --filter apps/web dev
+# In another terminal:
+node packages/feeds/poller.js --once --debug
+
+
+API quick check:
+
+curl -sS "http://localhost:3000/api/gigs/india" | jq .
+# Expect: { ok: true, events: [...], meta: { total: N, fromCache: boolean, timings: {...} } }
+
+
+Forced headless check (if Playwright available):
+
+PLAYWRIGHT_ENABLED=true PLAYWRIGHT_CONCURRENCY=1 node packages/feeds/poller.js --once --debug
+
+
+Diagnostics script:
+
+node scripts/diag/gigs-poller-test.js
+# Output should show per-source: attempt->method (rss/json/ld/headless) and result count or error.
+
+
+Verify no Controller is already closed by running poller multiple times and watching logs.
+
+Logging & admin UI
+
+Add logs/feed-<source>.log entries with structured JSON for each fetch attempt: { timestamp, attempt, method, status, durationMs, error }.
+
+Expose admin endpoint /api/admin/feeds/logs?source=bookmyshow returning last 200 lines for debugging.
+
+Safety & rate-limiting
+
+Enforce a per-source rate limit and a global concurrency cap to prevent IP blocking.
+
+When site returns 403 repeatedly, do not retry aggressively — increase backoff and mark disabled for a configurable cool-off window.
+
+Quick code snippets (non-exhaustive examples)
+
+headless invocation (server-only API route)
+
+// apps/web/app/api/gigs/india/route.ts (server)
+import { renderPageWithHeadless } from 'packages/feeds/headless';
+import { fetchBookMyShow } from 'packages/feeds/sources/bookmyshowIndia';
+import cache from 'packages/feeds/cache';
+
+export async function GET(req) {
+  // return cached data immediately if fresh
+  const cached = cache.read('gigs_india');
+  if (cached && !req.nextUrl.searchParams.get('force')) {
+    // Kick background refresh but return quickly
+    poller.runBackground().catch(()=>{});
+    return new Response(JSON.stringify({ ok:true, events: cached.events, meta:{ fromCache:true }}), { headers: { 'content-type': 'application/json' }});
+  }
+
+  // Otherwise run aggregator with concurrency limit
+  const events = await aggregator.fetchAllSources();
+  cache.write('gigs_india', { events, ts: Date.now() });
+  return new Response(JSON.stringify({ ok:true, events, meta:{ fromCache:false }}), { headers: { 'content-type': 'application/json' }});
+}
+
+
+safeFetch usage
+
+const { ok, response, error } = await safeFetch(someUrl, { timeout:8000, attempts:2, headers: { 'User-Agent': process.env.FEED_USER_AGENT }});
+if (!ok) log(error);
+const text = await response.text();
+
+Final deliverables expected from Replit Assistant
+
+Implement the files and changes listed above.
+
+Run the acceptance checks and paste outputs:
+
+pnpm -w tsc --noEmit result
+
+pnpm --filter apps/web build result
+
+curl http://localhost:3000/api/gigs/india | jq . result
+
+node scripts/diag/gigs-poller-test.js result
+
+Show sample logs for these sources proving success: BookMyShow (via headless), Zomato Live (JSON), Swiggy (AJAX/headless), Paytm Insider (structured data), Rolling Stone India (RSS).
+
+Explain in 3 lines which sources still need proxies (if any) and why (e.g., cloud IP blocked).
