@@ -323,3 +323,247 @@ if (require.main === module) {
 }
 
 export { FeedPoller };
+import pLimit from 'p-limit';
+import { Parser } from 'fast-xml-parser';
+import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
+
+const FEEDS_DIR = './.local/feeds';
+const SOURCES_FILE = join(FEEDS_DIR, 'feed_sources.json');
+const METADATA_FILE = join(FEEDS_DIR, 'feed_metadata.json');
+
+interface FeedSource {
+  id: string;
+  name: string;
+  url: string;
+  type: 'rss' | 'atom' | 'html';
+  enabled: boolean;
+  failureCount: number;
+  lastFetch?: Date;
+  lastSuccess?: Date;
+}
+
+interface FeedItem {
+  id: string;
+  title: string;
+  date: Date;
+  venue?: string;
+  location?: string;
+  link?: string;
+  description?: string;
+  source: string;
+}
+
+let pollerRunning = false;
+let pollerInterval: NodeJS.Timeout | null = null;
+
+const safeFetch = async (url: string, timeout = 20000): Promise<Response> => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+};
+
+const ensureFeedsDir = () => {
+  if (!existsSync(FEEDS_DIR)) {
+    mkdirSync(FEEDS_DIR, { recursive: true });
+  }
+};
+
+const loadSources = (): FeedSource[] => {
+  ensureFeedsDir();
+  if (!existsSync(SOURCES_FILE)) {
+    const defaultSources: FeedSource[] = [
+      {
+        id: 'rollingstone-india',
+        name: 'Rolling Stone India - Events',
+        url: process.env.ROLLINGSTONE_FEED || 'https://rollingstoneindia.com/?feed=gigpress',
+        type: 'rss',
+        enabled: true,
+        failureCount: 0
+      }
+    ];
+    writeFileSync(SOURCES_FILE, JSON.stringify(defaultSources, null, 2));
+    return defaultSources;
+  }
+  return JSON.parse(readFileSync(SOURCES_FILE, 'utf-8'));
+};
+
+const saveSources = (sources: FeedSource[]) => {
+  ensureFeedsDir();
+  writeFileSync(SOURCES_FILE, JSON.stringify(sources, null, 2));
+};
+
+const saveMetadata = (metadata: any) => {
+  ensureFeedsDir();
+  writeFileSync(METADATA_FILE, JSON.stringify(metadata, null, 2));
+};
+
+const parseFeed = async (source: FeedSource): Promise<FeedItem[]> => {
+  const response = await safeFetch(source.url);
+  const text = await response.text();
+  
+  const parser = new Parser({
+    ignoreAttributes: false,
+    attributeNamePrefix: '@_'
+  });
+  
+  const result = parser.parse(text);
+  const items: FeedItem[] = [];
+  
+  // Handle RSS format
+  if (result.rss?.channel?.item) {
+    const rssItems = Array.isArray(result.rss.channel.item) 
+      ? result.rss.channel.item 
+      : [result.rss.channel.item];
+    
+    rssItems.forEach((item: any, idx: number) => {
+      items.push({
+        id: `${source.id}-${Date.now()}-${idx}`,
+        title: item.title || 'Untitled Event',
+        date: item.pubDate ? new Date(item.pubDate) : new Date(),
+        venue: item.venue || undefined,
+        location: item.location || undefined,
+        link: item.link || undefined,
+        description: item.description || undefined,
+        source: source.name
+      });
+    });
+  }
+  
+  // Handle Atom format
+  if (result.feed?.entry) {
+    const atomEntries = Array.isArray(result.feed.entry) 
+      ? result.feed.entry 
+      : [result.feed.entry];
+    
+    atomEntries.forEach((entry: any, idx: number) => {
+      items.push({
+        id: `${source.id}-${Date.now()}-${idx}`,
+        title: entry.title || 'Untitled Event',
+        date: entry.published ? new Date(entry.published) : new Date(),
+        link: entry.link?.['@_href'] || undefined,
+        description: entry.summary || entry.content || undefined,
+        source: source.name
+      });
+    });
+  }
+  
+  return items;
+};
+
+export const runOnce = async (concurrency = 3, failureThreshold = 5): Promise<{
+  success: number;
+  failed: number;
+  items: FeedItem[];
+  errors: string[];
+}> => {
+  const sources = loadSources();
+  const enabledSources = sources.filter(s => s.enabled && s.failureCount < failureThreshold);
+  
+  const limit = pLimit(concurrency);
+  const results: FeedItem[] = [];
+  const errors: string[] = [];
+  let successCount = 0;
+  let failedCount = 0;
+  
+  const promises = enabledSources.map(source =>
+    limit(async () => {
+      try {
+        console.log(`📥 Fetching: ${source.name}`);
+        const items = await parseFeed(source);
+        
+        source.failureCount = 0;
+        source.lastFetch = new Date();
+        source.lastSuccess = new Date();
+        successCount++;
+        
+        results.push(...items);
+        console.log(`✅ ${source.name}: ${items.length} items`);
+        
+        return items;
+      } catch (error: any) {
+        source.failureCount++;
+        source.lastFetch = new Date();
+        failedCount++;
+        
+        const errorMsg = `❌ ${source.name}: ${error.message}`;
+        errors.push(errorMsg);
+        console.error(errorMsg);
+        
+        return [];
+      }
+    })
+  );
+  
+  await Promise.all(promises);
+  
+  saveSources(sources);
+  saveMetadata({
+    lastRun: new Date(),
+    totalItems: results.length,
+    successCount,
+    failedCount,
+    errors
+  });
+  
+  return {
+    success: successCount,
+    failed: failedCount,
+    items: results,
+    errors
+  };
+};
+
+export const startPoller = async (intervalSeconds = 60, concurrency = 3) => {
+  if (pollerRunning) {
+    console.log('⚠️  Poller already running');
+    return;
+  }
+  
+  pollerRunning = true;
+  console.log(`🚀 Starting feed poller (every ${intervalSeconds}s)`);
+  
+  // Run immediately
+  await runOnce(concurrency);
+  
+  // Then run on interval
+  pollerInterval = setInterval(async () => {
+    if (pollerRunning) {
+      await runOnce(concurrency);
+    }
+  }, intervalSeconds * 1000);
+};
+
+export const stopPoller = () => {
+  if (pollerInterval) {
+    clearInterval(pollerInterval);
+    pollerInterval = null;
+  }
+  pollerRunning = false;
+  console.log('🛑 Feed poller stopped');
+};
+
+export const simulate = async () => {
+  console.log('🔍 Running feed poller simulation...\n');
+  const result = await runOnce(3, 5);
+  
+  console.log('\n📊 Simulation Summary:');
+  console.log(`✅ Successful: ${result.success}`);
+  console.log(`❌ Failed: ${result.failed}`);
+  console.log(`📝 Total items: ${result.items.length}`);
+  
+  if (result.errors.length > 0) {
+    console.log('\n⚠️  Errors:');
+    result.errors.forEach(err => console.log(`  ${err}`));
+  }
+  
+  return result;
+};
