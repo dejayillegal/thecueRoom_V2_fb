@@ -1,0 +1,245 @@
+High level implementation steps (do all; no stubs)
+
+New utilities
+
+apps/web/src/lib/safeFetch.ts — robust fetch wrapper (AbortController timeout, retry with exponential backoff, friendly structured error objects). Use cross-fetch or node fetch.
+
+packages/feeds/cache.ts — read/write JSON cache under .local/cache/gigs/<source>.json with TTL and atomic writes.
+
+packages/feeds/normalize.ts — normalize raw event → NormalizedEvent shape (id, source, title, startAt, endAt, venue, city, ticketUrl, image, price, raw, fetchedAt, fromCache).
+
+packages/feeds/utils.ts — helpers: absoluteUrl(base, href), safeText(el), hashId().
+
+Source adapters (each adapter returns NormalizedEvent[]) — keep them in packages/feeds/sources/:
+
+rollingstoneIndia.ts (RSS) — already working; keep as model.
+
+bookmyshow.ts — HTML scrape strategy:
+
+First try BookMyShow “explore” JSON (if exists). If not:
+
+Scrape https://in.bookmyshow.com/explore/home/{city} or https://in.bookmyshow.com/ event listing pages.
+
+CSS selectors (typical): .card-container, .sc-... — because BMS uses obfuscated classes, fallback to attribute-based selectors: a[href*="/events/"], a[href*="bookmyshow.com/events/"], .event-card, .event-link.
+
+Extract ticket link from a anchors; if BMS uses JS navigation, enqueue headless fallback.
+
+paytmInsider.ts — Paytm often provides JSON or HTML with .search-result-card or anchors a[href*="paytminsider.in"]. Try endpoints: https://paytmmall.com/ (if not work, headless).
+
+zomatoLive.ts — Zomato may not have public “events” endpoint; try https://www.zomato.com/<city>/events or https://www.zomato.com/<city>/collections. If unavailable, fallback to “restaurants with events” – otherwise headless. Also check zomato.com/blog RSS.
+
+swiggySteppinout.ts — SteppinOut is JS heavy. Use headless fallback to render https://steppinout.swiggy.com/ and extract .card event selectors or a[href*="/events/"]. If DNS fails, use cache.
+
+sortMyScene.ts — scrape https://sortmyscene.com/ events list; selectors like .event_listing .event.
+
+skillboxIndia.ts — scrape https://skillbox.in/ or event listings.
+
+diceIndia.ts — dice may not have India events; still attempt https://dice.fm/search or site search.
+
+Extra sources: eventbrite.in (API), bandsintown (artist events), songkick (requires API key) — include adapters that use public APIs when keys are provided (env driven).
+
+Each adapter MUST:
+
+Use safeFetch.
+
+Attempt RSS/JSON first. Then HTML scrape. Then (only if needed and PLAYWRIGHT_ENABLED===true) run headless fallback.
+
+Cache its results (write cache on SUCCESS).
+
+Return well-structured errors that include code, message, and retryAfter (if applicable).
+
+Headless worker
+
+packages/feeds/headlessWorker.ts or packages/feeds/headless/runner.js (child process) — uses Playwright to render a page and extract content using selectors passed from adapter.
+
+Must run in a child_process (avoid blocking Node main thread). Limit concurrency via PLAYWRIGHT_CONCURRENCY env var (default 1).
+
+Provide a small IPC: send { url, selector, waitForSelector? } and get back HTML snapshot or structured result.
+
+If Playwright cannot start (Replit limitation), detect and return PLAYWRIGHT_NOT_AVAILABLE and adapter must fallback to cache.
+
+Fetcher orchestration (poller)
+
+packages/feeds/poller.ts:
+
+Expose fetchAllSources({ forceRefresh=false }).
+
+Use p-limit with POLL_CONCURRENCY env var (default 4).
+
+For each source: call adapter, collect events and errors.
+
+Deduplicate by id (sha1 of sourceName + sourceId + startAt).
+
+Merge and sort by startAt desc (or next upcoming).
+
+Save merged cache gigs/merged.json with TTL.
+
+Emit logs to logs/gigs.log and return { events, errors }.
+
+When a source repeatedly fails > FAILURE_THRESHOLD (env), mark it disabled in feeds/sources.json and include in admin UI.
+
+API route
+
+apps/web/app/api/gigs/india/route.ts (GET)
+
+Accept ?page&pageSize&city=...&refresh=true&source=...
+
+If refresh=true: call fetchAllSources({ forceRefresh:true }) (but guard heavy op with RBAC or admin header or throttling).
+
+Otherwise return cached merged data, and trigger background refresh via worker (non-blocking).
+
+Response shape: { ok:true, events: NormalizedEvent[], meta:{total,page,pageSize}, errors: FetchError[] }.
+
+Always respond with JSON and never forward HTML error pages.
+
+Admin UI
+
+apps/web/app/(admin)/feed-settings/page.tsx
+
+List sources with toggle (enabled/disabled), lastFetchedAt, failureCount, TTL, cache TTL value, test fetch button.
+
+“Force re-fetch” per source button calling POST /api/admin/gigs/refresh?source=name (protected by x-admin: true in dev).
+
+apps/web/app/api/admin/gigs/* endpoints implement GET/POST/PATCH as needed (mock auth in dev).
+
+Proxies & optional paid scraping services (fallback)
+
+Add env SCRAPE_PROXY_URL and SCRAPE_PROXY_KEY. If set and a source fails due to DNS/blocked, attempt fetch via proxy: SCRAPE_PROXY_URL + ?target={encodeURIComponent(url)}&key=... (supports ScraperAPI, ScrapingBee, BrightData). This is optional — free-first policy: do local headless, then proxy if configured.
+
+Tests & diagnostics
+
+tests/feeds/safefetch.test.ts — assert retry/backoff, structured errors on ENOTFOUND.
+
+tests/feeds/poller.test.ts — run fetchAllSources in TEST_MODE using sample fixtures for BookMyShow, Swiggy, Paytm and assert normalized events.
+
+scripts/diag/check-gigs-integrity.js — run poller in TEST_MODE and print counts per source; ensure at least RollingStone + one other has >0 events or cache fallback used.
+
+scripts/diag/simulate-network-failure.js — ensure poller falls back to cache and does not crash.
+
+Environment variables (.env.example)
+
+POLL_CONCURRENCY=4
+POLL_INTERVAL_SECONDS=300
+PLAYWRIGHT_ENABLED=true
+PLAYWRIGHT_CONCURRENCY=1
+FAILURE_THRESHOLD=5
+GIGS_CACHE_TTL_SECONDS=900
+SCRAPE_PROXY_URL=
+SCRAPE_PROXY_KEY=
+POLL_RETRY_ATTEMPTS=3
+NODE_FETCH_TIMEOUT_MS=15000
+
+
+Dependencies to install
+
+pnpm --filter apps/web add cross-fetch p-limit cheerio fast-xml-parser
+pnpm --filter apps/web add -D playwright
+pnpm --filter apps/web add sha.js (or use crypto)
+
+
+(If Playwright fails to install in Replit, the assistant must implement TEST_MODE where headless is skipped and cache used.)
+
+Selectors & scraping heuristics (concrete guidance for each source)
+
+BookMyShow
+
+Try API / JSON first (no public API typically).
+
+Scrape listing: look for anchors: a[href*="/buytickets/"], a[href*="/events/"], or a[href*="bookmyshow.com/events/"]
+
+Card fallback selectors: div[data-event-id], .event-card, .card plus h3 for title, time for date.
+
+If initial HTML contains <div id="__next"> or markers for client-side hydration, use Playwright to page.goto(url) and page.waitForSelector('a[href*="/events/"]', {timeout:5000}), then extract innerHTML.
+
+Paytm Insider
+
+Look for .search-result-card, a[href*="paytminisider.com"] or a[href*="paytm.com"].
+
+Use headless if essential.
+
+Zomato Live / Zomato Events
+
+Try https://www.zomato.com/<city>/events and pick a anchors with /events/.
+
+Zomato often blocks scrapers — headless or proxy.
+
+Swiggy / SteppinOut
+
+SteppinOut is JS heavy: use Playwright render and pick .card, a[href*="/events/"].
+
+Example: call https://steppinout.swiggy.com/ or their API endpoint https://steppinout.swiggy.com/api/events if available (inspect via browser).
+
+SortMyScene
+
+Scrape https://sortmyscene.com/events listing pages; pick .events-list, li.event etc.
+
+DICE India
+
+Try https://dice.fm/search?q=India or https://dice.fm and filter by country. Dice has structured markup with .search-results__item.
+
+Deduping & ticket link priority
+
+For each normalized event, pick ticketUrl by priority:
+
+Explicit ticket link parsed from source (BookMyShow, Paytm, Dice, RA).
+
+Link to event page on source (if no external ticket).
+
+If none, null.
+
+Deduplicate by stable id: sha1(sourceName + '|' + sourceEventId + '|' + startAt).
+
+Acceptance checks (assistant must run & report)
+
+pnpm -w tsc --noEmit → 0 errors.
+
+pnpm --filter apps/web test:unit → feeds tests pass (or skip Playwright tests if not available).
+
+node scripts/diag/check-gigs-integrity.js --simulate → print per-source counts and note which sources used headless/proxy/cache.
+
+Start server and call:
+
+curl 'http://localhost:3000/api/gigs/india?page=1&pageSize=20'
+
+
+→ Response JSON must:
+
+events array present (include RollingStone + at least one other or cached source)
+
+errors array present but not fatal
+
+For failing sources due to DNS/blocked, assistant must show cache fallback log lines and recommend enabling SCRAPE_PROXY if user wants live scraping from Replit.
+
+Commit message
+
+fix(gigs): robust India gigs fetcher — safeFetch, adapters (BMS/Paytm/Swiggy/Zomato/SortMyScene/Dice), Playwright headless worker, caching & admin toggles, diagnostics & tests
+
+If Playwright / DNS outbound is blocked in Replit
+
+The assistant must still implement adapters + headless code, but tests involving Playwright should be skipped and reported.
+
+The assistant must ensure caches are seeded from RollingStone or included sample fixtures so the endpoint is useful even when headless fails.
+
+Provide instruction to run Playwright locally or on a small VPS with outbound access, or provide guidance to configure SCRAPE_PROXY_URL (ScraperAPI or ScrapingBee) and use that as fallback.
+
+Logging + Admin notifications
+
+Append logs into logs/gigs.log with {timestamp, source, status, message, tookMs}.
+
+If FAILURE_THRESHOLD reached for a source, set disabled:true in feeds/sources.json and push a simple admin/notification entry into .local/state/admin-notifications.json.
+
+Deliverables (assistant must output after implementation)
+
+git show --name-status HEAD
+
+pnpm -w tsc --noEmit output
+
+pnpm --filter apps/web test:unit output
+
+node scripts/diag/check-gigs-integrity.js output
+
+curl 'http://localhost:3000/api/gigs/india' (pretty-printed JSON)
+
+logs/gigs.log tail showing headless/proxy/cache fallback lines
+
+If Playwright not available, a clear summary and instructions to run headless locally / enable proxy.
