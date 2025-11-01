@@ -1,0 +1,251 @@
+Changes to apply (file-level, exact):
+A — Canonicalize safeFetch
+
+Open apps/web/src/lib/safe-fetch.ts (or src/lib/safe-fetch.ts depending on path). There are two conflicting safeFetch functions declared. Keep one and remove the duplicate.
+
+Action:
+
+Keep the version that is fully-featured (with timeout, attempts, AbortController, structured error returns).
+
+Export it as a default and as a named export safeFetch for compatibility.
+
+Example canonical content (replace the file contents with this; modify minor naming/paths if needed):
+
+// apps/web/src/lib/safe-fetch.ts
+import fetch from 'cross-fetch';
+
+export type SafeFetchOptions = {
+  timeout?: number;
+  attempts?: number;
+  headers?: Record<string,string>;
+  signal?: AbortSignal | null;
+};
+
+function sleep(ms:number){ return new Promise(r=>setTimeout(r,ms)); }
+
+export async function safeFetch(url: string, options: SafeFetchOptions = {}) {
+  const timeout = options.timeout ?? parseInt(process.env.NODE_FETCH_TIMEOUT_MS || '15000', 10);
+  const attempts = options.attempts ?? parseInt(process.env.POLL_RETRY_ATTEMPTS || '3', 10);
+  const headers = options.headers ?? {};
+  const signal = options.signal ?? null;
+
+  let lastError: any = null;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    const controller = new AbortController();
+    const to = setTimeout(() => controller.abort(), timeout);
+    try {
+      const res = await fetch(url, {
+        method: 'GET',
+        headers,
+        signal: signal ?? controller.signal,
+      });
+      clearTimeout(to);
+      if (!res.ok) {
+        const text = await res.text().catch(()=>null);
+        throw { status: res.status, statusText: res.statusText, body: text };
+      }
+      const contentType = res.headers.get('content-type') || '';
+      // Let callers handle text/json parsing; return full response wrapper
+      return { ok: true, response: res, contentType };
+    } catch (err) {
+      clearTimeout(to);
+      lastError = err;
+      const backoff = 300 * Math.pow(2, attempt - 1);
+      if (attempt < attempts) await sleep(backoff);
+    }
+  }
+  return { ok: false, error: lastError };
+}
+
+export default safeFetch;
+
+
+Search the repo for other safeFetch definitions and REMOVE duplicates (there should be only one). Update imports across codebase to import safeFetch from '@/lib/safe-fetch' or import { safeFetch } from '@/lib/safe-fetch'.
+
+B — Isolate Playwright into a server-only worker (no bundling)
+
+Problem cause: a file under packages/feeds/* imports Playwright and is then imported (directly or indirectly) into Next's API route code that the bundler tries to compile for client. Fix by moving Playwright into a separate Node worker script that is never imported by the Next bundle.
+
+Create a new worker file (server-only, outside Next bundle scope):
+
+packages/feeds/headless-worker.js (Node, CommonJS) — NOT imported in client code.
+
+// packages/feeds/headless-worker.js
+const { fork } = require('child_process');
+const path = require('path');
+// This file is the entry point for a node worker that will spawn Playwright when needed.
+// Use IPC: parent process will fork this worker with `child_process.fork` and send {id, url, selector}
+// Worker will reply with { id, ok: true, html: '...', error?: ... }
+
+const playwright = require('playwright'); // require at runtime
+
+process.on('message', async (msg) => {
+  try {
+    if (!msg || !msg.url) return process.send({ id: msg.id, ok: false, error: 'no url' });
+    const browser = await playwright.chromium.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const page = await browser.newPage();
+    await page.goto(msg.url, { waitUntil: 'networkidle', timeout: msg.timeout || 15000 });
+    if (msg.waitForSelector) {
+      await page.waitForSelector(msg.waitForSelector, { timeout: msg.waitForSelectorTimeout || 5000 }).catch(()=>{});
+    }
+    const html = await page.content();
+    await browser.close();
+    process.send({ id: msg.id, ok: true, html });
+  } catch (err) {
+    process.send({ id: msg.id, ok: false, error: err && err.message ? err.message : String(err) });
+  }
+});
+
+
+Create a small server-side client utility to call the worker via child_process.fork() with a concurrency limiter. Place it in packages/feeds/headless.ts but do not import Playwright here; instead spawn the worker file above.
+
+packages/feeds/headless.ts (Node, ESM or CJS — server-only usage):
+
+import { fork } from 'child_process';
+import path from 'path';
+import pLimit from 'p-limit';
+
+const PLAYWRIGHT_ENABLED = process.env.PLAYWRIGHT_ENABLED === 'true';
+const WORKER_PATH = path.join(process.cwd(), 'packages/feeds/headless-worker.js');
+const limit = pLimit(parseInt(process.env.PLAYWRIGHT_CONCURRENCY || '1', 10));
+
+export async function renderPageWithHeadless(url: string, opts = {}) {
+  if (!PLAYWRIGHT_ENABLED) {
+    return { ok: false, error: 'PLAYWRIGHT_DISABLED' };
+  }
+  return limit(async () => {
+    return new Promise((resolve) => {
+      const child = fork(WORKER_PATH, { stdio: ['pipe', 'pipe', 'pipe', 'ipc'] });
+      const id = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+      const timer = setTimeout(() => {
+        child.kill();
+        resolve({ ok: false, error: 'timeout' });
+      }, opts.timeout || 30000);
+      child.on('message', (msg) => {
+        if (msg && msg.id === id) {
+          clearTimeout(timer);
+          child.kill();
+          resolve({ ok: msg.ok, html: msg.html, error: msg.error });
+        }
+      });
+      child.send({ id, url, timeout: opts.timeout, waitForSelector: opts.waitForSelector, waitForSelectorTimeout: opts.waitForSelectorTimeout });
+    });
+  });
+}
+
+
+Important: Do not import packages/feeds/headless.ts from code that runs in the browser context. Only call it from server-only API routes or Node scripts. If any adapter imports it and that adapter is imported by code that runs on the client, move adapter invocation into the API route (server) or ensure the import is dynamic and guarded by if (typeof window === 'undefined').
+
+Modify each feeds adapter that previously attempted to import playwright directly. They should call renderPageWithHeadless(url, opts) only from server-side API routes. Example adapter pattern:
+
+// packages/feeds/sources/bookmyshowIndia.ts (server-only adapter)
+import safeFetch from '@/lib/safe-fetch';
+import { renderPageWithHeadless } from '../headless';
+
+export async function fetchBookMyShow(city) {
+  // try RSS/JSON via safeFetch
+  const res = await safeFetch('https://in.bookmyshow.com/...'); // example
+  if (res.ok) {
+    // parse HTML text etc.
+  }
+  // if markup is JS-heavy and res.ok===false or returned HTML empty:
+  const headless = await renderPageWithHeadless('https://in.bookmyshow.com/explore/home', { waitForSelector: 'a[href*="/events/"]' });
+  if (headless.ok) {
+    const html = headless.html;
+    // cheerio load html and parse
+  } else {
+    // fallback to cache
+  }
+}
+
+
+Ensure no module that is used by client components imports renderPageWithHeadless or headless-worker.js. Use server-only API routes to call the adapter functions — the Next bundler will keep server-only imports out of client bundles if placed only in app/api/ or pages/api/ server code.
+
+C — Add Playwright dev-only install and guard
+
+Add Playwright as a dev dependency only and ensure production build doesn't attempt to load electron binary.
+
+Add to package.json under devDependencies: "playwright": "^1.56.1".
+
+If Playwright can't be installed in Replit, set PLAYWRIGHT_ENABLED=false in .env and the system will use cache/fallback; tests that need Playwright should be skipped.
+
+D — Fix Next webpack trying to include Playwright electron module
+
+The electron error came because bundler resolved playwright-core requiring electron. Making Playwright usage server-only (and invoked via child_process with standalone JS file) prevents webpack from attempting to bundle it. Confirmed by removing any direct import of Playwright in files that Next might bundle.
+
+E — Add robust fallbacks & informative logs
+
+If renderPageWithHeadless returns { ok:false, error:'PLAYWRIGHT_DISABLED' }, adapters must:
+
+Read cached results from packages/feeds/cache.ts.
+
+Return cached events with fromCache: true.
+
+Add an errors[] entry indicating headless not available.
+
+F — Run build & tests
+
+After applying the above code changes, run:
+
+pnpm -w tsc --noEmit
+pnpm --filter apps/web build
+pnpm --filter apps/web test:unit
+
+
+If Playwright was enabled and installed successfully, also run the headless smoke test:
+
+node packages/feeds/headless-test.js
+# (script that forks headless-worker.js and tests one URL like https://steppinout.swiggy.com/)
+
+G — Acceptance criteria (assistant must report)
+
+Typecheck succeeds: pnpm -w tsc --noEmit → 0 errors.
+
+Next build succeeds: pnpm --filter apps/web build → completed.
+
+The previous errors are gone:
+
+No duplicate safeFetch declaration.
+
+No webpack error about electron or Playwright in client bundle.
+
+curl http://localhost:3000/api/gigs/india returns JSON (may use cached results if headless disabled).
+
+H — Extra safety: Prevent accidental import of server-only modules
+
+Add a lint rule comment at top of server-only files:
+
+// THIS MODULE IS SERVER-ONLY. Do not import in client code.
+// eslint-disable-next-line @next/next/no-server-import-in-client
+
+
+Optionally add a small runtime guard in any module that might accidentally be imported in the browser:
+
+if (typeof window !== 'undefined') {
+  throw new Error('server-only module imported in client');
+}
+
+
+(This is safe for server code and helps detect mistakes.)
+
+Implementation notes for Replit Assistant
+
+Do not change runtime behavior of features — only fix module boundaries and duplicates.
+
+Replace duplicates of safeFetch with the single canonical file; update all imports (use rg/grep).
+
+If Playwright cannot be installed on Replit due to environment, set PLAYWRIGHT_ENABLED=false and seed caches with sample fixtures so the API remains useful.
+
+After changes, run the build and tests and paste the outputs.
+
+When done, provide the following in your reply:
+
+git show --name-status HEAD
+
+Output of pnpm -w tsc --noEmit
+
+Output of pnpm --filter apps/web build
+
+curl -sS http://localhost:3000/api/gigs/india | jq . (or pretty JSON)
+
+If Playwright disabled: message PLAYWRIGHT_DISABLED and list of sources served from cache.
