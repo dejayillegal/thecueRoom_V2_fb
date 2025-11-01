@@ -105,7 +105,7 @@ export function useThread(threadId: string): UseThreadResult {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ body }),
-        timeout: 10000,
+        timeout: 20000,
       }
     );
 

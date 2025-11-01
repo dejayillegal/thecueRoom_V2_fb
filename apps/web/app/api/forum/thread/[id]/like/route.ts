@@ -9,7 +9,7 @@ const db = getDbClient();
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -17,7 +17,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const threadId = params.id;
+    const { id: threadId } = await params;
 
     // For now, simple toggle logic (in production, track in a separate likes table)
     // This is a simplified version - you'd want a proper likes table

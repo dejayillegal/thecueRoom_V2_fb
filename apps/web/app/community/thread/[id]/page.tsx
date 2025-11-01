@@ -30,7 +30,15 @@ export default function ThreadPage() {
       setReplyBody('');
     } catch (error) {
       console.error('[Forum] Failed to post reply:', error);
-      alert('Failed to post reply. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to post reply';
+      
+      if (errorMessage.includes('timeout')) {
+        alert('Request timed out. The server might be busy. Please try again.');
+      } else if (errorMessage.includes('Unauthorized')) {
+        alert('Please sign in to post a reply.');
+      } else {
+        alert('Failed to post reply. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
