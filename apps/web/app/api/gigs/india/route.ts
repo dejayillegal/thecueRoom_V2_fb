@@ -1,6 +1,5 @@
 
-import { NextResponse } from 'next/server';
-import pLimit from 'p-limit';
+import { NextRequest, NextResponse } from 'next/server';
 import { writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import {
@@ -13,6 +12,7 @@ import {
   fetchZomatoLive,
   fetchSwiggyEvents,
 } from '@thecueroom/feeds/sources';
+import { fetchAllSources, SourceAdapter } from '@thecueroom/feeds/poller-gigs';
 import { deduplicateEvents, enrichWithAI, NormalizedEvent } from '@thecueroom/feeds/normalize';
 
 export const dynamic = 'force-dynamic';
@@ -20,17 +20,16 @@ export const dynamic = 'force-dynamic';
 const LOG_DIR = join(process.cwd(), 'logs');
 const LOG_FILE = join(LOG_DIR, 'feeds.log');
 
-interface FetchError {
-  source: string;
-  code: string;
-  message: string;
-  timestamp?: string;
-}
-
-interface FetchAllResult {
-  events: NormalizedEvent[];
-  errors: FetchError[];
-}
+const gigSources: SourceAdapter[] = [
+  { name: 'Rolling Stone India', enabled: true, fetch: fetchRollingStoneIndia },
+  { name: 'SortMyScene', enabled: true, fetch: fetchSortMyScene },
+  { name: 'DICE India', enabled: true, fetch: fetchDiceIndia },
+  { name: 'Skillbox India', enabled: true, fetch: fetchSkillboxIndia },
+  { name: 'Paytm Insider', enabled: true, fetch: fetchPaytmInsider },
+  { name: 'BookMyShow', enabled: true, fetch: fetchBookMyShow },
+  { name: 'Zomato Live', enabled: true, fetch: fetchZomatoLive },
+  { name: 'Swiggy Events', enabled: true, fetch: fetchSwiggyEvents },
+];
 
 function logFetchError(error: FetchError) {
   try {
@@ -45,72 +44,21 @@ function logFetchError(error: FetchError) {
   }
 }
 
-async function fetchAllSources(): Promise<FetchAllResult> {
+async function fetchAndProcessGigs(concurrency: number) {
   console.log('🇮🇳 Fetching India gigs from all sources...');
 
-  const limit = pLimit(3); // Concurrency limit
-  const allErrors: FetchError[] = [];
-  const allEvents: NormalizedEvent[] = [];
-
-  const sources = [
-    { name: 'Rolling Stone India', fn: fetchRollingStoneIndia },
-    { name: 'SortMyScene', fn: fetchSortMyScene },
-    { name: 'DICE India', fn: fetchDiceIndia },
-    { name: 'Skillbox India', fn: fetchSkillboxIndia },
-    { name: 'Paytm Insider', fn: fetchPaytmInsider },
-    { name: 'BookMyShow', fn: fetchBookMyShow },
-    { name: 'Zomato Live', fn: fetchZomatoLive },
-    { name: 'Swiggy Events', fn: fetchSwiggyEvents },
-  ];
-
-  const results = await Promise.allSettled(
-    sources.map(({ name, fn }) =>
-      limit(async () => {
-        try {
-          const result = await fn();
-          
-          // Handle new return format with errors
-          if (result && typeof result === 'object' && 'events' in result) {
-            const { events, errors, fromCache } = result as any;
-            
-            if (errors && errors.length > 0) {
-              errors.forEach((err: FetchError) => {
-                const enrichedError = { ...err, timestamp: new Date().toISOString() };
-                allErrors.push(enrichedError);
-                logFetchError(enrichedError);
-              });
-            }
-            
-            console.log(`${fromCache ? '📦' : '✅'} ${name}: ${events.length} events${fromCache ? ' (cached)' : ''}`);
-            return events;
-          }
-          
-          // Legacy format - array of events
-          console.log(`✅ ${name}: ${result.length} events`);
-          return result;
-        } catch (error: any) {
-          const fetchError: FetchError = {
-            source: name,
-            code: error.code || 'UNKNOWN',
-            message: error.message || 'Fetch failed',
-            timestamp: new Date().toISOString(),
-          };
-          allErrors.push(fetchError);
-          logFetchError(fetchError);
-          console.error(`❌ ${name} failed:`, error.message);
-          return [];
-        }
-      })
-    )
-  );
-
-  results.forEach((result) => {
-    if (result.status === 'fulfilled' && Array.isArray(result.value)) {
-      allEvents.push(...result.value);
-    }
+  const { events: allEvents, errors } = await fetchAllSources(gigSources, { 
+    concurrency, 
+    enabledOnly: true 
   });
 
-  console.log(`📊 Total: ${allEvents.length} events from sources (${allErrors.length} errors)`);
+  // Log errors
+  errors.forEach(err => {
+    const enrichedError = { ...err, timestamp: new Date().toISOString() };
+    logFetchError(enrichedError);
+  });
+
+  console.log(`📊 Total: ${allEvents.length} events from sources (${errors.length} errors)`);
 
   // Deduplicate and enrich
   const deduplicated = deduplicateEvents(allEvents);
@@ -118,20 +66,31 @@ async function fetchAllSources(): Promise<FetchAllResult> {
 
   // Filter future events only
   const now = new Date();
-  const futureEvents = enriched.filter(e => new Date(e.date) >= now);
+  const futureEvents = enriched.filter(e => {
+    const eventDate = e.startAt ? new Date(e.startAt) : null;
+    return eventDate && eventDate >= now;
+  });
 
-  // Sort by date
-  futureEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  // Sort by startAt
+  futureEvents.sort((a, b) => {
+    const dateA = a.startAt ? new Date(a.startAt).getTime() : 0;
+    const dateB = b.startAt ? new Date(b.startAt).getTime() : 0;
+    return dateA - dateB;
+  });
 
   return {
     events: futureEvents,
-    errors: allErrors,
+    errors,
   };
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const { events, errors } = await fetchAllSources();
+    const searchParams = request.nextUrl.searchParams;
+    const refresh = searchParams.get('refresh') === 'true';
+    const concurrency = refresh ? 4 : 3;
+
+    const { events, errors } = await fetchAndProcessGigs(concurrency);
 
     // Always return valid JSON with both events and errors
     return NextResponse.json(
