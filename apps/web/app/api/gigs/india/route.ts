@@ -40,12 +40,14 @@ function logFetchError(error: FetchError) {
       mkdirSync(LOG_DIR, { recursive: true });
     }
     
-    const logEntry = `[${new Date().toISOString()}] ${error.source} - ${error.code}: ${error.message}\n`;
+    const logEntry = `[${new Date().toISOString()}] ${error.source} - ${error.code}: ${error.message}${error.fromCache ? ' (cache)' : ''}\n`;
     writeFileSync(LOG_FILE, logEntry, { flag: 'a' });
   } catch (err) {
     console.error('Failed to write to feeds.log:', err);
   }
 }
+
+let isRefreshing = false;
 
 async function fetchAndProcessGigs(concurrency: number) {
   console.log('🇮🇳 Fetching India gigs from all sources...');
@@ -96,9 +98,9 @@ export async function GET(request: NextRequest) {
     // Check cache first for instant response
     const cached = readCache<{ events: NormalizedEvent[]; errors: FetchError[] }>(CACHE_KEY, CACHE_TTL);
     
-    if (cached && !cached.isStale && !force) {
-      // Return cached immediately
-      let filteredEvents = cached.data.events;
+    // Return cached immediately if fresh or not forcing
+    if (cached && !force) {
+      let filteredEvents = cached.data.events || [];
       
       if (city) {
         filteredEvents = filteredEvents.filter(e => 
@@ -110,6 +112,34 @@ export async function GET(request: NextRequest) {
         filteredEvents = filteredEvents.filter(e => e.source === source);
       }
 
+      // If cache is stale, trigger background refresh
+      if (cached.isStale && !isRefreshing) {
+        isRefreshing = true;
+        fetchAndProcessGigs(3)
+          .then(({ events, errors }) => {
+            writeCache(CACHE_KEY, { events, errors }, CACHE_TTL);
+          })
+          .catch(err => {
+            console.error('[Background Refresh] Failed:', err);
+          })
+          .finally(() => {
+            isRefreshing = false;
+          });
+
+        return NextResponse.json({
+          ok: true,
+          events: filteredEvents,
+          errors: cached.data.errors || [],
+          total: filteredEvents.length,
+          errorCount: cached.data.errors?.length || 0,
+          meta: {
+            fromCache: true,
+            isRefreshing: true,
+            sources: [...new Set(filteredEvents.map(e => e.source))],
+          }
+        });
+      }
+
       return NextResponse.json({
         ok: true,
         events: filteredEvents,
@@ -118,12 +148,13 @@ export async function GET(request: NextRequest) {
         errorCount: cached.data.errors?.length || 0,
         meta: {
           fromCache: true,
+          isRefreshing: false,
           sources: [...new Set(filteredEvents.map(e => e.source))],
         }
       });
     }
 
-    // Cache stale or force refresh - fetch new data
+    // Force refresh or no cache - fetch new data synchronously
     const concurrency = force ? 4 : 3;
     const { events, errors } = await fetchAndProcessGigs(concurrency);
 
@@ -151,6 +182,7 @@ export async function GET(request: NextRequest) {
       errorCount: errors.length,
       meta: {
         fromCache: false,
+        isRefreshing: false,
         sources: [...new Set(filteredEvents.map(e => e.source))],
       }
     });
@@ -169,6 +201,7 @@ export async function GET(request: NextRequest) {
         errorCount: cached.data.errors?.length || 0,
         meta: {
           fromCache: true,
+          isRefreshing: false,
           criticalError: error.message
         }
       });

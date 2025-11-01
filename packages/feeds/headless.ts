@@ -14,12 +14,15 @@ export interface HeadlessOptions {
   timeout?: number;
   waitForSelector?: string;
   waitForSelectorTimeout?: number;
+  emulateMobile?: boolean;
+  preferHeaders?: Record<string, string>;
 }
 
 export interface HeadlessResult {
   ok: boolean;
   html?: string;
   elements?: string[];
+  statusCode?: number;
   error?: string;
 }
 
@@ -40,20 +43,21 @@ export async function renderWithPlaywright(
         stdio: ['pipe', 'pipe', 'pipe', 'ipc'] 
       });
 
-      const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const jobId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const timer = setTimeout(() => {
         child.kill();
         resolve({ ok: false, error: 'Worker timeout' });
       }, options.timeout || 30000);
 
       child.on('message', (msg: any) => {
-        if (msg && msg.id === id) {
+        if (msg && msg.jobId === jobId) {
           clearTimeout(timer);
           child.kill();
           resolve({ 
             ok: msg.ok, 
             html: msg.html, 
             elements: msg.elements,
+            statusCode: msg.statusCode,
             error: msg.error 
           });
         }
@@ -66,12 +70,14 @@ export async function renderWithPlaywright(
       });
 
       child.send({ 
-        id, 
+        jobId, 
         url, 
         selector: options.selector,
         timeout: options.timeout,
         waitForSelector: options.waitForSelector,
-        waitForSelectorTimeout: options.waitForSelectorTimeout
+        waitForSelectorTimeout: options.waitForSelectorTimeout,
+        emulateMobile: options.emulateMobile,
+        preferHeaders: options.preferHeaders
       });
     });
   });

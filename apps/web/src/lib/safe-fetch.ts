@@ -1,3 +1,4 @@
+
 /**
  * Safe fetch utilities with retry logic, exponential backoff, and structured error handling
  * Handles DNS failures (ENOTFOUND), timeouts, and non-JSON responses gracefully
@@ -10,6 +11,7 @@ export interface FetchResult {
   status?: number;
   json?: any;
   text?: string;
+  headers?: Record<string, string>;
   error?: {
     code?: string;
     message: string;
@@ -22,6 +24,7 @@ export interface SafeFetchOptions {
   attempts?: number;
   headers?: Record<string, string>;
   signal?: AbortSignal;
+  proxy?: string;
 }
 
 function sleep(ms: number) {
@@ -40,25 +43,50 @@ export async function safeFetch(
     timeout = parseInt(process.env.NODE_FETCH_TIMEOUT_MS || '15000', 10),
     attempts = parseInt(process.env.POLL_RETRY_ATTEMPTS || '3', 10),
     headers = {},
-    signal
+    signal,
+    proxy
   } = options;
 
   let lastError: any = null;
 
   for (let attempt = 0; attempt < attempts; attempt++) {
+    // Create new controller per attempt to avoid "Controller is already closed"
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    let timeoutId: NodeJS.Timeout | null = null;
 
     try {
-      const response = await fetch(url, {
+      // Setup timeout
+      timeoutId = setTimeout(() => {
+        controller.abort();
+      }, timeout);
+
+      const fetchOptions: RequestInit = {
         headers: {
-          'User-Agent': 'thecueRoom/2.0 Feed Aggregator',
+          'User-Agent': process.env.FEED_USER_AGENT || 'thecueRoom/2.0 Feed Aggregator',
           ...headers
         },
         signal: signal || controller.signal
-      });
+      };
 
-      clearTimeout(timeoutId);
+      // Add proxy support if configured
+      if (proxy || process.env.SCRAPING_PROXY_URL) {
+        // Note: Node.js fetch doesn't support proxy directly
+        // In production, you'd use an HTTP agent or proxy middleware
+        console.warn('[safeFetch] Proxy support requires additional configuration');
+      }
+
+      const response = await fetch(url, fetchOptions);
+
+      // Clear timeout immediately on success
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+
+      const responseHeaders: Record<string, string> = {};
+      response.headers.forEach((value, key) => {
+        responseHeaders[key] = value;
+      });
 
       const text = await response.text();
       let json = null;
@@ -78,9 +106,9 @@ export async function safeFetch(
           retryAfter: retryAfter ? parseInt(retryAfter, 10) * 1000 : undefined
         };
 
-        // Don't retry on 4xx errors (except 429)
+        // Don't retry on 4xx errors (except 429 Too Many Requests)
         if (response.status >= 400 && response.status < 500 && response.status !== 429) {
-          return { ok: false, status: response.status, text, json, error: lastError };
+          return { ok: false, status: response.status, text, json, headers: responseHeaders, error: lastError };
         }
 
         // Exponential backoff for retryable errors
@@ -91,10 +119,14 @@ export async function safeFetch(
         }
       }
 
-      return { ok: true, status: response.status, text, json };
+      return { ok: true, status: response.status, text, json, headers: responseHeaders };
 
     } catch (error: any) {
-      clearTimeout(timeoutId);
+      // Always clear timeout in catch
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
 
       if (error.name === 'AbortError') {
         lastError = {
@@ -123,13 +155,21 @@ export async function safeFetch(
         const backoff = Math.min(1000 * Math.pow(2, attempt) + Math.random() * 500, 10000);
         await sleep(backoff);
       }
+    } finally {
+      // Ensure timeout is always cleared
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     }
   }
 
   return {
     ok: false,
     status: 0,
-    error: lastError || { code: 'UNKNOWN_ERROR', message: 'Unknown error occurred' }
+    error: {
+      ...lastError,
+      retried: attempts
+    }
   };
 }
 

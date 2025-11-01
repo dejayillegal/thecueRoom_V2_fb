@@ -1,3 +1,4 @@
+
 #!/usr/bin/env node
 
 process.env.PLAYWRIGHT_ENABLED = process.env.PLAYWRIGHT_ENABLED || 'false';
@@ -26,11 +27,15 @@ async function main() {
     console.log(`  ✓ Errors: ${data.errors?.length || 0}`);
     console.log(`  ✓ Total: ${data.total || data.events?.length || 0}`);
     console.log(`  ✓ From Cache: ${data.meta?.fromCache || false}`);
+    console.log(`  ✓ Is Refreshing: ${data.meta?.isRefreshing || false}`);
 
     if (data.errors && data.errors.length > 0) {
       console.log('\n⚠️  Errors:');
       data.errors.forEach(err => {
         console.log(`  - ${err.source}: ${err.code} - ${err.message}${err.fromCache ? ' (using cache)' : ''}`);
+        if (err.methodAttempted) {
+          console.log(`    Method attempted: ${err.methodAttempted}`);
+        }
       });
     }
 
