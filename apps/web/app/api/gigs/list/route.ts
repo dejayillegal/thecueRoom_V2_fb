@@ -62,3 +62,51 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+import { NextRequest, NextResponse } from 'next/server';
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
+
+const CACHE_FILE = join(process.cwd(), '.local', 'feeds', 'india_gigs_cache.json');
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const genre = searchParams.get('genre');
+    const city = searchParams.get('city');
+    const limit = parseInt(searchParams.get('limit') || '50');
+    const offset = parseInt(searchParams.get('offset') || '0');
+    
+    if (!existsSync(CACHE_FILE)) {
+      return NextResponse.json({ events: [], total: 0 });
+    }
+    
+    const cache = JSON.parse(readFileSync(CACHE_FILE, 'utf-8'));
+    let events = cache.events || [];
+    
+    // Apply filters
+    if (genre) {
+      events = events.filter((e: any) => 
+        e.genreTags?.some((tag: string) => tag.toLowerCase().includes(genre.toLowerCase()))
+      );
+    }
+    
+    if (city) {
+      events = events.filter((e: any) => 
+        e.city?.toLowerCase().includes(city.toLowerCase())
+      );
+    }
+    
+    // Paginate
+    const paginated = events.slice(offset, offset + limit);
+    
+    return NextResponse.json({
+      events: paginated,
+      total: events.length,
+      offset,
+      limit,
+    });
+  } catch (error) {
+    console.error('Gigs list error:', error);
+    return NextResponse.json({ error: 'Failed to list gigs', events: [] }, { status: 500 });
+  }
+}
