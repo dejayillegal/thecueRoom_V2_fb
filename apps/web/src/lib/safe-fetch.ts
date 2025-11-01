@@ -1,6 +1,8 @@
 /**
  * Safe fetch utilities with retry logic, exponential backoff, and structured error handling
  * Handles DNS failures (ENOTFOUND), timeouts, and non-JSON responses gracefully
+ * 
+ * THIS MODULE IS SERVER-ONLY when used in API routes.
  */
 
 export interface FetchResult {
@@ -15,9 +17,15 @@ export interface FetchResult {
   };
 }
 
-export interface SafeFetchOptions extends RequestInit {
+export interface SafeFetchOptions {
   timeout?: number;
   attempts?: number;
+  headers?: Record<string, string>;
+  signal?: AbortSignal;
+}
+
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**
@@ -28,134 +36,6 @@ export async function safeFetch(
   url: string,
   options: SafeFetchOptions = {}
 ): Promise<FetchResult> {
-  const { timeout = 10000, attempts = 3, ...fetchOptions } = options;
-  let lastError: any = null;
-
-  for (let attempt = 0; attempt < attempts; attempt++) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-      try {
-        const response = await fetch(url, {
-          ...fetchOptions,
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-
-        // Handle non-OK HTTP status
-        if (!response.ok) {
-          const text = await response.text().catch(() => '');
-          return {
-            ok: false,
-            status: response.status,
-            text: text.slice(0, 300),
-            error: {
-              message: `HTTP ${response.status}: ${response.statusText}`,
-              code: `HTTP_${response.status}`,
-            },
-          };
-        }
-
-        // Try to parse as JSON
-        const contentType = response.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-          try {
-            const json = await response.json();
-            return { ok: true, status: response.status, json };
-          } catch (parseError) {
-            const text = await response.text().catch(() => '');
-            return { ok: true, status: response.status, text };
-          }
-        } else {
-          const text = await response.text();
-          return { ok: true, status: response.status, text };
-        }
-      } catch (error: any) {
-        clearTimeout(timeoutId);
-        throw error;
-      }
-    } catch (error: any) {
-      lastError = error;
-
-      // Capture DNS and network errors
-      const errorCode = error.code || error.errno || error.name;
-      const isDNSError = errorCode === 'ENOTFOUND' || errorCode === 'EAI_AGAIN';
-      const isNetworkError = 
-        errorCode === 'ECONNREFUSED' || 
-        errorCode === 'ETIMEDOUT' ||
-        errorCode === 'ECONNRESET';
-      const isTimeout = error.name === 'AbortError';
-
-      // Don't retry on certain permanent failures
-      if (isDNSError && attempt < attempts - 1) {
-        // Still retry DNS errors once in case it's transient
-        const backoff = 300 * Math.pow(2, attempt);
-        await new Promise(resolve => setTimeout(resolve, backoff));
-        continue;
-      }
-
-      // On last attempt or non-retryable error, return structured error
-      if (attempt === attempts - 1 || (!isDNSError && !isNetworkError && !isTimeout)) {
-        return {
-          ok: false,
-          error: {
-            code: errorCode,
-            message: isDNSError 
-              ? `DNS resolution failed for ${new URL(url).hostname}`
-              : isTimeout
-              ? `Request timeout after ${timeout}ms`
-              : isNetworkError
-              ? `Network error: ${error.message}`
-              : error.message || 'Unknown fetch error',
-            retried: attempt,
-          },
-        };
-      }
-
-      // Exponential backoff before retry
-      const backoff = 300 * Math.pow(2, attempt);
-      await new Promise(resolve => setTimeout(resolve, backoff));
-    }
-  }
-
-  // Should never reach here, but handle edge case
-  return {
-    ok: false,
-    error: {
-      message: lastError?.message || 'All retry attempts failed',
-      code: lastError?.code || 'UNKNOWN',
-      retried: attempts - 1,
-    },
-  };
-}
-interface SafeFetchOptions {
-  timeout?: number;
-  attempts?: number;
-  headers?: Record<string, string>;
-  signal?: AbortSignal;
-}
-
-interface SafeFetchError {
-  code: string;
-  message: string;
-  retryAfter?: number;
-  statusCode?: number;
-}
-
-interface SafeFetchResult {
-  ok: boolean;
-  status: number;
-  text?: string;
-  json?: any;
-  error?: SafeFetchError;
-}
-
-export async function safeFetch(
-  url: string,
-  options: SafeFetchOptions = {}
-): Promise<SafeFetchResult> {
   const {
     timeout = parseInt(process.env.NODE_FETCH_TIMEOUT_MS || '15000', 10),
     attempts = parseInt(process.env.POLL_RETRY_ATTEMPTS || '3', 10),
@@ -163,12 +43,12 @@ export async function safeFetch(
     signal
   } = options;
 
-  let lastError: SafeFetchError | null = null;
+  let lastError: any = null;
 
   for (let attempt = 0; attempt < attempts; attempt++) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
-    
+
     try {
       const response = await fetch(url, {
         headers: {
@@ -206,7 +86,7 @@ export async function safeFetch(
         // Exponential backoff for retryable errors
         if (attempt < attempts - 1) {
           const backoff = Math.min(1000 * Math.pow(2, attempt) + Math.random() * 500, 10000);
-          await new Promise(resolve => setTimeout(resolve, backoff));
+          await sleep(backoff);
           continue;
         }
       }
@@ -241,7 +121,7 @@ export async function safeFetch(
       // Exponential backoff
       if (attempt < attempts - 1) {
         const backoff = Math.min(1000 * Math.pow(2, attempt) + Math.random() * 500, 10000);
-        await new Promise(resolve => setTimeout(resolve, backoff));
+        await sleep(backoff);
       }
     }
   }
@@ -252,3 +132,5 @@ export async function safeFetch(
     error: lastError || { code: 'UNKNOWN_ERROR', message: 'Unknown error occurred' }
   };
 }
+
+export default safeFetch;

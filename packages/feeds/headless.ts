@@ -1,11 +1,19 @@
-import { chromium, Browser, Page } from 'playwright';
+// THIS MODULE IS SERVER-ONLY. Do not import in client code.
+// eslint-disable-next-line @next/next/no-server-import-in-client
 
-let browser: Browser | null = null;
+import { fork, ChildProcess } from 'child_process';
+import path from 'path';
+import pLimit from 'p-limit';
+
+const PLAYWRIGHT_ENABLED = process.env.PLAYWRIGHT_ENABLED === 'true';
+const WORKER_PATH = path.join(process.cwd(), 'packages/feeds/headless-worker.js');
+const limit = pLimit(parseInt(process.env.PLAYWRIGHT_CONCURRENCY || '1', 10));
 
 export interface HeadlessOptions {
-  selector: string;
+  selector?: string;
   timeout?: number;
   waitForSelector?: string;
+  waitForSelectorTimeout?: number;
 }
 
 export interface HeadlessResult {
@@ -15,87 +23,61 @@ export interface HeadlessResult {
   error?: string;
 }
 
-async function getBrowser(): Promise<Browser> {
-  if (!browser) {
-    browser = await chromium.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-  }
-  return browser;
-}
-
 export async function renderWithPlaywright(
   url: string,
-  options: HeadlessOptions
+  options: HeadlessOptions = {}
 ): Promise<HeadlessResult> {
-  const { selector, timeout = 10000, waitForSelector } = options;
-
-  if (!process.env.PLAYWRIGHT_ENABLED || process.env.PLAYWRIGHT_ENABLED === 'false') {
+  if (!PLAYWRIGHT_ENABLED) {
     return {
       ok: false,
       error: 'Playwright is disabled (PLAYWRIGHT_ENABLED=false)'
     };
   }
 
-  let page: Page | null = null;
+  return limit(async () => {
+    return new Promise<HeadlessResult>((resolve) => {
+      const child: ChildProcess = fork(WORKER_PATH, { 
+        stdio: ['pipe', 'pipe', 'pipe', 'ipc'] 
+      });
 
-  try {
-    const browserInstance = await getBrowser();
-    page = await browserInstance.newPage();
+      const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const timer = setTimeout(() => {
+        child.kill();
+        resolve({ ok: false, error: 'Worker timeout' });
+      }, options.timeout || 30000);
 
-    await page.setViewportSize({ width: 1280, height: 720 });
-    
-    await page.goto(url, { 
-      waitUntil: 'networkidle',
-      timeout 
+      child.on('message', (msg: any) => {
+        if (msg && msg.id === id) {
+          clearTimeout(timer);
+          child.kill();
+          resolve({ 
+            ok: msg.ok, 
+            html: msg.html, 
+            elements: msg.elements,
+            error: msg.error 
+          });
+        }
+      });
+
+      child.on('error', (err) => {
+        clearTimeout(timer);
+        child.kill();
+        resolve({ ok: false, error: err.message });
+      });
+
+      child.send({ 
+        id, 
+        url, 
+        selector: options.selector,
+        timeout: options.timeout,
+        waitForSelector: options.waitForSelector,
+        waitForSelectorTimeout: options.waitForSelectorTimeout
+      });
     });
-
-    if (waitForSelector) {
-      await page.waitForSelector(waitForSelector, { timeout });
-    } else {
-      await page.waitForTimeout(2000);
-    }
-
-    const elements = await page.$$(selector);
-    const elementTexts: string[] = [];
-
-    for (const element of elements) {
-      const outerHTML = await element.evaluate(el => el.outerHTML);
-      elementTexts.push(outerHTML);
-    }
-
-    const html = await page.content();
-
-    return {
-      ok: true,
-      html,
-      elements: elementTexts
-    };
-
-  } catch (error: any) {
-    return {
-      ok: false,
-      error: error.message || 'Playwright rendering failed'
-    };
-  } finally {
-    if (page) {
-      await page.close().catch(() => {});
-    }
-  }
+  });
 }
 
 export async function closeBrowser(): Promise<void> {
-  if (browser) {
-    await browser.close();
-    browser = null;
-  }
+  // Browser cleanup is handled by the worker process
+  return Promise.resolve();
 }
-
-process.on('SIGINT', () => {
-  closeBrowser().then(() => process.exit(0));
-});
-
-process.on('SIGTERM', () => {
-  closeBrowser().then(() => process.exit(0));
-});
