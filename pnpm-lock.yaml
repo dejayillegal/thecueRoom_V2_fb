@@ -246,6 +246,12 @@ importers:
       html-pdf-node:
         specifier: ^1.0.8
         version: 1.0.8
+      jose:
+        specifier: ^6.1.0
+        version: 6.1.0
+      lru-cache:
+        specifier: ^10.4.3
+        version: 10.4.3
       lucide-react:
         specifier: ^0.475.0
         version: 0.475.0(react@19.2.0)
@@ -343,6 +349,9 @@ importers:
       canvas:
         specifier: ^2.11.2
         version: 2.11.2
+      critters:
+        specifier: ^0.0.25
+        version: 0.0.25
       eslint:
         specifier: ^9
         version: 9.38.0(jiti@1.21.7)
