@@ -46,7 +46,7 @@ async function main() {
     
     // Step 2: Run migrations
     await runCommand(
-      'cd packages/db && pnpm drizzle-kit push',
+      'pnpm --filter @thecueroom/db drizzle-kit push',
       'Step 1/4: Running database migrations'
     );
     
