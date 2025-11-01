@@ -10,8 +10,8 @@ import {
   fetchBookMyShow,
   fetchZomatoLive,
   fetchSwiggyEvents,
-} from '../../../../../packages/feeds/sources';
-import { deduplicateEvents, enrichWithAI, NormalizedEvent } from '../../../../../packages/feeds/normalize';
+} from '@thecueroom/feeds/sources';
+import { deduplicateEvents, enrichWithAI, NormalizedEvent } from '@thecueroom/feeds/normalize';
 
 export const dynamic = 'force-dynamic';
 
