@@ -3,16 +3,25 @@ import crypto from 'crypto';
 
 export interface NormalizedEvent {
   id: string;
-  title: string;
-  date: string;
-  time?: string;
-  venue: string;
-  city?: string;
-  price?: string;
-  url: string;
   source: string;
-  image?: string;
+  title: string;
   description?: string;
+  venue?: {
+    name?: string;
+    address?: string;
+    city?: string;
+    lat?: number;
+    lon?: number;
+  };
+  startAt?: string;
+  endAt?: string | null;
+  timezone?: string;
+  ticketUrl?: string | null;
+  price?: string | null;
+  image?: string | null;
+  raw?: any;
+  fetchedAt: string;
+  fromCache?: boolean;
   genreTags?: string[];
 }
 
@@ -25,8 +34,35 @@ export function normalizeDate(dateStr: string): string {
   }
 }
 
+export function normalizeEvent(raw: any, sourceMeta: { name: string; fromCache?: boolean }): NormalizedEvent {
+  const sourceId = raw.id || raw.sourceId || raw.guid || '';
+  const startAt = raw.startAt || raw.date || raw.pubDate || raw.published;
+  
+  const idString = `${sourceMeta.name}-${sourceId}-${startAt}`;
+  const id = crypto.createHash('sha1').update(idString).digest('hex');
+
+  return {
+    id,
+    source: sourceMeta.name,
+    title: raw.title || 'Untitled Event',
+    description: raw.description || raw.contentSnippet || raw.summary,
+    venue: raw.venue ? (typeof raw.venue === 'string' ? { name: raw.venue } : raw.venue) : undefined,
+    startAt: startAt ? normalizeDate(startAt) : undefined,
+    endAt: raw.endAt ? normalizeDate(raw.endAt) : null,
+    timezone: raw.timezone,
+    ticketUrl: raw.ticketUrl || raw.link || null,
+    price: raw.price,
+    image: raw.image || raw.enclosure?.url || null,
+    raw,
+    fetchedAt: new Date().toISOString(),
+    fromCache: sourceMeta.fromCache || false,
+    genreTags: raw.genreTags || []
+  };
+}
+
 export function generateEventHash(event: NormalizedEvent): string {
-  const key = `${event.title}-${event.date}-${event.venue}`.toLowerCase().replace(/\s+/g, '');
+  const venueStr = typeof event.venue === 'string' ? event.venue : (event.venue?.name || '');
+  const key = `${event.title}-${event.startAt}-${venueStr}`.toLowerCase().replace(/\s+/g, '');
   return crypto.createHash('md5').update(key).digest('hex');
 }
 
@@ -46,7 +82,6 @@ export function deduplicateEvents(events: NormalizedEvent[]): NormalizedEvent[] 
 }
 
 export function enrichWithAI(event: NormalizedEvent): NormalizedEvent {
-  // Free AI enrichment using local heuristics
   const text = `${event.title} ${event.description || ''}`.toLowerCase();
   
   const genreKeywords: Record<string, string[]> = {
@@ -70,7 +105,7 @@ export function enrichWithAI(event: NormalizedEvent): NormalizedEvent {
   return {
     ...event,
     genreTags: [...new Set([...(event.genreTags || []), ...detectedGenres])],
-    date: normalizeDate(event.date),
+    startAt: event.startAt ? normalizeDate(event.startAt) : undefined,
   };
 }
 
