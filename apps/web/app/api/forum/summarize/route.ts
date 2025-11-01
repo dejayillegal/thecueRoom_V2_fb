@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { summarizeThread } from '@/packages/ai/summarizer';
+import { summarizeThread } from '../../../../../packages/ai/summarizer';
 
 const summarizeSchema = z.object({
   text: z.string().min(10).max(10000),
