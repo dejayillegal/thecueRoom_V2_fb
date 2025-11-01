@@ -38,3 +38,11 @@
 {"source":"SortMyScene","method":"unknown","statusCode":"success","itemCount":0,"durationMs":6424,"error":null,"timestamp":1761995848926}
 {"source":"Skillbox India","method":"unknown","statusCode":"success","itemCount":0,"durationMs":6424,"error":null,"timestamp":1761995848926}
 {"source":"DICE India","method":"unknown","statusCode":"success","itemCount":0,"durationMs":6424,"error":null,"timestamp":1761995848926}
+{"source":"Rolling Stone India","method":"unknown","statusCode":"success","itemCount":41,"durationMs":5622,"error":null,"timestamp":1762032517920}
+{"source":"BookMyShow","method":"unknown","statusCode":"success","itemCount":0,"durationMs":5622,"error":null,"timestamp":1762032517921}
+{"source":"Zomato Live","method":"unknown","statusCode":"success","itemCount":0,"durationMs":5622,"error":null,"timestamp":1762032517921}
+{"source":"Swiggy Events","method":"unknown","statusCode":"FETCH_FAILED","itemCount":0,"durationMs":5622,"error":"No events found","timestamp":1762032517922}
+{"source":"Paytm Insider","method":"unknown","statusCode":"HTTP_404","itemCount":0,"durationMs":5622,"error":"Unknown error","timestamp":1762032517922}
+{"source":"SortMyScene","method":"unknown","statusCode":"success","itemCount":0,"durationMs":5622,"error":null,"timestamp":1762032517923}
+{"source":"Skillbox India","method":"unknown","statusCode":"success","itemCount":0,"durationMs":5622,"error":null,"timestamp":1762032517923}
+{"source":"DICE India","method":"unknown","statusCode":"success","itemCount":0,"durationMs":5622,"error":null,"timestamp":1762032517924}
