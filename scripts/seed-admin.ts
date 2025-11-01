@@ -7,6 +7,9 @@ import * as bcrypt from 'bcryptjs';
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'dejayillegal@gmail.com';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Closer@82';
+const ADMIN_USERNAME = 'illegal.mastercue';
+const ADMIN_ARTIST_NAME = 'Illegal';
+const ADMIN_DISPLAY_NAME = 'Illegal Mastercue';
 
 async function seedAdmin() {
   try {
@@ -48,11 +51,11 @@ async function seedAdmin() {
         .insert(users)
         .values({
           email: ADMIN_EMAIL,
-          username: 'admin',
+          username: ADMIN_USERNAME,
           passwordHash,
           role: 'admin',
-          verified: true, // Mark as verified
-          verificationStatus: 'verified_admin' // Set specific verification status for admin
+          verified: true,
+          verificationStatus: 'approved'
         })
         .returning();
 
@@ -72,18 +75,41 @@ async function seedAdmin() {
       // Create admin profile
       await db.insert(profiles).values({
         userId,
-        displayName: 'Admin',
-        bio: 'thecueRoom Admin',
-        aiCredits: 1000, // Give admin extra credits
+        displayName: ADMIN_DISPLAY_NAME,
+        artistName: ADMIN_ARTIST_NAME,
+        bio: 'thecueRoom Owner & Administrator',
+        aiCredits: 10000,
+        showEmail: false,
+        showPhone: false,
+        publicReleases: true,
+        allowContactRequests: true,
       });
       console.log('✅ Admin profile created');
     } else {
-      console.log('✅ Admin profile already exists');
+      // Update existing profile with complete info
+      await db
+        .update(profiles)
+        .set({
+          displayName: ADMIN_DISPLAY_NAME,
+          artistName: ADMIN_ARTIST_NAME,
+          bio: 'thecueRoom Owner & Administrator',
+          aiCredits: 10000,
+        })
+        .where(eq(profiles.userId, userId));
+      console.log('✅ Admin profile updated');
     }
 
     console.log('\n✨ Admin setup complete!');
     console.log('─'.repeat(50));
-    console.log('📋 Login credentials:');
+    console.log('📋 Admin User Information:');
+    console.log(`   Username: ${ADMIN_USERNAME}`);
+    console.log(`   Email: ${ADMIN_EMAIL}`);
+    console.log(`   Artist Name: ${ADMIN_ARTIST_NAME}`);
+    console.log(`   Display Name: ${ADMIN_DISPLAY_NAME}`);
+    console.log(`   Verification Status: Approved`);
+    console.log(`   Account Role: Admin, Owner`);
+    console.log('─'.repeat(50));
+    console.log('🔑 Login credentials:');
     console.log(`   Email: ${ADMIN_EMAIL}`);
     console.log(`   Password: ${ADMIN_PASSWORD}`);
     console.log('─'.repeat(50));

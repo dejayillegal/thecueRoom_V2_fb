@@ -5,6 +5,9 @@ import bcrypt from 'bcryptjs';
 async function createAdminUser() {
   const email = 'dejayillegal@gmail.com';
   const password = 'Closer@82';
+  const username = 'illegal.mastercue';
+  const artistName = 'Illegal';
+  const displayName = 'Illegal Mastercue';
   
   try {
     const db = getDbClient();
@@ -53,9 +56,11 @@ async function createAdminUser() {
       .insert(schema.users)
       .values({
         email,
-        username: 'admin',
+        username,
         passwordHash,
         role: 'admin',
+        verified: true,
+        verificationStatus: 'approved',
       })
       .returning();
     
@@ -65,15 +70,28 @@ async function createAdminUser() {
     }
     
     console.log('✅ Admin user created successfully!');
-    console.log('User ID:', newUser.id);
-    console.log('Email:', newUser.email);
-    console.log('Role:', newUser.role);
+    console.log('─'.repeat(50));
+    console.log('📋 Admin User Information:');
+    console.log(`   User ID: ${newUser.id}`);
+    console.log(`   Username: ${username}`);
+    console.log(`   Email: ${newUser.email}`);
+    console.log(`   Artist Name: ${artistName}`);
+    console.log(`   Display Name: ${displayName}`);
+    console.log(`   Verification Status: Approved`);
+    console.log(`   Account Role: ${newUser.role}, Owner`);
+    console.log('─'.repeat(50));
     
     console.log('📝 Creating user profile...');
     await db.insert(schema.profiles).values({
       userId: newUser.id,
-      displayName: 'Admin',
-      aiCredits: 1000,
+      displayName,
+      artistName,
+      bio: 'thecueRoom Owner & Administrator',
+      aiCredits: 10000,
+      showEmail: false,
+      showPhone: false,
+      publicReleases: true,
+      allowContactRequests: true,
     });
     console.log('✅ User profile created');
     
