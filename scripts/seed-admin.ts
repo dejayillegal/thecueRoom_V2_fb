@@ -27,7 +27,7 @@ async function seedAdmin() {
 
     let userId: string;
 
-    if (existingUser.length > 0) {
+    if (existingUser.length > 0 && existingUser[0]) {
       console.log('✅ Admin user already exists');
       userId = existingUser[0].id;
 
@@ -58,6 +58,10 @@ async function seedAdmin() {
           verificationStatus: 'approved'
         })
         .returning();
+
+      if (!newUser) {
+        throw new Error('Failed to create admin user');
+      }
 
       userId = newUser.id;
       console.log('✅ Admin user created successfully');

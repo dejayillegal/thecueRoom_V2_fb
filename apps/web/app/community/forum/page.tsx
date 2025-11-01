@@ -69,7 +69,7 @@ export default function ForumPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/forum/categories');
+      const response = await fetch(`${window.location.origin}/api/forum/categories`, { cache: 'no-store' });
       const data = await response.json();
       setCategories(data.categories || []);
     } catch (error) {
@@ -80,9 +80,9 @@ export default function ForumPage() {
   const fetchThreads = async () => {
     try {
       const url = selectedCategory 
-        ? `/api/forum/thread?categoryId=${selectedCategory}&limit=50`
-        : '/api/forum/thread?limit=50';
-      const response = await fetch(url);
+        ? `${window.location.origin}/api/forum/thread?categoryId=${selectedCategory}&limit=50`
+        : `${window.location.origin}/api/forum/thread?limit=50`;
+      const response = await fetch(url, { cache: 'no-store' });
       const data = await response.json();
       setThreads(data.threads || []);
     } catch (error) {
@@ -92,7 +92,7 @@ export default function ForumPage() {
 
   const fetchTopContributors = async () => {
     try {
-      const response = await fetch('/api/forum/contributors');
+      const response = await fetch(`${window.location.origin}/api/forum/contributors`, { cache: 'no-store' });
       const data = await response.json();
       setTopContributors(data.contributors || []);
     } catch (error) {

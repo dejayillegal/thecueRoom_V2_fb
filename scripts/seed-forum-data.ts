@@ -1,7 +1,8 @@
 
-import { getDbClient, closeDbClient } from '@thecueroom/db/client';
-import { forumCategories, forumThreads, forumReplies, users, profiles, userReputation } from '@thecueroom/db/schema';
+import { getDbClient } from '../packages/db';
+import { forumCategories, forumThreads, forumReplies, users, profiles, userReputation } from '../packages/db/schema';
 import { eq } from 'drizzle-orm';
+import { randomUUID } from 'crypto';
 
 async function seedForumData() {
   const db = getDbClient();
@@ -13,7 +14,7 @@ async function seedForumData() {
     let testUser = await db.select().from(users).where(eq(users.email, 'test@thecueroom.com')).limit(1);
     
     if (testUser.length === 0) {
-      const userId = crypto.randomUUID();
+      const userId = randomUUID();
       await db.insert(users).values({
         id: userId,
         email: 'test@thecueroom.com',
@@ -47,10 +48,11 @@ async function seedForumData() {
 
     // Create categories
     const categories = [
-      { name: 'General Discussion', slug: 'general', description: 'General chat about music and events' },
-      { name: 'Production Tips', slug: 'production', description: 'Music production techniques and tips' },
-      { name: 'Gear Talk', slug: 'gear', description: 'Discuss equipment and gear' },
-      { name: 'Events', slug: 'events', description: 'Upcoming events and gigs' },
+      { name: 'General Discussion', slug: 'discussion', description: 'General chat about music and the underground scene' },
+      { name: 'Production Tips', slug: 'production', description: 'Music production techniques, tips, and workflow discussions' },
+      { name: 'Gear Talk', slug: 'gear', description: 'Discuss equipment, hardware, and software' },
+      { name: 'Events', slug: 'events', description: 'Upcoming events, gigs, and festival announcements' },
+      { name: 'Feedback & Critique', slug: 'feedback', description: 'Share your work and get constructive feedback' },
     ];
 
     const categoryIds: string[] = [];
@@ -59,7 +61,7 @@ async function seedForumData() {
       const existing = await db.select().from(forumCategories).where(eq(forumCategories.slug, cat.slug)).limit(1);
       
       if (existing.length === 0) {
-        const catId = crypto.randomUUID();
+        const catId = randomUUID();
         await db.insert(forumCategories).values({
           id: catId,
           ...cat,
@@ -104,7 +106,7 @@ async function seedForumData() {
     const threadIds: string[] = [];
 
     for (const thread of threads) {
-      const threadId = crypto.randomUUID();
+      const threadId = randomUUID();
       const slug = thread.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 100);
       
       await db.insert(forumThreads).values({
@@ -142,7 +144,7 @@ async function seedForumData() {
     ];
 
     for (const reply of replies) {
-      const replyId = crypto.randomUUID();
+      const replyId = randomUUID();
       const threadId = threadIds[reply.threadIndex];
       
       await db.insert(forumReplies).values({
@@ -175,9 +177,7 @@ async function seedForumData() {
 
   } catch (error) {
     console.error('❌ Error seeding forum data:', error);
-    throw error;
-  } finally {
-    await closeDbClient();
+    process.exit(1);
   }
 }
 

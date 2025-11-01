@@ -49,7 +49,27 @@ async function setup() {
     process.exit(1);
   }
 
-  // Step 3: Seed news sources
+  // Step 3: Seed forum categories
+  const forumCategoriesSuccess = await runCommand(
+    'tsx scripts/seed-forum-data.ts',
+    'Seeding forum categories and initial content'
+  );
+
+  if (!forumCategoriesSuccess) {
+    console.log('\n⚠️  Forum categories seeding failed. You can run it manually later with: tsx scripts/seed-forum-data.ts');
+  }
+
+  // Step 4: Seed test users and forum content
+  const testUsersSuccess = await runCommand(
+    'tsx scripts/seed-test-users.ts',
+    'Seeding test users and community posts'
+  );
+
+  if (!testUsersSuccess) {
+    console.log('\n⚠️  Test users seeding failed. You can run it manually later with: tsx scripts/seed-test-users.ts');
+  }
+
+  // Step 5: Seed news sources
   const sourcesSuccess = await runCommand(
     'pnpm seed:sources',
     'Seeding news sources'
@@ -59,7 +79,7 @@ async function setup() {
     console.log('\n⚠️  Sources seeding failed. You can run it manually later with: pnpm seed:sources');
   }
 
-  // Step 4: Run initial feed ingestion
+  // Step 6: Run initial feed ingestion
   console.log('\n📰 Fetching initial news feeds (this may take a minute)...');
   const ingestSuccess = await runCommand(
     'pnpm ingest',
@@ -76,8 +96,11 @@ async function setup() {
   console.log('Next steps:');
   console.log('  1. Run "pnpm dev" to start the development server');
   console.log('  2. Visit /dashboard and sign in with admin credentials');
-  console.log('  3. Check the news feeds and admin panel\n');
-  console.log('💡 Tip: Run "pnpm ingest" periodically to fetch new feeds');
+  console.log('  3. Check /community/forum to see test users and discussions');
+  console.log('  4. Check the news feeds and admin panel\n');
+  console.log('💡 Tips:');
+  console.log('   • Run "pnpm ingest" periodically to fetch new feeds');
+  console.log('   • Test user password: Test123!');
   console.log('═'.repeat(60));
 }
 
