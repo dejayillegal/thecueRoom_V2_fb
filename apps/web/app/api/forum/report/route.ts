@@ -1,10 +1,10 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { db } from '@thecueroom/db';
+import { getDbClient } from '@thecueroom/db/client';
 import { forumReports } from '@thecueroom/db/schema';
-import { eq, desc } from 'drizzle-orm';
 import { getSession } from '@/lib/auth';
+
+const db = getDbClient();
 
 const reportSchema = z.object({
   targetType: z.enum(['thread', 'reply']),
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
 
     // Check if user is moderator/admin
     // For now, simple check - expand with role system
-    
+
     const reports = await db.select()
       .from(forumReports)
       .where(eq(forumReports.status, 'open'))

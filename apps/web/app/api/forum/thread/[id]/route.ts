@@ -1,8 +1,10 @@
-
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@thecueroom/db';
+import { getDbClient } from '@thecueroom/db/client';
 import { forumThreads, forumReplies, users, profiles } from '@thecueroom/db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, desc, and, sql } from 'drizzle-orm';
+import { getSession } from '@/lib/auth';
+
+const db = getDbClient();
 
 export async function GET(
   request: NextRequest,

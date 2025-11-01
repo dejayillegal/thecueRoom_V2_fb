@@ -1,12 +1,12 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { db } from '@thecueroom/db';
+import { getDbClient } from '@thecueroom/db/client';
 import { forumReplies, forumThreads, userReputation } from '@thecueroom/db/schema';
 import { eq, sql } from 'drizzle-orm';
-import { analyzeTextForToxicity, adjustKarma } from '@/packages/ai/moderation';
-import { summarizeThread } from '@/packages/ai/summarizer';
+import { analyzeTextForToxicity } from '@thecueroom/ai/moderation';
 import { getSession } from '@/lib/auth';
+
+const db = getDbClient();
 
 const replySchema = z.object({
   body: z.string().min(1).max(5000),
@@ -79,10 +79,10 @@ export async function POST(
           .from(forumReplies)
           .where(eq(forumReplies.threadId, threadId))
           .limit(20);
-        
+
         const fullText = thread[0].body + ' ' + allReplies.map(r => r.body).join(' ');
         const summary = await summarizeThread(fullText);
-        
+
         await db.update(forumThreads)
           .set({ aiSummary: summary })
           .where(eq(forumThreads.id, threadId));
@@ -99,6 +99,65 @@ export async function POST(
     console.error('Create reply error:', error);
     return NextResponse.json(
       { error: 'Failed to create reply' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const searchParams = request.nextUrl.searchParams;
+    const limit = z.coerce.number().int().positive().safeParse(searchParams.get('limit')).data || 50;
+
+    const threads = await db.select({
+      id: forumThreads.id,
+      title: forumThreads.title,
+      slug: forumThreads.slug,
+      createdAt: forumThreads.createdAt,
+      updatedAt: forumThreads.updatedAt,
+      replyCount: forumThreads.replyCount,
+      author: {
+        id: forumThreads.userId,
+        username: forumThreads.authorUsername,
+        avatarUrl: forumThreads.authorAvatarUrl,
+      },
+      firstReply: {
+        body: forumReplies.body,
+        createdAt: forumReplies.createdAt,
+        author: {
+          id: forumReplies.userId,
+          username: forumReplies.authorUsername,
+          avatarUrl: forumReplies.authorAvatarUrl,
+        }
+      }
+    })
+    .from(forumThreads)
+    .leftJoin(forumReplies, eq(forumThreads.id, forumReplies.threadId))
+    .where(
+      sql`
+        ${forumThreads.isHidden} = false AND
+        ${forumThreads.isLocked} = false AND
+        ${forumThreads.isPinned} = false AND
+        ${forumThreads.isDeleted} = false AND
+        ${forumThreads.isDraft} = false AND
+        ${forumReplies.id} IS NULL OR ${forumReplies.createdAt} = (
+          SELECT MIN(fr.createdAt)
+          FROM forum_replies fr
+          WHERE fr.threadId = forumThreads.id
+        )
+      `
+    )
+    .orderBy(
+      sql`CASE WHEN ${forumThreads.isPinned} THEN 0 ELSE 1 END, ${forumThreads.updatedAt} DESC`
+    )
+    .groupBy(forumThreads.id)
+    .limit(limit);
+
+    return NextResponse.json(threads);
+  } catch (error) {
+    console.error('List threads error:', error);
+    return NextResponse.json(
+      { error: 'Failed to list threads' },
       { status: 500 }
     );
   }

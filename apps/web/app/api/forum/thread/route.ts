@@ -1,11 +1,13 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { db } from '@thecueroom/db';
+import { getDbClient } from '@thecueroom/db/client';
 import { forumThreads, forumCategories, users, profiles, userReputation } from '@thecueroom/db/schema';
 import { desc, eq, and, sql } from 'drizzle-orm';
 import { analyzeTextForToxicity } from '@thecueroom/ai/moderation';
 import { getSession } from '@/lib/auth';
+
+const db = getDbClient();
 
 const createThreadSchema = z.object({
   title: z.string().min(3).max(200),
