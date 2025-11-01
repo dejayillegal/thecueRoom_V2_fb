@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { db } from '@thecueroom/db';
 import { forumThreads, forumCategories, users, profiles, userReputation } from '@thecueroom/db/schema';
 import { desc, eq, and, sql } from 'drizzle-orm';
-import { analyzeTextForToxicity } from '../../../../../packages/ai/moderation';
+import { analyzeTextForToxicity } from '@thecueroom/ai/moderation';
 import { getSession } from '@/lib/auth';
 
 const createThreadSchema = z.object({

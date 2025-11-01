@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { analyzeTextForToxicity } from '../../../../../packages/ai/moderation';
+import { analyzeTextForToxicity } from '@thecueroom/ai/moderation';
 
 const moderateSchema = z.object({
   text: z.string().min(1).max(10000),
