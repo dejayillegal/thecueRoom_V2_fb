@@ -88,18 +88,37 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const refresh = searchParams.get('refresh') === 'true';
+    const city = searchParams.get('city');
+    const source = searchParams.get('source');
     const concurrency = refresh ? 4 : 3;
 
     const { events, errors } = await fetchAndProcessGigs(concurrency);
+
+    // Apply filters
+    let filteredEvents = events;
+    
+    if (city) {
+      filteredEvents = filteredEvents.filter(e => 
+        e.city?.toLowerCase().includes(city.toLowerCase())
+      );
+    }
+    
+    if (source) {
+      filteredEvents = filteredEvents.filter(e => e.source === source);
+    }
 
     // Always return valid JSON with both events and errors
     return NextResponse.json(
       {
         ok: true,
-        events,
+        events: filteredEvents,
         errors,
-        total: events.length,
+        total: filteredEvents.length,
         errorCount: errors.length,
+        meta: {
+          cached: errors.some(e => e.fromCache),
+          sources: [...new Set(filteredEvents.map(e => e.source))],
+        }
       },
       { status: 200 }
     );
@@ -119,6 +138,7 @@ export async function GET(request: NextRequest) {
         }],
         total: 0,
         errorCount: 1,
+        meta: { cached: false, sources: [] }
       },
       { status: 200 }
     );

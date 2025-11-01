@@ -130,3 +130,125 @@ export async function safeFetch(
     },
   };
 }
+interface SafeFetchOptions {
+  timeout?: number;
+  attempts?: number;
+  headers?: Record<string, string>;
+  signal?: AbortSignal;
+}
+
+interface SafeFetchError {
+  code: string;
+  message: string;
+  retryAfter?: number;
+  statusCode?: number;
+}
+
+interface SafeFetchResult {
+  ok: boolean;
+  status: number;
+  text?: string;
+  json?: any;
+  error?: SafeFetchError;
+}
+
+export async function safeFetch(
+  url: string,
+  options: SafeFetchOptions = {}
+): Promise<SafeFetchResult> {
+  const {
+    timeout = parseInt(process.env.NODE_FETCH_TIMEOUT_MS || '15000', 10),
+    attempts = parseInt(process.env.POLL_RETRY_ATTEMPTS || '3', 10),
+    headers = {},
+    signal
+  } = options;
+
+  let lastError: SafeFetchError | null = null;
+
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'thecueRoom/2.0 Feed Aggregator',
+          ...headers
+        },
+        signal: signal || controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      const text = await response.text();
+      let json = null;
+
+      try {
+        json = JSON.parse(text);
+      } catch {
+        // Not JSON, that's fine
+      }
+
+      if (!response.ok) {
+        const retryAfter = response.headers.get('retry-after');
+        lastError = {
+          code: `HTTP_${response.status}`,
+          message: `HTTP ${response.status}: ${response.statusText}`,
+          statusCode: response.status,
+          retryAfter: retryAfter ? parseInt(retryAfter, 10) * 1000 : undefined
+        };
+
+        // Don't retry on 4xx errors (except 429)
+        if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+          return { ok: false, status: response.status, text, json, error: lastError };
+        }
+
+        // Exponential backoff for retryable errors
+        if (attempt < attempts - 1) {
+          const backoff = Math.min(1000 * Math.pow(2, attempt) + Math.random() * 500, 10000);
+          await new Promise(resolve => setTimeout(resolve, backoff));
+          continue;
+        }
+      }
+
+      return { ok: true, status: response.status, text, json };
+
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+
+      if (error.name === 'AbortError') {
+        lastError = {
+          code: 'TIMEOUT',
+          message: `Request timeout after ${timeout}ms`
+        };
+      } else if (error.code === 'ENOTFOUND' || error.code === 'EAI_AGAIN') {
+        lastError = {
+          code: 'DNS_ERROR',
+          message: `DNS lookup failed: ${error.message}`
+        };
+      } else if (error.code === 'ECONNREFUSED') {
+        lastError = {
+          code: 'CONNECTION_REFUSED',
+          message: 'Connection refused'
+        };
+      } else {
+        lastError = {
+          code: error.code || 'FETCH_ERROR',
+          message: error.message || 'Unknown fetch error'
+        };
+      }
+
+      // Exponential backoff
+      if (attempt < attempts - 1) {
+        const backoff = Math.min(1000 * Math.pow(2, attempt) + Math.random() * 500, 10000);
+        await new Promise(resolve => setTimeout(resolve, backoff));
+      }
+    }
+  }
+
+  return {
+    ok: false,
+    status: 0,
+    error: lastError || { code: 'UNKNOWN_ERROR', message: 'Unknown error occurred' }
+  };
+}

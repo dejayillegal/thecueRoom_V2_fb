@@ -1,5 +1,5 @@
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, unlinkSync } from 'fs';
 import { join } from 'path';
 
 const CACHE_DIR = join(process.cwd(), '.local', 'cache', 'gigs');
@@ -25,7 +25,8 @@ function ensureCacheDir() {
 export function readCache(sourceName: string, ttlSeconds: number = 600): CacheEntry | null {
   try {
     ensureCacheDir();
-    const cachePath = join(CACHE_DIR, `${sourceName}.json`);
+    const safeName = sourceName.replace(/[^a-z0-9_-]/gi, '_');
+    const cachePath = join(CACHE_DIR, `${safeName}.json`);
     
     if (!existsSync(cachePath)) {
       return null;
@@ -54,7 +55,8 @@ export function readCache(sourceName: string, ttlSeconds: number = 600): CacheEn
 export function writeCache(sourceName: string, events: any[], ttl: number = 600): void {
   try {
     ensureCacheDir();
-    const cachePath = join(CACHE_DIR, `${sourceName}.json`);
+    const safeName = sourceName.replace(/[^a-z0-9_-]/gi, '_');
+    const cachePath = join(CACHE_DIR, `${safeName}.json`);
     const tempPath = `${cachePath}.tmp`;
 
     const cacheEntry: CacheEntry = {
@@ -66,6 +68,8 @@ export function writeCache(sourceName: string, events: any[], ttl: number = 600)
     // Atomic write: write to temp file then rename
     writeFileSync(tempPath, JSON.stringify(cacheEntry, null, 2));
     renameSync(tempPath, cachePath);
+    
+    console.log(`[Cache] Wrote ${events.length} events to cache for ${sourceName}`);
   } catch (error) {
     console.error(`[Cache] Failed to write cache for ${sourceName}:`, error);
   }
@@ -78,9 +82,10 @@ export function clearCache(sourceName?: string): void {
   try {
     ensureCacheDir();
     if (sourceName) {
-      const cachePath = join(CACHE_DIR, `${sourceName}.json`);
+      const safeName = sourceName.replace(/[^a-z0-9_-]/gi, '_');
+      const cachePath = join(CACHE_DIR, `${safeName}.json`);
       if (existsSync(cachePath)) {
-        writeFileSync(cachePath, JSON.stringify({ events: [], lastFetched: 0, ttl: 0 }));
+        unlinkSync(cachePath);
       }
     } else {
       // Clear all caches
@@ -88,7 +93,7 @@ export function clearCache(sourceName?: string): void {
       const files = fs.readdirSync(CACHE_DIR);
       files.forEach((file: string) => {
         if (file.endsWith('.json')) {
-          writeFileSync(join(CACHE_DIR, file), JSON.stringify({ events: [], lastFetched: 0, ttl: 0 }));
+          unlinkSync(join(CACHE_DIR, file));
         }
       });
     }

@@ -45,19 +45,29 @@ export async function fetchAllSources(
 
   const fetchTasks = sourcesToFetch.map(source =>
     limit(async () => {
+      const startTime = Date.now();
       try {
         console.log(`[Poller] Fetching ${source.name}...`);
-        const sourceEvents = await source.fetch();
+        
+        const result = await source.fetch();
+        const sourceEvents = Array.isArray(result) ? result : (result.events || []);
+        const sourceErrors = Array.isArray(result) ? [] : (result.errors || []);
+        
+        if (sourceErrors.length > 0) {
+          errors.push(...sourceErrors);
+        }
         
         if (sourceEvents.length > 0) {
           writeCache(source.name, sourceEvents, DEFAULT_TTL);
           events.push(...sourceEvents);
-          console.log(`[Poller] ✓ ${source.name}: ${sourceEvents.length} events`);
+          const tookMs = Date.now() - startTime;
+          console.log(`[Poller] ✓ ${source.name}: ${sourceEvents.length} events (${tookMs}ms)`);
         } else {
           console.log(`[Poller] ⚠ ${source.name}: 0 events`);
         }
       } catch (error: any) {
-        console.error(`[Poller] ✗ ${source.name}:`, error.message);
+        const tookMs = Date.now() - startTime;
+        console.error(`[Poller] ✗ ${source.name}: ${error.message} (${tookMs}ms)`);
         
         const cached = readCache(source.name, DEFAULT_TTL);
         if (cached && cached.events.length > 0) {
