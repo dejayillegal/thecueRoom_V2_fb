@@ -28,6 +28,7 @@
     "@radix-ui/react-toast": "^1.2.6",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.10",
+    "jose": "^6.1.0",
     "@thecueroom/ai-adapters": "workspace:*",
     "@thecueroom/db": "workspace:*",
     "@thecueroom/shared": "workspace:*",
