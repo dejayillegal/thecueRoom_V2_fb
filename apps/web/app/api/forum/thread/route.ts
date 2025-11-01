@@ -113,10 +113,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ threads });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('List threads error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch threads' },
+      { ok: false, error: 'Failed to fetch threads', message: error?.message },
       { status: 500 }
     );
   }

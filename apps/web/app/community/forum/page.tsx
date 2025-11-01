@@ -2,34 +2,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, MessageSquare, ThumbsUp, Award, Sparkles, TrendingUp, Music, Flag } from 'lucide-react';
+import { Plus, MessageSquare, ThumbsUp, Award, Sparkles, TrendingUp, Music, Loader2 } from 'lucide-react';
 import { UserProfileCard } from '@/components/forum/UserProfileCard';
-
-interface Thread {
-  id: string;
-  title: string;
-  body: string;
-  categoryId: string;
-  userId: string;
-  username?: string;
-  displayName?: string;
-  avatar?: string;
-  verified?: boolean;
-  replyCount: number;
-  likesCount: number;
-  viewCount: number;
-  isPinned: boolean;
-  aiSummary?: string;
-  embedLinks?: string[];
-  createdAt: string;
-  updatedAt: string;
-}
+import { useThreads } from '@/hooks/use-threads';
+import { VirtualizedList } from '@/components/VirtualizedList';
 
 interface Category {
   id: string;
@@ -48,7 +31,6 @@ interface TopContributor {
 }
 
 export default function ForumPage() {
-  const [threads, setThreads] = useState<Thread[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [topContributors, setTopContributors] = useState<TopContributor[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -57,63 +39,33 @@ export default function ForumPage() {
     title: '', 
     body: '', 
     categoryId: '', 
-    embedLinks: [] as string[] 
   });
-  const [aiAssist, setAiAssist] = useState<string>('');
+  const [prefetchedThreads, setPrefetchedThreads] = useState<Set<string>>(new Set());
+
+  const { data: threads, loading, error, refresh } = useThreads(selectedCategory);
 
   useEffect(() => {
     fetchCategories();
-    fetchThreads();
     fetchTopContributors();
-  }, [selectedCategory]);
+  }, []);
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`${window.location.origin}/api/forum/categories`, { cache: 'no-store' });
+      const response = await fetch(`/api/forum/categories`, { cache: 'no-store' });
       const data = await response.json();
       setCategories(data.categories || []);
     } catch (error) {
-      console.error('Failed to fetch categories:', error);
-    }
-  };
-
-  const fetchThreads = async () => {
-    try {
-      const url = selectedCategory 
-        ? `${window.location.origin}/api/forum/thread?categoryId=${selectedCategory}&limit=50`
-        : `${window.location.origin}/api/forum/thread?limit=50`;
-      const response = await fetch(url, { cache: 'no-store' });
-      const data = await response.json();
-      setThreads(data.threads || []);
-    } catch (error) {
-      console.error('Failed to fetch threads:', error);
+      console.error('[Forum] Failed to fetch categories:', error);
     }
   };
 
   const fetchTopContributors = async () => {
     try {
-      const response = await fetch(`${window.location.origin}/api/forum/contributors`, { cache: 'no-store' });
+      const response = await fetch(`/api/forum/contributors`, { cache: 'no-store' });
       const data = await response.json();
       setTopContributors(data.contributors || []);
     } catch (error) {
-      console.error('Failed to fetch contributors:', error);
-    }
-  };
-
-  const handleAIAssist = async () => {
-    try {
-      const response = await fetch('/api/forum/ai/assist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          title: newThread.title, 
-          body: newThread.body 
-        }),
-      });
-      const data = await response.json();
-      setAiAssist(data.suggestion || '');
-    } catch (error) {
-      console.error('AI assist failed:', error);
+      console.error('[Forum] Failed to fetch contributors:', error);
     }
   };
 
@@ -128,21 +80,108 @@ export default function ForumPage() {
       const data = await response.json();
       
       if (response.ok) {
-        if (data.status === 'pending') {
-          alert('Thread submitted for moderation review');
-        } else if (data.status === 'rejected') {
-          alert('Thread rejected by AI moderation. Please revise your content.');
-          return;
-        }
-        
         setIsCreating(false);
-        setNewThread({ title: '', body: '', categoryId: '', embedLinks: [] });
-        fetchThreads();
+        setNewThread({ title: '', body: '', categoryId: '' });
+        refresh();
       }
     } catch (error) {
-      console.error('Failed to create thread:', error);
+      console.error('[Forum] Failed to create thread:', error);
     }
   };
+
+  const handleThreadHover = (threadId: string) => {
+    if (prefetchedThreads.has(threadId)) return;
+
+    const timeoutId = setTimeout(() => {
+      console.log('[Forum] Prefetch thread:', threadId);
+      fetch(`/api/forum/thread/${threadId}`, { cache: 'force-cache' });
+      setPrefetchedThreads((prev) => new Set(prev).add(threadId));
+    }, 150);
+
+    return () => clearTimeout(timeoutId);
+  };
+
+  const renderThreadCard = (thread: any) => (
+    <Link
+      href={`/community/thread/${thread.id}`}
+      key={thread.id}
+      onMouseEnter={() => handleThreadHover(thread.id)}
+      className="block"
+    >
+      <Card className="bg-[#111111] border-[#1a1a1a] hover:border-[#D1FF3D]/30 transition-all cursor-pointer overflow-hidden group">
+        <div className="p-5">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex-1">
+              <h3 className="text-white font-semibold text-xl mb-2 group-hover:text-[#D1FF3D] transition-colors line-clamp-2">
+                {thread.title}
+              </h3>
+              <p className="text-gray-400 text-sm mb-3 line-clamp-2">
+                {thread.body}
+              </p>
+              {thread.aiSummary && (
+                <div className="mt-3 p-3 bg-[#D1FF3D]/5 border border-[#D1FF3D]/20 rounded-lg">
+                  <p className="text-xs text-[#D1FF3D]/80 mb-1 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" />
+                    AI Summary
+                  </p>
+                  <p className="text-sm text-gray-300">{thread.aiSummary}</p>
+                </div>
+              )}
+              <div className="flex items-center gap-4 text-sm text-gray-500 mt-3">
+                <span className="flex items-center gap-1.5">
+                  <MessageSquare className="w-4 h-4" />
+                  {thread.replyCount} replies
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <ThumbsUp className="w-4 h-4" />
+                  {thread.likesCount} likes
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <TrendingUp className="w-4 h-4" />
+                  {thread.viewCount} views
+                </span>
+              </div>
+            </div>
+            {thread.isPinned && (
+              <div className="flex items-center gap-1 px-2 py-1 bg-[#D1FF3D]/10 border border-[#D1FF3D]/30 rounded text-xs text-[#D1FF3D] font-medium ml-4">
+                <Award className="w-3 h-3" />
+                Pinned
+              </div>
+            )}
+          </div>
+
+          <div className="pt-3 border-t border-[#1a1a1a]">
+            <UserProfileCard 
+              user={{
+                username: thread.username || 'Anonymous',
+                displayName: thread.displayName,
+                avatar: thread.avatar,
+                verified: thread.verified,
+              }} 
+              variant="inline" 
+            />
+          </div>
+        </div>
+      </Card>
+    </Link>
+  );
+
+  const renderSkeleton = () => (
+    <Card className="bg-[#111111] border-[#1a1a1a] p-5 animate-pulse">
+      <div className="h-6 bg-[#1a1a1a] rounded w-3/4 mb-3" />
+      <div className="h-4 bg-[#1a1a1a] rounded w-full mb-2" />
+      <div className="h-4 bg-[#1a1a1a] rounded w-5/6 mb-4" />
+      <div className="flex gap-4 mb-4">
+        <div className="h-4 bg-[#1a1a1a] rounded w-20" />
+        <div className="h-4 bg-[#1a1a1a] rounded w-20" />
+        <div className="h-4 bg-[#1a1a1a] rounded w-20" />
+      </div>
+      <div className="pt-3 border-t border-[#1a1a1a] flex items-center gap-2">
+        <div className="w-8 h-8 bg-[#1a1a1a] rounded-full" />
+        <div className="h-4 bg-[#1a1a1a] rounded w-24" />
+      </div>
+    </Card>
+  );
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -201,33 +240,15 @@ export default function ForumPage() {
                     value={newThread.body}
                     onChange={(e) => setNewThread({ ...newThread, body: e.target.value })}
                     className="bg-[#0a0a0a] border-[#1a1a1a] text-white min-h-[200px]"
-                    placeholder="Share your thoughts... (Markdown supported)"
+                    placeholder="Share your thoughts..."
                   />
                 </div>
-                {aiAssist && (
-                  <div className="p-3 bg-[#D1FF3D]/10 border border-[#D1FF3D]/30 rounded-lg">
-                    <p className="text-sm text-[#D1FF3D]">
-                      <Sparkles className="w-4 h-4 inline mr-1" />
-                      AI Suggestion: {aiAssist}
-                    </p>
-                  </div>
-                )}
-                <div className="flex gap-3">
-                  <Button 
-                    onClick={handleAIAssist}
-                    variant="outline"
-                    className="flex-1 border-[#D1FF3D]/30 text-[#D1FF3D] hover:bg-[#D1FF3D]/10"
-                  >
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    AI Assistant
-                  </Button>
-                  <Button 
-                    onClick={handleCreateThread}
-                    className="flex-1 bg-[#D1FF3D] text-black hover:bg-[#e7ff6f]"
-                  >
-                    Create Thread
-                  </Button>
-                </div>
+                <Button 
+                  onClick={handleCreateThread}
+                  className="w-full bg-[#D1FF3D] text-black hover:bg-[#e7ff6f]"
+                >
+                  Create Thread
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -272,73 +293,25 @@ export default function ForumPage() {
 
           {/* Main Feed */}
           <div className="lg:col-span-7 space-y-4">
-            {threads.length === 0 ? (
+            {loading ? (
+              <>
+                {renderSkeleton()}
+                {renderSkeleton()}
+                {renderSkeleton()}
+              </>
+            ) : error ? (
+              <Card className="bg-[#111111] border-[#1a1a1a] p-12 text-center">
+                <p className="text-red-400 text-lg mb-2">Error loading threads</p>
+                <p className="text-gray-500 text-sm">{error}</p>
+              </Card>
+            ) : threads.length === 0 ? (
               <Card className="bg-[#111111] border-[#1a1a1a] p-12 text-center">
                 <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-600" />
                 <p className="text-gray-400 text-lg mb-2">No threads yet</p>
                 <p className="text-gray-500 text-sm">Be the first to start a discussion!</p>
               </Card>
             ) : (
-              threads.map((thread) => (
-                <Card 
-                  key={thread.id} 
-                  className="bg-[#111111] border-[#1a1a1a] hover:border-[#D1FF3D]/30 transition-all cursor-pointer overflow-hidden group"
-                >
-                  <div className="p-5">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h3 className="text-white font-semibold text-xl mb-2 group-hover:text-[#D1FF3D] transition-colors line-clamp-2">
-                          {thread.title}
-                        </h3>
-                        <p className="text-gray-400 text-sm mb-3 line-clamp-2">
-                          {thread.body}
-                        </p>
-                        {thread.aiSummary && (
-                          <div className="mt-3 p-3 bg-[#D1FF3D]/5 border border-[#D1FF3D]/20 rounded-lg">
-                            <p className="text-xs text-[#D1FF3D]/80 mb-1 flex items-center gap-1">
-                              <Sparkles className="w-3 h-3" />
-                              AI Summary
-                            </p>
-                            <p className="text-sm text-gray-300">{thread.aiSummary}</p>
-                          </div>
-                        )}
-                        <div className="flex items-center gap-4 text-sm text-gray-500 mt-3">
-                          <span className="flex items-center gap-1.5">
-                            <MessageSquare className="w-4 h-4" />
-                            {thread.replyCount} replies
-                          </span>
-                          <span className="flex items-center gap-1.5">
-                            <ThumbsUp className="w-4 h-4" />
-                            {thread.likesCount} likes
-                          </span>
-                          <span className="flex items-center gap-1.5">
-                            <TrendingUp className="w-4 h-4" />
-                            {thread.viewCount} views
-                          </span>
-                        </div>
-                      </div>
-                      {thread.isPinned && (
-                        <div className="flex items-center gap-1 px-2 py-1 bg-[#D1FF3D]/10 border border-[#D1FF3D]/30 rounded text-xs text-[#D1FF3D] font-medium ml-4">
-                          <Award className="w-3 h-3" />
-                          Pinned
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="pt-3 border-t border-[#1a1a1a]">
-                      <UserProfileCard 
-                        user={{
-                          username: thread.username || 'Anonymous',
-                          displayName: thread.displayName,
-                          avatar: thread.avatar,
-                          verified: thread.verified,
-                        }} 
-                        variant="inline" 
-                      />
-                    </div>
-                  </div>
-                </Card>
-              ))
+              threads.map(renderThreadCard)
             )}
           </div>
 
@@ -351,19 +324,19 @@ export default function ForumPage() {
             <div className="space-y-3">
               {topContributors.slice(0, 5).map((contributor, i) => (
                 <div key={contributor.userId} className="flex items-center gap-3 p-2 bg-[#0a0a0a] rounded-lg">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#D1FF3D] to-[#9B5CFF] flex items-center justify-center text-black text-sm font-bold">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#D1FF3D] to-[#9B5CFF] flex items-center justify-center text-black text-xs font-bold">
                     {i + 1}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">
+                    <p className="text-xs font-medium text-white truncate">
                       {contributor.displayName || contributor.username}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-[10px] text-gray-500">
                       {contributor.karmaPoints} karma
                     </p>
                   </div>
                   {contributor.badges && contributor.badges[0] && (
-                    <span className="text-lg">{contributor.badges[0]}</span>
+                    <span className="text-sm">{contributor.badges[0]}</span>
                   )}
                 </div>
               ))}
