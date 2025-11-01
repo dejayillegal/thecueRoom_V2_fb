@@ -343,36 +343,45 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               <h2 className="text-2xl font-bold mb-6 text-[#D7FF3C]">Welcome to thecueRoom</h2>
               
               {/* Tabs */}
-              <div className="flex gap-1 mb-8">
+              <div className="flex gap-2 mb-8 border-b border-[#2a2a2a]">
                 <button
                   onClick={() => setActiveTab('signin')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  className={`px-6 py-3 text-sm font-semibold transition-all relative ${
                     activeTab === 'signin'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-transparent text-gray-400 hover:text-white'
+                      ? 'text-[#D7FF3C] bg-[#1a1a1a]'
+                      : 'text-gray-400 hover:text-white hover:bg-[#0a0a0a]'
                   }`}
                 >
                   Sign In
+                  {activeTab === 'signin' && (
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#D7FF3C]"></span>
+                  )}
                 </button>
                 <button
                   onClick={() => setActiveTab('signup')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  className={`px-6 py-3 text-sm font-semibold transition-all relative ${
                     activeTab === 'signup'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-transparent text-gray-400 hover:text-white'
+                      ? 'text-[#D7FF3C] bg-[#1a1a1a]'
+                      : 'text-gray-400 hover:text-white hover:bg-[#0a0a0a]'
                   }`}
                 >
                   Sign Up
+                  {activeTab === 'signup' && (
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#D7FF3C]"></span>
+                  )}
                 </button>
                 <button
                   onClick={() => setActiveTab('forgot')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  className={`px-6 py-3 text-sm font-semibold transition-all relative ${
                     activeTab === 'forgot'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-transparent text-gray-400 hover:text-white'
+                      ? 'text-[#D7FF3C] bg-[#1a1a1a]'
+                      : 'text-gray-400 hover:text-white hover:bg-[#0a0a0a]'
                   }`}
                 >
-                  Forgot
+                  Forgot Password
+                  {activeTab === 'forgot' && (
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#D7FF3C]"></span>
+                  )}
                 </button>
               </div>
 
