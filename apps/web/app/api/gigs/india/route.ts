@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFileSync, existsSync, mkdirSync, appendFileSync } from 'fs';
+import { writeFileSync, readFileSync, existsSync, mkdirSync, appendFileSync } from 'fs';
 import { join } from 'path';
 import {
   fetchRollingStoneIndia,
@@ -77,16 +77,34 @@ async function fetchAndProcessGigs(concurrency: number) {
 
   console.log(`📊 Total: ${allEvents.length} events from sources (${errors.length} errors)`);
 
+  // Normalize date fields - handle both 'date' and 'startAt' fields from sources
+  const normalizedDates = allEvents.map((e: any) => ({
+    ...e,
+    startAt: e.startAt || e.date || e.start_time || e.startDate || new Date().toISOString()
+  }));
+
   // Deduplicate and enrich
-  const deduplicated = deduplicateEvents(allEvents);
+  const deduplicated = deduplicateEvents(normalizedDates);
   const enriched = deduplicated.map(enrichWithAI);
 
-  // Filter future events only
+  // Filter future events only (relaxed - allow events from last 7 days to future)
   const now = new Date();
-  const futureEvents = enriched.filter(e => {
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  
+  const futureEvents = enriched.filter((e: any) => {
     const eventDate = e.startAt ? new Date(e.startAt) : null;
-    return eventDate && eventDate >= now;
+    if (!eventDate || isNaN(eventDate.getTime())) {
+      console.log(`⚠️  Event "${e.title}" has invalid date: ${e.startAt}`);
+      return true; // Include events with invalid dates rather than filtering them out
+    }
+    const isValid = eventDate >= sevenDaysAgo;
+    if (!isValid) {
+      console.log(`⏭️  Filtered out past event "${e.title}" (${eventDate.toISOString()})`);
+    }
+    return isValid;
   });
+  
+  console.log(`📅 After date filtering: ${futureEvents.length} events (from ${enriched.length} deduplicated)`);
 
   // Sort by startAt
   futureEvents.sort((a, b) => {
@@ -155,12 +173,27 @@ export async function GET(request: NextRequest) {
     // Check memory cache
     const cached = readCache(CACHE_KEY, CACHE_TTL);
     
-    // Return cached immediately if fresh or not forcing
-    if (cached && !force) {
+    // Skip cached data if it's stale OR has no events (avoid serving empty results)
+    const cacheIsUsable = cached && !cached.isStale && Array.isArray(cached.data.events) && cached.data.events.length > 0;
+    
+    // Return cached immediately if fresh and has events
+    if (cacheIsUsable && !force) {
       const cacheAge = Math.floor((Date.now() - (cached.data.timestamp || Date.now())) / 1000);
 
-      // If cache is stale, trigger background refresh
-      if (cached.isStale && !isRefreshing) {
+      return NextResponse.json({
+        ok: true,
+        fromCache: true,
+        cacheAgeSeconds: cacheAge,
+        meta: {
+          totalSources: cached.data.meta?.sources?.length || 0,
+          sources: cached.data.meta?.sources || []
+        },
+        events: cached.data.events || []
+      });
+    }
+
+    // If cache exists but is stale/empty, trigger background refresh but don't return stale data
+    if (cached && cached.isStale && !isRefreshing) {
         isRefreshing = true;
         fetchAndProcessGigs(3)
           .then(({ events, errors, meta }) => {
@@ -181,18 +214,6 @@ export async function GET(request: NextRequest) {
           .finally(() => {
             isRefreshing = false;
           });
-      }
-
-      return NextResponse.json({
-        ok: true,
-        fromCache: true,
-        cacheAgeSeconds: cacheAge,
-        meta: {
-          totalSources: cached.data.meta?.sources?.length || 0,
-          sources: cached.data.meta?.sources || []
-        },
-        events: cached.data.events || []
-      });
     }
 
     // Force refresh or no cache - fetch new data synchronously
