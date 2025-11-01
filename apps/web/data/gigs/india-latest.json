@@ -66,7 +66,7 @@
     {
       "id": "zomato-0",
       "title": "Events",
-      "start": "2025-11-01T10:59:37.347Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.zomato.com/events/",
@@ -74,7 +74,7 @@
       "raw": {
         "id": "zomato-0",
         "title": "Events",
-        "date": "2025-11-01T10:59:37.347Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.zomato.com/events/",
@@ -82,87 +82,21 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.347Z"
-      }
-    },
-    {
-      "id": "zomato-1",
-      "title": "Events",
-      "start": "2025-11-01T10:59:37.348Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.zomato.com/events/",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-1",
-        "title": "Events",
-        "date": "2025-11-01T10:59:37.348Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.zomato.com/events/",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.348Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
       "id": "zomato-2",
-      "title": "Mon, 15 Dec, 1:30 PMG.O.A.T India Tour 2025 | Lionel Messi | DelhiArun Jaitley Stadium, Delhi/NCR₹7670 onwards",
-      "start": "2025-11-01T10:59:37.348Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/messi-goat-concert-15-dec-2025-delhi-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-2",
-        "title": "Mon, 15 Dec, 1:30 PMG.O.A.T India Tour 2025 | Lionel Messi | DelhiArun Jaitley Stadium, Delhi/NCR₹7670 onwards",
-        "date": "2025-11-01T10:59:37.348Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/messi-goat-concert-15-dec-2025-delhi-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.348Z"
-      }
-    },
-    {
-      "id": "zomato-3",
-      "title": "Fri, 21 Nov – Sun, 23 Nov, 12:00 PMRoyal Enfield Motoverse 2025Hill Top Goa, Goa₹1499 onwards",
-      "start": "2025-11-01T10:59:37.348Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/royal-enfield-motoverse-2025-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-3",
-        "title": "Fri, 21 Nov – Sun, 23 Nov, 12:00 PMRoyal Enfield Motoverse 2025Hill Top Goa, Goa₹1499 onwards",
-        "date": "2025-11-01T10:59:37.348Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/royal-enfield-motoverse-2025-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.348Z"
-      }
-    },
-    {
-      "id": "zomato-4",
       "title": "Sat, 22 Nov, 6:30 PMVishal Mishra Pagalpan Tour | Gurugram Dockyard Sports Club, Gurugram₹1999 onwards",
-      "start": "2025-11-01T10:59:37.348Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/vishal-mishra-pagalpan-india-tour-delhi-buy-tickets",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-4",
+        "id": "zomato-2",
         "title": "Sat, 22 Nov, 6:30 PMVishal Mishra Pagalpan Tour | Gurugram Dockyard Sports Club, Gurugram₹1999 onwards",
-        "date": "2025-11-01T10:59:37.348Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/vishal-mishra-pagalpan-india-tour-delhi-buy-tickets",
@@ -170,21 +104,21 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.348Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
-      "id": "zomato-5",
+      "id": "zomato-3",
       "title": "Fri, 14 Nov, 5:00 PMBen Böhmer India Tour | Delhi NCRLeisure Valley Park, Gurugram₹2500 onwards",
-      "start": "2025-11-01T10:59:37.348Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/ben-bohmer-india-tour-delhi-nov-2025-buy-tickets",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-5",
+        "id": "zomato-3",
         "title": "Fri, 14 Nov, 5:00 PMBen Böhmer India Tour | Delhi NCRLeisure Valley Park, Gurugram₹2500 onwards",
-        "date": "2025-11-01T10:59:37.348Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/ben-bohmer-india-tour-delhi-nov-2025-buy-tickets",
@@ -192,21 +126,21 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.348Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
-      "id": "zomato-6",
+      "id": "zomato-4",
       "title": "Sat, 08 Nov, 8:00 PMPapon | Shaam-E-Mehfil | DelhiZorba Entertainment Private Limited, Delhi/NCR₹1999 onwards",
-      "start": "2025-11-01T10:59:37.348Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/shaamemehfil-by-papon-delhi-buy-tickets",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-6",
+        "id": "zomato-4",
         "title": "Sat, 08 Nov, 8:00 PMPapon | Shaam-E-Mehfil | DelhiZorba Entertainment Private Limited, Delhi/NCR₹1999 onwards",
-        "date": "2025-11-01T10:59:37.348Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/shaamemehfil-by-papon-delhi-buy-tickets",
@@ -214,21 +148,21 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.348Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
-      "id": "zomato-7",
+      "id": "zomato-5",
       "title": "Sun, 16 Nov, 7:00 PMRadhika Das India Tour 2025 | DelhiYashobhoomi Convention Centre, Delhi/NCR₹4499 onwards",
-      "start": "2025-11-01T10:59:37.348Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/radhika-das-india-tour-delhi-2025-buy-tickets",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-7",
+        "id": "zomato-5",
         "title": "Sun, 16 Nov, 7:00 PMRadhika Das India Tour 2025 | DelhiYashobhoomi Convention Centre, Delhi/NCR₹4499 onwards",
-        "date": "2025-11-01T10:59:37.348Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/radhika-das-india-tour-delhi-2025-buy-tickets",
@@ -236,21 +170,21 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.348Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
-      "id": "zomato-8",
+      "id": "zomato-6",
       "title": "Sun, 09 Nov, 7:00 PMAkon India Tour 2025 | DelhiGate No 14, Jawaharlal Nehru Stadium, Delhi/NCR₹5499 onwards",
-      "start": "2025-11-01T10:59:37.348Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/akon-india-tour-2025-delhi-buy-tickets",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-8",
+        "id": "zomato-6",
         "title": "Sun, 09 Nov, 7:00 PMAkon India Tour 2025 | DelhiGate No 14, Jawaharlal Nehru Stadium, Delhi/NCR₹5499 onwards",
-        "date": "2025-11-01T10:59:37.348Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/akon-india-tour-2025-delhi-buy-tickets",
@@ -258,21 +192,21 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.348Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
-      "id": "zomato-9",
+      "id": "zomato-7",
       "title": "Sat, 27 Dec, 7:00 PMSunidhi Chauhan - I Am Home India Tour 2025-26 | DelhiVenue to be announced, Delhi/NCR₹1500 onwards",
-      "start": "2025-11-01T10:59:37.348Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/sunidhi-chauhan-i-am-home-delhi-2025-buy-tickets",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-9",
+        "id": "zomato-7",
         "title": "Sat, 27 Dec, 7:00 PMSunidhi Chauhan - I Am Home India Tour 2025-26 | DelhiVenue to be announced, Delhi/NCR₹1500 onwards",
-        "date": "2025-11-01T10:59:37.348Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/sunidhi-chauhan-i-am-home-delhi-2025-buy-tickets",
@@ -280,21 +214,43 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.348Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
-      "id": "zomato-11",
+      "id": "zomato-8",
+      "title": "Mon, 15 Dec, 1:30 PMG.O.A.T India Tour 2025 | Lionel Messi | DelhiArun Jaitley Stadium, Delhi/NCR₹7670 onwards",
+      "start": "2025-11-01T11:17:23.937Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/messi-goat-concert-15-dec-2025-delhi-buy-tickets",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-8",
+        "title": "Mon, 15 Dec, 1:30 PMG.O.A.T India Tour 2025 | Lionel Messi | DelhiArun Jaitley Stadium, Delhi/NCR₹7670 onwards",
+        "date": "2025-11-01T11:17:23.937Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/messi-goat-concert-15-dec-2025-delhi-buy-tickets",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.937Z"
+      }
+    },
+    {
+      "id": "zomato-9",
       "title": "Sat, 08 Nov, 7:00 PMChal Man Vrindavan ft. Acyuta Gopi Live | DelhiChhatrasal Stadium, Delhi/NCR₹1199 onwards",
-      "start": "2025-11-01T10:59:37.348Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/chal-man-vrindavan-ft-acyuta-gopi-live-delhi-buy-tickets",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-11",
+        "id": "zomato-9",
         "title": "Sat, 08 Nov, 7:00 PMChal Man Vrindavan ft. Acyuta Gopi Live | DelhiChhatrasal Stadium, Delhi/NCR₹1199 onwards",
-        "date": "2025-11-01T10:59:37.348Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/chal-man-vrindavan-ft-acyuta-gopi-live-delhi-buy-tickets",
@@ -302,21 +258,21 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.348Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
-      "id": "zomato-12",
-      "title": "Sat, 29 Nov, 7:00 PMA.R. Rahman | Harmony by the GangaNamo ghat, Varanasi₹7499 onwards",
-      "start": "2025-11-01T10:59:37.348Z",
+      "id": "zomato-10",
+      "title": "Sat, 29 Nov, 5:30 PMA.R. Rahman | Harmony by the GangaNamo ghat, Varanasi₹7499 onwards",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/a-r-rahman-harmony-by-the-ganga-2025-buy-tickets",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-12",
-        "title": "Sat, 29 Nov, 7:00 PMA.R. Rahman | Harmony by the GangaNamo ghat, Varanasi₹7499 onwards",
-        "date": "2025-11-01T10:59:37.348Z",
+        "id": "zomato-10",
+        "title": "Sat, 29 Nov, 5:30 PMA.R. Rahman | Harmony by the GangaNamo ghat, Varanasi₹7499 onwards",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/a-r-rahman-harmony-by-the-ganga-2025-buy-tickets",
@@ -324,21 +280,21 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.348Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
-      "id": "zomato-13",
+      "id": "zomato-11",
       "title": "Sun, 09 Nov, 8:00 PMRekha Bhardwaj Live in AhmedabadGujarat University Convention and Exhibition Centre, Ahmedabad₹2000 onwards",
-      "start": "2025-11-01T10:59:37.348Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/rekha-bhardwaj-live-in-ahmedabad-nov-2025-buy-tickets",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-13",
+        "id": "zomato-11",
         "title": "Sun, 09 Nov, 8:00 PMRekha Bhardwaj Live in AhmedabadGujarat University Convention and Exhibition Centre, Ahmedabad₹2000 onwards",
-        "date": "2025-11-01T10:59:37.348Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/rekha-bhardwaj-live-in-ahmedabad-nov-2025-buy-tickets",
@@ -346,21 +302,21 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.348Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
-      "id": "zomato-14",
+      "id": "zomato-12",
       "title": "Sun, 02 Nov, 7:00 PMHome in the Heart with Krishna Das | MumbaiDome SVP Stadium, Mumbai₹24999",
-      "start": "2025-11-01T10:59:37.348Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/home-in-the-heart-with-krishna-das-mumbai-buy-tickets",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-14",
+        "id": "zomato-12",
         "title": "Sun, 02 Nov, 7:00 PMHome in the Heart with Krishna Das | MumbaiDome SVP Stadium, Mumbai₹24999",
-        "date": "2025-11-01T10:59:37.348Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/home-in-the-heart-with-krishna-das-mumbai-buy-tickets",
@@ -368,21 +324,21 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.348Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
-      "id": "zomato-15",
+      "id": "zomato-13",
       "title": "Sat, 13 Dec, 3:00 PMOrchid Music Festival 2025 | Ft. Blue & EVERGLOWPalzor Stadium, Gangtok₹1000 onwards",
-      "start": "2025-11-01T10:59:37.348Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/orchid-music-festival-2025-buy-tickets",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-15",
+        "id": "zomato-13",
         "title": "Sat, 13 Dec, 3:00 PMOrchid Music Festival 2025 | Ft. Blue & EVERGLOWPalzor Stadium, Gangtok₹1000 onwards",
-        "date": "2025-11-01T10:59:37.348Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/orchid-music-festival-2025-buy-tickets",
@@ -390,21 +346,21 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.348Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
-      "id": "zomato-16",
+      "id": "zomato-14",
       "title": "Daily, Multiple slotsStandup Night in NoidaThe Mic room, Noida₹249 onwards",
-      "start": "2025-11-01T10:59:37.348Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/standup-night-in-noida-nov1-2025-buy-tickets",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-16",
+        "id": "zomato-14",
         "title": "Daily, Multiple slotsStandup Night in NoidaThe Mic room, Noida₹249 onwards",
-        "date": "2025-11-01T10:59:37.348Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/standup-night-in-noida-nov1-2025-buy-tickets",
@@ -412,43 +368,43 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.348Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
-      "id": "zomato-17",
-      "title": "Sat, 1 Nov – Tue, 4 Nov, Multiple slotsSuper 8: A Stand-Up Comedy Lineup ShowCafe aurika, Gurugram₹199 onwards",
-      "start": "2025-11-01T10:59:37.348Z",
+      "id": "zomato-15",
+      "title": "Sat, 1 Nov – Mon, 3 Nov, Multiple slotsComedy Circus Gurgaon | A Standup Comedy Lineup Show Cafe aurika, Gurugram₹199 onwards",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
-      "url": "https://www.district.in/events/super-8-a-standup-comedy-lineup-show-aug27-2025-buy-tickets",
+      "url": "https://www.district.in/events/comedy-circus-gurgaon-a-standup-comedy-lineup-show-sep9-2025-buy-tickets",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-17",
-        "title": "Sat, 1 Nov – Tue, 4 Nov, Multiple slotsSuper 8: A Stand-Up Comedy Lineup ShowCafe aurika, Gurugram₹199 onwards",
-        "date": "2025-11-01T10:59:37.348Z",
+        "id": "zomato-15",
+        "title": "Sat, 1 Nov – Mon, 3 Nov, Multiple slotsComedy Circus Gurgaon | A Standup Comedy Lineup Show Cafe aurika, Gurugram₹199 onwards",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
-        "url": "https://www.district.in/events/super-8-a-standup-comedy-lineup-show-aug27-2025-buy-tickets",
+        "url": "https://www.district.in/events/comedy-circus-gurgaon-a-standup-comedy-lineup-show-sep9-2025-buy-tickets",
         "source": "Zomato Live",
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.348Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
-      "id": "zomato-18",
+      "id": "zomato-16",
       "title": "Sun, 23 Nov, 7:00 PMAkshay Srivastava Live - The School BunkComedy County, Noida₹349",
-      "start": "2025-11-01T10:59:37.349Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/akshay-srivastava-live-the-school-bunk-nov23-2025-buy-tickets",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-18",
+        "id": "zomato-16",
         "title": "Sun, 23 Nov, 7:00 PMAkshay Srivastava Live - The School BunkComedy County, Noida₹349",
-        "date": "2025-11-01T10:59:37.349Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/akshay-srivastava-live-the-school-bunk-nov23-2025-buy-tickets",
@@ -456,21 +412,21 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.349Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
-      "id": "zomato-19",
+      "id": "zomato-17",
       "title": "Sat, 1 Nov – Fri, 7 Nov, Multiple slotsNoida Comedy Show | Sec-18Comedy Club Sector 18 Noida, Noida₹299 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/noida-comedy-show-sec18-sep10-2025-buy-tickets",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-19",
+        "id": "zomato-17",
         "title": "Sat, 1 Nov – Fri, 7 Nov, Multiple slotsNoida Comedy Show | Sec-18Comedy Club Sector 18 Noida, Noida₹299 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/noida-comedy-show-sec18-sep10-2025-buy-tickets",
@@ -478,21 +434,21 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.349Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
-      "id": "zomato-20",
+      "id": "zomato-18",
       "title": "Sat, 01 Nov, 9:00 PMThoda Light le Owncomedyhouse, Noida₹149",
-      "start": "2025-11-01T10:59:37.349Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/men-ki-baat-sep28-2025-buy-tickets",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-20",
+        "id": "zomato-18",
         "title": "Sat, 01 Nov, 9:00 PMThoda Light le Owncomedyhouse, Noida₹149",
-        "date": "2025-11-01T10:59:37.349Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/men-ki-baat-sep28-2025-buy-tickets",
@@ -500,21 +456,21 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.349Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
-      "id": "zomato-21",
+      "id": "zomato-19",
       "title": "Sun, 02 Nov, 6:00 PMVishal Tyagi Live | Stand Up Solo Mic On Studio ( MOS ), Delhi/NCR₹199 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/naughty-america-stand-up-solo-sep5-2025-buy-tickets",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-21",
+        "id": "zomato-19",
         "title": "Sun, 02 Nov, 6:00 PMVishal Tyagi Live | Stand Up Solo Mic On Studio ( MOS ), Delhi/NCR₹199 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/naughty-america-stand-up-solo-sep5-2025-buy-tickets",
@@ -522,43 +478,43 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.349Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
-      "id": "zomato-22",
-      "title": "Sat, 01 Nov, 7:00 PMTrans Sambandh ft. Kushaal VermaThe Spotlight Studio, Delhi/NCR₹149 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
+      "id": "zomato-20",
+      "title": "Sat, 1 Nov onwards, Multiple DatesLivin the Laughter ft. Various ArtistThe Spotlight Studio, Delhi/NCR₹249 onwards",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
-      "url": "https://www.district.in/events/trans-relationship-oct16-2025-buy-tickets",
+      "url": "https://www.district.in/events/livin-the-laughter-ft-various-artist-oct31-2025-buy-tickets",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-22",
-        "title": "Sat, 01 Nov, 7:00 PMTrans Sambandh ft. Kushaal VermaThe Spotlight Studio, Delhi/NCR₹149 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
+        "id": "zomato-20",
+        "title": "Sat, 1 Nov onwards, Multiple DatesLivin the Laughter ft. Various ArtistThe Spotlight Studio, Delhi/NCR₹249 onwards",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
-        "url": "https://www.district.in/events/trans-relationship-oct16-2025-buy-tickets",
+        "url": "https://www.district.in/events/livin-the-laughter-ft-various-artist-oct31-2025-buy-tickets",
         "source": "Zomato Live",
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.349Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
-      "id": "zomato-23",
+      "id": "zomato-21",
       "title": "Every Sat, 5:00 PM to 7:30 PMComedy, Poetry, Storytelling & Music - Saturday Open Mic DelhiUnmukt Studio, Delhi/NCR₹149 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/comedy-poetry-storytelling-music-saturday-open-mic-delhi-nov30-2024-buy-tickets",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-23",
+        "id": "zomato-21",
         "title": "Every Sat, 5:00 PM to 7:30 PMComedy, Poetry, Storytelling & Music - Saturday Open Mic DelhiUnmukt Studio, Delhi/NCR₹149 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/comedy-poetry-storytelling-music-saturday-open-mic-delhi-nov30-2024-buy-tickets",
@@ -566,21 +522,21 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.349Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
-      "id": "zomato-24",
+      "id": "zomato-22",
       "title": "Sun, 18 Jan, 7:00 PMALOK's Hairy Situation Comedy Tour | New DelhiNCUI Auditorium & Convention Centre, Delhi/NCR₹499 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/aloks-hairy-situation-comedy-tour-new-delhi-2026-buy-tickets",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-24",
+        "id": "zomato-22",
         "title": "Sun, 18 Jan, 7:00 PMALOK's Hairy Situation Comedy Tour | New DelhiNCUI Auditorium & Convention Centre, Delhi/NCR₹499 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/aloks-hairy-situation-comedy-tour-new-delhi-2026-buy-tickets",
@@ -588,21 +544,21 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.349Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
-      "id": "zomato-25",
+      "id": "zomato-23",
       "title": "Daily, 7:00 PM onwardsComedy In Hauz Khas : A Multi Comic Lineup ShowLIGHT ROOM, Delhi/NCR₹299",
-      "start": "2025-11-01T10:59:37.349Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/comedy-in-hauz-khas-a-multi-comic-lineup-show-oct31-2025-buy-tickets",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-25",
+        "id": "zomato-23",
         "title": "Daily, 7:00 PM onwardsComedy In Hauz Khas : A Multi Comic Lineup ShowLIGHT ROOM, Delhi/NCR₹299",
-        "date": "2025-11-01T10:59:37.349Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/comedy-in-hauz-khas-a-multi-comic-lineup-show-oct31-2025-buy-tickets",
@@ -610,13 +566,35 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.349Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
+      }
+    },
+    {
+      "id": "zomato-25",
+      "title": "Fri, 21 Nov – Sun, 23 Nov, 12:00 PMRoyal Enfield Motoverse 2025Hill Top Goa, Goa₹1499 onwards",
+      "start": "2025-11-01T11:17:23.937Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/royal-enfield-motoverse-2025-buy-tickets",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-25",
+        "title": "Fri, 21 Nov – Sun, 23 Nov, 12:00 PMRoyal Enfield Motoverse 2025Hill Top Goa, Goa₹1499 onwards",
+        "date": "2025-11-01T11:17:23.937Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/royal-enfield-motoverse-2025-buy-tickets",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
       "id": "zomato-26",
       "title": "20% off up to ₹250Daily, 9:00 AM onwardsE-O-D Adventure ParkE-O-D Adventure Park, Delhi/NCR₹399 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/eod-adventure-park-2025-buy-tickets",
@@ -624,7 +602,7 @@
       "raw": {
         "id": "zomato-26",
         "title": "20% off up to ₹250Daily, 9:00 AM onwardsE-O-D Adventure ParkE-O-D Adventure Park, Delhi/NCR₹399 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/eod-adventure-park-2025-buy-tickets",
@@ -632,13 +610,13 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.349Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
       "id": "zomato-27",
       "title": "20% off up to ₹150Daily, Multiple slotsTurbo Track | Go KartingTurbo Track, Gurugram₹499 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/turbo-track-may29-2025-buy-tickets",
@@ -646,7 +624,7 @@
       "raw": {
         "id": "zomato-27",
         "title": "20% off up to ₹150Daily, Multiple slotsTurbo Track | Go KartingTurbo Track, Gurugram₹499 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/turbo-track-may29-2025-buy-tickets",
@@ -654,13 +632,13 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.349Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
       "id": "zomato-28",
       "title": "20% off up to ₹200Daily, Multiple slotsMuseum of Illusions | New DelhiMuseum of Illusions, Delhi/NCR₹590 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/museum-of-illusions-new-delhi-2025-buy-tickets",
@@ -668,7 +646,7 @@
       "raw": {
         "id": "zomato-28",
         "title": "20% off up to ₹200Daily, Multiple slotsMuseum of Illusions | New DelhiMuseum of Illusions, Delhi/NCR₹590 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/museum-of-illusions-new-delhi-2025-buy-tickets",
@@ -676,527 +654,65 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.349Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
       }
     },
     {
       "id": "zomato-29",
-      "title": "Daily, 6:00 AM onwardsSquad Goals: Golf Workshop with ZEN Golf Range & AcademyZEN GOLF Range & Academy, Gurugram₹1400 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
+      "title": "The Sarod Quintet",
+      "start": "2025-11-01T11:17:23.937Z",
       "venue": "TBA",
       "city": "India",
-      "url": "https://www.district.in/events/squad-goals-golf-edition-with-zen-golf-range-academy-2025-buy-tickets",
+      "url": "https://www.district.in/events/the-sarod-quintet/artist",
       "source": "Zomato Live",
       "raw": {
         "id": "zomato-29",
-        "title": "Daily, 6:00 AM onwardsSquad Goals: Golf Workshop with ZEN Golf Range & AcademyZEN GOLF Range & Academy, Gurugram₹1400 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
+        "title": "The Sarod Quintet",
+        "date": "2025-11-01T11:17:23.937Z",
         "venue": "TBA",
         "city": "India",
-        "url": "https://www.district.in/events/squad-goals-golf-edition-with-zen-golf-range-academy-2025-buy-tickets",
+        "url": "https://www.district.in/events/the-sarod-quintet/artist",
         "source": "Zomato Live",
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.349Z"
+        "startAt": "2025-11-01T11:17:23.937Z"
+      }
+    },
+    {
+      "id": "zomato-30",
+      "title": "Wild Wild Women",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/wild-wild-women-/artist",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-30",
+        "title": "Wild Wild Women",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/wild-wild-women-/artist",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
       }
     },
     {
       "id": "zomato-31",
-      "title": "20% off up to ₹150Daily, 9:00 AM onwardsBoulderboxBoulderBox - Climbing Centre, Delhi/NCR₹800",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/boulderbox-2025-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-31",
-        "title": "20% off up to ₹150Daily, 9:00 AM onwardsBoulderboxBoulderBox - Climbing Centre, Delhi/NCR₹800",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/boulderbox-2025-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-32",
-      "title": "30% off up to ₹300Daily, Multiple slotsSky Jumper Trampoline Park | ILD GurugramSkyJumper Trampoline Park - Gurgaon, ILD Trade Centre, Gurugram₹490 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/sky-jumper-trampoline-park-ild-gurgaon-2025-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-32",
-        "title": "30% off up to ₹300Daily, Multiple slotsSky Jumper Trampoline Park | ILD GurugramSkyJumper Trampoline Park - Gurgaon, ILD Trade Centre, Gurugram₹490 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/sky-jumper-trampoline-park-ild-gurgaon-2025-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-33",
-      "title": "20% off up to ₹150Daily, 10:00 AM onwardsKids Play Zone: The Funny MouseThe Funny Mouse | Play Area, Gurugram₹800",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/kids-play-zone-the-funny-mouse-2025-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-33",
-        "title": "20% off up to ₹150Daily, 10:00 AM onwardsKids Play Zone: The Funny MouseThe Funny Mouse | Play Area, Gurugram₹800",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/kids-play-zone-the-funny-mouse-2025-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-34",
-      "title": "20% off up to ₹150Daily, 10:00 AM onwardsGame Hour Game Hour - Snooker & PS-5 Games, Gurugram₹200",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/game-hour-2025-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-34",
-        "title": "20% off up to ₹150Daily, 10:00 AM onwardsGame Hour Game Hour - Snooker & PS-5 Games, Gurugram₹200",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/game-hour-2025-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-35",
-      "title": "20% off up to ₹150Daily, 10:00 AM onwardsBumble Tumble | Sector 83Bumble Tumble 83, Gurugram₹499 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/bumble-tumble-sector-83-jul-2025-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-35",
-        "title": "20% off up to ₹150Daily, 10:00 AM onwardsBumble Tumble | Sector 83Bumble Tumble 83, Gurugram₹499 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/bumble-tumble-sector-83-jul-2025-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-36",
-      "title": "20% off up to ₹200Daily, 10:00 AM onwardsYansh Adventure Motorsports | GurugramYansh Adventure Motorsports Gurugram, Gurugram₹590 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/yansh-adventure-motorsports-gurugram-aug-2025-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-36",
-        "title": "20% off up to ₹200Daily, 10:00 AM onwardsYansh Adventure Motorsports | GurugramYansh Adventure Motorsports Gurugram, Gurugram₹590 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/yansh-adventure-motorsports-gurugram-aug-2025-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-37",
-      "title": "20% off up to ₹350Daily, Multiple slotsZooper India Trampoline ParkZooper India Trampoline Park Gurgaon, Gurugram₹300 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/zooper-india-trampoline-park-2025-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-37",
-        "title": "20% off up to ₹350Daily, Multiple slotsZooper India Trampoline ParkZooper India Trampoline Park Gurgaon, Gurugram₹300 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/zooper-india-trampoline-park-2025-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-38",
-      "title": "25% off up to ₹200Daily, 10:30 AM onwardsMasti Zone - M3M 65th Avenue | GurugramMasti Zone | M3M 65th Avenue |Gurugram | Bowling | Trampoline | VR Games | Arcades | Kids games | Party, Gurugram₹600 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/masti-zone-m3m-65th-avenue-gurugram-jan1-1970-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-38",
-        "title": "25% off up to ₹200Daily, 10:30 AM onwardsMasti Zone - M3M 65th Avenue | GurugramMasti Zone | M3M 65th Avenue |Gurugram | Bowling | Trampoline | VR Games | Arcades | Kids games | Party, Gurugram₹600 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/masti-zone-m3m-65th-avenue-gurugram-jan1-1970-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-39",
-      "title": "Flat 60% off on select ticketsDaily, Multiple slotsGlued SuperchargedGlued Supercharged, Noida₹199 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/glued-supercharged-noida-2025-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-39",
-        "title": "Flat 60% off on select ticketsDaily, Multiple slotsGlued SuperchargedGlued Supercharged, Noida₹199 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/glued-supercharged-noida-2025-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-40",
-      "title": "20% off up to ₹150Daily, 11:00 AM onwardsSea HopSea Hop, Delhi/NCR₹1100",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/sea-hop-delhi-2025-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-40",
-        "title": "20% off up to ₹150Daily, 11:00 AM onwardsSea HopSea Hop, Delhi/NCR₹1100",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/sea-hop-delhi-2025-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-41",
-      "title": "Sun, 16 Nov, 3:00 PMMusic Evening at AmraiAmrai by Kivaara, Sitapur₹1499",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/music-evening-at-amrai-nov16-2025-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-41",
-        "title": "Sun, 16 Nov, 3:00 PMMusic Evening at AmraiAmrai by Kivaara, Sitapur₹1499",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/music-evening-at-amrai-nov16-2025-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-42",
-      "title": "Wed, 05 Nov, 8:15 PMRoohani Wednesdays ft. Bhanu Ki Baithak LIVE Khubani - Delhi, Delhi/NCR₹5000 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/roohani-wednesdays-ft-bhanu-ki-baithak-live-nov5-2025-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-42",
-        "title": "Wed, 05 Nov, 8:15 PMRoohani Wednesdays ft. Bhanu Ki Baithak LIVE Khubani - Delhi, Delhi/NCR₹5000 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/roohani-wednesdays-ft-bhanu-ki-baithak-live-nov5-2025-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-43",
-      "title": "Sat, 17 Jan, 2:00 PMGoa Sunsplash 2026Thalassa Beach Boutique Resort, Goa₹4000 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/goa-sunsplash-2026-jan17-2026-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-43",
-        "title": "Sat, 17 Jan, 2:00 PMGoa Sunsplash 2026Thalassa Beach Boutique Resort, Goa₹4000 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/goa-sunsplash-2026-jan17-2026-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-44",
-      "title": "Fri, 14 Nov, 5:00 PMBen Böhmer India Tour | Delhi NCRLeisure Valley Park, Gurugram₹2500 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/ben-bohmer-india-tour-delhi-nov-2025-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-44",
-        "title": "Fri, 14 Nov, 5:00 PMBen Böhmer India Tour | Delhi NCRLeisure Valley Park, Gurugram₹2500 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/ben-bohmer-india-tour-delhi-nov-2025-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-45",
-      "title": "Sat, 15 Nov, 7:00 PMLive the Legacy - IBTIDA – Ek Mehfil & HSBCSafdarjung Tomb, Delhi/NCR₹8500 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/live-the-legacy-hsbc-ibtida-ek-mehfil-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-45",
-        "title": "Sat, 15 Nov, 7:00 PMLive the Legacy - IBTIDA – Ek Mehfil & HSBCSafdarjung Tomb, Delhi/NCR₹8500 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/live-the-legacy-hsbc-ibtida-ek-mehfil-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-46",
-      "title": "22 Nov - 23 Nov, 3PMRolling Loud India | Hip-Hop Festival | Karan Aujla, Central CeeLoud Park, Kharghar, Mumbai₹4500 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/rolling-loud-india-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-46",
-        "title": "22 Nov - 23 Nov, 3PMRolling Loud India | Hip-Hop Festival | Karan Aujla, Central CeeLoud Park, Kharghar, Mumbai₹4500 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/rolling-loud-india-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-47",
-      "title": "Sat, 29 Nov, 7:00 PMA.R. Rahman | Harmony by the GangaNamo ghat, Varanasi₹7499 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/a-r-rahman-harmony-by-the-ganga-2025-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-47",
-        "title": "Sat, 29 Nov, 7:00 PMA.R. Rahman | Harmony by the GangaNamo ghat, Varanasi₹7499 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/a-r-rahman-harmony-by-the-ganga-2025-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-48",
-      "title": "Sat, 08 Nov, 7:00 PMChal Man Vrindavan ft. Acyuta Gopi Live | DelhiChhatrasal Stadium, Delhi/NCR₹1199 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/chal-man-vrindavan-ft-acyuta-gopi-live-delhi-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-48",
-        "title": "Sat, 08 Nov, 7:00 PMChal Man Vrindavan ft. Acyuta Gopi Live | DelhiChhatrasal Stadium, Delhi/NCR₹1199 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/chal-man-vrindavan-ft-acyuta-gopi-live-delhi-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-49",
-      "title": "Sun, 09 Nov, 7:00 PMAkon India Tour 2025 | DelhiGate No 14, Jawaharlal Nehru Stadium, Delhi/NCR₹5499 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/akon-india-tour-2025-delhi-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-49",
-        "title": "Sun, 09 Nov, 7:00 PMAkon India Tour 2025 | DelhiGate No 14, Jawaharlal Nehru Stadium, Delhi/NCR₹5499 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/akon-india-tour-2025-delhi-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-50",
-      "title": "Sat, 08 Nov – Sun, 09 Nov, 2:00 PMIndia Cocktail Week | Gurugram 2025DLF Surface Parking, Gurugram₹999 onwards",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/indiacocktailweek-gurugram-2025-buy-tickets",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-50",
-        "title": "Sat, 08 Nov – Sun, 09 Nov, 2:00 PMIndia Cocktail Week | Gurugram 2025DLF Surface Parking, Gurugram₹999 onwards",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/indiacocktailweek-gurugram-2025-buy-tickets",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-51",
-      "title": "Acyuta Gopi",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/acyuta-gopi/artist",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-51",
-        "title": "Acyuta Gopi",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/acyuta-gopi/artist",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-52",
-      "title": "DJ Five Venoms",
-      "start": "2025-11-01T10:59:37.349Z",
-      "venue": "TBA",
-      "city": "India",
-      "url": "https://www.district.in/events/dj-five-venoms/artist",
-      "source": "Zomato Live",
-      "raw": {
-        "id": "zomato-52",
-        "title": "DJ Five Venoms",
-        "date": "2025-11-01T10:59:37.349Z",
-        "venue": "TBA",
-        "city": "India",
-        "url": "https://www.district.in/events/dj-five-venoms/artist",
-        "source": "Zomato Live",
-        "genreTags": [
-          "music"
-        ],
-        "startAt": "2025-11-01T10:59:37.349Z"
-      }
-    },
-    {
-      "id": "zomato-53",
       "title": "Karan Aujla",
-      "start": "2025-11-01T10:59:37.349Z",
+      "start": "2025-11-01T11:17:23.938Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/karan-aujla/artist",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-53",
+        "id": "zomato-31",
         "title": "Karan Aujla",
-        "date": "2025-11-01T10:59:37.349Z",
+        "date": "2025-11-01T11:17:23.938Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/karan-aujla/artist",
@@ -1204,43 +720,43 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.349Z"
+        "startAt": "2025-11-01T11:17:23.938Z"
       }
     },
     {
-      "id": "zomato-54",
-      "title": "Reble",
-      "start": "2025-11-01T10:59:37.349Z",
+      "id": "zomato-32",
+      "title": "Allyn",
+      "start": "2025-11-01T11:17:23.938Z",
       "venue": "TBA",
       "city": "India",
-      "url": "https://www.district.in/events/reble/artist",
+      "url": "https://www.district.in/events/allyn/artist",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-54",
-        "title": "Reble",
-        "date": "2025-11-01T10:59:37.349Z",
+        "id": "zomato-32",
+        "title": "Allyn",
+        "date": "2025-11-01T11:17:23.938Z",
         "venue": "TBA",
         "city": "India",
-        "url": "https://www.district.in/events/reble/artist",
+        "url": "https://www.district.in/events/allyn/artist",
         "source": "Zomato Live",
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.349Z"
+        "startAt": "2025-11-01T11:17:23.938Z"
       }
     },
     {
-      "id": "zomato-55",
+      "id": "zomato-33",
       "title": "Sudan",
-      "start": "2025-11-01T10:59:37.349Z",
+      "start": "2025-11-01T11:17:23.938Z",
       "venue": "TBA",
       "city": "India",
       "url": "https://www.district.in/events/sudan/artist",
       "source": "Zomato Live",
       "raw": {
-        "id": "zomato-55",
+        "id": "zomato-33",
         "title": "Sudan",
-        "date": "2025-11-01T10:59:37.349Z",
+        "date": "2025-11-01T11:17:23.938Z",
         "venue": "TBA",
         "city": "India",
         "url": "https://www.district.in/events/sudan/artist",
@@ -1248,117 +764,601 @@
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.349Z"
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-34",
+      "title": "Vishal Mishra",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/vishal-mishra/artist",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-34",
+        "title": "Vishal Mishra",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/vishal-mishra/artist",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-35",
+      "title": "Kushaal Verma",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/kushaal_verma/artist",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-35",
+        "title": "Kushaal Verma",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/kushaal_verma/artist",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-36",
+      "title": "Rajat Chauhan",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/rajat-chauhan/artist",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-36",
+        "title": "Rajat Chauhan",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/rajat-chauhan/artist",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-37",
+      "title": "Shubhika Marar",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/shubhika-marar/artist",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-37",
+        "title": "Shubhika Marar",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/shubhika-marar/artist",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-38",
+      "title": "Hamza Rahimtula",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/hamza-rahimtula/artist",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-38",
+        "title": "Hamza Rahimtula",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/hamza-rahimtula/artist",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-39",
+      "title": "Daily, 6:00 AM onwardsSquad Goals: Golf Workshop with ZEN Golf Range & AcademyZEN GOLF Range & Academy, Gurugram₹1400 onwards",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/squad-goals-golf-edition-with-zen-golf-range-academy-2025-buy-tickets",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-39",
+        "title": "Daily, 6:00 AM onwardsSquad Goals: Golf Workshop with ZEN Golf Range & AcademyZEN GOLF Range & Academy, Gurugram₹1400 onwards",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/squad-goals-golf-edition-with-zen-golf-range-academy-2025-buy-tickets",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-40",
+      "title": "20% off up to ₹250Daily, 9:00 AM onwardsE-O-D Adventure ParkE-O-D Adventure Park, Delhi/NCR₹399 onwards",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/eod-adventure-park-2025-buy-tickets",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-40",
+        "title": "20% off up to ₹250Daily, 9:00 AM onwardsE-O-D Adventure ParkE-O-D Adventure Park, Delhi/NCR₹399 onwards",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/eod-adventure-park-2025-buy-tickets",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-41",
+      "title": "20% off up to ₹150Daily, 9:00 AM onwardsBoulderboxBoulderBox - Climbing Centre, Delhi/NCR₹800",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/boulderbox-2025-buy-tickets",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-41",
+        "title": "20% off up to ₹150Daily, 9:00 AM onwardsBoulderboxBoulderBox - Climbing Centre, Delhi/NCR₹800",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/boulderbox-2025-buy-tickets",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-42",
+      "title": "20% off up to ₹150Daily, 10:00 AM onwardsKids Play Zone: The Funny MouseThe Funny Mouse | Play Area, Gurugram₹800",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/kids-play-zone-the-funny-mouse-2025-buy-tickets",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-42",
+        "title": "20% off up to ₹150Daily, 10:00 AM onwardsKids Play Zone: The Funny MouseThe Funny Mouse | Play Area, Gurugram₹800",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/kids-play-zone-the-funny-mouse-2025-buy-tickets",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-43",
+      "title": "30% off up to ₹300Daily, Multiple slotsSky Jumper Trampoline Park | ILD GurugramSkyJumper Trampoline Park - Gurgaon, ILD Trade Centre, Gurugram₹490 onwards",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/sky-jumper-trampoline-park-ild-gurgaon-2025-buy-tickets",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-43",
+        "title": "30% off up to ₹300Daily, Multiple slotsSky Jumper Trampoline Park | ILD GurugramSkyJumper Trampoline Park - Gurgaon, ILD Trade Centre, Gurugram₹490 onwards",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/sky-jumper-trampoline-park-ild-gurgaon-2025-buy-tickets",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-44",
+      "title": "20% off up to ₹150Daily, 10:00 AM onwardsGame Hour Game Hour - Snooker & PS-5 Games, Gurugram₹200",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/game-hour-2025-buy-tickets",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-44",
+        "title": "20% off up to ₹150Daily, 10:00 AM onwardsGame Hour Game Hour - Snooker & PS-5 Games, Gurugram₹200",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/game-hour-2025-buy-tickets",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-45",
+      "title": "20% off up to ₹150Daily, 10:00 AM onwardsBumble Tumble | Sector 83Bumble Tumble 83, Gurugram₹499 onwards",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/bumble-tumble-sector-83-jul-2025-buy-tickets",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-45",
+        "title": "20% off up to ₹150Daily, 10:00 AM onwardsBumble Tumble | Sector 83Bumble Tumble 83, Gurugram₹499 onwards",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/bumble-tumble-sector-83-jul-2025-buy-tickets",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-46",
+      "title": "20% off up to ₹200Daily, 10:00 AM onwardsYansh Adventure Motorsports | GurugramYansh Adventure Motorsports Gurugram, Gurugram₹590 onwards",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/yansh-adventure-motorsports-gurugram-aug-2025-buy-tickets",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-46",
+        "title": "20% off up to ₹200Daily, 10:00 AM onwardsYansh Adventure Motorsports | GurugramYansh Adventure Motorsports Gurugram, Gurugram₹590 onwards",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/yansh-adventure-motorsports-gurugram-aug-2025-buy-tickets",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-47",
+      "title": "25% off up to ₹200Daily, 10:30 AM onwardsMasti Zone - M3M 65th Avenue | GurugramMasti Zone | M3M 65th Avenue |Gurugram | Bowling | Trampoline | VR Games | Arcades | Kids games | Party, Gurugram₹600 onwards",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/masti-zone-m3m-65th-avenue-gurugram-jan1-1970-buy-tickets",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-47",
+        "title": "25% off up to ₹200Daily, 10:30 AM onwardsMasti Zone - M3M 65th Avenue | GurugramMasti Zone | M3M 65th Avenue |Gurugram | Bowling | Trampoline | VR Games | Arcades | Kids games | Party, Gurugram₹600 onwards",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/masti-zone-m3m-65th-avenue-gurugram-jan1-1970-buy-tickets",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-48",
+      "title": "20% off up to ₹350Daily, Multiple slotsZooper India Trampoline ParkZooper India Trampoline Park Gurgaon, Gurugram₹300 onwards",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/zooper-india-trampoline-park-2025-buy-tickets",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-48",
+        "title": "20% off up to ₹350Daily, Multiple slotsZooper India Trampoline ParkZooper India Trampoline Park Gurgaon, Gurugram₹300 onwards",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/zooper-india-trampoline-park-2025-buy-tickets",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-49",
+      "title": "Daily, 11:00 AM onwardsWupi Trampoline and Amusement ParkWupi Trampoline & Amusement Park Gurgaon, Gurugram₹325 onwards",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/wupi-trampoline-and-amusement-park-2025-buy-tickets",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-49",
+        "title": "Daily, 11:00 AM onwardsWupi Trampoline and Amusement ParkWupi Trampoline & Amusement Park Gurgaon, Gurugram₹325 onwards",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/wupi-trampoline-and-amusement-park-2025-buy-tickets",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-50",
+      "title": "20% off up to ₹150Daily, 11:00 AM onwardsVortex Gaming Cafevortex gaming cafe, Delhi/NCR₹100 onwards",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/vortex-gaming-cafe-2025-buy-tickets",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-50",
+        "title": "20% off up to ₹150Daily, 11:00 AM onwardsVortex Gaming Cafevortex gaming cafe, Delhi/NCR₹100 onwards",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/vortex-gaming-cafe-2025-buy-tickets",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-51",
+      "title": "Sun, 16 Nov, 3:00 PMMusic Evening at AmraiAmrai by Kivaara, Sitapur₹1499",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/music-evening-at-amrai-nov16-2025-buy-tickets",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-51",
+        "title": "Sun, 16 Nov, 3:00 PMMusic Evening at AmraiAmrai by Kivaara, Sitapur₹1499",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/music-evening-at-amrai-nov16-2025-buy-tickets",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-52",
+      "title": "Wed, 05 Nov, 8:15 PMRoohani Wednesdays ft. Bhanu Ki Baithak LIVE Khubani - Delhi, Delhi/NCR₹5000 onwards",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/roohani-wednesdays-ft-bhanu-ki-baithak-live-nov5-2025-buy-tickets",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-52",
+        "title": "Wed, 05 Nov, 8:15 PMRoohani Wednesdays ft. Bhanu Ki Baithak LIVE Khubani - Delhi, Delhi/NCR₹5000 onwards",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/roohani-wednesdays-ft-bhanu-ki-baithak-live-nov5-2025-buy-tickets",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-53",
+      "title": "Fri, 14 Nov, 5:00 PMBen Böhmer India Tour | Delhi NCRLeisure Valley Park, Gurugram₹2500 onwards",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/ben-bohmer-india-tour-delhi-nov-2025-buy-tickets",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-53",
+        "title": "Fri, 14 Nov, 5:00 PMBen Böhmer India Tour | Delhi NCRLeisure Valley Park, Gurugram₹2500 onwards",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/ben-bohmer-india-tour-delhi-nov-2025-buy-tickets",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-54",
+      "title": "Sat, 15 Nov, 7:00 PMLive the Legacy - IBTIDA – Ek Mehfil & HSBCSafdarjung Tomb, Delhi/NCR₹8500 onwards",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/live-the-legacy-hsbc-ibtida-ek-mehfil-buy-tickets",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-54",
+        "title": "Sat, 15 Nov, 7:00 PMLive the Legacy - IBTIDA – Ek Mehfil & HSBCSafdarjung Tomb, Delhi/NCR₹8500 onwards",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/live-the-legacy-hsbc-ibtida-ek-mehfil-buy-tickets",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
+      }
+    },
+    {
+      "id": "zomato-55",
+      "title": "22 Nov - 23 Nov, 3PMRolling Loud India | Hip-Hop Festival | Karan Aujla, Central CeeLoud Park, Kharghar, Mumbai₹4500 onwards",
+      "start": "2025-11-01T11:17:23.938Z",
+      "venue": "TBA",
+      "city": "India",
+      "url": "https://www.district.in/events/rolling-loud-india-buy-tickets",
+      "source": "Zomato Live",
+      "raw": {
+        "id": "zomato-55",
+        "title": "22 Nov - 23 Nov, 3PMRolling Loud India | Hip-Hop Festival | Karan Aujla, Central CeeLoud Park, Kharghar, Mumbai₹4500 onwards",
+        "date": "2025-11-01T11:17:23.938Z",
+        "venue": "TBA",
+        "city": "India",
+        "url": "https://www.district.in/events/rolling-loud-india-buy-tickets",
+        "source": "Zomato Live",
+        "genreTags": [
+          "music"
+        ],
+        "startAt": "2025-11-01T11:17:23.938Z"
       }
     },
     {
       "id": "zomato-56",
-      "title": "Korolova",
-      "start": "2025-11-01T10:59:37.349Z",
+      "title": "Sat, 29 Nov, 5:30 PMA.R. Rahman | Harmony by the GangaNamo ghat, Varanasi₹7499 onwards",
+      "start": "2025-11-01T11:17:23.938Z",
       "venue": "TBA",
       "city": "India",
-      "url": "https://www.district.in/events/korolova/artist",
+      "url": "https://www.district.in/events/a-r-rahman-harmony-by-the-ganga-2025-buy-tickets",
       "source": "Zomato Live",
       "raw": {
         "id": "zomato-56",
-        "title": "Korolova",
-        "date": "2025-11-01T10:59:37.349Z",
+        "title": "Sat, 29 Nov, 5:30 PMA.R. Rahman | Harmony by the GangaNamo ghat, Varanasi₹7499 onwards",
+        "date": "2025-11-01T11:17:23.938Z",
         "venue": "TBA",
         "city": "India",
-        "url": "https://www.district.in/events/korolova/artist",
+        "url": "https://www.district.in/events/a-r-rahman-harmony-by-the-ganga-2025-buy-tickets",
         "source": "Zomato Live",
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.349Z"
+        "startAt": "2025-11-01T11:17:23.938Z"
       }
     },
     {
       "id": "zomato-57",
-      "title": "NAV",
-      "start": "2025-11-01T10:59:37.349Z",
+      "title": "Sat, 08 Nov, 7:00 PMChal Man Vrindavan ft. Acyuta Gopi Live | DelhiChhatrasal Stadium, Delhi/NCR₹1199 onwards",
+      "start": "2025-11-01T11:17:23.938Z",
       "venue": "TBA",
       "city": "India",
-      "url": "https://www.district.in/events/nav/artist",
+      "url": "https://www.district.in/events/chal-man-vrindavan-ft-acyuta-gopi-live-delhi-buy-tickets",
       "source": "Zomato Live",
       "raw": {
         "id": "zomato-57",
-        "title": "NAV",
-        "date": "2025-11-01T10:59:37.349Z",
+        "title": "Sat, 08 Nov, 7:00 PMChal Man Vrindavan ft. Acyuta Gopi Live | DelhiChhatrasal Stadium, Delhi/NCR₹1199 onwards",
+        "date": "2025-11-01T11:17:23.938Z",
         "venue": "TBA",
         "city": "India",
-        "url": "https://www.district.in/events/nav/artist",
+        "url": "https://www.district.in/events/chal-man-vrindavan-ft-acyuta-gopi-live-delhi-buy-tickets",
         "source": "Zomato Live",
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.349Z"
+        "startAt": "2025-11-01T11:17:23.938Z"
       }
     },
     {
       "id": "zomato-58",
-      "title": "Nash",
-      "start": "2025-11-01T10:59:37.349Z",
+      "title": "Sun, 09 Nov, 7:00 PMAkon India Tour 2025 | DelhiGate No 14, Jawaharlal Nehru Stadium, Delhi/NCR₹5499 onwards",
+      "start": "2025-11-01T11:17:23.938Z",
       "venue": "TBA",
       "city": "India",
-      "url": "https://www.district.in/events/nash/artist",
+      "url": "https://www.district.in/events/akon-india-tour-2025-delhi-buy-tickets",
       "source": "Zomato Live",
       "raw": {
         "id": "zomato-58",
-        "title": "Nash",
-        "date": "2025-11-01T10:59:37.349Z",
+        "title": "Sun, 09 Nov, 7:00 PMAkon India Tour 2025 | DelhiGate No 14, Jawaharlal Nehru Stadium, Delhi/NCR₹5499 onwards",
+        "date": "2025-11-01T11:17:23.938Z",
         "venue": "TBA",
         "city": "India",
-        "url": "https://www.district.in/events/nash/artist",
+        "url": "https://www.district.in/events/akon-india-tour-2025-delhi-buy-tickets",
         "source": "Zomato Live",
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.349Z"
+        "startAt": "2025-11-01T11:17:23.938Z"
       }
     },
     {
       "id": "zomato-59",
-      "title": "Alok",
-      "start": "2025-11-01T10:59:37.349Z",
+      "title": "Sat, 08 Nov – Sun, 09 Nov, 2:00 PMIndia Cocktail Week | Gurugram 2025DLF Surface Parking, Gurugram₹999 onwards",
+      "start": "2025-11-01T11:17:23.938Z",
       "venue": "TBA",
       "city": "India",
-      "url": "https://www.district.in/events/alok/artist",
+      "url": "https://www.district.in/events/indiacocktailweek-gurugram-2025-buy-tickets",
       "source": "Zomato Live",
       "raw": {
         "id": "zomato-59",
-        "title": "Alok",
-        "date": "2025-11-01T10:59:37.349Z",
+        "title": "Sat, 08 Nov – Sun, 09 Nov, 2:00 PMIndia Cocktail Week | Gurugram 2025DLF Surface Parking, Gurugram₹999 onwards",
+        "date": "2025-11-01T11:17:23.938Z",
         "venue": "TBA",
         "city": "India",
-        "url": "https://www.district.in/events/alok/artist",
+        "url": "https://www.district.in/events/indiacocktailweek-gurugram-2025-buy-tickets",
         "source": "Zomato Live",
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.349Z"
+        "startAt": "2025-11-01T11:17:23.938Z"
       }
     },
     {
       "id": "zomato-60",
-      "title": "AR Paisley",
-      "start": "2025-11-01T10:59:37.349Z",
+      "title": "Sat, 22 Nov, 6:30 PMVishal Mishra Pagalpan Tour | Gurugram Dockyard Sports Club, Gurugram₹1999 onwards",
+      "start": "2025-11-01T11:17:23.938Z",
       "venue": "TBA",
       "city": "India",
-      "url": "https://www.district.in/events/ar-paisley/artist",
+      "url": "https://www.district.in/events/vishal-mishra-pagalpan-india-tour-delhi-buy-tickets",
       "source": "Zomato Live",
       "raw": {
         "id": "zomato-60",
-        "title": "AR Paisley",
-        "date": "2025-11-01T10:59:37.349Z",
+        "title": "Sat, 22 Nov, 6:30 PMVishal Mishra Pagalpan Tour | Gurugram Dockyard Sports Club, Gurugram₹1999 onwards",
+        "date": "2025-11-01T11:17:23.938Z",
         "venue": "TBA",
         "city": "India",
-        "url": "https://www.district.in/events/ar-paisley/artist",
+        "url": "https://www.district.in/events/vishal-mishra-pagalpan-india-tour-delhi-buy-tickets",
         "source": "Zomato Live",
         "genreTags": [
           "music"
         ],
-        "startAt": "2025-11-01T10:59:37.349Z"
+        "startAt": "2025-11-01T11:17:23.938Z"
       }
     },
     {
@@ -2246,57 +2246,57 @@
       "items": 44,
       "method": "success",
       "status": "ok",
-      "durationMs": 6244
+      "durationMs": 6424
     },
     {
       "name": "BookMyShow",
       "items": 0,
       "method": "success",
       "status": "ok",
-      "durationMs": 6244
+      "durationMs": 6424
     },
     {
       "name": "Zomato Live",
       "items": 61,
       "method": "success",
       "status": "ok",
-      "durationMs": 6244
+      "durationMs": 6424
     },
     {
       "name": "Swiggy Events",
       "items": 0,
       "method": "success",
       "status": "error",
-      "durationMs": 6244
+      "durationMs": 6424
     },
     {
       "name": "Paytm Insider",
       "items": 0,
       "method": "success",
       "status": "error",
-      "durationMs": 6244
+      "durationMs": 6424
     },
     {
       "name": "SortMyScene",
       "items": 0,
       "method": "success",
       "status": "ok",
-      "durationMs": 6244
+      "durationMs": 6424
     },
     {
       "name": "Skillbox India",
       "items": 0,
       "method": "success",
       "status": "ok",
-      "durationMs": 6244
+      "durationMs": 6424
     },
     {
       "name": "DICE India",
       "items": 0,
       "method": "success",
       "status": "ok",
-      "durationMs": 6244
+      "durationMs": 6424
     }
   ],
-  "timestamp": 1761994782257
+  "timestamp": 1761995848928
 }
