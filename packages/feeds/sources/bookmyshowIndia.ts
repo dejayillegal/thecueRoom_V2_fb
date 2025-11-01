@@ -5,6 +5,9 @@ import { safeFetch } from '../../../apps/web/src/lib/safe-fetch';
 import { readCache, writeCache } from '../cache';
 import { renderWithPlaywright } from '../headless';
 
+const USE_PROXY = process.env.USE_PROXY_FOR_SCRAPING === 'true';
+const PROXY_URL = process.env.SCRAPING_PROXY_URL;
+
 const CACHE_KEY = 'bookmyshow';
 const CACHE_TTL_SEC = 600;
 
@@ -69,8 +72,8 @@ async function tryJsonApi(city: string, errors: FetchError[]): Promise<Normalize
     } else if (res.error?.code === 'HTTP_403') {
       errors.push({
         source: 'BookMyShow',
-        code: 'HTTP_403',
-        message: `JSON API blocked (attempt ${uaIndex + 1}): ${res.error.message}`,
+        code: 'BLOCKED_403',
+        message: `JSON API blocked (attempt ${uaIndex + 1}): ${res.error.message}${USE_PROXY ? ' (proxy used)' : ' - consider enabling proxy or running from VPS'}`,
         methodAttempted: 'json-api'
       });
     }

@@ -1,9 +1,7 @@
 
 /**
- * Safe fetch utilities with retry logic, exponential backoff, and structured error handling
- * Handles DNS failures (ENOTFOUND), timeouts, and non-JSON responses gracefully
- * 
- * THIS MODULE IS SERVER-ONLY when used in API routes.
+ * Canonical safe fetch utility with retry logic, exponential backoff, and structured error handling
+ * THIS IS THE SINGLE SOURCE OF TRUTH FOR safeFetch
  */
 
 export interface FetchResult {
@@ -33,7 +31,7 @@ function sleep(ms: number) {
 
 /**
  * Safely fetches a URL with automatic retries and exponential backoff
- * Returns structured result instead of throwing on network/DNS failures
+ * Creates NEW AbortController for each attempt to avoid "Controller is already closed"
  */
 export async function safeFetch(
   url: string,
@@ -50,7 +48,7 @@ export async function safeFetch(
   let lastError: any = null;
 
   for (let attempt = 0; attempt < attempts; attempt++) {
-    // Create new controller per attempt to avoid "Controller is already closed"
+    // Create NEW controller per attempt to avoid "Controller is already closed"
     const controller = new AbortController();
     let timeoutId: NodeJS.Timeout | null = null;
 
@@ -67,13 +65,6 @@ export async function safeFetch(
         },
         signal: signal || controller.signal
       };
-
-      // Add proxy support if configured
-      if (proxy || process.env.SCRAPING_PROXY_URL) {
-        // Note: Node.js fetch doesn't support proxy directly
-        // In production, you'd use an HTTP agent or proxy middleware
-        console.warn('[safeFetch] Proxy support requires additional configuration');
-      }
 
       const response = await fetch(url, fetchOptions);
 

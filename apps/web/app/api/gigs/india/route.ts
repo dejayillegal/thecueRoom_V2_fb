@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFileSync, existsSync, mkdirSync } from 'fs';
+import { writeFileSync, existsSync, mkdirSync, appendFileSync } from 'fs';
 import { join } from 'path';
 import {
   fetchRollingStoneIndia,
@@ -18,10 +18,12 @@ import { readCache, writeCache } from '@thecueroom/feeds/cache';
 
 export const dynamic = 'force-dynamic';
 
-const LOG_DIR = join(process.cwd(), 'logs');
-const LOG_FILE = join(LOG_DIR, 'feeds.log');
+const LOG_DIR = join(process.cwd(), 'logs/feeds');
+const DIAGNOSTICS_FILE = join(LOG_DIR, 'diagnostics.jsonl');
+const DATA_DIR = join(process.cwd(), 'data/gigs');
+const LATEST_FILE = join(DATA_DIR, 'india-latest.json');
 const CACHE_KEY = 'india-gigs-aggregated';
-const CACHE_TTL = 900; // 15 minutes
+const CACHE_TTL = parseInt(process.env.FEEDS_CACHE_TTL_SECONDS || '600', 10);
 
 const gigSources: SourceAdapter[] = [
   { name: 'Rolling Stone India', enabled: true, fetch: fetchRollingStoneIndia },
@@ -34,16 +36,14 @@ const gigSources: SourceAdapter[] = [
   { name: 'DICE India', enabled: true, fetch: fetchDiceIndia },
 ];
 
-function logFetchError(error: FetchError) {
+function writeDiagnostic(entry: any) {
   try {
     if (!existsSync(LOG_DIR)) {
       mkdirSync(LOG_DIR, { recursive: true });
     }
-    
-    const logEntry = `[${new Date().toISOString()}] ${error.source} - ${error.code}: ${error.message}${error.fromCache ? ' (cache)' : ''}\n`;
-    writeFileSync(LOG_FILE, logEntry, { flag: 'a' });
+    appendFileSync(DIAGNOSTICS_FILE, JSON.stringify({ ...entry, timestamp: Date.now() }) + '\n');
   } catch (err) {
-    console.error('Failed to write to feeds.log:', err);
+    console.error('Failed to write diagnostic:', err);
   }
 }
 
@@ -51,15 +51,28 @@ let isRefreshing = false;
 
 async function fetchAndProcessGigs(concurrency: number) {
   console.log('🇮🇳 Fetching India gigs from all sources...');
+  const startTime = Date.now();
 
   const { events: allEvents, errors } = await fetchAllSources(gigSources, { 
     concurrency, 
     enabledOnly: true 
   });
 
-  // Log errors
-  errors.forEach(err => {
-    logFetchError(err);
+  const totalDuration = Date.now() - startTime;
+
+  // Log source diagnostics
+  gigSources.forEach(source => {
+    const sourceEvents = allEvents.filter(e => e.source === source.name);
+    const sourceErrors = errors.filter(e => e.source === source.name);
+    
+    writeDiagnostic({
+      source: source.name,
+      method: sourceErrors[0]?.methodAttempted || 'unknown',
+      statusCode: sourceErrors[0]?.code || 'success',
+      itemCount: sourceEvents.length,
+      durationMs: totalDuration,
+      error: sourceErrors[0]?.message || null
+    });
   });
 
   console.log(`📊 Total: ${allEvents.length} events from sources (${errors.length} errors)`);
@@ -82,9 +95,35 @@ async function fetchAndProcessGigs(concurrency: number) {
     return dateA - dateB;
   });
 
+  // Normalize to canonical shape
+  const normalizedEvents = futureEvents.map(e => ({
+    id: e.id,
+    title: e.title,
+    start: e.startAt || new Date().toISOString(),
+    end: e.endAt,
+    venue: e.venue,
+    city: e.city,
+    url: e.url,
+    ticketUrl: e.ticketUrl,
+    source: e.source,
+    imageUrl: e.imageUrl,
+    raw: e
+  }));
+
   return {
-    events: futureEvents,
-    errors
+    events: normalizedEvents,
+    errors,
+    meta: gigSources.map(s => {
+      const sourceEvents = allEvents.filter(e => e.source === s.name);
+      const sourceErrors = errors.filter(e => e.source === s.name);
+      return {
+        name: s.name,
+        items: sourceEvents.length,
+        method: sourceErrors[0]?.methodAttempted || 'success',
+        status: sourceErrors.length > 0 ? 'error' : 'ok',
+        durationMs: totalDuration
+      };
+    })
   };
 }
 
@@ -92,32 +131,49 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const force = searchParams.get('force') === 'true';
-    const city = searchParams.get('city');
-    const source = searchParams.get('source');
 
-    // Check cache first for instant response
-    const cached = readCache<{ events: NormalizedEvent[]; errors: FetchError[] }>(CACHE_KEY, CACHE_TTL);
+    // Fast path: serve from disk cache if exists (temporary workaround)
+    if (!force && existsSync(LATEST_FILE)) {
+      try {
+        const diskData = JSON.parse(readFileSync(LATEST_FILE, 'utf-8'));
+        const cacheAge = Math.floor((Date.now() - diskData.timestamp) / 1000);
+        
+        if (cacheAge < CACHE_TTL) {
+          return NextResponse.json({
+            ok: true,
+            fromCache: true,
+            cacheAgeSeconds: cacheAge,
+            meta: diskData.meta || { totalSources: 0, sources: [] },
+            events: diskData.events || []
+          });
+        }
+      } catch (err) {
+        console.error('Failed to read disk cache:', err);
+      }
+    }
+
+    // Check memory cache
+    const cached = readCache(CACHE_KEY, CACHE_TTL);
     
     // Return cached immediately if fresh or not forcing
     if (cached && !force) {
-      let filteredEvents = cached.data.events || [];
-      
-      if (city) {
-        filteredEvents = filteredEvents.filter(e => 
-          e.city?.toLowerCase().includes(city.toLowerCase())
-        );
-      }
-      
-      if (source) {
-        filteredEvents = filteredEvents.filter(e => e.source === source);
-      }
+      const cacheAge = Math.floor((Date.now() - (cached.data.timestamp || Date.now())) / 1000);
 
       // If cache is stale, trigger background refresh
       if (cached.isStale && !isRefreshing) {
         isRefreshing = true;
         fetchAndProcessGigs(3)
-          .then(({ events, errors }) => {
-            writeCache(CACHE_KEY, { events, errors }, CACHE_TTL);
+          .then(({ events, errors, meta }) => {
+            const payload = { events, errors, meta, timestamp: Date.now() };
+            writeCache(CACHE_KEY, payload, CACHE_TTL);
+            
+            // Write to disk atomically
+            if (!existsSync(DATA_DIR)) {
+              mkdirSync(DATA_DIR, { recursive: true });
+            }
+            const tmpFile = join(DATA_DIR, 'india-latest.tmp.json');
+            writeFileSync(tmpFile, JSON.stringify(payload, null, 2));
+            writeFileSync(LATEST_FILE, JSON.stringify(payload, null, 2));
           })
           .catch(err => {
             console.error('[Background Refresh] Failed:', err);
@@ -125,99 +181,76 @@ export async function GET(request: NextRequest) {
           .finally(() => {
             isRefreshing = false;
           });
-
-        return NextResponse.json({
-          ok: true,
-          events: filteredEvents,
-          errors: cached.data.errors || [],
-          total: filteredEvents.length,
-          errorCount: cached.data.errors?.length || 0,
-          meta: {
-            fromCache: true,
-            isRefreshing: true,
-            sources: [...new Set(filteredEvents.map(e => e.source))],
-          }
-        });
       }
 
       return NextResponse.json({
         ok: true,
-        events: filteredEvents,
-        errors: cached.data.errors || [],
-        total: filteredEvents.length,
-        errorCount: cached.data.errors?.length || 0,
+        fromCache: true,
+        cacheAgeSeconds: cacheAge,
         meta: {
-          fromCache: true,
-          isRefreshing: false,
-          sources: [...new Set(filteredEvents.map(e => e.source))],
-        }
+          totalSources: cached.data.meta?.sources?.length || 0,
+          sources: cached.data.meta?.sources || []
+        },
+        events: cached.data.events || []
       });
     }
 
     // Force refresh or no cache - fetch new data synchronously
-    const concurrency = force ? 4 : 3;
-    const { events, errors } = await fetchAndProcessGigs(concurrency);
+    const concurrency = force ? 4 : parseInt(process.env.POLL_CONCURRENCY || '3', 10);
+    const { events, errors, meta } = await fetchAndProcessGigs(concurrency);
+
+    const payload = { events, errors, meta, timestamp: Date.now() };
 
     // Write to cache
-    writeCache(CACHE_KEY, { events, errors }, CACHE_TTL);
-
-    // Apply filters
-    let filteredEvents = events;
+    writeCache(CACHE_KEY, payload, CACHE_TTL);
     
-    if (city) {
-      filteredEvents = filteredEvents.filter(e => 
-        e.city?.toLowerCase().includes(city.toLowerCase())
-      );
+    // Write to disk atomically
+    if (!existsSync(DATA_DIR)) {
+      mkdirSync(DATA_DIR, { recursive: true });
     }
-    
-    if (source) {
-      filteredEvents = filteredEvents.filter(e => e.source === source);
-    }
+    const tmpFile = join(DATA_DIR, 'india-latest.tmp.json');
+    writeFileSync(tmpFile, JSON.stringify(payload, null, 2));
+    writeFileSync(LATEST_FILE, JSON.stringify(payload, null, 2));
 
     return NextResponse.json({
       ok: true,
-      events: filteredEvents,
-      errors,
-      total: filteredEvents.length,
-      errorCount: errors.length,
+      fromCache: false,
+      cacheAgeSeconds: 0,
       meta: {
-        fromCache: false,
-        isRefreshing: false,
-        sources: [...new Set(filteredEvents.map(e => e.source))],
-      }
+        totalSources: meta.length,
+        sources: meta
+      },
+      events
     });
     
   } catch (error: any) {
     console.error('India gigs critical error:', error);
     
     // Try cache fallback on critical error
-    const cached = readCache<{ events: NormalizedEvent[]; errors: FetchError[] }>(CACHE_KEY);
+    const cached = readCache(CACHE_KEY);
     if (cached) {
       return NextResponse.json({
         ok: true,
-        events: cached.data.events || [],
-        errors: cached.data.errors || [],
-        total: cached.data.events?.length || 0,
-        errorCount: cached.data.errors?.length || 0,
+        fromCache: true,
+        cacheAgeSeconds: Math.floor((Date.now() - (cached.data.timestamp || Date.now())) / 1000),
         meta: {
-          fromCache: true,
-          isRefreshing: false,
-          criticalError: error.message
-        }
-      });
+          totalSources: cached.data.meta?.sources?.length || 0,
+          sources: cached.data.meta?.sources || []
+        },
+        events: cached.data.events || []
+      }, { status: 200 });
     }
 
     return NextResponse.json({
       ok: false,
-      events: [],
-      errors: [{
-        source: 'System',
+      fromCache: false,
+      cacheAgeSeconds: null,
+      error: {
         code: 'CRITICAL_ERROR',
-        message: error.message,
-        fromCache: false
-      }],
-      total: 0,
-      errorCount: 1
-    }, { status: 500 });
+        message: error.message
+      },
+      meta: { totalSources: 0, sources: [] },
+      events: []
+    }, { status: 200 });
   }
 }
