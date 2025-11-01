@@ -1,7 +1,7 @@
+
 import pLimit from 'p-limit';
 import { NormalizedEvent } from './normalize';
 import { readCache, writeCache } from './cache';
-import { safeFetch } from '../../apps/web/src/lib/safe-fetch';
 
 export interface FetchError {
   source: string;
@@ -23,11 +23,11 @@ export interface FetchAllSourcesResult {
 export interface SourceAdapter {
   name: string;
   enabled: boolean;
-  fetch: () => Promise<NormalizedEvent[]>;
+  fetch: () => Promise<NormalizedEvent[] | { events: NormalizedEvent[]; errors: FetchError[] }>;
 }
 
 const DEFAULT_CONCURRENCY = parseInt(process.env.POLL_CONCURRENCY || '4', 10);
-const DEFAULT_TTL = parseInt(process.env.GIGS_CACHE_TTL_SECONDS || '900', 10);
+const DEFAULT_TTL = parseInt(process.env.FEEDS_CACHE_TTL_SECONDS || '900', 10);
 
 export async function fetchAllSources(
   sources: SourceAdapter[],
@@ -58,7 +58,7 @@ export async function fetchAllSources(
         }
         
         if (sourceEvents.length > 0) {
-          writeCache(source.name, sourceEvents, DEFAULT_TTL);
+          writeCache(source.name.toLowerCase().replace(/\s+/g, '-'), sourceEvents, DEFAULT_TTL);
           events.push(...sourceEvents);
           const tookMs = Date.now() - startTime;
           console.log(`[Poller] ✓ ${source.name}: ${sourceEvents.length} events (${tookMs}ms)`);
@@ -69,9 +69,11 @@ export async function fetchAllSources(
         const tookMs = Date.now() - startTime;
         console.error(`[Poller] ✗ ${source.name}: ${error.message} (${tookMs}ms)`);
         
-        const cached = readCache(source.name, DEFAULT_TTL);
-        if (cached && cached.events.length > 0) {
-          const cachedEvents = cached.events.map(e => ({ ...e, fromCache: true }));
+        const cacheKey = source.name.toLowerCase().replace(/\s+/g, '-');
+        const cached = readCache(cacheKey, DEFAULT_TTL);
+        
+        if (cached && Array.isArray(cached.data)) {
+          const cachedEvents = cached.data.map((e: NormalizedEvent) => ({ ...e, fromCache: true }));
           events.push(...cachedEvents);
           errors.push({
             source: source.name,
@@ -79,7 +81,7 @@ export async function fetchAllSources(
             message: error.message || 'Unknown error',
             fromCache: true
           });
-          console.log(`[Poller] 📦 ${source.name}: Using ${cached.events.length} cached events`);
+          console.log(`[Poller] 📦 ${source.name}: Using ${cached.data.length} cached events`);
         } else {
           errors.push({
             source: source.name,

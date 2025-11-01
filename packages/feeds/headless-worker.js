@@ -10,7 +10,7 @@ async function getBrowser() {
   if (!browser) {
     browser = await chromium.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
     });
   }
   return browser;
@@ -19,13 +19,15 @@ async function getBrowser() {
 process.on('message', async (msg) => {
   try {
     if (!msg || !msg.url) {
-      return process.send({ id: msg.id, ok: false, error: 'no url provided' });
+      return process.send({ id: msg?.id, ok: false, error: 'no url provided' });
     }
 
     const browserInstance = await getBrowser();
     const page = await browserInstance.newPage();
 
+    await page.setUserAgent(process.env.FEED_USER_AGENT || 'Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36');
     await page.setViewportSize({ width: 1280, height: 720 });
+    
     await page.goto(msg.url, { 
       waitUntil: 'networkidle',
       timeout: msg.timeout || 15000

@@ -12,23 +12,26 @@ import {
   fetchZomatoLive,
   fetchSwiggyEvents,
 } from '@thecueroom/feeds/sources';
-import { fetchAllSources, SourceAdapter } from '@thecueroom/feeds/poller-gigs';
+import { fetchAllSources, SourceAdapter, FetchError } from '@thecueroom/feeds/poller-gigs';
 import { deduplicateEvents, enrichWithAI, NormalizedEvent } from '@thecueroom/feeds/normalize';
+import { readCache, writeCache } from '@thecueroom/feeds/cache';
 
 export const dynamic = 'force-dynamic';
 
 const LOG_DIR = join(process.cwd(), 'logs');
 const LOG_FILE = join(LOG_DIR, 'feeds.log');
+const CACHE_KEY = 'india-gigs-aggregated';
+const CACHE_TTL = 900; // 15 minutes
 
 const gigSources: SourceAdapter[] = [
   { name: 'Rolling Stone India', enabled: true, fetch: fetchRollingStoneIndia },
-  { name: 'SortMyScene', enabled: true, fetch: fetchSortMyScene },
-  { name: 'DICE India', enabled: true, fetch: fetchDiceIndia },
-  { name: 'Skillbox India', enabled: true, fetch: fetchSkillboxIndia },
-  { name: 'Paytm Insider', enabled: true, fetch: fetchPaytmInsider },
   { name: 'BookMyShow', enabled: true, fetch: fetchBookMyShow },
   { name: 'Zomato Live', enabled: true, fetch: fetchZomatoLive },
   { name: 'Swiggy Events', enabled: true, fetch: fetchSwiggyEvents },
+  { name: 'Paytm Insider', enabled: true, fetch: fetchPaytmInsider },
+  { name: 'SortMyScene', enabled: true, fetch: fetchSortMyScene },
+  { name: 'Skillbox India', enabled: true, fetch: fetchSkillboxIndia },
+  { name: 'DICE India', enabled: true, fetch: fetchDiceIndia },
 ];
 
 function logFetchError(error: FetchError) {
@@ -54,8 +57,7 @@ async function fetchAndProcessGigs(concurrency: number) {
 
   // Log errors
   errors.forEach(err => {
-    const enrichedError = { ...err, timestamp: new Date().toISOString() };
-    logFetchError(enrichedError);
+    logFetchError(err);
   });
 
   console.log(`📊 Total: ${allEvents.length} events from sources (${errors.length} errors)`);
@@ -80,19 +82,53 @@ async function fetchAndProcessGigs(concurrency: number) {
 
   return {
     events: futureEvents,
-    errors,
+    errors
   };
 }
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const refresh = searchParams.get('refresh') === 'true';
+    const force = searchParams.get('force') === 'true';
     const city = searchParams.get('city');
     const source = searchParams.get('source');
-    const concurrency = refresh ? 4 : 3;
 
+    // Check cache first for instant response
+    const cached = readCache<{ events: NormalizedEvent[]; errors: FetchError[] }>(CACHE_KEY, CACHE_TTL);
+    
+    if (cached && !cached.isStale && !force) {
+      // Return cached immediately
+      let filteredEvents = cached.data.events;
+      
+      if (city) {
+        filteredEvents = filteredEvents.filter(e => 
+          e.city?.toLowerCase().includes(city.toLowerCase())
+        );
+      }
+      
+      if (source) {
+        filteredEvents = filteredEvents.filter(e => e.source === source);
+      }
+
+      return NextResponse.json({
+        ok: true,
+        events: filteredEvents,
+        errors: cached.data.errors || [],
+        total: filteredEvents.length,
+        errorCount: cached.data.errors?.length || 0,
+        meta: {
+          fromCache: true,
+          sources: [...new Set(filteredEvents.map(e => e.source))],
+        }
+      });
+    }
+
+    // Cache stale or force refresh - fetch new data
+    const concurrency = force ? 4 : 3;
     const { events, errors } = await fetchAndProcessGigs(concurrency);
+
+    // Write to cache
+    writeCache(CACHE_KEY, { events, errors }, CACHE_TTL);
 
     // Apply filters
     let filteredEvents = events;
@@ -107,40 +143,48 @@ export async function GET(request: NextRequest) {
       filteredEvents = filteredEvents.filter(e => e.source === source);
     }
 
-    // Always return valid JSON with both events and errors
-    return NextResponse.json(
-      {
-        ok: true,
-        events: filteredEvents,
-        errors,
-        total: filteredEvents.length,
-        errorCount: errors.length,
-        meta: {
-          cached: errors.some(e => e.fromCache),
-          sources: [...new Set(filteredEvents.map(e => e.source))],
-        }
-      },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      ok: true,
+      events: filteredEvents,
+      errors,
+      total: filteredEvents.length,
+      errorCount: errors.length,
+      meta: {
+        fromCache: false,
+        sources: [...new Set(filteredEvents.map(e => e.source))],
+      }
+    });
+    
   } catch (error: any) {
     console.error('India gigs critical error:', error);
-
-    // Even on catastrophic failure, return valid JSON
-    return NextResponse.json(
-      {
+    
+    // Try cache fallback on critical error
+    const cached = readCache<{ events: NormalizedEvent[]; errors: FetchError[] }>(CACHE_KEY);
+    if (cached) {
+      return NextResponse.json({
         ok: true,
-        events: [],
-        errors: [{
-          source: 'system',
-          code: 'CRITICAL_ERROR',
-          message: error.message || 'Unknown system error',
-          timestamp: new Date().toISOString(),
-        }],
-        total: 0,
-        errorCount: 1,
-        meta: { cached: false, sources: [] }
-      },
-      { status: 200 }
-    );
+        events: cached.data.events || [],
+        errors: cached.data.errors || [],
+        total: cached.data.events?.length || 0,
+        errorCount: cached.data.errors?.length || 0,
+        meta: {
+          fromCache: true,
+          criticalError: error.message
+        }
+      });
+    }
+
+    return NextResponse.json({
+      ok: false,
+      events: [],
+      errors: [{
+        source: 'System',
+        code: 'CRITICAL_ERROR',
+        message: error.message,
+        fromCache: false
+      }],
+      total: 0,
+      errorCount: 1
+    }, { status: 500 });
   }
 }

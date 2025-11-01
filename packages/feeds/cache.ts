@@ -1,103 +1,76 @@
+import fs from 'fs';
+import path from 'path';
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, unlinkSync } from 'fs';
-import { join } from 'path';
+const CACHE_DIR = process.env.FEEDS_CACHE_PATH || path.join(process.cwd(), '.local/feeds-cache');
 
-const CACHE_DIR = join(process.cwd(), '.local', 'cache', 'gigs');
-
-interface CacheEntry {
-  events: any[];
-  lastFetched: number;
+interface CacheEntry<T = any> {
+  data: T;
+  timestamp: number;
   ttl: number;
 }
 
-/**
- * Ensures cache directory exists
- */
-function ensureCacheDir() {
-  if (!existsSync(CACHE_DIR)) {
-    mkdirSync(CACHE_DIR, { recursive: true });
-  }
-}
-
-/**
- * Reads cached data for a source if still valid
- */
-export function readCache(sourceName: string, ttlSeconds: number = 600): CacheEntry | null {
+export function readCache<T = any>(key: string, ttlSeconds?: number): { data: T; isStale: boolean } | null {
   try {
-    ensureCacheDir();
-    const safeName = sourceName.replace(/[^a-z0-9_-]/gi, '_');
-    const cachePath = join(CACHE_DIR, `${safeName}.json`);
-    
-    if (!existsSync(cachePath)) {
+    if (!fs.existsSync(CACHE_DIR)) {
       return null;
     }
 
-    const data = readFileSync(cachePath, 'utf-8');
-    const cache: CacheEntry = JSON.parse(data);
-
-    const age = Date.now() - cache.lastFetched;
-    const maxAge = ttlSeconds * 1000;
-
-    if (age > maxAge) {
+    const filePath = path.join(CACHE_DIR, `${key}.json`);
+    if (!fs.existsSync(filePath)) {
       return null;
     }
 
-    return cache;
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const entry: CacheEntry<T> = JSON.parse(content);
+
+    const age = Date.now() - entry.timestamp;
+    const effectiveTtl = (ttlSeconds || entry.ttl) * 1000;
+    const isStale = age > effectiveTtl;
+
+    return { data: entry.data, isStale };
   } catch (error) {
-    console.error(`[Cache] Failed to read cache for ${sourceName}:`, error);
+    console.error(`[Cache] Read error for ${key}:`, error);
     return null;
   }
 }
 
-/**
- * Writes cache data atomically for a source
- */
-export function writeCache(sourceName: string, events: any[], ttl: number = 600): void {
+export function writeCache<T = any>(key: string, data: T, ttlSeconds: number = 900): void {
   try {
-    ensureCacheDir();
-    const safeName = sourceName.replace(/[^a-z0-9_-]/gi, '_');
-    const cachePath = join(CACHE_DIR, `${safeName}.json`);
-    const tempPath = `${cachePath}.tmp`;
+    if (!fs.existsSync(CACHE_DIR)) {
+      fs.mkdirSync(CACHE_DIR, { recursive: true });
+    }
 
-    const cacheEntry: CacheEntry = {
-      events,
-      lastFetched: Date.now(),
-      ttl,
+    const entry: CacheEntry<T> = {
+      data,
+      timestamp: Date.now(),
+      ttl: ttlSeconds
     };
 
-    // Atomic write: write to temp file then rename
-    writeFileSync(tempPath, JSON.stringify(cacheEntry, null, 2));
-    renameSync(tempPath, cachePath);
-    
-    console.log(`[Cache] Wrote ${events.length} events to cache for ${sourceName}`);
+    const filePath = path.join(CACHE_DIR, `${key}.json`);
+    fs.writeFileSync(filePath, JSON.stringify(entry, null, 2), 'utf-8');
   } catch (error) {
-    console.error(`[Cache] Failed to write cache for ${sourceName}:`, error);
+    console.error(`[Cache] Write error for ${key}:`, error);
   }
 }
 
-/**
- * Clears cache for a specific source or all sources
- */
-export function clearCache(sourceName?: string): void {
+export function clearCache(key?: string): void {
   try {
-    ensureCacheDir();
-    if (sourceName) {
-      const safeName = sourceName.replace(/[^a-z0-9_-]/gi, '_');
-      const cachePath = join(CACHE_DIR, `${safeName}.json`);
-      if (existsSync(cachePath)) {
-        unlinkSync(cachePath);
+    if (!fs.existsSync(CACHE_DIR)) {
+      return;
+    }
+
+    if (key) {
+      const filePath = path.join(CACHE_DIR, `${key}.json`);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
       }
     } else {
-      // Clear all caches
-      const fs = require('fs');
       const files = fs.readdirSync(CACHE_DIR);
-      files.forEach((file: string) => {
-        if (file.endsWith('.json')) {
-          unlinkSync(join(CACHE_DIR, file));
-        }
-      });
+      for (const file of files) {
+        fs.unlinkSync(path.join(CACHE_DIR, file));
+      }
     }
   } catch (error) {
-    console.error('[Cache] Failed to clear cache:', error);
+    console.error('[Cache] Clear error:', error);
   }
 }

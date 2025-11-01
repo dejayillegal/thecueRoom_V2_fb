@@ -1,5 +1,5 @@
+
 // THIS MODULE IS SERVER-ONLY. Do not import in client code.
-// eslint-disable-next-line @next/next/no-server-import-in-client
 
 import { fork, ChildProcess } from 'child_process';
 import path from 'path';
@@ -75,9 +75,4 @@ export async function renderWithPlaywright(
       });
     });
   });
-}
-
-export async function closeBrowser(): Promise<void> {
-  // Browser cleanup is handled by the worker process
-  return Promise.resolve();
 }
