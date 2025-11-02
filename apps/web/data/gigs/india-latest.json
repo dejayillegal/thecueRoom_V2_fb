@@ -885,57 +885,57 @@
       "items": 41,
       "method": "success",
       "status": "ok",
-      "durationMs": 5622
+      "durationMs": 5551
     },
     {
       "name": "BookMyShow",
       "items": 0,
       "method": "success",
       "status": "ok",
-      "durationMs": 5622
+      "durationMs": 5551
     },
     {
       "name": "Zomato Live",
       "items": 0,
       "method": "success",
       "status": "ok",
-      "durationMs": 5622
+      "durationMs": 5551
     },
     {
       "name": "Swiggy Events",
       "items": 0,
       "method": "success",
       "status": "error",
-      "durationMs": 5622
+      "durationMs": 5551
     },
     {
       "name": "Paytm Insider",
       "items": 0,
       "method": "success",
       "status": "error",
-      "durationMs": 5622
+      "durationMs": 5551
     },
     {
       "name": "SortMyScene",
       "items": 0,
       "method": "success",
       "status": "ok",
-      "durationMs": 5622
+      "durationMs": 5551
     },
     {
       "name": "Skillbox India",
       "items": 0,
       "method": "success",
       "status": "ok",
-      "durationMs": 5622
+      "durationMs": 5551
     },
     {
       "name": "DICE India",
       "items": 0,
       "method": "success",
       "status": "ok",
-      "durationMs": 5622
+      "durationMs": 5551
     }
   ],
-  "timestamp": 1762032517927
+  "timestamp": 1762087473699
 }
