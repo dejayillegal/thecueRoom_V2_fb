@@ -106,3 +106,84 @@ async function diagnose() {
 }
 
 diagnose();
+#!/usr/bin/env node
+
+/**
+ * Gigs fetch diagnostic - tests aggregator and source fetching
+ */
+
+async function checkGigsFetch() {
+  console.log('🇮🇳 Testing India Gigs Fetcher\n');
+  console.log('═'.repeat(60));
+
+  const BASE_URL = process.env.BASE_URL || 'http://0.0.0.0:5000';
+
+  try {
+    console.log(`\n📍 Fetching: ${BASE_URL}/api/gigs/india?force=true\n`);
+
+    const startTime = Date.now();
+    const response = await fetch(`${BASE_URL}/api/gigs/india?force=true`);
+    const duration = Date.now() - startTime;
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    console.log('📊 Results:');
+    console.log(`  Duration: ${duration}ms`);
+    console.log(`  OK: ${data.ok}`);
+    console.log(`  From Cache: ${data.fromCache}`);
+    console.log(`  Total Events: ${data.events?.length || 0}`);
+    console.log(`  Total Sources: ${data.meta?.totalSources || 0}`);
+
+    if (data.meta?.sources) {
+      console.log('\n📡 Source Details:');
+      data.meta.sources.forEach(s => {
+        const status = s.status === 'ok' ? '✅' : '⚠️';
+        console.log(`  ${status} ${s.name}: ${s.items} items (${s.status})`);
+      });
+    }
+
+    if (data.events && data.events.length > 0) {
+      console.log('\n🎫 Sample Events (first 3):');
+      data.events.slice(0, 3).forEach((e, i) => {
+        console.log(`  ${i + 1}. ${e.title}`);
+        console.log(`     Venue: ${e.venue || 'TBA'}`);
+        console.log(`     City: ${e.city || 'Unknown'}`);
+        console.log(`     Source: ${e.source}`);
+        console.log(`     Date: ${e.startAt || 'TBA'}`);
+      });
+    }
+
+    // Check for Bollywood/pop filtering
+    const bollywoodKeywords = ['bollywood', 'hindi', 'punjabi', 'bhangra'];
+    const bollywoodEvents = data.events?.filter(e => {
+      const text = `${e.title} ${e.description || ''} ${e.genreTags?.join(' ') || ''}`.toLowerCase();
+      return bollywoodKeywords.some(kw => text.includes(kw));
+    }) || [];
+
+    console.log(`\n🎵 Genre Filtering:`);
+    console.log(`  Bollywood/Pop events: ${bollywoodEvents.length}`);
+    console.log(`  Electronic events: ${(data.events?.length || 0) - bollywoodEvents.length}`);
+
+    console.log('\n' + '═'.repeat(60));
+
+    if (data.ok && data.events?.length > 0) {
+      console.log('\n✅ Gigs fetch PASSED - API returns events\n');
+      process.exit(0);
+    } else if (data.ok && data.events?.length === 0) {
+      console.log('\n⚠️  API OK but no events - check source availability\n');
+      process.exit(0);
+    } else {
+      console.log('\n❌ Gigs fetch FAILED\n');
+      process.exit(1);
+    }
+  } catch (error) {
+    console.error('\n❌ Gigs fetch error:', error.message);
+    process.exit(1);
+  }
+}
+
+checkGigsFetch();
