@@ -64,3 +64,46 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+import { NextRequest, NextResponse } from 'next/server';
+import { requireRole } from '@/lib/rbac';
+import { getDbClient } from '@/lib/db-client';
+import { eventSubmissions, gigs, users } from '@thecueroom/db/schema';
+import { eq, count } from 'drizzle-orm';
+
+export async function GET(request: NextRequest) {
+  const roleCheck = await requireRole(request, ['admin']);
+  if (!roleCheck.authorized) {
+    return roleCheck.error;
+  }
+
+  try {
+    const db = getDbClient();
+
+    const [pendingCount] = await db
+      .select({ count: count() })
+      .from(eventSubmissions)
+      .where(eq(eventSubmissions.status, 'needs_review'));
+
+    const [eventsCount] = await db
+      .select({ count: count() })
+      .from(gigs);
+
+    const [artistsCount] = await db
+      .select({ count: count() })
+      .from(users)
+      .where(eq(users.role, 'artist'));
+
+    return NextResponse.json({
+      pendingSubmissions: pendingCount?.count || 0,
+      totalEvents: eventsCount?.count || 0,
+      totalArtists: artistsCount?.count || 0,
+      recentActivity: [],
+    });
+  } catch (error) {
+    console.error('Admin stats error:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch stats' },
+      { status: 500 }
+    );
+  }
+}

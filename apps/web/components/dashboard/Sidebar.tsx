@@ -27,21 +27,61 @@ interface SidebarProps {
   onToggle: () => void;
 }
 
-const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: Home },
-  { href: '/ai/cover-art', label: 'AI Cover Art', icon: Image },
-  { href: '/ai/meme-studio', label: 'AI Meme', icon: MessageSquare },
-  { href: '/ai/epk-generator', label: 'AI EPK', icon: FileText },
-  { href: '/community/forum', label: 'Community Forum', icon: Users },
-  { href: '/music/weekly', label: 'Weekly Curated Music', icon: Music },
-  { href: '/news', label: 'News', icon: Newspaper },
-  { href: '/gigs/india', label: 'Gigs', icon: Radar },
-];
+import { Plus } from 'lucide-react';
+import { useState, useEffect } from 'react';
+
+const getNavItemsForRole = (role: string) => {
+  const commonItems = [
+    { href: '/dashboard', label: 'Dashboard', icon: Home },
+    { href: '/news', label: 'News', icon: Newspaper },
+    { href: '/gigs/india', label: 'Gigs', icon: Radar },
+  ];
+
+  const artistItems = [
+    { href: '/ai/cover-art', label: 'AI Cover Art', icon: Image },
+    { href: '/ai/meme-studio', label: 'AI Meme', icon: MessageSquare },
+    { href: '/ai/epk-generator', label: 'AI EPK', icon: FileText },
+    { href: '/community/forum', label: 'Community Forum', icon: Users },
+    { href: '/music/weekly', label: 'Weekly Curated Music', icon: Music },
+  ];
+
+  if (role === 'admin') {
+    return [...commonItems, ...artistItems, 
+      { href: '/admin/events', label: 'Review Events', icon: CheckCircle2 },
+      { href: '/admin/sources', label: 'Manage Sources', icon: Settings }
+    ];
+  }
+
+  if (role === 'artist') {
+    return [...commonItems, ...artistItems];
+  }
+
+  return commonItems;
+};
 
 export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const [isMobile, setIsMobile] = useState(false);
   const [expanded, toggleExpanded] = usePersistentToggle('sidebar-expanded', false);
+  const [userRole, setUserRole] = useState<string>('user');
+  const [canSubmit, setCanSubmit] = useState(false);
+
+  useEffect(() => {
+    async function fetchUserRole() {
+      try {
+        const res = await fetch('/api/auth/session');
+        if (res.ok) {
+          const session = await res.json();
+          const role = session.user?.role || 'user';
+          setUserRole(role);
+          setCanSubmit(role === 'admin' || role === 'artist');
+        }
+      } catch (error) {
+        console.error('Failed to fetch user role:', error);
+      }
+    }
+    fetchUserRole();
+  }, []);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -157,7 +197,7 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
             </div>
           )}
           <ul className="space-y-1">
-            {navItems.map((item) => {
+            {getNavItemsForRole(userRole).map((item) => {
               const isActive = pathname === item.href;
 
               return (
@@ -173,6 +213,24 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
                 </li>
               );
             })}
+            
+            {canSubmit && (
+              <li className="pt-2 border-t border-[#1a1a1a]">
+                <button
+                  onClick={() => window.location.href = '/events/submit'}
+                  className={cn(
+                    'w-full flex items-center gap-2 px-2.5 py-2 text-[var(--tcr-accent)]',
+                    'hover:bg-[#1a1a1a]',
+                    'transition-all duration-200 rounded-md',
+                    'min-h-[44px] touch-manipulation',
+                    !expanded && !isMobile && 'justify-center'
+                  )}
+                >
+                  <Plus size={18} />
+                  {(expanded && !isMobile) && <span className="text-xs font-medium">Submit Event</span>}
+                </button>
+              </li>
+            )}
           </ul>
         </nav>
 

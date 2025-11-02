@@ -1,29 +1,25 @@
-
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFileSync, readFileSync, existsSync, mkdirSync, appendFileSync } from 'fs';
-import { join } from 'path';
+import { fetchAllSources, SourceAdapter } from '@thecueroom/feeds/poller-gigs';
+import { deduplicateEvents, enrichWithAI, filterEvents, NormalizedEvent } from '@thecueroom/feeds/normalize';
 import {
   fetchRollingStoneIndia,
-  fetchSortMyScene,
-  fetchDiceIndia,
-  fetchSkillboxIndia,
-  fetchPaytmInsider,
   fetchBookMyShow,
   fetchZomatoLive,
   fetchSwiggyEvents,
+  fetchPaytmInsider,
+  fetchSortMyScene,
+  fetchSkillboxIndia,
+  fetchDiceIndia,
 } from '@thecueroom/feeds/sources';
-import { fetchAllSources, SourceAdapter, FetchError } from '@thecueroom/feeds/poller-gigs';
-import { deduplicateEvents, enrichWithAI, NormalizedEvent } from '@thecueroom/feeds/normalize';
 import { readCache, writeCache } from '@thecueroom/feeds/cache';
+import { getDbClient } from '@/lib/db-client';
+import { gigs } from '@thecueroom/db/schema';
+import { gte } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
-const LOG_DIR = join(process.cwd(), 'logs/feeds');
-const DIAGNOSTICS_FILE = join(LOG_DIR, 'diagnostics.jsonl');
-const DATA_DIR = join(process.cwd(), 'data/gigs');
-const LATEST_FILE = join(DATA_DIR, 'india-latest.json');
 const CACHE_KEY = 'india-gigs-aggregated';
-const CACHE_TTL = parseInt(process.env.FEEDS_CACHE_TTL_SECONDS || '600', 10);
+const CACHE_TTL = parseInt(process.env.FEEDS_CACHE_TTL_SECONDS || '300', 10);
 
 const gigSources: SourceAdapter[] = [
   { name: 'Rolling Stone India', enabled: true, fetch: fetchRollingStoneIndia },
@@ -36,18 +32,41 @@ const gigSources: SourceAdapter[] = [
   { name: 'DICE India', enabled: true, fetch: fetchDiceIndia },
 ];
 
-function writeDiagnostic(entry: any) {
+async function storeEventsInDB(events: NormalizedEvent[]) {
   try {
-    if (!existsSync(LOG_DIR)) {
-      mkdirSync(LOG_DIR, { recursive: true });
+    const db = getDbClient();
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    for (const event of events) {
+      try {
+        await db.insert(gigs).values({
+          title: event.title,
+          description: event.description,
+          venue: event.venue || 'TBA',
+          location: event.city || 'India',
+          city: event.city,
+          startTime: event.startAt ? new Date(event.startAt) : now,
+          endTime: event.endAt ? new Date(event.endAt) : undefined,
+          ticketUrl: event.ticketUrl || event.url,
+          genres: event.genreTags || [],
+          source: event.source,
+          imageUrl: event.imageUrl,
+          approved: true,
+          visibility: 'public',
+          status: 'approved',
+          userId: '00000000-0000-0000-0000-000000000000', // System user
+        }).onConflictDoNothing();
+      } catch (err) {
+        // Ignore duplicate errors
+      }
     }
-    appendFileSync(DIAGNOSTICS_FILE, JSON.stringify({ ...entry, timestamp: Date.now() }) + '\n');
-  } catch (err) {
-    console.error('Failed to write diagnostic:', err);
+
+    console.log(`[DB] Stored ${events.length} events`);
+  } catch (error) {
+    console.error('[DB] Failed to store events:', error);
   }
 }
-
-let isRefreshing = false;
 
 async function fetchAndProcessGigs(concurrency: number) {
   console.log('🇮🇳 Fetching India gigs from all sources...');
@@ -59,77 +78,42 @@ async function fetchAndProcessGigs(concurrency: number) {
   });
 
   const totalDuration = Date.now() - startTime;
-
-  // Log source diagnostics
-  gigSources.forEach(source => {
-    const sourceEvents = allEvents.filter(e => e.source === source.name);
-    const sourceErrors = errors.filter(e => e.source === source.name);
-    
-    writeDiagnostic({
-      source: source.name,
-      method: sourceErrors[0]?.methodAttempted || 'unknown',
-      statusCode: sourceErrors[0]?.code || 'success',
-      itemCount: sourceEvents.length,
-      durationMs: totalDuration,
-      error: sourceErrors[0]?.message || null
-    });
-  });
-
   console.log(`📊 Total: ${allEvents.length} events from sources (${errors.length} errors)`);
 
-  // Normalize date fields - handle both 'date' and 'startAt' fields from sources
-  const normalizedDates = allEvents.map((e: any) => ({
-    ...e,
-    startAt: e.startAt || e.date || e.start_time || e.startDate || new Date().toISOString()
-  }));
+  // Apply Bollywood/pop filtering
+  const filtered = filterEvents(allEvents);
+  console.log(`🎵 After genre filtering: ${filtered.length} events (removed ${allEvents.length - filtered.length} non-electronic events)`);
 
-  // Deduplicate and enrich
-  const deduplicated = deduplicateEvents(normalizedDates);
+  // Normalize and enrich
+  const deduplicated = deduplicateEvents(filtered);
   const enriched = deduplicated.map(enrichWithAI);
 
-  // Filter future events only (relaxed - allow events from last 7 days to future)
+  // Filter future events
   const now = new Date();
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  
+
   const futureEvents = enriched.filter((e: any) => {
     const eventDate = e.startAt ? new Date(e.startAt) : null;
     if (!eventDate || isNaN(eventDate.getTime())) {
-      console.log(`⚠️  Event "${e.title}" has invalid date: ${e.startAt}`);
-      return true; // Include events with invalid dates rather than filtering them out
+      return true;
     }
-    const isValid = eventDate >= sevenDaysAgo;
-    if (!isValid) {
-      console.log(`⏭️  Filtered out past event "${e.title}" (${eventDate.toISOString()})`);
-    }
-    return isValid;
+    return eventDate >= sevenDaysAgo;
   });
-  
-  console.log(`📅 After date filtering: ${futureEvents.length} events (from ${enriched.length} deduplicated)`);
 
-  // Sort by startAt
+  console.log(`📅 After date filtering: ${futureEvents.length} events`);
+
+  // Sort by date
   futureEvents.sort((a, b) => {
     const dateA = a.startAt ? new Date(a.startAt).getTime() : 0;
     const dateB = b.startAt ? new Date(b.startAt).getTime() : 0;
     return dateA - dateB;
   });
 
-  // Normalize to canonical shape
-  const normalizedEvents = futureEvents.map(e => ({
-    id: e.id,
-    title: e.title,
-    start: e.startAt || new Date().toISOString(),
-    end: e.endAt,
-    venue: e.venue,
-    city: e.city,
-    url: e.url,
-    ticketUrl: e.ticketUrl,
-    source: e.source,
-    imageUrl: e.imageUrl,
-    raw: e
-  }));
+  // Store in database
+  await storeEventsInDB(futureEvents);
 
   return {
-    events: normalizedEvents,
+    events: futureEvents,
     errors,
     meta: gigSources.map(s => {
       const sourceEvents = allEvents.filter(e => e.source === s.name);
@@ -137,7 +121,6 @@ async function fetchAndProcessGigs(concurrency: number) {
       return {
         name: s.name,
         items: sourceEvents.length,
-        method: sourceErrors[0]?.methodAttempted || 'success',
         status: sourceErrors.length > 0 ? 'error' : 'ok',
         durationMs: totalDuration
       };
@@ -150,88 +133,26 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const force = searchParams.get('force') === 'true';
 
-    // Fast path: serve from disk cache if exists (temporary workaround)
-    if (!force && existsSync(LATEST_FILE)) {
-      try {
-        const diskData = JSON.parse(readFileSync(LATEST_FILE, 'utf-8'));
-        const cacheAge = Math.floor((Date.now() - diskData.timestamp) / 1000);
-        
-        if (cacheAge < CACHE_TTL) {
-          return NextResponse.json({
-            ok: true,
-            fromCache: true,
-            cacheAgeSeconds: cacheAge,
-            meta: diskData.meta || { totalSources: 0, sources: [] },
-            events: diskData.events || []
-          });
-        }
-      } catch (err) {
-        console.error('Failed to read disk cache:', err);
-      }
-    }
-
-    // Check memory cache
+    // Check cache
     const cached = readCache(CACHE_KEY, CACHE_TTL);
-    
-    // Skip cached data if it's stale OR has no events (avoid serving empty results)
-    const cacheIsUsable = cached && !cached.isStale && Array.isArray(cached.data.events) && cached.data.events.length > 0;
-    
-    // Return cached immediately if fresh and has events
-    if (cacheIsUsable && !force) {
-      const cacheAge = Math.floor((Date.now() - (cached.data.timestamp || Date.now())) / 1000);
 
+    if (cached && !cached.isStale && !force && Array.isArray(cached.data.events) && cached.data.events.length > 0) {
+      const cacheAge = Math.floor((Date.now() - (cached.data.timestamp || Date.now())) / 1000);
       return NextResponse.json({
         ok: true,
         fromCache: true,
         cacheAgeSeconds: cacheAge,
-        meta: {
-          totalSources: cached.data.meta?.sources?.length || 0,
-          sources: cached.data.meta?.sources || []
-        },
+        meta: cached.data.meta || { totalSources: 0, sources: [] },
         events: cached.data.events || []
       });
     }
 
-    // If cache exists but is stale/empty, trigger background refresh but don't return stale data
-    if (cached && cached.isStale && !isRefreshing) {
-        isRefreshing = true;
-        fetchAndProcessGigs(3)
-          .then(({ events, errors, meta }) => {
-            const payload = { events, errors, meta, timestamp: Date.now() };
-            writeCache(CACHE_KEY, payload, CACHE_TTL);
-            
-            // Write to disk atomically
-            if (!existsSync(DATA_DIR)) {
-              mkdirSync(DATA_DIR, { recursive: true });
-            }
-            const tmpFile = join(DATA_DIR, 'india-latest.tmp.json');
-            writeFileSync(tmpFile, JSON.stringify(payload, null, 2));
-            writeFileSync(LATEST_FILE, JSON.stringify(payload, null, 2));
-          })
-          .catch(err => {
-            console.error('[Background Refresh] Failed:', err);
-          })
-          .finally(() => {
-            isRefreshing = false;
-          });
-    }
-
-    // Force refresh or no cache - fetch new data synchronously
+    // Fetch new data
     const concurrency = force ? 4 : parseInt(process.env.POLL_CONCURRENCY || '3', 10);
     const { events, errors, meta } = await fetchAndProcessGigs(concurrency);
 
     const payload = { events, errors, meta, timestamp: Date.now() };
-
-    // Write to cache
     writeCache(CACHE_KEY, payload, CACHE_TTL);
-    
-    // Write to disk atomically
-    if (!existsSync(DATA_DIR)) {
-      mkdirSync(DATA_DIR, { recursive: true });
-    }
-    const tmpFile = join(DATA_DIR, 'india-latest.tmp.json');
-    writeFileSync(tmpFile, JSON.stringify(payload, null, 2));
-    writeFileSync(LATEST_FILE, JSON.stringify(payload, null, 2));
 
     return NextResponse.json({
       ok: true,
@@ -243,11 +164,10 @@ export async function GET(request: NextRequest) {
       },
       events
     });
-    
+
   } catch (error: any) {
     console.error('India gigs critical error:', error);
-    
-    // Try cache fallback on critical error
+
     const cached = readCache(CACHE_KEY);
     if (cached) {
       return NextResponse.json({
@@ -264,14 +184,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       ok: false,
-      fromCache: false,
-      cacheAgeSeconds: null,
-      error: {
-        code: 'CRITICAL_ERROR',
-        message: error.message
-      },
+      error: error.message,
       meta: { totalSources: 0, sources: [] },
       events: []
-    }, { status: 200 });
+    }, { status: 500 });
   }
 }

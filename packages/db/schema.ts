@@ -6,11 +6,13 @@ export const users = pgTable('users', {
   email: text('email').notNull().unique(),
   username: text('username').notNull().unique(),
   passwordHash: text('password_hash'),
-  role: text('role').notNull().default('user'),
+  role: text('role').notNull().default('user'), // 'admin' | 'artist' | 'user'
   verified: boolean('verified').notNull().default(false),
   verificationJobId: uuid('verification_job_id'),
   verificationStatus: text('verification_status').default('pending'),
   verificationNotes: text('verification_notes'),
+  verificationMethod: text('verification_method'), // 'ai' | 'manual' | 'social'
+  verificationMeta: jsonb('verification_meta').$type<any>(),
   lastLoginAt: timestamp('last_login_at'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
@@ -125,16 +127,62 @@ export const gigs = pgTable('gigs', {
   description: text('description'),
   venue: text('venue').notNull(),
   location: text('location').notNull(),
+  city: text('city'),
   lat: text('lat'),
   lng: text('lng'),
   startTime: timestamp('start_time').notNull(),
   endTime: timestamp('end_time'),
+  ticketUrl: text('ticket_url'),
+  genres: jsonb('genres').$type<string[]>().default(sql`'[]'::jsonb`),
+  source: text('source'),
+  imageUrl: text('image_url'),
   isPrivate: boolean('is_private').notNull().default(false),
+  approved: boolean('approved').notNull().default(false),
+  visibility: text('visibility').notNull().default('public'),
   status: text('status').notNull().default('pending'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 }, (table) => ({
   startTimeIdx: index('gigs_start_time_idx').on(table.startTime),
   userIdIdx: index('gigs_user_id_idx').on(table.userId),
+  approvedIdx: index('gigs_approved_idx').on(table.approved),
+}));
+
+export const eventSubmissions = pgTable('event_submissions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  submitterId: uuid('submitter_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  payload: jsonb('payload').$type<any>().notNull(),
+  status: text('status').notNull().default('pending'), // 'pending' | 'auto_approved' | 'rejected' | 'needs_review'
+  aiConfidence: integer('ai_confidence'),
+  adminComment: text('admin_comment'),
+  reviewedBy: uuid('reviewed_by').references(() => users.id),
+  reviewedAt: timestamp('reviewed_at'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  statusIdx: index('event_submissions_status_idx').on(table.status),
+  submitterIdx: index('event_submissions_submitter_idx').on(table.submitterId),
+}));
+
+export const eventAttendees = pgTable('event_attendees', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  eventId: uuid('event_id').notNull().references(() => gigs.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  status: text('status').notNull().default('rsvp'), // 'rsvp' | 'ticketed' | 'attended'
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  eventUserIdx: index('event_attendees_event_user_idx').on(table.eventId, table.userId),
+}));
+
+export const news = pgTable('news', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  title: text('title').notNull(),
+  description: text('description'),
+  imageUrl: text('image_url'),
+  link: text('link').notNull(),
+  source: text('source').notNull(),
+  publishedAt: timestamp('published_at').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  publishedAtIdx: index('news_published_at_idx').on(table.publishedAt),
 }));
 
 export const epks = pgTable('epks', {
