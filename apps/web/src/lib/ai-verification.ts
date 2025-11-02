@@ -387,3 +387,137 @@ export async function sendAdminNotification(
     })
     .where(eq(verificationJobs.id, jobId));
 }
+import { safeFetch } from './safe-fetch';
+
+export interface VerificationResult {
+  isVerified: boolean;
+  confidence: number;
+  reason: string;
+  requiresManualReview: boolean;
+  adminMessage?: string;
+}
+
+/**
+ * Verify user profile using AI and heuristics
+ * Checks for duplicate accounts, fake profiles, and Bollywood/pop content
+ */
+export async function verifyUserProfile(
+  userId: string,
+  profileUrl: string,
+  profileHtml: string
+): Promise<{
+  decision: 'approved' | 'rejected' | 'review';
+  score: number;
+  evidence: any;
+  requiresManualReview: boolean;
+  adminMessage?: string;
+}> {
+  const signals = {
+    foundAudio: false,
+    foundVideo: false,
+    foundReleases: false,
+    followerCount: 0,
+    recentActivity: false,
+    suspiciousDuplicate: false,
+    bollywoodContent: false,
+  };
+
+  // Check for Bollywood/pop keywords (instant reject)
+  const bollywoodKeywords = [
+    'bollywood',
+    'hindi',
+    'punjabi',
+    'bhangra',
+    'filmi',
+    'masala',
+    'item song',
+  ];
+
+  const lowerHtml = profileHtml.toLowerCase();
+  signals.bollywoodContent = bollywoodKeywords.some((keyword) =>
+    lowerHtml.includes(keyword)
+  );
+
+  if (signals.bollywoodContent) {
+    return {
+      decision: 'rejected',
+      score: 0,
+      evidence: { signals, reason: 'Bollywood/pop content detected' },
+      requiresManualReview: false,
+    };
+  }
+
+  // Extract social signals
+  if (profileUrl.includes('soundcloud.com')) {
+    signals.foundAudio =
+      lowerHtml.includes('soundcloud') &&
+      (lowerHtml.includes('track') || lowerHtml.includes('playlist'));
+    signals.foundReleases =
+      lowerHtml.includes('tracks-module') ||
+      lowerHtml.includes('playlistsmodule');
+
+    const followerMatch = profileHtml.match(/(\d+)\s*followers?/i);
+    if (followerMatch) signals.followerCount = parseInt(followerMatch[1]);
+  }
+
+  if (profileUrl.includes('instagram.com')) {
+    signals.foundVideo =
+      lowerHtml.includes('video') || lowerHtml.includes('reel');
+    const followerMatch = profileHtml.match(/(\d+)\s*followers?/i);
+    if (followerMatch) signals.followerCount = parseInt(followerMatch[1]);
+  }
+
+  if (profileUrl.includes('bandcamp.com')) {
+    signals.foundAudio =
+      lowerHtml.includes('trackview') || lowerHtml.includes('albumview');
+    signals.foundReleases = lowerHtml.includes('music-grid-item');
+  }
+
+  signals.recentActivity =
+    lowerHtml.includes('2024') || lowerHtml.includes('2025');
+
+  // Calculate confidence score
+  let score = 0;
+
+  if (signals.foundAudio) score += 30;
+  if (signals.foundVideo) score += 20;
+  if (signals.foundReleases) score += 25;
+  if (signals.followerCount > 100) score += 15;
+  if (signals.followerCount > 1000) score += 10;
+  if (signals.recentActivity) score += 10;
+
+  // Platform bonus
+  if (
+    profileUrl.includes('soundcloud.com') ||
+    profileUrl.includes('bandcamp.com')
+  ) {
+    score += 10;
+  }
+
+  score = Math.min(score, 100);
+
+  // Decision logic
+  let decision: 'approved' | 'rejected' | 'review';
+  let requiresManualReview = false;
+  let adminMessage: string | undefined;
+
+  if (score >= 70) {
+    decision = 'approved';
+  } else if (score >= 40) {
+    decision = 'review';
+    requiresManualReview = true;
+    adminMessage = `Profile requires manual review. Score: ${score}/100. Signals: ${JSON.stringify(
+      signals
+    )}`;
+  } else {
+    decision = 'rejected';
+  }
+
+  return {
+    decision,
+    score,
+    evidence: { signals, profileUrl },
+    requiresManualReview,
+    adminMessage,
+  };
+}

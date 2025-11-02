@@ -91,6 +91,28 @@ async function setup() {
     console.log('   Note: Make sure your news sources are properly configured in data/sources.json');
   }
 
+  // Step 7: Verify verification worker setup
+  console.log('\n🔍 Verifying artist verification worker setup...');
+  const verifyDirSuccess = await runCommand(
+    'mkdir -p /tmp/thecueroom/verify',
+    'Creating verification temp directory'
+  );
+
+  if (!verifyDirSuccess) {
+    console.log('\n⚠️  Could not create verification temp directory');
+  }
+
+  // Step 8: Test database connectivity
+  console.log('\n🔌 Testing database connectivity...');
+  const dbTestSuccess = await runCommand(
+    'tsx -e "import { getDbClient } from \'./packages/db/client\'; getDbClient(); console.log(\'✅ Database connected\')"',
+    'Testing database connection'
+  );
+
+  if (!dbTestSuccess) {
+    console.log('\n⚠️  Database connectivity test failed. Please check your DATABASE_URL');
+  }
+
   console.log('\n═'.repeat(60));
   console.log('✨ Setup complete!\n');
   console.log('Next steps:');
