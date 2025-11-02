@@ -4,10 +4,11 @@ import { users } from '@thecueroom/db/schema';
 import { eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
+import { passwordResets } from '@thecueroom/db/schema';
+
 const RATE_LIMIT_WINDOW = 15 * 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 3;
 const requestMap = new Map<string, { count: number; resetAt: number }>();
-const pendingResets = new Map<string, { token: string; expiresAt: number }>();
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
@@ -24,15 +25,6 @@ function checkRateLimit(ip: string): boolean {
 
   record.count++;
   return true;
-}
-
-function cleanupExpiredTokens() {
-  const now = Date.now();
-  for (const [email, data] of pendingResets.entries()) {
-    if (now > data.expiresAt) {
-      pendingResets.delete(email);
-    }
-  }
 }
 
 export async function POST(request: NextRequest) {
@@ -67,20 +59,23 @@ export async function POST(request: NextRequest) {
       .limit(1);
 
     if (user) {
-      cleanupExpiredTokens();
-
       const resetToken = nanoid(32);
-      const expiresAt = Date.now() + 60 * 60 * 1000;
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-      pendingResets.set(user.email, { token: resetToken, expiresAt });
+      // Store reset token in database
+      await db.insert(passwordResets).values({
+        userId: user.id,
+        token: resetToken,
+        expiresAt,
+        ipAddress: ip,
+      });
 
       console.log(`[Security] Password reset requested for user ID: ${user.id.substring(0, 8)}...`);
-      console.log(`[TODO] Email integration needed - Reset token generated (not logged for security)`);
-      console.log(`[TODO] Send email to: ${user.email.substring(0, 3)}***@${user.email.split('@')[1]}`);
-      console.log(`[TODO] Reset link format: /reset-password?token=<SECURE_TOKEN>`);
-      console.log(`[TODO] Implement email service (Resend, SendGrid, AWS SES, etc.)`);
-      console.log(`[TODO] Add resetToken and resetExpiry columns to users table schema for persistent storage`);
-      console.log(`[TODO] Create /api/auth/reset-password endpoint to validate tokens and update passwords`);
+      if (process.env.NODE_ENV === 'development' || process.env.TEST_MODE === 'true') {
+        console.log(`[DEV] Reset link: /reset-password?token=${resetToken}`);
+      }
+      // TODO: Send email with reset link in production
+      // Example: await sendEmail(user.email, `Reset link: ${process.env.APP_URL}/reset-password?token=${resetToken}`);
     } else {
       console.log(`[Security] Password reset attempt for non-existent email: ${normalizedEmail.substring(0, 3)}***`);
     }
