@@ -14,7 +14,8 @@ import {
   Settings,
   ChevronRight,
   ChevronLeft,
-  X
+  X,
+  Plus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/Logo';
@@ -26,9 +27,6 @@ interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
 }
-
-import { Plus } from 'lucide-react';
-import { useState, useEffect } from 'react';
 
 const getNavItemsForRole = (role: string) => {
   const commonItems = [
