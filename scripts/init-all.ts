@@ -65,8 +65,16 @@ async function main() {
     // Step 5: Run initial ingestion
     await runCommand(
       'tsx scripts/enhanced-ingest.ts',
-      'Step 4/4: Running initial feed ingestion'
+      'Step 4/5: Running initial feed ingestion'
     );
+    
+    // Step 6: Seed test accounts (optional - set TEST_ACCOUNTS=true to enable)
+    if (process.env.TEST_ACCOUNTS === 'true') {
+      await runCommand(
+        'tsx scripts/seed-test-accounts.ts',
+        'Step 5/5: Seeding test accounts'
+      );
+    }
     
     console.log('\n' + '='.repeat(60));
     console.log('✨ Initialization Complete!');
@@ -76,6 +84,9 @@ async function main() {
     console.log('  ✓ News sources seeded');
     console.log('  ✓ Admin user created');
     console.log('  ✓ Initial feeds ingested');
+    if (process.env.TEST_ACCOUNTS === 'true') {
+      console.log('  ✓ Test accounts seeded');
+    }
     console.log('\n🎉 Your thecueRoom instance is ready!\n');
     console.log('🔐 Admin Login:');
     console.log(`   Email: ${process.env.ADMIN_EMAIL || 'dejayillegal@gmail.com'}`);
@@ -83,7 +94,13 @@ async function main() {
     console.log('\n💡 Next steps:');
     console.log('   1. The server is already running');
     console.log('   2. Visit the app in the webview');
-    console.log('   3. Sign in with admin credentials\n');
+    console.log('   3. Sign in with admin credentials');
+    if (process.env.TEST_ACCOUNTS !== 'true') {
+      console.log('\n💡 To seed test accounts:');
+      console.log('   Run: tsx scripts/seed-test-accounts.ts');
+      console.log('   Or: TEST_ACCOUNTS=true tsx scripts/init-all.ts');
+    }
+    console.log('');
     
     process.exit(0);
   } catch (error) {
