@@ -450,3 +450,37 @@ export const auditLogs = pgTable('audit_logs', {
   actionIdx: index('audit_logs_action_idx').on(table.action),
   createdAtIdx: index('audit_logs_created_at_idx').on(table.createdAt),
 }));
+
+export const gigsSettings = pgTable('gigs_settings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  key: text('key').notNull().unique(),
+  value: jsonb('value').$type<any>().notNull(),
+  description: text('description'),
+  updatedBy: uuid('updated_by').references(() => users.id),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const passwordResets = pgTable('password_resets', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  token: text('token').notNull().unique(),
+  expiresAt: timestamp('expires_at').notNull(),
+  used: boolean('used').notNull().default(false),
+  ipAddress: text('ip_address'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  tokenIdx: index('password_resets_token_idx').on(table.token),
+  userIdIdx: index('password_resets_user_id_idx').on(table.userId),
+}));
+
+export const loginAttempts = pgTable('login_attempts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  identifier: text('identifier').notNull(), // email or IP
+  attempts: integer('attempts').notNull().default(1),
+  lastAttemptAt: timestamp('last_attempt_at').notNull().defaultNow(),
+  blockedUntil: timestamp('blocked_until'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  identifierIdx: index('login_attempts_identifier_idx').on(table.identifier),
+}));
