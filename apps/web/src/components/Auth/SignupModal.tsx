@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { useState, useEffect, useCallback } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Mail, Info } from 'lucide-react';
-import VerificationModal from '@/src/components/Auth/VerificationModal';
+import { CheckCircle2, XCircle, Loader2, RefreshCw, Mail, Info } from 'lucide-react';
+import { VerificationModal } from '../Auth/VerificationModal';
 import { useRouter } from 'next/navigation';
 
 interface SignupModalProps {
@@ -14,14 +14,32 @@ interface SignupModalProps {
   onClose: () => void;
 }
 
-type ActiveTab = 'signin' | 'signup' | 'forgot';
+interface AvailabilityStatus {
+  checking: boolean;
+  available: boolean | null;
+  reason?: string;
+}
 
 const PASSWORD_MIN_LENGTH = 10;
 
+// Placeholder for AvailabilityIndicator component
+const AvailabilityIndicator = ({ status }: { status: AvailabilityStatus }) => {
+  if (status.checking) {
+    return <Loader2 className="h-4 w-4 animate-spin text-gray-400" />;
+  }
+  if (status.available === true) {
+    return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+  }
+  if (status.available === false) {
+    return <XCircle className="h-4 w-4 text-red-500" />;
+  }
+  return null;
+};
+
 export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<ActiveTab>('signin');
-  
+  const [activeTab, setActiveTab] = useState<'signin' | 'signup' | 'forgot'>('signin');
+
   // Form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,17 +47,29 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Sign up additional fields
+  const [isArtist, setIsArtist] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [artistName, setArtistName] = useState('');
   const [region, setRegion] = useState('');
   const [genre, setGenre] = useState('');
+  const [socialProfileUrl, setSocialProfileUrl] = useState('');
+  const [socialLinks, setSocialLinks] = useState<string[]>(['']);
+
+  // Username generation
+  const [generatedUsernames, setGeneratedUsernames] = useState<string[]>([]);
+  const [selectedUsername, setSelectedUsername] = useState('');
+
+  // Availability status
+  const [emailStatus, setEmailStatus] = useState<AvailabilityStatus>({ checking: false, available: null });
+  const [artistNameStatus, setArtistNameStatus] = useState<AvailabilityStatus>({ checking: false, available: null });
 
   // Verification state
   const [verificationJobId, setVerificationJobId] = useState<string | null>(null);
-  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
 
   // Reset form when modal closes or tab changes
   useEffect(() => {
@@ -62,19 +92,27 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
     setArtistName('');
     setRegion('');
     setGenre('');
+    setSocialProfileUrl('');
+    setSocialLinks(['']);
+    setGeneratedUsernames([]);
+    setSelectedUsername('');
+    setEmailStatus({ checking: false, available: null });
+    setArtistNameStatus({ checking: false, available: null });
     setError('');
     setSuccess('');
     setIsLoading(false);
+    setIsSubmitting(false);
     setActiveTab('signin');
     setVerificationJobId(null);
-    setShowVerificationModal(false);
+    setShowVerification(false);
+    setIsArtist(false);
   };
 
   const validatePassword = (pwd: string): string | null => {
     if (pwd.length < PASSWORD_MIN_LENGTH) {
       return `Password must be at least ${PASSWORD_MIN_LENGTH} characters`;
     }
-    if (!/[0-9!@#$%^&*(),.?":{}|<>_\-+=]/.test(pwd)) {
+    if (!/[0-9!@#$%^&*]/.test(pwd)) {
       return 'Password must include a number or special character';
     }
     return null;
@@ -84,6 +122,153 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
     const clean = name.toLowerCase().replace(/[^a-z0-9]/g, '');
     const random = Math.floor(Math.random() * 9999);
     return `${clean}${random}`;
+  };
+
+  const generateUsernames = useCallback(async () => {
+    if (!artistName) return;
+    const newNames = Array.from({ length: 3 }, () => generateUsername(artistName));
+    setGeneratedUsernames(newNames);
+    setSelectedUsername(newNames[0]); // Auto-select the first one
+  }, [artistName]);
+
+  // Debounced availability check
+  useEffect(() => {
+    if (!email) {
+      setEmailStatus({ checking: false, available: null });
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setEmailStatus({ checking: true, available: null });
+      try {
+        const res = await fetch('/api/auth/check-availability', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'email', value: email }),
+        });
+        const data = await res.json();
+        setEmailStatus({
+          checking: false,
+          available: data.available,
+          reason: data.reason,
+        });
+      } catch {
+        setEmailStatus({ checking: false, available: null });
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [email]);
+
+  useEffect(() => {
+    if (!artistName || !isArtist) {
+      setArtistNameStatus({ checking: false, available: null });
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setArtistNameStatus({ checking: true, available: null });
+      try {
+        const res = await fetch('/api/auth/check-availability', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'artist', value: artistName }),
+        });
+        const data = await res.json();
+        setArtistNameStatus({
+          checking: false,
+          available: data.available,
+          reason: data.reason,
+        });
+      } catch {
+        setArtistNameStatus({ checking: false, available: null });
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [artistName, isArtist]);
+
+  useEffect(() => {
+    if (isArtist && artistName) {
+      generateUsernames();
+    } else {
+      setGeneratedUsernames([]);
+      setSelectedUsername('');
+    }
+  }, [isArtist, artistName, generateUsernames]);
+
+  // Form validation
+  const validateForm = (): boolean => {
+    if (!firstName || !lastName || !email || !password || !confirmPassword) {
+      setError('All fields marked with * are required');
+      return false;
+    }
+
+    if (isArtist) {
+      if (!artistName || !region || !genre || !socialProfileUrl) {
+        setError('All artist fields are required');
+        return false;
+      }
+
+      // Validate social profile URL
+      const allowedDomains = ['soundcloud.com', 'bandcamp.com', 'instagram.com', 'mixcloud.com', 'spotify.com'];
+      try {
+        const url = new URL(socialProfileUrl);
+        const isAllowed = allowedDomains.some(domain => url.hostname.includes(domain));
+        if (!isAllowed) {
+          setError('Social profile must be from SoundCloud, Bandcamp, Instagram, Mixcloud, or Spotify');
+          return false;
+        }
+      } catch {
+        setError('Invalid social profile URL');
+        return false;
+      }
+
+      if (!artistNameStatus.available) {
+        setError('Artist name is not available');
+        return false;
+      }
+    }
+
+    if (password.length < PASSWORD_MIN_LENGTH) {
+      setError(`Password must be at least ${PASSWORD_MIN_LENGTH} characters`);
+      return false;
+    }
+
+    if (!/[0-9!@#$%^&*]/.test(password)) {
+      setError('Password must include a number or symbol');
+      return false;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return false;
+    }
+
+    if (!emailStatus.available) {
+      setError('Email is not available');
+      return false;
+    }
+
+    return true;
+  };
+
+  // Social links handlers
+  const updateSocialLink = (index: number, value: string) => {
+    const newLinks = [...socialLinks];
+    newLinks[index] = value;
+    setSocialLinks(newLinks);
+  };
+
+  const addSocialLink = () => {
+    if (socialLinks.length < 5) {
+      setSocialLinks([...socialLinks, '']);
+    }
+  };
+
+  const removeSocialLink = (index: number) => {
+    const newLinks = socialLinks.filter((_, i) => i !== index);
+    setSocialLinks(newLinks);
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -124,59 +309,57 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true);
+
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
 
     try {
-      // Validation
-      if (!email || !password || !firstName || !lastName || !artistName || !region || !genre) {
-        setError('Please fill in all required fields');
-        return;
+      const validSocialLinks = socialLinks.filter(link => link.trim() !== '');
+
+      const payload: any = {
+        firstName,
+        lastName,
+        email,
+        password,
+        confirmPassword,
+        isArtist,
+      };
+
+      if (isArtist) {
+        payload.artistName = artistName;
+        payload.username = selectedUsername;
+        payload.region = region;
+        payload.genre = genre;
+        payload.socialProfileUrl = socialProfileUrl;
+        payload.profileUrl = socialProfileUrl;
+        payload.socialLinks = validSocialLinks;
       }
 
-      const passwordError = validatePassword(password);
-      if (passwordError) {
-        setError(passwordError);
-        return;
-      }
-
-      if (password !== confirmPassword) {
-        setError('Passwords do not match');
-        return;
-      }
-
-      const username = generateUsername(artistName);
-
-      const response = await fetch('/api/auth/signup', {
+      const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          artistName,
-          email,
-          password,
-          username,
-          region,
-          genre,
-          socialLinks: [],
-        }),
+        body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (!response.ok) {
-        setError(data.error || 'Failed to create account');
+      if (!data.ok) {
+        setError(data.error || 'Signup failed');
+        setIsSubmitting(false);
         return;
       }
 
-      // Show verification modal
-      setVerificationJobId(data.jobId);
-      setShowVerificationModal(true);
+      // Show verification modal if artist
+      if (isArtist && data.jobId) {
+        setVerificationJobId(data.jobId);
+        setShowVerification(true);
+      }
+
+      onClose();
     } catch (err) {
-      console.error('Sign up error:', err);
       setError('An error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -224,9 +407,11 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-[820px] bg-black border border-[#2a2a2a] text-white p-0 gap-0 overflow-hidden">
-          <DialogTitle className="sr-only">
-            {activeTab === 'signin' ? 'Sign In' : activeTab === 'signup' ? 'Sign Up' : 'Forgot Password'}
-          </DialogTitle>
+          <DialogHeader>
+            <DialogTitle className="sr-only">
+              {activeTab === 'signin' ? 'Sign In' : activeTab === 'signup' ? 'Sign Up' : 'Forgot Password'}
+            </DialogTitle>
+          </DialogHeader>
           <div className="grid grid-cols-[1fr_340px]">
             {/* Left Column - Auth Forms */}
             <div className="p-8">
@@ -397,92 +582,238 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
               {activeTab === 'signup' && (
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm text-gray-400">First Name *</Label>
+                    <div>
+                      <Label htmlFor="firstName" className="text-lime-400">First Name *</Label>
                       <Input
+                        id="firstName"
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
-                        disabled={isLoading}
+                        className="bg-gray-900 border-gray-700 text-white"
+                        required
+                        aria-required="true"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm text-gray-400">Last Name *</Label>
+
+                    <div>
+                      <Label htmlFor="lastName" className="text-lime-400">Last Name *</Label>
                       <Input
+                        id="lastName"
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
-                        disabled={isLoading}
+                        className="bg-gray-900 border-gray-700 text-white"
+                        required
+                        aria-required="true"
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-sm text-gray-400">Artist Name *</Label>
-                    <Input
-                      value={artistName}
-                      onChange={(e) => setArtistName(e.target.value)}
-                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
-                      disabled={isLoading}
+                  <div className="flex items-center gap-2 p-3 bg-gray-900/50 rounded border border-gray-700">
+                    <input
+                      id="artist-checkbox"
+                      type="checkbox"
+                      checked={isArtist}
+                      onChange={(e) => setIsArtist(e.target.checked)}
+                      className="w-4 h-4 accent-lime-400"
                     />
+                    <Label htmlFor="artist-checkbox" className="text-lime-400 cursor-pointer">
+                      Artist sign up — verify my artist profile
+                    </Label>
                   </div>
 
+                  {isArtist && (
+                    <div className="text-xs text-gray-400 bg-blue-500/10 border border-blue-500/20 rounded p-2">
+                      ℹ️ Artist signups start an AI verification job — allow a few minutes for processing.
+                    </div>
+                  )}
+
+                  {isArtist && (
+                    <div>
+                      <Label htmlFor="artistName" className="text-lime-400">Artist / Project Name *</Label>
+                      <div className="relative">
+                        <Input
+                          id="artistName"
+                          value={artistName}
+                          onChange={(e) => setArtistName(e.target.value)}
+                          className="bg-gray-900 border-gray-700 text-white pr-10"
+                          required={isArtist}
+                          aria-required={isArtist ? 'true' : 'false'}
+                        />
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2" id="artistName-status">
+                          <AvailabilityIndicator status={artistNameStatus} />
+                        </div>
+                      </div>
+                      {artistNameStatus.reason && (
+                        <p className="text-sm text-red-400 mt-1">{artistNameStatus.reason}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {isArtist && generatedUsernames.length > 0 && (
+                    <div>
+                      <Label className="text-lime-400">Auto-Generated Username</Label>
+                      <div className="flex gap-2 mt-1">
+                        {generatedUsernames.map((username, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setSelectedUsername(username)}
+                            className={`px-3 py-2 rounded border text-sm ${
+                              selectedUsername === username
+                                ? 'bg-lime-400/20 border-lime-400 text-lime-400'
+                                : 'bg-gray-900 border-gray-700 text-gray-300'
+                            }`}
+                          >
+                            {username}
+                          </button>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={generateUsernames}
+                          className="px-3 py-2 rounded border border-gray-700 text-gray-300 hover:bg-gray-800"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {isArtist && (
+                    <div>
+                      <Label htmlFor="socialProfileUrl" className="text-lime-400">Public Social Profile *</Label>
+                      <Input
+                        id="socialProfileUrl"
+                        type="url"
+                        value={socialProfileUrl}
+                        onChange={(e) => setSocialProfileUrl(e.target.value)}
+                        className="bg-gray-900 border-gray-700 text-white"
+                        placeholder="https://soundcloud.com/yourname"
+                        required={isArtist}
+                        aria-required={isArtist ? 'true' : 'false'}
+                      />
+                      <p className="text-xs text-gray-400 mt-1">
+                        SoundCloud, Bandcamp, Instagram, Mixcloud, or Spotify
+                      </p>
+                    </div>
+                  )}
+
                   <div className="space-y-2">
-                    <Label className="text-sm text-gray-400">Email *</Label>
-                    <Input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
-                      disabled={isLoading}
-                    />
+                    <Label htmlFor="signup-email" className="text-sm text-gray-400">Email *</Label>
+                    <div className="relative">
+                      <Input
+                        id="signup-email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="your@email.com"
+                        className="bg-gray-900 border-gray-700 text-white pr-10 h-11"
+                        required
+                        aria-required="true"
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <AvailabilityIndicator status={emailStatus} />
+                      </div>
+                    </div>
+                    {emailStatus.reason && (
+                      <p className="text-sm text-red-400 mt-1">{emailStatus.reason}</p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm text-gray-400">Password *</Label>
+                    <div>
+                      <Label htmlFor="password" className="text-sm text-gray-400">Password *</Label>
                       <Input
+                        id="password"
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
-                        disabled={isLoading}
+                        placeholder="••••••••••"
+                        className="bg-gray-900 border-gray-700 text-white h-11"
+                        required
+                        aria-required="true"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm text-gray-400">Confirm Password *</Label>
+                    <div>
+                      <Label htmlFor="confirmPassword" className="text-sm text-gray-400">Confirm Password *</Label>
                       <Input
+                        id="confirmPassword"
                         type="password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
-                        disabled={isLoading}
+                        placeholder="••••••••••"
+                        className="bg-gray-900 border-gray-700 text-white h-11"
+                        required
+                        aria-required="true"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm text-gray-400">Region *</Label>
-                      <Input
-                        value={region}
-                        onChange={(e) => setRegion(e.target.value)}
-                        placeholder="e.g. Berlin, EU"
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
-                        disabled={isLoading}
-                      />
+                  {isArtist && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="region" className="text-lime-400">Region *</Label>
+                        <Input
+                          id="region"
+                          value={region}
+                          onChange={(e) => setRegion(e.target.value)}
+                          maxLength={60}
+                          className="bg-gray-900 border-gray-700 text-white"
+                          placeholder="e.g., London, UK"
+                          required={isArtist}
+                          aria-required={isArtist ? 'true' : 'false'}
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="genre" className="text-lime-400">Primary Genre *</Label>
+                        <Input
+                          id="genre"
+                          value={genre}
+                          onChange={(e) => setGenre(e.target.value)}
+                          maxLength={120}
+                          className="bg-gray-900 border-gray-700 text-white"
+                          placeholder="e.g., Techno, House"
+                          required={isArtist}
+                          aria-required={isArtist ? 'true' : 'false'}
+                        />
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm text-gray-400">Genre *</Label>
-                      <Input
-                        value={genre}
-                        onChange={(e) => setGenre(e.target.value)}
-                        placeholder="e.g. Techno, House"
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
-                        disabled={isLoading}
-                      />
+                  )}
+
+                  {isArtist && (
+                    <div>
+                      <Label className="text-lime-400">Additional Social Links (Optional, max 5)</Label>
+                      {socialLinks.map((link, idx) => (
+                        <div key={idx} className="flex gap-2 mt-2">
+                          <Input
+                            value={link}
+                            onChange={(e) => updateSocialLink(idx, e.target.value)}
+                            className="bg-gray-900 border-gray-700 text-white"
+                            placeholder="https://instagram.com/yourname"
+                          />
+                          {idx > 0 && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => removeSocialLink(idx)}
+                              className="border-gray-700"
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                      {socialLinks.length < 5 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={addSocialLink}
+                          className="mt-2 border-lime-400/50 text-lime-400"
+                        >
+                          + Add Link
+                        </Button>
+                      )}
                     </div>
-                  </div>
+                  )}
 
                   {error && (
                     <div className="p-3 bg-red-500/10 border border-red-500/20 rounded text-sm text-red-400">
@@ -493,16 +824,16 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
                   <div className="flex gap-3 pt-2">
                     <Button
                       type="submit"
-                      disabled={isLoading}
-                      className="bg-[#D7FF3C] text-black hover:bg-[#c5ed2a] font-semibold h-11 px-8"
+                      disabled={isSubmitting || !emailStatus.available || (isArtist && !artistNameStatus.available)}
+                      className="w-full bg-lime-400 text-black hover:bg-lime-500 disabled:opacity-50"
                     >
-                      {isLoading ? (
+                      {isSubmitting ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Creating...
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Creating Account...
                         </>
                       ) : (
-                        'Continue'
+                        isArtist ? 'Sign Up as Artist' : 'Sign Up'
                       )}
                     </Button>
                     <Button
@@ -510,7 +841,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
                       onClick={onClose}
                       variant="outline"
                       className="border-[#2a2a2a] bg-transparent text-white hover:bg-[#1a1a1a] h-11 px-8"
-                      disabled={isLoading}
+                      disabled={isSubmitting}
                     >
                       Cancel
                     </Button>
@@ -581,7 +912,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
               <p className="text-sm text-gray-400 mb-6">
                 Invite-first platform. Approved members get access to the gated dashboard.
               </p>
-              
+
               <ul className="space-y-3 text-sm">
                 <li className="flex items-start gap-2">
                   <span className="text-[#D7FF3C] mt-1">■</span>
@@ -611,11 +942,11 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
 
       {verificationJobId && (
         <VerificationModal
-          open={showVerificationModal}
-          onOpenChange={setShowVerificationModal}
+          open={showVerification}
+          onOpenChange={setShowVerification}
           jobId={verificationJobId}
           onComplete={() => {
-            setShowVerificationModal(false);
+            setShowVerification(false);
             router.push('/dashboard');
             router.refresh();
           }}

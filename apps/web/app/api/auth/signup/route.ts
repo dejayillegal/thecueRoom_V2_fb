@@ -22,13 +22,14 @@ const signupSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(10, 'Password must be at least 10 characters').regex(/[0-9!@#$%^&*(),.?":{}|<>_\-+=]/, 'Password must include a number or special character'),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
-  username: z.string().min(3, 'Username must be at least 3 characters').max(50),
+  username: z.string().min(3, 'Username must be at least 3 characters').max(50).optional(),
   isArtist: z.boolean().default(false),
   // Artist-specific fields (required only if isArtist is true)
   artistName: z.string().min(2).max(100).optional(),
   region: z.string().min(1).max(60).optional(),
   genre: z.string().min(1).max(120).optional(),
   profileUrl: z.string().url().optional(),
+  socialProfileUrl: z.string().url().optional(),
   bio: z.string().max(500).optional(),
   socialLinks: z.array(z.string().url()).max(5).default([]),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -37,7 +38,7 @@ const signupSchema = z.object({
 }).refine((data) => {
   // If isArtist is true, require artist fields
   if (data.isArtist) {
-    return !!(data.artistName && data.region && data.genre && data.profileUrl);
+    return !!(data.artistName && data.region && data.genre && (data.profileUrl || data.socialProfileUrl));
   }
   return true;
 }, {
@@ -51,15 +52,16 @@ export async function POST(request: NextRequest) {
     const validatedData = signupSchema.parse(body);
 
     // Validate profile URL domain (only for artists)
-    if (validatedData.isArtist && validatedData.profileUrl) {
-      const profileUrlObj = new URL(validatedData.profileUrl);
+    const profileUrl = validatedData.socialProfileUrl || validatedData.profileUrl;
+    if (validatedData.isArtist && profileUrl) {
+      const profileUrlObj = new URL(profileUrl);
       const isAllowedDomain = ALLOWED_PROFILE_DOMAINS.some(domain => 
         profileUrlObj.hostname.includes(domain)
       );
       
       if (!isAllowedDomain) {
         return NextResponse.json(
-          { ok: false, error: 'Profile URL must be from a recognized music platform' },
+          { ok: false, error: 'Profile URL must be from SoundCloud, Bandcamp, Instagram, Mixcloud, or Spotify' },
           { status: 400 }
         );
       }
@@ -81,18 +83,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if username already exists
-    const existingUsername = await db
-      .select()
-      .from(users)
-      .where(eq(users.username, validatedData.username.toLowerCase()))
-      .limit(1);
+    // Generate username for non-artists or use provided username for artists
+    let finalUsername = validatedData.username;
+    if (!validatedData.isArtist) {
+      // Generate username from email for non-artists
+      const emailPrefix = validatedData.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+      const randomSuffix = Math.random().toString(36).substring(2, 6);
+      finalUsername = `${emailPrefix}_${randomSuffix}`;
+    }
 
-    if (existingUsername.length > 0) {
-      return NextResponse.json(
-        { ok: false, error: 'Username already taken' },
-        { status: 400 }
-      );
+    // Check if username already exists
+    if (finalUsername) {
+      const existingUsername = await db
+        .select()
+        .from(users)
+        .where(eq(users.username, finalUsername.toLowerCase()))
+        .limit(1);
+
+      if (existingUsername.length > 0) {
+        return NextResponse.json(
+          { ok: false, error: 'Username already taken' },
+          { status: 400 }
+        );
+      }
     }
 
     // Check for duplicate profile URLs (only for artists)
@@ -119,11 +132,11 @@ export async function POST(request: NextRequest) {
       .insert(users)
       .values({
         email: validatedData.email.toLowerCase(),
-        username: validatedData.username.toLowerCase(),
+        username: finalUsername?.toLowerCase() || validatedData.email.toLowerCase(),
         passwordHash: hashedPassword,
         role: validatedData.isArtist ? 'artist' : 'user',
         verified: false,
-        verificationStatus: validatedData.isArtist ? 'pending' : null,
+        verificationStatus: validatedData.isArtist ? 'verification_pending' : 'active',
       })
       .returning();
 
@@ -133,6 +146,8 @@ export async function POST(request: NextRequest) {
       return acc;
     }, {} as Record<string, string>);
 
+    const finalProfileUrl = validatedData.socialProfileUrl || validatedData.profileUrl;
+
     await db.insert(profiles).values({
       userId: newUser.id,
       firstName: validatedData.firstName,
@@ -140,25 +155,25 @@ export async function POST(request: NextRequest) {
       artistName: validatedData.isArtist ? validatedData.artistName : null,
       region: validatedData.region || null,
       genre: validatedData.genre || null,
-      socialProfileUrl: validatedData.isArtist ? validatedData.profileUrl : null,
+      socialProfileUrl: validatedData.isArtist ? finalProfileUrl : null,
       socialLinks: socialLinksObj,
       bio: validatedData.bio || null,
     });
 
     // Create verification job for AI-based profile verification (only for artists)
-    let jobId: string | null = null;
-    if (validatedData.isArtist && validatedData.profileUrl) {
+    let verificationJobId: string | null = null;
+    if (validatedData.isArtist && finalProfileUrl) {
       const [job] = await db
         .insert(verificationJobs)
         .values({
           userId: newUser.id,
-          profileUrl: validatedData.profileUrl,
+          profileUrl: finalProfileUrl,
           status: 'queued',
           progress: 0,
         })
         .returning();
       
-      jobId = job.id;
+      verificationJobId = job.id;
       
       // Update user with verification job ID
       await db.update(users)
@@ -169,7 +184,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       ok: true,
       userId: newUser.id,
-      jobId,
+      jobId: verificationJobId,
+      verificationJobId,
       role: newUser.role,
       message: validatedData.isArtist 
         ? 'Artist account created. Your profile is being verified.'
