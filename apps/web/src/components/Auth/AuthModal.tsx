@@ -462,10 +462,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">
-                      Use a strong password.
-                    </span>
+                  <div className="flex items-center justify-end text-sm">
                     <button
                       type="button"
                       onClick={() => setActiveTab("forgot")}
