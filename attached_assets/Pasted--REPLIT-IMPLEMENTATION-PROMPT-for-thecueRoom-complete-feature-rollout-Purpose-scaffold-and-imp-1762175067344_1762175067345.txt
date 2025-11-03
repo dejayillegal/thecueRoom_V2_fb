@@ -1,0 +1,609 @@
+# REPLIT IMPLEMENTATION PROMPT for thecueRoom (complete feature rollout)
+# Purpose: scaffold and implement Artist/User signup, Spotlight, AI Cover Art/Meme/EPK (EXPORT working),
+# advanced Community Forum, fast News feeds, Weekly Playlists embed, AI Event Submission + Ticket generation + scanning, realtime likes/views, notifications, admin workflows, UI changes.
+#
+# Pre-reqs: Node 20+, pnpm or yarn, Rust (for some native libs optional), Supabase account, OpenAI API key (or other LLM), GitHub repo linked.
+# Stack: Next.js (App Router) + Tailwind + shadcn/ui (web), Expo RN (mobile), Supabase (Auth, DB, Storage, Realtime), Drizzle ORM, Zod, Playwright/Vitest/Cypress for tests.
+# DO NOT use Firebase. Use .env.example for secrets.
+
+# 0) Create workspace and clone repo (or use existing). Replace <REPO> with your repo URL if needed.
+git clone https://github.com/dejayillegal/thecueRoom_V2_fb.git thecueRoom_working
+cd thecueRoom_working
+
+# 1) Install base deps for web server & backend (Next + Supabase + Drizzle + Zod)
+# Using pnpm (recommended)
+pnpm install
+pnpm add next react react-dom tailwindcss @supabase/supabase-js drizzle-orm pg zod axios qrcode jsonwebtoken nodemailer sharp playwright puppeteer @vercel/og
+
+# 1b) Add server-side libs for PDFs, QR, and image processing
+pnpm add pdf-lib jsdom canvas html-pdf-node form-data
+# (If you prefer Puppeteer for PDF rendering: `pnpm add puppeteer` — but Puppeteer may need extra hosting resources.)
+
+# 2) Create .env.example (DO NOT store secrets in repo). Add these keys EXACTLY:
+cat > .env.example <<'EOF'
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=anon-key
+SUPABASE_SERVICE_ROLE_KEY=service-role-key
+OPENAI_API_KEY=sk-...
+NEXT_PUBLIC_APP_URL=https://app.yourdomain.com
+JWT_SECRET=your_jwt_secret_here
+EMAIL_SMTP_HOST=smtp.example.com
+EMAIL_SMTP_PORT=587
+EMAIL_SMTP_USER=example
+EMAIL_SMTP_PASS=secret
+STRIPE_SECRET_KEY=sk_test_...
+EOF
+
+# 3) Database: create new migration SQL file for required tables (use Supabase SQL editor OR Drizzle migrations).
+# Save as migrations/20251103_initial.sql (adapt dates)
+mkdir -p migrations
+cat > migrations/20251103_initial.sql <<'SQL'
+-- Users (use Supabase Auth as primary, this table stores extended profile)
+CREATE TABLE profiles (
+  id uuid PRIMARY KEY REFERENCES auth.users(id),
+  display_name text NOT NULL,
+  slug text UNIQUE,
+  bio text,
+  is_artist boolean DEFAULT false,
+  artist_verified boolean DEFAULT false,
+  spotlight boolean DEFAULT false,
+  avatar_path text,
+  socials jsonb DEFAULT '{}',
+  created_at timestamptz DEFAULT now()
+);
+
+-- Artists spotlight (additional metadata)
+CREATE TABLE artist_spotlight (
+  id bigserial PRIMARY KEY,
+  profile_id uuid REFERENCES profiles(id) ON DELETE CASCADE,
+  featured_until timestamptz,
+  weight integer DEFAULT 1,
+  created_at timestamptz DEFAULT now()
+);
+
+-- News
+CREATE TABLE news (
+  id bigserial PRIMARY KEY,
+  title text NOT NULL,
+  content text NOT NULL,
+  source text,
+  url text,
+  tags text[],
+  published_at timestamptz,
+  created_at timestamptz DEFAULT now()
+);
+
+-- Playlists / Tracks
+CREATE TABLE playlists (
+  id bigserial PRIMARY KEY,
+  title text,
+  description text,
+  curator_id uuid REFERENCES profiles(id),
+  platform text, -- spotify, soundcloud, beatport, mixcloud, bandcamp, youtube_music
+  platform_id text,
+  embed_url text,
+  created_at timestamptz DEFAULT now()
+);
+
+-- Forum
+CREATE TABLE forums (
+  id bigserial PRIMARY KEY,
+  title text NOT NULL,
+  description text,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE forum_threads (
+  id bigserial PRIMARY KEY,
+  forum_id bigint REFERENCES forums(id) ON DELETE CASCADE,
+  author_id uuid REFERENCES profiles(id),
+  title text NOT NULL,
+  body text,
+  pinned boolean DEFAULT false,
+  locked boolean DEFAULT false,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz
+);
+
+CREATE TABLE forum_posts (
+  id bigserial PRIMARY KEY,
+  thread_id bigint REFERENCES forum_threads(id) ON DELETE CASCADE,
+  author_id uuid REFERENCES profiles(id),
+  body text,
+  attachments jsonb DEFAULT '[]', -- store image keys
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE reactions (
+  id bigserial PRIMARY KEY,
+  target_type text NOT NULL, -- 'thread'|'post'|'profile'|'epk'|'meme'
+  target_id bigint NOT NULL,
+  user_id uuid REFERENCES profiles(id),
+  reaction text, -- 'like'
+  created_at timestamptz DEFAULT now(),
+  UNIQUE (target_type, target_id, user_id)
+);
+
+CREATE TABLE views (
+  id bigserial PRIMARY KEY,
+  target_type text NOT NULL,
+  target_id bigint NOT NULL,
+  user_id uuid,
+  created_at timestamptz DEFAULT now()
+);
+
+-- Events + Tickets + RSVPs
+CREATE TABLE events (
+  id bigserial PRIMARY KEY,
+  title text NOT NULL,
+  organizer_id uuid REFERENCES profiles(id),
+  description text,
+  start_time timestamptz,
+  end_time timestamptz,
+  venue jsonb,
+  flyer_path text,
+  ticketing jsonb DEFAULT '{}', -- contains ticket types, external_url etc
+  auto_approved boolean DEFAULT false,
+  approved boolean DEFAULT false,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE tickets (
+  id bigserial PRIMARY KEY,
+  event_id bigint REFERENCES events(id) ON DELETE CASCADE,
+  ticket_type text,
+  price numeric DEFAULT 0,
+  stock integer DEFAULT 0,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE rsvps (
+  id bigserial PRIMARY KEY,
+  event_id bigint REFERENCES events(id),
+  user_id uuid REFERENCES profiles(id),
+  ticket_id bigint REFERENCES tickets(id),
+  qr_code text, -- store QR image path or data URI
+  created_at timestamptz DEFAULT now()
+);
+
+-- AI tasks (cover art / EPK / meme jobs)
+CREATE TABLE ai_jobs (
+  id bigserial PRIMARY KEY,
+  owner_id uuid REFERENCES profiles(id),
+  type text NOT NULL, -- 'cover', 'epk', 'meme'
+  input jsonb,
+  result_path text,
+  status text DEFAULT 'queued', -- queued, running, done, failed
+  created_at timestamptz DEFAULT now()
+);
+
+-- Notifications
+CREATE TABLE notifications (
+  id bigserial PRIMARY KEY,
+  user_id uuid REFERENCES profiles(id),
+  payload jsonb,
+  read boolean DEFAULT false,
+  created_at timestamptz DEFAULT now()
+);
+SQL
+
+# 4) Drizzle schema + Zod types (create files)
+mkdir -p packages/db
+cat > packages/db/schema.ts <<'TS'
+// FILE: packages/db/schema.ts
+import { pgTable, serial, text, integer, boolean, timestamptz, uuid, jsonb } from 'drizzle-orm/pg-core';
+
+export const profiles = pgTable('profiles', {
+  id: uuid('id').primaryKey(),
+  display_name: text('display_name').notNull(),
+  slug: text('slug'),
+  bio: text('bio'),
+  is_artist: boolean('is_artist').default(false),
+  artist_verified: boolean('artist_verified').default(false),
+  spotlight: boolean('spotlight').default(false),
+  avatar_path: text('avatar_path'),
+  socials: jsonb('socials'),
+  created_at: timestamptz('created_at').defaultNow(),
+});
+
+// ... add other tables similarly; this file should mirror SQL above.
+export const news = pgTable('news', {
+  id: serial('id').primaryKey(),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  source: text('source'),
+  url: text('url'),
+  tags: jsonb('tags'),
+  published_at: timestamptz('published_at'),
+  created_at: timestamptz('created_at').defaultNow(),
+});
+/* Continue for events, tickets, rsvps, forums, threads, posts, ai_jobs, notifications */
+TS
+
+cat > packages/shared/schemas.ts <<'TS'
+// FILE: packages/shared/schemas.ts
+import { z } from 'zod';
+
+/* Profile */
+export const ProfileCreate = z.object({
+  display_name: z.string().min(2),
+  bio: z.string().optional(),
+  is_artist: z.boolean().optional(),
+  socials: z.record(z.string()).optional()
+});
+
+/* Event submission */
+export const EventSubmit = z.object({
+  title: z.string().min(3),
+  description: z.string().min(10),
+  start_time: z.string(),
+  end_time: z.string().optional(),
+  venue: z.object({
+    name: z.string(),
+    address: z.string().optional(),
+    lat: z.number().optional(),
+    lng: z.number().optional()
+  }).optional(),
+  ticketing: z.object({
+    external_url: z.string().url().optional(),
+    ticket_types: z.array(z.object({
+      name: z.string(),
+      price: z.number().min(0),
+      stock: z.number().int().min(0)
+    })).optional()
+  }).optional(),
+  flyer_base64: z.string().optional()
+});
+
+/* AI job */
+export const AIJobCreate = z.object({
+  type: z.enum(['cover','epk','meme']),
+  prompt: z.string().min(1)
+});
+TS
+
+# 5) API endpoints (Next.js App Router) — create handlers
+mkdir -p apps/web/app/api
+cat > apps/web/app/api/signup/route.ts <<'TS'
+// FILE: apps/web/app/api/signup/route.ts
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { createClient } from '@supabase/supabase-js';
+import { ProfileCreate } from '../../../packages/shared/schemas';
+
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+export async function POST(req: Request) {
+  const body = await req.json();
+  const parse = ProfileCreate.safeParse(body);
+  if (!parse.success) return NextResponse.json({ error: parse.error.format() }, { status: 400 });
+  const { display_name, bio, is_artist, socials } = parse.data;
+
+  // Create profile row — user must exist in Supabase Auth (post-auth hook)
+  // For simplicity assume user is authenticated and we have user id from header
+  const userId = req.headers.get('x-user-id');
+  if (!userId) return NextResponse.json({ error: 'Missing user id' }, { status: 401 });
+
+  const upsert = await supabase.from('profiles').upsert({
+    id: userId,
+    display_name,
+    bio,
+    is_artist: !!is_artist,
+    socials
+  }).select().single();
+
+  if (upsert.error) return NextResponse.json({ error: upsert.error.message }, { status: 500 });
+  return NextResponse.json({ profile: upsert.data });
+}
+TS
+
+# 6) Signup UI: modal with artist checkbox (Next.js + Tailwind)
+mkdir -p apps/web/components
+cat > apps/web/components/SignupModal.tsx <<'TSX'
+// FILE: apps/web/components/SignupModal.tsx
+'use client'
+import React, { useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
+import { useRouter } from 'next/navigation';
+
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+
+export default function SignupModal({ userId }: { userId: string }) {
+  const [displayName, setDisplayName] = useState('');
+  const [bio, setBio] = useState('');
+  const [isArtist, setIsArtist] = useState(false);
+  const router = useRouter();
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const res = await fetch('/api/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+      body: JSON.stringify({ display_name: displayName, bio, is_artist: isArtist })
+    });
+    const data = await res.json();
+    if (res.ok) router.refresh();
+    else alert('Signup failed: ' + JSON.stringify(data));
+  }
+
+  return (
+    <div className="p-6 bg-surface rounded-lg shadow-lg w-full max-w-md">
+      <h3 className="text-xl font-semibold">Complete your profile</h3>
+      <form onSubmit={submit} className="space-y-4 mt-4">
+        <input value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Display name" className="w-full p-2 bg-black border rounded" />
+        <textarea value={bio} onChange={e => setBio(e.target.value)} placeholder="Bio" className="w-full p-2 bg-black border rounded"></textarea>
+        <label className="flex items-center gap-2">
+          <input type="checkbox" checked={isArtist} onChange={e => setIsArtist(e.target.checked)} />
+          <span>Sign up as Artist / DJ</span>
+        </label>
+        <button className="btn btn-primary">Save profile</button>
+      </form>
+    </div>
+  );
+}
+TSX
+
+# 7) Spotlight functionality — server-action + admin UI
+cat > apps/web/app/admin/spotlight/page.tsx <<'TSX'
+// FILE: apps/web/app/admin/spotlight/page.tsx
+import React from 'react';
+
+export default async function Page() {
+  // Admin page should fetch artists and allow toggling 'spotlight' flag and scheduling 'featured_until'
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl">Artist Spotlight</h1>
+      <p>Manage featured artists — weight and featured_until.</p>
+      {/* Implement server actions or fetch + POST endpoints to toggle 'profiles.spotlight' and add rows to artist_spotlight */}
+    </div>
+  );
+}
+TSX
+
+# 8) AI jobs system (server-side queue)
+cat > packages/server/aiWorker.ts <<'TS'
+// FILE: packages/server/aiWorker.ts
+import { createClient } from '@supabase/supabase-js';
+import fetch from 'node-fetch'; // or global fetch
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+export async function processNextJob() {
+  const { data: jobs } = await supabase.from('ai_jobs').select('*').eq('status', 'queued').limit(1).order('created_at', { ascending: true });
+  if (!jobs || jobs.length === 0) return;
+  const job = jobs[0];
+  await supabase.from('ai_jobs').update({ status: 'running' }).eq('id', job.id);
+
+  try {
+    // Example: call OpenAI Image API (DALL·E or images) or a local model
+    const prompt = job.input?.prompt || 'abstract techno cover';
+    const aiRes = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, size: '1024x1024', n: 1 })
+    });
+    const payload = await aiRes.json();
+    // save image to supabase storage
+    // ... omitted: decode base64, upload file, set result_path
+    await supabase.from('ai_jobs').update({ status: 'done', result_path: '/storage/path.png' }).eq('id', job.id);
+  } catch (err) {
+    await supabase.from('ai_jobs').update({ status: 'failed' }).eq('id', job.id);
+  }
+}
+export default processNextJob;
+TS
+
+# 9) EPK generator: UI + export (PDF)
+# - Provide live preview in web using HTML/CSS and canvas / headless browser export
+# - Export flow: generate HTML preview -> server endpoint uses Puppeteer (or Playwright) to render -> return PDF stream with Content-Disposition attachment
+cat > apps/web/app/api/epk/export/route.ts <<'TS'
+// FILE: apps/web/app/api/epk/export/route.ts
+import { NextResponse } from 'next/server';
+import { renderToString } from 'react-dom/server';
+import puppeteer from 'puppeteer';
+import EPKPreview from '../../components/EPKPreview'; // server component
+
+export async function POST(req: Request) {
+  const body = await req.json();
+  // Validate body with Zod...
+  // Render HTML
+  const html = '<html><body><h1>EPK</h1></body></html>'; // placeholder; ideally render server-side component to string
+  const browser = await puppeteer.launch({ args: ['--no-sandbox','--disable-setuid-sandbox'] });
+  const page = await browser.newPage();
+  await page.setContent(html, { waitUntil: 'networkidle0' });
+  const pdf = await page.pdf({ format: 'A4', printBackground: true });
+  await browser.close();
+  return new Response(pdf, {
+    headers: { 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename=epk.pdf' }
+  });
+}
+TS
+
+# 10) AI Meme in comments: client uploads prompt or image, job queued; once job done, append to comment attachments
+# - Ensure no self-promotion: server side moderation hook inspects content using LLM or regex and rejects promo links or text that resemble ads.
+
+# 11) Realtime likes & views
+# - Use Supabase Realtime or Postgres notify to broadcast events.
+# - Example: create an API endpoint /api/reaction that upserts into reactions table and emits a realtime event.
+cat > apps/web/app/api/reaction/route.ts <<'TS'
+// FILE: apps/web/app/api/reaction/route.ts (simplified)
+import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+export async function POST(req: Request) {
+  const body = await req.json();
+  const { target_type, target_id, user_id } = body;
+  const resp = await supabase.from('reactions').upsert({ target_type, target_id, user_id, reaction: 'like' }).select();
+  // Emit realtime: supabase.realtime or client-side subscription to 'reactions' table will pick it up automatically
+  return NextResponse.json({ ok: true, data: resp.data });
+}
+TS
+
+# 12) News feeds & weekly playlists ingestion
+# - News aggregator: scheduled Background job (cron) that pulls from RSS/REST sources (Beatport RSS, official artist RSS, curated sources), dedupes by URL, stores in news table. Use a fast RSS parser (rss-parser).
+# - Playlists: store platform + embed_url (Spotify widget, SoundCloud embed, Bandcamp iframe). Provide `playlists` table above.
+# - Implement caching headers and incremental static regeneration where possible (Next.js ISR) to keep UI snappy and avoid memory leaks.
+
+# 13) Event submission + AI auto-approve logic (server flow)
+# - When a user submits an event:
+#   1) Validate with Zod
+#   2) Run lightweight checks (date in future, organizer is artist or verified)
+#   3) Run AI moderation/validation:
+#       prompt: validate that event is genuine, no promo text, flyer has valid content, match location, ensure not spam.
+#       If confidence > threshold: auto_approved = true, approved = true
+#       Else: create admin notification for manual review
+# - Save event, upload flyer to Supabase Storage, generate tickets rows if provided
+# - If ticketing.external_url present, record it and show external link in event page.
+
+cat > apps/web/app/api/events/submit/route.ts <<'TS'
+// FILE: apps/web/app/api/events/submit/route.ts
+import { NextResponse } from 'next/server';
+import { EventSubmit } from '../../../../packages/shared/schemas';
+import { createClient } from '@supabase/supabase-js';
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+export async function POST(req: Request) {
+  const body = await req.json();
+  const parse = EventSubmit.safeParse(body);
+  if (!parse.success) return NextResponse.json({ error: parse.error }, { status: 400 });
+
+  const event = parse.data;
+  // AI validation (call OpenAI)
+  const aiCheck = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini', messages: [{ role: 'system', content: 'You are a moderator. Determine if this event submission is valid and not spam or self-promo. Return JSON: {approve: true|false, reason:""}' }, { role: 'user', content: JSON.stringify(event) }]
+    })
+  });
+  const aiJson = await aiCheck.json();
+  const approve = aiJson?.choices?.[0]?.message?.content?.includes('"approve": true') || false;
+  const { data: created } = await supabase.from('events').insert([{ ...event, auto_approved: approve, approved: approve }]).select().single();
+  // If not approved send admin notification
+  if (!approve) {
+    await supabase.from('notifications').insert([{ user_id: /* admin id or admin role */ null, payload: { type: 'event_review', event_id: created.id } }]);
+  }
+  return NextResponse.json({ ok: true, event: created });
+}
+TS
+
+# 14) Ticket generation + QR code + download
+# - When a user RSVPs:
+#   * Create rsvp row, generate unique token, create QR code (use 'qrcode' lib) -> store PNG in Supabase Storage or return as Data URI.
+#   * Return download link for graphical ticket (rendered HTML -> server-side PDF -> return for download).
+# - Add ticket scanning endpoint that accepts QR token, validates and marks attendance.
+
+cat > apps/web/app/api/rsvp/route.ts <<'TS'
+// FILE: apps/web/app/api/rsvp/route.ts
+import { NextResponse } from 'next/server';
+import QRCode from 'qrcode';
+import { createClient } from '@supabase/supabase-js';
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+export async function POST(req: Request) {
+  const body = await req.json();
+  const { event_id, user_id, ticket_id } = body;
+  const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  const dataUri = await QRCode.toDataURL(token);
+  const { data } = await supabase.from('rsvps').insert([{ event_id, user_id, ticket_id, qr_code: dataUri }]).select().single();
+  // Optionally upload QR image to Supabase Storage for long-term
+  return NextResponse.json({ ok: true, rsvp: data, qr_token: token, qr_data_uri: dataUri });
+}
+TS
+
+# 15) Ticket scanning endpoint (artist mobile / event door scanner)
+cat > apps/web/app/api/ticket/scan/route.ts <<'TS'
+// FILE: apps/web/app/api/ticket/scan/route.ts
+import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+export async function POST(req: Request) {
+  const { token } = await req.json();
+  // Find rsvp with matching token in QR or search by qr_code string
+  const { data } = await supabase.from('rsvps').select('*').like('qr_code', `%${token}%`).limit(1).single();
+  if (!data) return NextResponse.json({ ok: false, error: 'Not found' }, { status: 404 });
+  // Mark attendance (add field 'checked_in' later)
+  await supabase.from('rsvps').update({ checked_in: true, checked_in_at: new Date().toISOString() }).eq('id', data.id);
+  return NextResponse.json({ ok: true, rsvp: data });
+}
+TS
+
+# 16) Notifications & admin push
+# - Use Supabase Realtime + a notifications table.
+# - Client subscribes to notifications via Supabase client
+# - Admin receives email (nodemailer) + in-app notification for events needing review.
+
+# 17) Forum advanced features
+# - Thread pinning, locking
+# - Post attachments (images stored in Supabase Storage)
+# - Embedded artist artwork (allow images and SoundCloud/YouTube embeds)
+# - Allow AI Meme generation inside comments: queue job and when done attach image to post
+# - Enforce moderation: server side filter to disallow self promotion (block external shop links, contact details, and overt promo keywords). If suspicious, send to moderation queue.
+
+# 18) Client-side subscriptions: likes/views
+# - Use Supabase client in the browser:
+#   supabase.from('reactions').on('INSERT', payload => update UI counters)
+#   supabase.from('views').on('INSERT', payload => update view counts)
+# - Use optimistic UI updates and eventual consistency fallback.
+
+# 19) CI & Tests
+# - Add basic Playwright tests for EPK export (download appears), event submit + RSVP flow, ticket scan.
+# - Add unit tests for AI job queue and auto-approve (mock OpenAI).
+
+mkdir -p .github/workflows
+cat > .github/workflows/ci.yml <<'YML'
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - run: pnpm install
+      - run: pnpm -w test
+YML
+
+# 20) UX / UI changes (summary)
+# - Add SignupModal (component above) triggered on first login if profile missing.
+# - Add artist checkbox on signup and in profile settings.
+# - Add "Apply Spotlight" button on artist profile (admin-only); artists can request spotlight (creates artist_spotlight request).
+# - Add EPK builder page with live preview + "Export PDF" button.
+# - Add "Submit Event" form with flyer upload + ticketing options + auto-approve indicator.
+# - Add "Create Meme" inside comment composer: modal that accepts prompt + optional image -> queues AI job -> attaches result to comment.
+
+# 21) Security, moderation, and anti-abuse
+# - Rate limit event submissions per artist (e.g., 3/week).
+# - Scan flyers and text for spam using OpenAI moderation endpoint.
+# - Block external commercial links in forum except approved domains (bandcamp, spotify, soundcloud).
+# - Admin override UI to approve/deny events and promote artists.
+
+# 22) Run the app locally
+pnpm dev
+
+# 23) Verification checklist (run these manually)
+# - [ ] Register user via Supabase Auth.
+# - [ ] On first login, SignupModal appears; create artist profile by checking artist checkbox.
+# - [ ] Artist profile has option to request spotlight; admin can approve and set featured_until.
+# - [ ] Submit an event (attach flyer) — test AI auto-approval flow with sample event.
+# - [ ] RSVP and download ticket -> PDF/QR appears and scanner endpoint accepts QR token.
+# - [ ] Create AI job (cover/meme/epk) -> worker produces result and stored path; EPK export downloads PDF.
+# - [ ] Create forum thread and post; attach AI meme to comment; ensure no self-promo allowed.
+# - [ ] Playlists embeds (Spotify/SoundCloud) render correctly.
+# - [ ] Realtime like/view updates appear across two browser sessions.
+
+# 24) Developer notes & tips
+# - Keep heavy CPU jobs (image generation, Puppeteer) off of Edge Functions if memory-constrained; use dedicated worker VM or Supabase serverless function with enough memory.
+# - For mobile app (Expo), implement the same Supabase auth and use REST endpoints. Do not import Node built-ins into RN code.
+# - Use Supabase policies (RLS) to enforce data-only-access rules.
+# - Use `sharp` for server-side image resizing.
+# - Make admin tasks idempotent: always check for duplicate work.
+
+# 25) Add to README and DEV docs
+# - Document deploy steps, storage buckets, Supabase policies, environment variables, and the asset assembler script (Large Asset Protocol).
+# - Add a UX flow diagram for signup -> EPK -> event submission -> RSVP -> ticket scan.
+
+echo "REPLIT PROMPT COMPLETED. Follow verification checklist above."
