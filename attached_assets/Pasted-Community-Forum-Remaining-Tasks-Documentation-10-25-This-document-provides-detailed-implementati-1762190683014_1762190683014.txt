@@ -1,0 +1,587 @@
+Community Forum - Remaining Tasks Documentation (10-25)
+This document provides detailed implementation guidance for tasks 10-25 of the Community Forum feature.
+
+Phase 3: Advanced Features (Tasks 10-18)
+Task 10: Implement Mention System
+Objective: Enable users to @mention others with autocomplete, storage, and clickable mentions
+
+Components to Create/Modify:
+
+apps/web/app/api/forum/mention/resolve/route.ts - API endpoint for autocomplete
+apps/web/components/forum/MentionAutocomplete.tsx - Autocomplete UI component
+apps/web/components/forum/MentionLink.tsx - Clickable mention renderer
+Implementation Details:
+
+// Autocomplete triggers on @ character
+// Search users by username (verified artists prioritized)
+// Store mentions in mentions table on thread/reply creation
+// Render as clickable links that open profile modal
+// Send notifications to mentioned users
+
+Database Operations:
+
+Query users matching search term (limit 10)
+Insert mention records with content_type, content_id, mentioned_user_id
+Link to notifications system for alerts
+Validation: Use mentionResolveSchema from forumSchemas.ts
+
+Task 11: Implement Draft System
+Objective: Autosave thread drafts locally and server-side to prevent data loss
+
+Components to Create/Modify:
+
+apps/web/app/api/forum/thread/save-draft/route.ts - Server-side draft save
+apps/web/app/api/forum/thread/drafts/route.ts - List user's drafts
+apps/web/hooks/useThreadDraft.ts - Custom hook for draft management
+apps/web/components/forum/DraftRecoveryModal.tsx - Recover unsaved drafts
+Implementation Details:
+
+// localStorage autosave every 10 seconds
+// Server-side save every 60 seconds (debounced)
+// On composer mount: check for localStorage draft + server drafts
+// Show recovery modal if drafts found
+// Clean up drafts after successful thread creation
+// Expire old drafts (7 days)
+
+Database Operations:
+
+UPSERT into thread_drafts (one draft per user)
+Store mentions, attachments in metadata JSONB field
+DELETE draft after publish or manual discard
+Validation: Use draftSaveSchema from forumSchemas.ts
+
+Task 12: Implement Attachments & Embeds
+Objective: Support image/audio uploads and auto-embed music platform links
+
+Components to Create/Modify:
+
+apps/web/app/api/forum/attachments/upload/route.ts - File upload handler
+apps/web/components/forum/AttachmentUploader.tsx - Upload UI
+apps/web/components/forum/EmbedRenderer.tsx - Embed display component
+apps/web/lib/embedDetector.ts - URL parsing for embeds
+Implementation Details:
+
+// File upload to Replit Object Storage or existing asset system
+// Support: images (jpg, png, gif, webp), audio (mp3, wav, m4a)
+// Max file size: 10MB images, 25MB audio
+// Auto-detect embed URLs: SoundCloud, Spotify, Bandcamp, YouTube
+// Store attachment metadata in thread_attachments table
+// Render inline embeds with platform-specific players
+
+Supported Embed Platforms:
+
+SoundCloud: Extract track/playlist ID, use oEmbed API
+Spotify: Detect track/album/playlist, use embed player
+Bandcamp: Parse album/track URL, use iframe embed
+YouTube: Extract video ID, use embed player
+Database Operations:
+
+INSERT into thread_attachments or existing assets table
+Link to thread/reply via post_type, post_id
+Validation: Use attachmentCreateSchema from forumSchemas.ts
+
+Task 13: Implement Real-time Updates
+Objective: Use Supabase Realtime for live replies, reactions, and view counts
+
+Components to Create/Modify:
+
+apps/web/hooks/useRealtimeThread.ts - Subscribe to thread updates
+apps/web/hooks/useRealtimeReplies.ts - Subscribe to reply changes
+apps/web/lib/realtimeClient.ts - Supabase Realtime configuration
+Implementation Details:
+
+// Subscribe to forum_threads table for view/reaction count updates
+// Subscribe to forum_replies table for new replies
+// Optimistic UI updates with rollback on error
+// Debounce rapid updates to prevent UI thrashing
+// Show "New Reply" toast notification for background updates
+
+Realtime Channels:
+
+forum:thread:{id} - Thread updates (views, reactions, lock status)
+forum:replies:{threadId} - New replies and reply updates
+Optimistic Update Strategy:
+
+1. Update UI immediately (optimistic)
+2. Send API request
+3. On success: keep optimistic update
+4. On failure: rollback UI + show error toast
+
+Task 14: Implement Reactions & Views
+Objective: Complete upvote system with animations and view tracking
+
+Components to Create/Modify:
+
+apps/web/app/api/forum/reaction/route.ts - Create/remove reactions
+apps/web/app/api/forum/view/route.ts - Record view events
+apps/web/components/forum/ReactionButton.tsx - Animated reaction UI
+apps/web/hooks/useViewTracking.ts - Automatic view recording
+Implementation Details:
+
+// Reaction types: like, love, fire, laugh (extensible)
+// One reaction per user per content (UNIQUE constraint)
+// Animated reaction button with count update
+// View tracking: 1 view per user per content per 10 minutes (throttled)
+// Update counters in real-time via Realtime subscriptions
+
+View Tracking Logic:
+
+Check localStorage for recent view timestamp
+Only record if >10 minutes since last view
+Background API call (non-blocking)
+Database Operations:
+
+UPSERT into reactions table (user_id, target_type, target_id, reaction)
+INSERT into view_events or increment view_count in threads/replies
+Validation: Use reactionCreateSchema and viewRecordSchema
+
+Task 15: Implement AI Moderation System
+Objective: Auto-analyze content for toxicity, spam, and scams using OpenAI
+
+Components to Create/Modify:
+
+apps/web/app/api/forum/moderate/auto/route.ts - AI moderation endpoint
+packages/ai/moderator.ts - OpenAI moderation logic
+scripts/moderation-worker.ts - Background worker for queue processing
+Implementation Details:
+
+// Trigger: On thread/reply creation (pre-publish check)
+// Analyze text + attachments (image OCR for text extraction)
+// OpenAI Moderation API + custom GPT-4 prompt for context
+// Verdicts: APPROVE, FLAG_REVIEW, AUTO_REJECT, BAN_USER
+// Confidence score: 0-100 (auto-reject if >90% spam/toxic)
+
+AI Prompt Template:
+
+Analyze this forum post for:
+1. Toxicity/harassment
+2. Spam/promotional content
+3. Scam/phishing attempts
+4. Off-topic content (music/gear only)
+Content: {text}
+Attachments: {attachment_urls}
+Return JSON: { verdict: "APPROVE|FLAG|REJECT|BAN", confidence: 0-100, reasoning: "..." }
+
+Database Operations:
+
+INSERT into moderation_queue if flagged
+UPDATE post status to 'pending_review' or 'rejected'
+Log AI verdict + reasoning for audit
+Validation: Use aiModerateSchema from forumSchemas.ts
+
+Task 16: Build Moderation Panel UI
+Objective: Admin interface for reviewing AI-flagged content
+
+Components to Create:
+
+apps/web/app/(dashboard)/admin/moderation/page.tsx - Moderation dashboard
+apps/web/components/admin/ModerationQueue.tsx - Queue list component
+apps/web/components/admin/ModerationReviewCard.tsx - Single item review
+UI Layout:
+
+┌─────────────────────────────────────────────────────┐
+│ Moderation Queue (12 pending)                       │
+├─────────────────────────────────────────────────────┤
+│ [Pending] [Approved] [Rejected]                     │
+│                                                      │
+│ ┌──────────────────────────────────────────────┐   │
+│ │ Thread: "Check out my beats 🔥🔥🔥"          │   │
+│ │ User: @spambot123 (New user, 0 rep)          │   │
+│ │ AI Verdict: AUTO_REJECT (98% spam)           │   │
+│ │ Reasoning: Promotional content, excessive... │   │
+│ │                                               │   │
+│ │ [View Full Content] [Approve] [Reject] [Ban] │   │
+│ └──────────────────────────────────────────────┘   │
+│                                                      │
+└─────────────────────────────────────────────────────┘
+
+Actions:
+
+Approve: Publish content, mark queue item resolved
+Reject: Delete content, notify user
+Ban User: Reject + ban user for 7/30/90 days or permanent
+Blacklist: Add keywords/patterns to auto-reject list
+Database Operations:
+
+Query moderation_queue WHERE status='pending' ORDER BY created_at
+UPDATE moderation_queue SET status, reviewed_by, reviewed_at
+UPDATE users SET banned_until if ban action
+Task 17: Implement Rate Limiting
+Objective: Protect against spam and abuse with smart rate limits
+
+Components to Create/Modify:
+
+apps/web/lib/rateLimit.ts - Rate limiting middleware
+apps/web/app/api/forum/*/route.ts - Apply rate limits to endpoints
+Rate Limit Rules:
+
+// Thread creation
+- Verified users: 10 threads/day
+- Non-verified: 3 threads/day
+- Auto-ban if >10 rejected threads in 24h
+// Reply posting
+- All users: 10 replies/hour, 50/day
+- Slow down if 3 consecutive auto-rejects
+// Mentions
+- All users: 20 mentions/day (prevent mention spam)
+// Reactions
+- All users: 100 reactions/hour (prevent bot abuse)
+
+Implementation Strategy:
+
+Use rate-limiter-flexible package (already installed)
+Redis-backed counters (or in-memory for dev)
+Return 429 Too Many Requests with retry-after header
+Exponential backoff on repeated violations
+Error Response:
+
+{
+  "error": "Rate limit exceeded",
+  "retry_after": 3600,
+  "message": "You can create 2 more threads in 6 hours"
+}
+
+Task 18: Implement Thread Settings & Visibility
+Objective: Public/members-only/private threads with access control
+
+Components to Create/Modify:
+
+apps/web/components/forum/ThreadSettings.tsx - Settings sidebar in composer
+apps/web/lib/threadPermissions.ts - Permission checking logic
+Database RLS policies (if using Supabase) or middleware checks
+Visibility Levels:
+
+Public: Anyone can view (default)
+Members: Logged-in users only
+Private: Author + mentioned users only
+UI in Composer:
+
+Thread Settings
+├─ Visibility: [Public ▼]
+├─ ☐ Allow replies
+├─ ☐ Allow reactions
+└─ ☐ Notify on replies
+
+Database Operations:
+
+Store visibility in forum_threads.visibility
+Check user auth + visibility in API endpoints
+Filter threads by visibility in list queries
+Permission Logic:
+
+function canViewThread(thread, user) {
+  if (thread.visibility === 'public') return true;
+  if (!user) return false;
+  if (thread.visibility === 'members') return true;
+  if (thread.visibility === 'private') {
+    return thread.author_id === user.id || 
+           thread.mentioned_users.includes(user.id);
+  }
+}
+
+Phase 4: Quality & Testing (Tasks 19-25)
+Task 19: Add Missing API Endpoints
+Objective: Complete API coverage for all forum features
+
+Endpoints to Create:
+
+POST /api/forum/ai/suggest
+
+Generate AI suggestions for title/body/tags
+Input: prompt, applyTo, tone, flags
+Output: { title?, body?, tags? }
+POST /api/forum/view
+
+Record view event (throttled)
+Input: targetType, targetId
+Output: { success: true }
+POST /api/forum/thread/save-draft
+
+Save draft server-side
+Input: title, categoryId, body, tags, metadata
+Output: { draftId }
+GET /api/forum/thread/drafts
+
+List user's drafts
+Output: { drafts: [...] }
+POST /api/forum/thread/[id]/follow
+
+Follow/unfollow thread
+Input: notifyOnReply, notifyOnMention
+Output: { following: true/false }
+GET /api/forum/contributors
+
+Top contributors by period
+Query: period (week/month/all_time), limit
+Output: { contributors: [...] }
+Validation: Use schemas from forumSchemas.ts
+
+Task 20: Implement Notifications System
+Objective: In-app notifications for mentions, replies, and moderation events
+
+Components to Create:
+
+apps/web/app/api/notifications/route.ts - Notification CRUD
+apps/web/components/Notifications.tsx - Notification dropdown
+apps/web/hooks/useNotifications.ts - Real-time notification updates
+Notification Types:
+
+- MENTION: "@you in 'Best guitar for metal?'"
+- REPLY: "New reply on thread you follow"
+- MODERATION_APPROVED: "Your thread was approved"
+- MODERATION_REJECTED: "Your thread was rejected: [reason]"
+- VERIFICATION_APPROVED: "You're now a Verified Artist!"
+
+Database Schema (use existing notifications table or create):
+
+CREATE TABLE notifications (
+  id UUID PRIMARY KEY,
+  user_id UUID NOT NULL,
+  type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  body TEXT,
+  link TEXT,
+  read BOOLEAN DEFAULT false,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+Real-time Updates:
+
+Subscribe to notifications table for current user
+Show badge count on header
+Toast notification for new items
+Task 21: Add Analytics & Telemetry
+Objective: Track forum usage for insights and debugging
+
+Events to Track:
+
+// User actions
+- forum_open: { page: 'list'|'thread'|'compose' }
+- thread_create: { category_id, has_mentions, has_attachments }
+- reply_post: { thread_id, reply_length }
+- reaction_click: { target_type, reaction_type }
+- mention_select: { mentioned_user_id }
+- draft_save: { auto: true/false }
+// AI/Moderation
+- ai_suggest_request: { tone, apply_to }
+- ai_moderate_verdict: { verdict, confidence }
+- moderation_review: { action, was_ai_correct }
+
+Implementation:
+
+Use existing analytics system or create simple event logger
+Log to Pino logger (already installed)
+Optional: Send to analytics platform (Mixpanel, PostHog)
+Example:
+
+import { logger } from '@/lib/logger';
+logger.info('forum_event', {
+  event: 'thread_create',
+  user_id: session.user.id,
+  category_id: data.categoryId,
+  has_mentions: data.mentions.length > 0,
+});
+
+Task 22: Write Unit Tests
+Objective: Test critical components and logic
+
+Test Files to Create:
+
+apps/web/components/forum/__tests__/Composer.test.tsx
+apps/web/components/forum/__tests__/ThreadView.test.tsx
+packages/ai/__tests__/moderator.test.ts
+apps/web/lib/__tests__/embedDetector.test.ts
+Test Coverage:
+
+// Composer.test.tsx
+- Renders all form fields
+- Mention autocomplete triggers on @
+- Draft autosave works
+- Validation errors display
+- Attachment upload works
+// ThreadView.test.tsx
+- Verified badge shows for artists
+- Upvote button works
+- Reply form submits correctly
+// moderator.test.ts
+- Detects toxic content
+- Flags spam correctly
+- Returns expected verdict format
+// embedDetector.test.ts
+- Detects SoundCloud URLs
+- Detects Spotify URLs
+- Ignores invalid URLs
+
+Run Tests: pnpm test (Vitest already installed)
+
+Task 23: Write E2E Tests
+Objective: Test complete user workflows
+
+Test Files to Create:
+
+apps/web/__tests__/e2e/forum-create-thread.spec.ts
+apps/web/__tests__/e2e/forum-ai-assist.spec.ts
+apps/web/__tests__/e2e/forum-moderation.spec.ts
+Test Scenarios:
+
+// forum-create-thread.spec.ts
+test('User can create thread with mentions and attachments', async ({ page }) => {
+  await page.goto('/forum/compose');
+  await page.fill('[name="title"]', 'Test thread');
+  await page.fill('[name="body"]', 'Hello @testuser');
+  await page.click('button:has-text("@Mention")');
+  // ... assert mention autocomplete
+  await page.click('button:has-text("Post Thread")');
+  await expect(page).toHaveURL(/\/forum\/thread\/[a-f0-9-]+/);
+});
+// forum-ai-assist.spec.ts
+test('AI Assist generates suggestions', async ({ page }) => {
+  await page.goto('/forum/compose');
+  await page.click('button:has-text("AI Draft")');
+  await page.fill('[name="prompt"]', 'Write about Gibson Les Paul');
+  await page.click('button:has-text("Generate")');
+  await expect(page.locator('.ai-suggestion')).toBeVisible();
+});
+
+Run E2E Tests: pnpm test:e2e (Playwright already installed)
+
+Task 24: Create Storybook Stories
+Objective: Component documentation and visual regression testing
+
+Story Files to Create:
+
+apps/web/components/forum/ForumList.stories.tsx
+apps/web/components/forum/ThreadView.stories.tsx
+apps/web/components/forum/Composer.stories.tsx
+apps/web/components/forum/ThreadAssistModal.stories.tsx
+apps/web/components/forum/ProfileModal.stories.tsx
+Example Story:
+
+// Composer.stories.tsx
+import { Meta, StoryObj } from '@storybook/react';
+import { Composer } from './Composer';
+const meta: Meta<typeof Composer> = {
+  title: 'Forum/Composer',
+  component: Composer,
+};
+export default meta;
+type Story = StoryObj<typeof Composer>;
+export const Empty: Story = {};
+export const WithDraft: Story = {
+  args: {
+    initialDraft: {
+      title: 'Best synth for beginners?',
+      body: 'I want to get into synthesis...',
+    },
+  },
+};
+export const WithMentions: Story = {
+  args: {
+    initialBody: 'Hey @johndoe what do you think?',
+  },
+};
+
+Setup Storybook:
+
+pnpm add -D @storybook/react @storybook/addon-essentials
+npx storybook init
+
+Task 25: Documentation
+Objective: Comprehensive feature docs and deployment guide
+
+Documentation to Create:
+
+docs/FORUM_FEATURES.md
+
+Feature overview
+User flows (create thread, reply, mention, etc.)
+Admin workflows (moderation panel)
+docs/FORUM_API.md
+
+API endpoint reference
+Request/response schemas
+Authentication requirements
+Rate limit details
+docs/FORUM_DEPLOYMENT.md
+
+Migration instructions
+Environment variables needed
+AI worker setup (moderation queue processor)
+Monitoring and alerts
+docs/FORUM_AI.md
+
+AI moderation logic
+Prompt templates
+Verdict interpretation
+Tuning guidelines
+Example Section:
+
+## Creating a Thread
+### Endpoint
+POST /api/forum/thread
+### Request Body
+{
+  "categoryId": "uuid",
+  "title": "string (5-200 chars)",
+  "body": "string (10-10000 chars)",
+  "tags": ["string"],
+  "visibility": "public|members|private",
+  "mentions": [{ "userId": "uuid", "username": "string" }]
+}
+### Response
+{
+  "threadId": "uuid",
+  "status": "published|pending_review"
+}
+### Rate Limits
+- Verified users: 10/day
+- Non-verified: 3/day
+
+Implementation Priority
+Recommended Order:
+
+Tasks 10-14: Core features (mentions, drafts, attachments, real-time, reactions)
+Tasks 15-18: Moderation & security (AI moderation, panel, rate limits, visibility)
+Tasks 19-21: Polish (API completion, notifications, analytics)
+Tasks 22-25: Quality (testing, storybook, documentation)
+Estimated Time:
+
+Tasks 10-14: 12-16 hours
+Tasks 15-18: 10-14 hours
+Tasks 19-21: 6-8 hours
+Tasks 22-25: 8-10 hours
+Total: 36-48 hours
+Dependencies & Prerequisites
+External Services:
+
+OpenAI API (for AI moderation/assist) ✓ Already configured
+Supabase Realtime (for live updates)
+Object Storage (for attachments) - Check existing asset system
+Database:
+
+Run migration: 0001_forum_enhancements.sql
+Verify all tables created successfully
+NPM Packages (already installed):
+
+zod - Validation ✓
+rate-limiter-flexible - Rate limiting ✓
+@google/generative-ai - AI features ✓
+vitest - Unit tests ✓
+@playwright/test - E2E tests ✓
+Success Criteria
+Feature Complete When:
+
+✓ All 25 tasks completed
+✓ UI matches provided screenshots pixel-perfect
+✓ AI moderation catches >90% of spam/toxic content
+✓ Real-time updates work without lag
+✓ No rate limit bypass vulnerabilities
+✓ Test coverage >80% for critical paths
+✓ Documentation complete and accurate
+Ready for Production When:
+
+All tests passing
+Load testing completed (500+ concurrent users)
+AI moderation tuned on real data
+Monitoring/alerts configured
+Rollback plan documented
