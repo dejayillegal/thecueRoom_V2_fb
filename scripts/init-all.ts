@@ -2,6 +2,8 @@
 import { execSync } from 'child_process';
 import { getDbClient } from '../packages/db';
 import { sql } from 'drizzle-orm';
+import fs from 'fs';
+import path from 'path';
 
 async function runCommand(command: string, description: string) {
   console.log(`\n${'='.repeat(60)}`);
@@ -36,6 +38,27 @@ async function checkDatabase() {
   }
 }
 
+async function ensureSeedData() {
+  console.log('\n🌱 Checking seed data...\n');
+  
+  const seedDir = path.join(process.cwd(), 'seeds', 'data');
+  if (!fs.existsSync(seedDir)) {
+    fs.mkdirSync(seedDir, { recursive: true });
+  }
+  
+  const seedFiles = ['users.json', 'threads.json', 'events.json'];
+  const missing = seedFiles.filter(f => !fs.existsSync(path.join(seedDir, f)));
+  
+  if (missing.length > 0) {
+    console.log(`⚠️  Missing seed files: ${missing.join(', ')}`);
+    console.log('Run seed scripts first: node seeds/seed-forum.js && node seeds/seed-events.js\n');
+    return false;
+  }
+  
+  console.log('✅ All seed data files present\n');
+  return true;
+}
+
 async function main() {
   console.log('\n🚀 thecueRoom Full Initialization\n');
   console.log(`${'='.repeat(60)}\n`);
@@ -44,37 +67,32 @@ async function main() {
     // Step 1: Check database connection
     await checkDatabase();
     
-    // Step 2: Run migrations
+    // Step 2: Ensure seed data exists
+    await ensureSeedData();
+    
+    // Step 3: Run migrations
     await runCommand(
       'pnpm --filter @thecueroom/db migrate',
       'Step 1/4: Running database migrations'
     );
     
-    // Step 3: Seed sources
+    // Step 4: Seed sources
     await runCommand(
       'tsx scripts/seed-sources.ts',
       'Step 2/4: Seeding news sources'
     );
     
-    // Step 4: Create admin user
+    // Step 5: Create admin user
     await runCommand(
       'tsx scripts/create-admin-user.ts',
       'Step 3/4: Creating admin user'
     );
     
-    // Step 5: Run initial ingestion
+    // Step 6: Run initial ingestion
     await runCommand(
       'tsx scripts/enhanced-ingest.ts',
-      'Step 4/5: Running initial feed ingestion'
+      'Step 4/4: Running initial feed ingestion'
     );
-    
-    // Step 6: Seed test accounts (optional - set TEST_ACCOUNTS=true to enable)
-    if (process.env.TEST_ACCOUNTS === 'true') {
-      await runCommand(
-        'tsx scripts/seed-test-accounts.ts',
-        'Step 5/5: Seeding test accounts'
-      );
-    }
     
     console.log('\n' + '='.repeat(60));
     console.log('✨ Initialization Complete!');
@@ -84,9 +102,6 @@ async function main() {
     console.log('  ✓ News sources seeded');
     console.log('  ✓ Admin user created');
     console.log('  ✓ Initial feeds ingested');
-    if (process.env.TEST_ACCOUNTS === 'true') {
-      console.log('  ✓ Test accounts seeded');
-    }
     console.log('\n🎉 Your thecueRoom instance is ready!\n');
     console.log('🔐 Admin Login:');
     console.log(`   Email: ${process.env.ADMIN_EMAIL || 'dejayillegal@gmail.com'}`);
@@ -94,13 +109,7 @@ async function main() {
     console.log('\n💡 Next steps:');
     console.log('   1. The server is already running');
     console.log('   2. Visit the app in the webview');
-    console.log('   3. Sign in with admin credentials');
-    if (process.env.TEST_ACCOUNTS !== 'true') {
-      console.log('\n💡 To seed test accounts:');
-      console.log('   Run: tsx scripts/seed-test-accounts.ts');
-      console.log('   Or: TEST_ACCOUNTS=true tsx scripts/init-all.ts');
-    }
-    console.log('');
+    console.log('   3. Sign in with admin credentials\n');
     
     process.exit(0);
   } catch (error) {
