@@ -1,12 +1,32 @@
 import { NextResponse } from 'next/server';
 import { getDbClient } from '@thecueroom/db';
 import type { NextRequest } from 'next/server';
+import LRU from 'lru-cache';
+
+// Simple in-memory cache to reduce API hits
+const cache = new LRU({ max: 100, ttl: 1000 * 60 * 5 }); // 5 min TTL
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // Revalidate every hour
 
 export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const force = searchParams.get('force') === 'true';
+
+    const cacheKey = 'india-gigs-aggregated';
+
+    // Return cached data unless force refresh
+    if (!force && cache.has(cacheKey)) {
+      const cached = cache.get(cacheKey);
+      return NextResponse.json({
+        ok: true,
+        events: cached,
+        fromCache: true,
+        meta: { totalSources: 0, sources: [] }
+      });
+    }
+
     const db = await getDbClient();
 
     // Fetch all approved events
@@ -31,11 +51,14 @@ export async function GET(request: NextRequest) {
 
     await db.close();
 
+    // Cache successful results
+    cache.set(cacheKey, events);
+
     return NextResponse.json({
       ok: true,
-      events,
-      total: events.length,
+      events: events,
       fromCache: false,
+      meta: { totalSources: 0, sources: [] }
     });
   } catch (error) {
     console.error('Gigs fetch error:', error);

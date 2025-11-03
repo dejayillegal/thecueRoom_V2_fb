@@ -73,7 +73,9 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
   const [genre, setGenre] = useState("");
   const [socialProfileUrl, setSocialProfileUrl] = useState("");
   const [socialLinks, setSocialLinks] = useState<string[]>([]);
-  const [additionalSocialLinks, setAdditionalSocialLinks] = useState<string[]>([]);
+  const [additionalSocialLinks, setAdditionalSocialLinks] = useState<string[]>([
+    "",
+  ]);
 
   // Username generation
   const [generatedUsernames, setGeneratedUsernames] = useState<string[]>([]);
@@ -252,9 +254,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
           url.hostname.includes(domain),
         );
         if (!isAllowed) {
-          setError(
-            "Social profile must be from an allowed music platform",
-          );
+          setError("Social profile must be from an allowed music platform");
           return false;
         }
       } catch {
@@ -290,8 +290,6 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
 
     return true;
   };
-
-  
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -337,7 +335,9 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
     setIsSubmitting(true);
 
     try {
-      const validSocialLinks = additionalSocialLinks.filter((link) => link.trim() !== "");
+      const validSocialLinks = additionalSocialLinks.filter(
+        (link) => link.trim() !== "",
+      );
 
       const payload: any = {
         firstName,
@@ -643,7 +643,10 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="firstName" className="text-sm text-gray-400">
+                      <Label
+                        htmlFor="firstName"
+                        className="text-sm text-gray-400"
+                      >
                         First Name *
                       </Label>
                       <Input
@@ -657,7 +660,10 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
                     </div>
 
                     <div>
-                      <Label htmlFor="lastName" className="text-sm text-gray-400">
+                      <Label
+                        htmlFor="lastName"
+                        className="text-sm text-gray-400"
+                      >
                         Last Name *
                       </Label>
                       <Input

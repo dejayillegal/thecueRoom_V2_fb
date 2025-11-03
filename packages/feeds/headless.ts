@@ -1,9 +1,27 @@
-
 // THIS MODULE IS SERVER-ONLY. Do not import in client code.
 
 import { fork, ChildProcess } from 'child_process';
 import path from 'path';
 import pLimit from 'p-limit';
+
+// Dynamic import to prevent bundling issues in Next.js client
+let _playwright: any = null;
+
+async function getPlaywright() {
+  if (!_playwright) {
+    _playwright = await import('playwright');
+  }
+  return _playwright;
+}
+
+export async function createBrowser() {
+  const { chromium } = await getPlaywright();
+  return await chromium.launch({ 
+    headless: true, 
+    args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+  });
+}
+
 
 const PLAYWRIGHT_ENABLED = process.env.PLAYWRIGHT_ENABLED === 'true';
 const WORKER_PATH = path.join(process.cwd(), 'packages/feeds/headless-worker.js');

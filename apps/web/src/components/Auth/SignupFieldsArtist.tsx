@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Input } from "@/components/ui/input";
@@ -16,13 +15,13 @@ interface SignupFieldsArtistProps {
 }
 
 const ALLOWED_DOMAINS = [
-  'soundcloud.com',
-  'bandcamp.com',
-  'mixcloud.com',
-  'spotify.com',
-  'youtube.com',
-  'beatport.com',
-  'instagram.com'
+  "soundcloud.com",
+  "bandcamp.com",
+  "mixcloud.com",
+  "spotify.com",
+  "youtube.com",
+  "beatport.com",
+  "instagram.com",
 ];
 
 export function SignupFieldsArtist({
@@ -40,7 +39,9 @@ export function SignupFieldsArtist({
   };
 
   const removeSocialLink = (index: number) => {
-    setAdditionalSocialLinks(additionalSocialLinks.filter((_, i) => i !== index));
+    setAdditionalSocialLinks(
+      additionalSocialLinks.filter((_, i) => i !== index),
+    );
   };
 
   const updateSocialLink = (index: number, value: string) => {
@@ -53,7 +54,7 @@ export function SignupFieldsArtist({
     if (!url) return false;
     try {
       const urlObj = new URL(url);
-      return ALLOWED_DOMAINS.some(domain => urlObj.hostname.includes(domain));
+      return ALLOWED_DOMAINS.some((domain) => urlObj.hostname.includes(domain));
     } catch {
       return false;
     }
@@ -62,7 +63,15 @@ export function SignupFieldsArtist({
   const isValidPrimaryUrl = validateSocialUrl(socialProfileUrl);
 
   return (
-    <div className="space-y-4 p-4 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg">
+    <div
+      className="space-y-4 p-4 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg"
+      role="group"
+      aria-labelledby="artist-fields-legend"
+    >
+      <legend id="artist-fields-legend" className="sr-only">
+        Artist profile fields
+      </legend>
+
       <div className="space-y-2">
         <Label htmlFor="socialProfileUrl" className="text-[#D7FF3C]">
           Primary Social Profile URL *
@@ -78,7 +87,8 @@ export function SignupFieldsArtist({
           aria-required="true"
         />
         <p className="text-xs text-gray-400">
-          Required: SoundCloud, Bandcamp, Mixcloud, Spotify, YouTube, Beatport, or Instagram
+          Required: SoundCloud, Bandcamp, Mixcloud, Spotify, YouTube, Beatport,
+          or Instagram
         </p>
         {socialProfileUrl && !isValidPrimaryUrl && (
           <p className="text-xs text-red-400">
@@ -108,7 +118,9 @@ export function SignupFieldsArtist({
 
       {additionalSocialLinks.length > 0 && (
         <div className="space-y-2">
-          <Label className="text-[#D7FF3C]">Additional Social Links (Optional)</Label>
+          <Label className="text-[#D7FF3C]">
+            Additional Social Links (Optional)
+          </Label>
           {additionalSocialLinks.map((link, index) => (
             <div key={index} className="flex gap-2">
               <Input
@@ -147,7 +159,8 @@ export function SignupFieldsArtist({
         <Label className="text-[#D7FF3C]">Tech Rider</Label>
         <div className="border-2 border-dashed border-[#2a2a2a] rounded-lg p-8 text-center">
           <p className="text-sm text-gray-400">
-            Tech rider upload coming soon. You can add this later from your profile.
+            Tech rider upload coming soon. You can add this later from your
+            profile.
           </p>
         </div>
       </div>
