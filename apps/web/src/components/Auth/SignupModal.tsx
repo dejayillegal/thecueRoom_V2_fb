@@ -672,6 +672,28 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
               {activeTab === "signup" && (
                 <div role="tabpanel" id="signup-panel" aria-labelledby="signup-tab">
                   <form onSubmit={handleSignUp} className="space-y-4">
+                    {/* Artist Checkbox - Moved to top for visibility */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3 p-4 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg hover:border-[#D7FF3C]/30 transition-colors">
+                        <Checkbox
+                          id="artist-checkbox"
+                          checked={isArtist}
+                          onCheckedChange={(checked) => setIsArtist(checked === true)}
+                          className="w-5 h-5"
+                          aria-describedby="artist-checkbox-description"
+                        />
+                        <Label
+                          htmlFor="artist-checkbox"
+                          className="text-white cursor-pointer text-sm font-medium flex-1"
+                        >
+                          Sign up as Artist / DJ
+                        </Label>
+                      </div>
+                      <p id="artist-checkbox-description" className="text-xs text-gray-500 px-4">
+                        Check this if you're an artist or DJ. Additional verification fields will appear.
+                      </p>
+                    </div>
+
                     {/* Display Name */}
                     <div className="space-y-2">
                       <Label htmlFor="displayName" className="text-sm text-gray-400">
@@ -707,28 +729,6 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
                         placeholder="Tell us about yourself..."
                         className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
                       />
-                    </div>
-
-                    {/* Artist Checkbox */}
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3 p-4 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg hover:border-[#D7FF3C]/30 transition-colors">
-                        <Checkbox
-                          id="artist-checkbox"
-                          checked={isArtist}
-                          onCheckedChange={(checked) => setIsArtist(checked === true)}
-                          className="w-5 h-5"
-                          aria-describedby="artist-checkbox-description"
-                        />
-                        <Label
-                          htmlFor="artist-checkbox"
-                          className="text-white cursor-pointer text-sm font-medium flex-1"
-                        >
-                          Sign up as Artist / DJ
-                        </Label>
-                      </div>
-                      <p id="artist-checkbox-description" className="text-xs text-gray-500 px-4">
-                        Check this if you're an artist or DJ. Additional verification fields will appear.
-                      </p>
                     </div>
 
                     {/* Artist-only fields section */}
