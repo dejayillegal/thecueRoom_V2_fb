@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { AtSign, Link as LinkIcon, Image, Code, Sparkles, CheckCircle2, Eye, EyeOff, Users, Lock, Globe } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { AtSign, Link as LinkIcon, Image, Code, Sparkles, Users, Lock, Globe, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { MentionAutocomplete } from './MentionAutocomplete';
 
 const categories = [
   { id: '1', name: 'Gear Talk' },
@@ -26,6 +26,15 @@ export function ThreadComposer() {
   const [allowReplies, setAllowReplies] = useState(true);
   const [notifyOnReplies, setNotifyOnReplies] = useState(true);
   const [showAIAssist, setShowAIAssist] = useState(false);
+  const [showMentionAutocomplete, setShowMentionAutocomplete] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [mentionPosition, setMentionPosition] = useState({ top: 0, left: 0 });
+  const [showLinkDialog, setShowLinkDialog] = useState(false);
+  const [linkUrl, setLinkUrl] = useState('');
+  const [linkText, setLinkText] = useState('');
+  const [showMediaDialog, setShowMediaDialog] = useState(false);
+  const [mediaUrl, setMediaUrl] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const addTag = () => {
     if (tagInput.trim() && tags.length < 10) {
@@ -36,6 +45,94 @@ export function ThreadComposer() {
 
   const removeTag = (index: number) => {
     setTags(tags.filter((_, i) => i !== index));
+  };
+
+  const handleBodyChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setBody(value);
+
+    // Check for @ mention trigger
+    const cursorPosition = e.target.selectionStart;
+    const textBeforeCursor = value.substring(0, cursorPosition);
+    const lastAtSymbol = textBeforeCursor.lastIndexOf('@');
+    
+    if (lastAtSymbol !== -1 && cursorPosition - lastAtSymbol <= 20) {
+      const query = textBeforeCursor.substring(lastAtSymbol + 1);
+      if (!query.includes(' ')) {
+        setMentionQuery(query);
+        setShowMentionAutocomplete(true);
+        
+        // Calculate position for autocomplete
+        const textarea = e.target;
+        const rect = textarea.getBoundingClientRect();
+        setMentionPosition({
+          top: rect.bottom + window.scrollY,
+          left: rect.left + window.scrollX,
+        });
+      } else {
+        setShowMentionAutocomplete(false);
+      }
+    } else {
+      setShowMentionAutocomplete(false);
+    }
+  };
+
+  const handleMentionSelect = (user: any) => {
+    const cursorPosition = textareaRef.current?.selectionStart || 0;
+    const textBeforeCursor = body.substring(0, cursorPosition);
+    const lastAtSymbol = textBeforeCursor.lastIndexOf('@');
+    
+    const beforeMention = body.substring(0, lastAtSymbol);
+    const afterMention = body.substring(cursorPosition);
+    
+    setBody(`${beforeMention}@${user.username} ${afterMention}`);
+    setShowMentionAutocomplete(false);
+    
+    // Focus back on textarea
+    setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 0);
+  };
+
+  const insertAtCursor = (text: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const newText = body.substring(0, start) + text + body.substring(end);
+    
+    setBody(newText);
+    
+    // Set cursor position after inserted text
+    setTimeout(() => {
+      textarea.selectionStart = textarea.selectionEnd = start + text.length;
+      textarea.focus();
+    }, 0);
+  };
+
+  const handleInsertLink = () => {
+    if (linkUrl.trim()) {
+      const linkMarkdown = linkText.trim() 
+        ? `[${linkText}](${linkUrl})` 
+        : linkUrl;
+      insertAtCursor(linkMarkdown + ' ');
+      setLinkUrl('');
+      setLinkText('');
+      setShowLinkDialog(false);
+    }
+  };
+
+  const handleInsertMedia = () => {
+    if (mediaUrl.trim()) {
+      insertAtCursor(`\n![Image](${mediaUrl})\n`);
+      setMediaUrl('');
+      setShowMediaDialog(false);
+    }
+  };
+
+  const handleInsertCodeSnippet = () => {
+    insertAtCursor('\n```\n// Your code here\n```\n');
   };
 
   return (
@@ -83,37 +180,62 @@ export function ThreadComposer() {
                   </select>
                 </div>
 
-                <div>
+                <div className="relative">
                   <Label htmlFor="body" className="text-sm font-semibold text-white mb-2 block">
                     Thread Body
                   </Label>
                   <Textarea
+                    ref={textareaRef}
                     id="body"
                     value={body}
-                    onChange={(e) => setBody(e.target.value)}
-                    placeholder="Share your thoughts, questions, or insights..."
+                    onChange={handleBodyChange}
+                    placeholder="Share your thoughts, questions, or insights... (Use @ to mention users)"
                     className="bg-[#111111] border-[#1a1a1a] text-white placeholder-gray-500 focus:border-[#D7FF3C] min-h-[300px] resize-none"
                     maxLength={10000}
                   />
+                  {showMentionAutocomplete && (
+                    <MentionAutocomplete
+                      query={mentionQuery}
+                      onSelect={handleMentionSelect}
+                      onClose={() => setShowMentionAutocomplete(false)}
+                      position={mentionPosition}
+                    />
+                  )}
                   <p className="text-xs text-gray-500 mt-1">
                     {body.length} / 10,000 characters
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2 pt-2 border-t border-[#1a1a1a]">
-                  <button className="flex items-center gap-2 px-3 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-400 hover:text-white rounded-lg text-sm font-medium transition-colors">
+                  <button 
+                    onClick={() => insertAtCursor('@')}
+                    className="flex items-center gap-2 px-3 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-400 hover:text-white rounded-lg text-sm font-medium transition-colors"
+                    title="Insert @ to mention a user"
+                  >
                     <AtSign className="w-4 h-4" />
                     Mention
                   </button>
-                  <button className="flex items-center gap-2 px-3 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-400 hover:text-white rounded-lg text-sm font-medium transition-colors">
+                  <button 
+                    onClick={() => setShowLinkDialog(true)}
+                    className="flex items-center gap-2 px-3 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-400 hover:text-white rounded-lg text-sm font-medium transition-colors"
+                    title="Insert a link"
+                  >
                     <LinkIcon className="w-4 h-4" />
                     Link
                   </button>
-                  <button className="flex items-center gap-2 px-3 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-400 hover:text-white rounded-lg text-sm font-medium transition-colors">
+                  <button 
+                    onClick={() => setShowMediaDialog(true)}
+                    className="flex items-center gap-2 px-3 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-400 hover:text-white rounded-lg text-sm font-medium transition-colors"
+                    title="Insert an image"
+                  >
                     <Image className="w-4 h-4" />
                     Media
                   </button>
-                  <button className="flex items-center gap-2 px-3 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-400 hover:text-white rounded-lg text-sm font-medium transition-colors">
+                  <button 
+                    onClick={handleInsertCodeSnippet}
+                    className="flex items-center gap-2 px-3 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-400 hover:text-white rounded-lg text-sm font-medium transition-colors"
+                    title="Insert code snippet"
+                  >
                     <Code className="w-4 h-4" />
                     Snippet
                   </button>
@@ -124,11 +246,100 @@ export function ThreadComposer() {
                     <Sparkles className="w-4 h-4" />
                     AI Draft
                   </button>
-                  <button className="flex items-center gap-2 px-3 py-2 bg-green-500/10 hover:bg-green-500/20 text-green-500 border border-green-500/30 rounded-lg text-sm font-medium transition-colors">
-                    <CheckCircle2 className="w-4 h-4" />
-                    Verify Artist
-                  </button>
                 </div>
+
+                {/* Link Dialog */}
+                {showLinkDialog && (
+                  <div className="mt-4 p-4 bg-[#111111] border border-[#1a1a1a] rounded-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-semibold text-white">Insert Link</h4>
+                      <button
+                        onClick={() => setShowLinkDialog(false)}
+                        className="p-1 hover:bg-[#1a1a1a] rounded transition-colors"
+                      >
+                        <X className="w-4 h-4 text-gray-400" />
+                      </button>
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-xs text-gray-400 mb-1 block">URL</Label>
+                        <Input
+                          value={linkUrl}
+                          onChange={(e) => setLinkUrl(e.target.value)}
+                          placeholder="https://example.com"
+                          className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-400 mb-1 block">Link Text (Optional)</Label>
+                        <Input
+                          value={linkText}
+                          onChange={(e) => setLinkText(e.target.value)}
+                          placeholder="Click here"
+                          className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={handleInsertLink}
+                          className="bg-[#D7FF3C] hover:bg-[#e7ff6f] text-black"
+                          disabled={!linkUrl.trim()}
+                        >
+                          Insert Link
+                        </Button>
+                        <Button
+                          onClick={() => setShowLinkDialog(false)}
+                          variant="outline"
+                          className="bg-[#1a1a1a] border-[#2a2a2a] hover:bg-[#2a2a2a]"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Media Dialog */}
+                {showMediaDialog && (
+                  <div className="mt-4 p-4 bg-[#111111] border border-[#1a1a1a] rounded-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-semibold text-white">Insert Image</h4>
+                      <button
+                        onClick={() => setShowMediaDialog(false)}
+                        className="p-1 hover:bg-[#1a1a1a] rounded transition-colors"
+                      >
+                        <X className="w-4 h-4 text-gray-400" />
+                      </button>
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-xs text-gray-400 mb-1 block">Image URL</Label>
+                        <Input
+                          value={mediaUrl}
+                          onChange={(e) => setMediaUrl(e.target.value)}
+                          placeholder="https://example.com/image.jpg"
+                          className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={handleInsertMedia}
+                          className="bg-[#D7FF3C] hover:bg-[#e7ff6f] text-black"
+                          disabled={!mediaUrl.trim()}
+                        >
+                          Insert Image
+                        </Button>
+                        <Button
+                          onClick={() => setShowMediaDialog(false)}
+                          variant="outline"
+                          className="bg-[#1a1a1a] border-[#2a2a2a] hover:bg-[#2a2a2a]"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <Label htmlFor="tags" className="text-sm font-semibold text-white mb-2 block">
