@@ -8,12 +8,14 @@ interface PasswordStrengthProps {
   confirmPassword?: string;
 }
 
+const PASSWORD_MIN_LENGTH = 10;
+
 export function PasswordStrength({
   password,
   confirmPassword,
 }: PasswordStrengthProps) {
   const checks = useMemo(() => {
-    const hasMinLength = password.length >= 8;
+    const hasMinLength = password.length >= PASSWORD_MIN_LENGTH;
     const hasMaxLength = password.length <= 128;
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
@@ -24,15 +26,17 @@ export function PasswordStrength({
         ? password === confirmPassword && password.length > 0
         : null;
 
+    // Must have at least one number OR special char (not just either/or)
+    const hasNumberOrSpecial = hasNumber || hasSpecialChar;
+
     return {
-      minLength: { passed: hasMinLength, text: "At least 8 characters" },
+      minLength: { passed: hasMinLength, text: `At least ${PASSWORD_MIN_LENGTH} characters` },
       maxLength: { passed: hasMaxLength, text: "Maximum 128 characters" },
       upperCase: { passed: hasUpperCase, text: "One uppercase letter (A-Z)" },
       lowerCase: { passed: hasLowerCase, text: "One lowercase letter (a-z)" },
-      number: { passed: hasNumber, text: "One number (0-9)" },
-      specialChar: {
-        passed: hasSpecialChar,
-        text: "One special character (!@#$%^&*)",
+      numberOrSpecial: { 
+        passed: hasNumberOrSpecial, 
+        text: "One number (0-9) or special character (!@#$%^&*)" 
       },
       match:
         passwordsMatch !== null
@@ -43,17 +47,26 @@ export function PasswordStrength({
 
   const strength = useMemo(() => {
     const { match, maxLength, ...mainChecks } = checks;
-    const passedCount = Object.values(mainChecks).filter(
-      (c) => c.passed,
-    ).length;
-
+    
+    // All required checks must pass for "strong"
+    const allRequiredPassed = Object.values(mainChecks).every((c) => c.passed);
+    const passedCount = Object.values(mainChecks).filter((c) => c.passed).length;
+    
+    // Must be at least min length to be anything other than weak
+    if (!checks.minLength.passed) {
+      return { level: "weak", color: "bg-red-500", width: "25%" };
+    }
+    
     if (passedCount <= 2)
       return { level: "weak", color: "bg-red-500", width: "25%" };
-    if (passedCount <= 4)
+    if (passedCount === 3)
       return { level: "medium", color: "bg-yellow-500", width: "50%" };
-    if (passedCount === 5)
+    if (passedCount === 4)
       return { level: "good", color: "bg-blue-500", width: "75%" };
-    return { level: "strong", color: "bg-green-500", width: "100%" };
+    if (allRequiredPassed)
+      return { level: "strong", color: "bg-green-500", width: "100%" };
+    
+    return { level: "medium", color: "bg-yellow-500", width: "50%" };
   }, [checks]);
 
   if (!password) return null;

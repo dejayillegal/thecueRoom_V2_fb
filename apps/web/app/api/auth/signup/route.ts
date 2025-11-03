@@ -27,7 +27,12 @@ const signupSchema = z.object({
   firstName: z.string().min(1, 'First name is required').max(100),
   lastName: z.string().min(1, 'Last name is required').max(100),
   email: z.string().email('Invalid email address'),
-  password: z.string().min(10, 'Password must be at least 10 characters').regex(/[0-9!@#$%^&*(),.?":{}|<>_\-+=]/, 'Password must include a number or special character'),
+  password: z.string()
+    .min(10, 'Password must be at least 10 characters')
+    .regex(/[A-Z]/, 'Password must include at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must include at least one lowercase letter')
+    .regex(/[0-9!@#$%^&*(),.?":{}|<>_\-+=]/, 'Password must include a number or special character')
+    .max(128, 'Password must not exceed 128 characters'),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
   username: z.string().min(3, 'Username must be at least 3 characters').max(50).optional(),
   isArtist: z.boolean().default(false),

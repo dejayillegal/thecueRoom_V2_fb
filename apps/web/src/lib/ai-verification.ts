@@ -191,7 +191,7 @@ async function analyzeFakeAccountIndicators(
   let suspicious = false;
   let suspicionScore = 0;
 
-  // Email validation - disposable/temp email services
+  // Email validation - disposable/temp email services (expanded list)
   const disposableEmailPatterns = [
     "temp",
     "disposable",
@@ -203,15 +203,34 @@ async function analyzeFakeAccountIndicators(
     "yopmail",
     "10minutemail",
     "tempmail",
+    "trashmail",
+    "getnada",
+    "emailondeck",
+    "sharklasers",
+    "guerrillamail",
+    "maildrop",
+    "spam4.me",
   ];
+  
+  const emailLower = user.email.toLowerCase();
+  const emailDomain = emailLower.split('@')[1] || '';
+  
   if (
-    disposableEmailPatterns.some((pattern) =>
-      user.email.toLowerCase().includes(pattern),
+    disposableEmailPatterns.some((pattern) => 
+      emailLower.includes(pattern) || emailDomain.includes(pattern)
     )
   ) {
     suspicious = true;
-    suspicionScore += 25;
+    suspicionScore += 30;
     indicators.push("Disposable or temporary email service detected");
+  }
+  
+  // Check for suspicious email patterns (random strings)
+  const emailLocalPart = emailLower.split('@')[0] || '';
+  const hasRandomPattern = /^[a-z0-9]{20,}$/.test(emailLocalPart);
+  if (hasRandomPattern) {
+    suspicionScore += 15;
+    indicators.push("Email appears to be randomly generated");
   }
 
   // Email pattern analysis - sequential numbers or random chars
@@ -438,6 +457,26 @@ async function analyzeFakeAccountIndicators(
     indicators.push(
       "Account created very recently (possible automated creation)",
     );
+  }
+  
+  // Profile completeness check (for artists)
+  if (profile.isArtist) {
+    let missingFields = 0;
+    if (!profile.region) missingFields++;
+    if (!profile.genre) missingFields++;
+    if (!profile.musicPlatformLink) missingFields++;
+    if (!profile.publicProfileUrl) missingFields++;
+    
+    if (missingFields > 0) {
+      suspicionScore += missingFields * 10;
+      indicators.push(`Missing ${missingFields} required artist profile field(s)`);
+    }
+    
+    // Check for minimal effort profiles
+    if (profile.bio && profile.bio.length < 20) {
+      suspicionScore += 5;
+      indicators.push("Artist bio is suspiciously short");
+    }
   }
 
   // Set suspicious flag if score exceeds threshold

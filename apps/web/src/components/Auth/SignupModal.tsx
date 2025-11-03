@@ -50,6 +50,17 @@ interface FieldError {
 
 const PASSWORD_MIN_LENGTH = 10;
 
+// Password complexity validation
+const validatePasswordComplexity = (pwd: string): boolean => {
+  if (pwd.length < PASSWORD_MIN_LENGTH) return false;
+  
+  const hasUpperCase = /[A-Z]/.test(pwd);
+  const hasLowerCase = /[a-z]/.test(pwd);
+  const hasNumberOrSpecial = /[0-9!@#$%^&*(),.?":{}|<>_\-+=]/.test(pwd);
+  
+  return hasUpperCase && hasLowerCase && hasNumberOrSpecial;
+};
+
 // Allowed music platform domains
 const ALLOWED_MUSIC_PLATFORMS = [
   "soundcloud.com",
@@ -234,8 +245,17 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
     if (pwd.length < PASSWORD_MIN_LENGTH) {
       return `Password must be at least ${PASSWORD_MIN_LENGTH} characters`;
     }
-    if (!/[0-9!@#$%^&*]/.test(pwd)) {
+    if (!/[A-Z]/.test(pwd)) {
+      return "Password must include at least one uppercase letter";
+    }
+    if (!/[a-z]/.test(pwd)) {
+      return "Password must include at least one lowercase letter";
+    }
+    if (!/[0-9!@#$%^&*(),.?":{}|<>_\-+=]/.test(pwd)) {
       return "Password must include a number or special character";
+    }
+    if (!validatePasswordComplexity(pwd)) {
+      return "Password does not meet complexity requirements";
     }
     return null;
   };
