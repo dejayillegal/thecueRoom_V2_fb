@@ -43,6 +43,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   // Sign up additional fields
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [isArtist, setIsArtist] = useState(false);
   const [artistName, setArtistName] = useState("");
   const [region, setRegion] = useState("");
   const [genre, setGenre] = useState("");
@@ -94,6 +95,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setConfirmPassword("");
     setFirstName("");
     setLastName("");
+    setIsArtist(false);
     setArtistName("");
     setRegion("");
     setGenre("");
@@ -187,54 +189,53 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setIsLoading(true);
 
     try {
-      // Validation
-      if (
-        !email ||
-        !password ||
-        !firstName ||
-        !lastName ||
-        !artistName ||
-        !region ||
-        !genre ||
-        !publicProfileUrl
-      ) {
+      // Validation - base fields always required
+      if (!email || !password || !firstName || !lastName) {
         setError("Please fill in all required fields");
         return;
       }
 
-      // Validate profile URL format
-      if (
-        !publicProfileUrl.startsWith("http://") &&
-        !publicProfileUrl.startsWith("https://")
-      ) {
-        setError(
-          "Public profile URL must be a valid URL (starting with http:// or https://)",
+      // Artist-specific validation
+      if (isArtist) {
+        if (!artistName || !region || !genre || !publicProfileUrl) {
+          setError("Please fill in all required artist fields");
+          return;
+        }
+
+        // Validate profile URL format
+        if (
+          !publicProfileUrl.startsWith("http://") &&
+          !publicProfileUrl.startsWith("https://")
+        ) {
+          setError(
+            "Public profile URL must be a valid URL (starting with http:// or https://)",
+          );
+          return;
+        }
+
+        // Validate allowed domains for public profile URL
+        const allowedDomains = [
+          "soundcloud.com",
+          "bandcamp.com",
+          "spotify.com",
+          "mixcloud.com",
+          "residentadvisor.net",
+          "beatport.com",
+          "instagram.com",
+          "youtube.com",
+        ];
+
+        const profileUrlObj = new URL(publicProfileUrl);
+        const isAllowedDomain = allowedDomains.some((domain) =>
+          profileUrlObj.hostname.includes(domain),
         );
-        return;
-      }
 
-      // Validate allowed domains for public profile URL
-      const allowedDomains = [
-        "soundcloud.com",
-        "bandcamp.com",
-        "spotify.com",
-        "mixcloud.com",
-        "residentadvisor.net",
-        "beatport.com",
-        "instagram.com",
-        "youtube.com",
-      ];
-
-      const profileUrlObj = new URL(publicProfileUrl);
-      const isAllowedDomain = allowedDomains.some((domain) =>
-        profileUrlObj.hostname.includes(domain),
-      );
-
-      if (!isAllowedDomain) {
-        setError(
-          "Public profile URL must be from a recognized music platform (SoundCloud, Bandcamp, Spotify, etc.)",
-        );
-        return;
+        if (!isAllowedDomain) {
+          setError(
+            "Public profile URL must be from a recognized music platform (SoundCloud, Bandcamp, Spotify, etc.)",
+          );
+          return;
+        }
       }
 
       if (!agreeTerms) {
@@ -258,7 +259,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         return;
       }
 
-      if (!artistAvailability.available) {
+      if (isArtist && !artistAvailability.available) {
         setError("Artist name is not available");
         return;
       }
@@ -269,14 +270,17 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         body: JSON.stringify({
           firstName,
           lastName,
-          artistName,
           email,
           password,
-          username: generatedUsername,
-          region,
-          genre,
-          profileUrl: publicProfileUrl,
-          socialLinks: socialLinks.filter((link) => link.trim() !== ""),
+          isArtist,
+          ...(isArtist && {
+            artistName,
+            username: generatedUsername,
+            region,
+            genre,
+            profileUrl: publicProfileUrl,
+            socialLinks: socialLinks.filter((link) => link.trim() !== ""),
+          }),
         }),
       });
 
@@ -547,13 +551,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       <input
                         type="checkbox"
                         id="artist-checkbox"
-                        checked={false}
-                        onChange={(e) => {
-                          // Artist signup logic - to be implemented
-                          console.log('Artist checkbox clicked:', e.target.checked);
-                        }}
+                        checked={isArtist}
+                        onChange={(e) => setIsArtist(e.target.checked)}
                         className="w-5 h-5 rounded border-[#2a2a2a] bg-[#0a0a0a] text-[#D7FF3C] focus:ring-[#D7FF3C] focus:ring-offset-0 cursor-pointer"
                         aria-describedby="artist-checkbox-description"
+                        disabled={isLoading}
                       />
                       <Label
                         htmlFor="artist-checkbox"
@@ -596,19 +598,20 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-sm text-gray-400">
-                      Artist / Project Name *
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        value={artistName}
-                        onChange={(e) => setArtistName(e.target.value)}
-                        placeholder="e.g. Midnight Echo"
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C] pr-10"
-                        disabled={isLoading}
-                        required
-                      />
+                  {isArtist && (
+                    <div className="space-y-2">
+                      <Label className="text-sm text-gray-400">
+                        Artist / Project Name *
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          value={artistName}
+                          onChange={(e) => setArtistName(e.target.value)}
+                          placeholder="e.g. Midnight Echo"
+                          className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C] pr-10"
+                          disabled={isLoading}
+                          required
+                        />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
                         {artistAvailability.checking && (
                           <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
@@ -635,14 +638,15 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       </p>
                     )}
                     {generatedUsername && (
-                      <p className="text-xs text-gray-400">
-                        Username:{" "}
-                        <span className="text-[#D7FF3C]">
-                          {generatedUsername}
-                        </span>
-                      </p>
-                    )}
-                  </div>
+                        <p className="text-xs text-gray-400">
+                          Username:{" "}
+                          <span className="text-[#D7FF3C]">
+                            {generatedUsername}
+                          </span>
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   <div className="space-y-2">
                     <Label className="text-sm text-gray-400">Email *</Label>
@@ -749,39 +753,42 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       </div>
                     )}
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm text-gray-400">Region *</Label>
-                      <Input
-                        value={region}
-                        onChange={(e) => setRegion(e.target.value)}
-                        placeholder="e.g. Berlin, EU"
-                        maxLength={60}
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
-                        disabled={isLoading}
-                        required
-                      />
+                  {isArtist && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-sm text-gray-400">Region *</Label>
+                        <Input
+                          value={region}
+                          onChange={(e) => setRegion(e.target.value)}
+                          placeholder="e.g. Berlin, EU"
+                          maxLength={60}
+                          className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
+                          disabled={isLoading}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm text-gray-400">
+                          Primary Genre *
+                        </Label>
+                        <Input
+                          value={genre}
+                          onChange={(e) => setGenre(e.target.value)}
+                          placeholder="e.g. Techno, House"
+                          maxLength={120}
+                          className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
+                          disabled={isLoading}
+                          required
+                        />
+                      </div>
                     </div>
+                  )}
+
+                  {isArtist && (
                     <div className="space-y-2">
                       <Label className="text-sm text-gray-400">
-                        Primary Genre *
+                        Public Profile URL *
                       </Label>
-                      <Input
-                        value={genre}
-                        onChange={(e) => setGenre(e.target.value)}
-                        placeholder="e.g. Techno, House"
-                        maxLength={120}
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
-                        disabled={isLoading}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm text-gray-400">
-                      Public Profile URL *
-                    </Label>
                     <Input
                       type="url"
                       value={publicProfileUrl}
@@ -792,15 +799,17 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       required
                     />
                     <p className="text-xs text-gray-500">
-                      Required music platform link. Will be verified by AI to
-                      prevent fake/duplicate accounts.
-                    </p>
-                  </div>
+                        Required music platform link. Will be verified by AI to
+                        prevent fake/duplicate accounts.
+                      </p>
+                    </div>
+                  )}
 
-                  <div className="space-y-2">
-                    <Label className="text-sm text-gray-400">
-                      Social Links (Max 5)
-                    </Label>
+                  {isArtist && (
+                    <div className="space-y-2">
+                      <Label className="text-sm text-gray-400">
+                        Social Links (Max 5)
+                      </Label>
                     {socialLinks.map((link, idx) => (
                       <div key={idx} className="flex gap-2">
                         <Input
@@ -837,7 +846,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                         + Add Link
                       </Button>
                     )}
-                  </div>
+                    </div>
+                  )}
 
                   <div className="flex items-start gap-2">
                     <input
@@ -887,9 +897,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       disabled={
                         isLoading ||
                         !emailAvailability.available ||
-                        !artistAvailability.available ||
+                        (isArtist && !artistAvailability.available) ||
                         !agreeTerms ||
-                        !publicProfileUrl
+                        (isArtist && !publicProfileUrl)
                       }
                       className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold h-11 px-8"
                     >
