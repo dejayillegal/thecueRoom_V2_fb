@@ -411,8 +411,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             </div>
           </div>
 
-          {/* Form Content */}
-          <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
+          {/* Form Content - Two Column Layout for Desktop */}
+          <div className="flex flex-col lg:flex-row gap-8 p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
+            {/* Main Form Column */}
+            <div className="flex-1">
             {/* Sign In Form */}
             {activeTab === "signin" && (
               <form onSubmit={handleSignIn} className="space-y-6">
@@ -498,49 +500,66 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
             {/* Sign Up Form */}
             {activeTab === "signup" && (
-              <form onSubmit={handleSignUp} className="space-y-4">
+              <form onSubmit={handleSignUp} className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-2">
+                    Create your {isArtist ? "artist " : ""}account
+                  </h2>
+                  <p className="text-gray-400 text-sm">
+                    Join thecueRoom community
+                  </p>
+                </div>
+
                 {/* Artist Checkbox */}
                 <div className="space-y-2">
-                  <div className="flex items-center gap-3 p-4 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg hover:border-[#D7FF3C]/30 transition-colors">
+                  <div className="flex items-start gap-3">
                     <input
                       type="checkbox"
                       id="artist-checkbox"
                       checked={isArtist}
                       onChange={(e) => setIsArtist(e.target.checked)}
-                      className="w-5 h-5 rounded border-[#2a2a2a] bg-[#0a0a0a] text-[#D7FF3C] focus:ring-[#D7FF3C] focus:ring-offset-0 cursor-pointer"
+                      className="mt-1 w-4 h-4 rounded border-[#2a2a2a] bg-[#0a0a0a] text-[#D7FF3C] focus:ring-[#D7FF3C] focus:ring-offset-0 cursor-pointer"
                       disabled={isLoading}
                     />
-                    <Label
-                      htmlFor="artist-checkbox"
-                      className="text-white cursor-pointer text-sm font-medium flex-1"
-                    >
-                      Sign up as Artist / DJ
-                    </Label>
+                    <div className="flex-1">
+                      <Label
+                        htmlFor="artist-checkbox"
+                        className="text-white cursor-pointer text-sm font-medium block mb-1"
+                      >
+                        Sign up as Artist / DJ
+                      </Label>
+                      <p className="text-xs text-gray-500">
+                        Additional verification fields will appear for artist accounts.
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-500 px-4">
-                    Check this if you're an artist or DJ. Additional verification fields will appear.
-                  </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-sm text-gray-400">First Name *</Label>
+                    <Label htmlFor="firstName" className="text-sm text-gray-300 font-medium">
+                      First Name *
+                    </Label>
                     <Input
+                      id="firstName"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      placeholder="e.g. Alex"
-                      className="bg-[#1a1a1a] border-[#2a2a2a] text-white h-14 text-base focus:border-[#D7FF3C] rounded-lg px-4"
+                      placeholder="Alex"
+                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 text-base focus:border-[#D7FF3C] rounded-lg px-4"
                       disabled={isLoading}
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm text-gray-400">Last Name *</Label>
+                    <Label htmlFor="lastName" className="text-sm text-gray-300 font-medium">
+                      Last Name *
+                    </Label>
                     <Input
+                      id="lastName"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
-                      placeholder="e.g. Rivera"
-                      className="bg-[#1a1a1a] border-[#2a2a2a] text-white h-14 text-base focus:border-[#D7FF3C] rounded-lg px-4"
+                      placeholder="Rivera"
+                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 text-base focus:border-[#D7FF3C] rounded-lg px-4"
                       disabled={isLoading}
                       required
                     />
@@ -549,13 +568,17 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
                 {isArtist && (
                   <div className="space-y-2">
-                    <Label className="text-sm text-gray-400">Artist / Project Name *</Label>
+                    <Label htmlFor="artistName" className="text-sm text-gray-300 font-medium">
+                      Artist Name *
+                    </Label>
+                    <p className="text-xs text-gray-500 mb-1">Your stage name</p>
                     <div className="relative">
                       <Input
+                        id="artistName"
                         value={artistName}
                         onChange={(e) => setArtistName(e.target.value)}
-                        placeholder="e.g. Midnight Echo"
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C] pr-10"
+                        placeholder="Your stage name"
+                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] pr-10 rounded-lg px-4"
                         disabled={isLoading}
                         required
                       />
@@ -585,14 +608,17 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 )}
 
                 <div className="space-y-2">
-                  <Label className="text-sm text-gray-400">Email *</Label>
+                  <Label htmlFor="email" className="text-sm text-gray-300 font-medium">
+                    Email *
+                  </Label>
                   <div className="relative">
                     <Input
+                      id="email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="e.g. alex@example.com"
-                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C] pr-10"
+                      placeholder="alex@example.com"
+                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] pr-10 rounded-lg px-4"
                       disabled={isLoading}
                       required
                     />
@@ -615,27 +641,33 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-sm text-gray-400">Password *</Label>
+                    <Label htmlFor="password" className="text-sm text-gray-300 font-medium">
+                      Password *
+                    </Label>
                     <Input
+                      id="password"
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="e.g. Strong@Pass123"
-                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
+                      placeholder="Min 8 characters"
+                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] rounded-lg px-4"
                       disabled={isLoading}
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm text-gray-400">Confirm Password *</Label>
+                    <Label htmlFor="confirmPassword" className="text-sm text-gray-300 font-medium">
+                      Confirm Password *
+                    </Label>
                     <Input
+                      id="confirmPassword"
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="e.g. Strong@Pass123"
-                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
+                      placeholder="Re-enter password"
+                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] rounded-lg px-4"
                       disabled={isLoading}
                       required
                     />
@@ -662,27 +694,33 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
                 {isArtist && (
                   <>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label className="text-sm text-gray-400">Region *</Label>
+                        <Label htmlFor="primaryGenre" className="text-sm text-gray-300 font-medium">
+                          Primary Genre *
+                        </Label>
                         <Input
-                          value={region}
-                          onChange={(e) => setRegion(e.target.value)}
-                          placeholder="e.g. Berlin, EU"
-                          maxLength={60}
-                          className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
+                          id="primaryGenre"
+                          value={genre}
+                          onChange={(e) => setGenre(e.target.value)}
+                          placeholder="Techno"
+                          maxLength={120}
+                          className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] rounded-lg px-4"
                           disabled={isLoading}
                           required
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-sm text-gray-400">Primary Genre *</Label>
+                        <Label htmlFor="cityRegion" className="text-sm text-gray-300 font-medium">
+                          City / Region *
+                        </Label>
                         <Input
-                          value={genre}
-                          onChange={(e) => setGenre(e.target.value)}
-                          placeholder="e.g. Techno, House"
-                          maxLength={120}
-                          className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
+                          id="cityRegion"
+                          value={region}
+                          onChange={(e) => setRegion(e.target.value)}
+                          placeholder="Berlin, DE"
+                          maxLength={60}
+                          className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] rounded-lg px-4"
                           disabled={isLoading}
                           required
                         />
@@ -690,18 +728,21 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-sm text-gray-400">Public Profile URL *</Label>
+                      <Label htmlFor="portfolio" className="text-sm text-gray-300 font-medium">
+                        Portfolio / Music Links *
+                      </Label>
                       <Input
+                        id="portfolio"
                         type="url"
                         value={publicProfileUrl}
                         onChange={(e) => setPublicProfileUrl(e.target.value)}
-                        placeholder="https://soundcloud.com/yourname"
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
+                        placeholder="SoundCloud / Spotify / EPK"
+                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] rounded-lg px-4"
                         disabled={isLoading}
                         required
                       />
                       <p className="text-xs text-gray-500">
-                        Required music platform link. Will be verified by AI to prevent fake/duplicate accounts.
+                        SoundCloud, Spotify, Bandcamp, Mixcloud, Beatport, or YouTube profile URL
                       </p>
                     </div>
                   </>
@@ -743,7 +784,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   </div>
                 )}
 
-                <div className="flex gap-3 pt-2">
+                <div className="flex gap-3 pt-4">
                   <Button
                     type="submit"
                     disabled={
@@ -753,17 +794,17 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       !agreeTerms ||
                       (isArtist && !publicProfileUrl)
                     }
-                    className="bg-[#D7FF3C] text-black hover:bg-[#c5ed2a] font-semibold h-11 px-8"
+                    className="bg-[#D7FF3C] text-black hover:bg-[#c5ed2a] font-semibold h-12 px-8 rounded-full disabled:opacity-50"
                   >
                     {isLoading ? (
                       <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating...
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Saving...
                       </>
                     ) : (
                       <>
-                        <CheckCircle2 className="mr-2 h-4 w-4" />
-                        Continue
+                        <ArrowRight className="mr-2 h-5 w-5" />
+                        {isArtist ? "Create Artist Account" : "Create Account"}
                       </>
                     )}
                   </Button>
@@ -771,10 +812,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     type="button"
                     onClick={onClose}
                     variant="outline"
-                    className="border-[#2a2a2a] bg-transparent text-white hover:bg-[#1a1a1a] h-11 px-8"
+                    className="border-[#2a2a2a] bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] h-12 px-8 rounded-2xl"
                     disabled={isLoading}
                   >
-                    Cancel
+                    Back
                   </Button>
                 </div>
               </form>
@@ -843,6 +884,72 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   </Button>
                 </div>
               </form>
+            )}
+            </div>
+
+            {/* Right Rail - Desktop Only */}
+            {activeTab === "signup" && (
+              <div className="hidden lg:block lg:w-80 space-y-6">
+                {/* What's Next Card */}
+                <div className="bg-[#0a0a0a] border border-[#2a2a2a] rounded-xl p-6">
+                  <h3 className="text-white font-semibold mb-3">What's next</h3>
+                  <p className="text-gray-400 text-sm mb-4">
+                    After signing up, you'll be able to:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#1a1a1a] text-gray-300 border border-[#2a2a2a]">
+                      Artist
+                    </span>
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#1a1a1a] text-gray-300 border border-[#2a2a2a]">
+                      Techno
+                    </span>
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#1a1a1a] text-gray-300 border border-[#2a2a2a]">
+                      House
+                    </span>
+                  </div>
+                </div>
+
+                {/* Verification Steps Card */}
+                <div className="bg-[#0a0a0a] border border-[#2a2a2a] rounded-xl p-6">
+                  <h3 className="text-white font-semibold mb-4">Verification steps</h3>
+                  <ol className="space-y-3">
+                    <li className="flex gap-3 text-sm">
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#D7FF3C] text-black font-semibold flex items-center justify-center text-xs">
+                        1
+                      </span>
+                      <span className="text-gray-300">Email confirmation</span>
+                    </li>
+                    <li className="flex gap-3 text-sm">
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] text-gray-400 font-semibold flex items-center justify-center text-xs">
+                        2
+                      </span>
+                      <span className="text-gray-400">Link your music profiles</span>
+                    </li>
+                    <li className="flex gap-3 text-sm">
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] text-gray-400 font-semibold flex items-center justify-center text-xs">
+                        3
+                      </span>
+                      <span className="text-gray-400">Get access</span>
+                    </li>
+                  </ol>
+                </div>
+
+                {/* Community Card */}
+                <div className="bg-[#0a0a0a] border border-[#2a2a2a] rounded-xl p-6">
+                  <h3 className="text-white font-semibold mb-3">Community</h3>
+                  <div className="flex gap-3">
+                    <div className="w-16 h-16 bg-[#1a1a1a] rounded-lg flex-shrink-0"></div>
+                    <div>
+                      <p className="text-sm text-gray-300 font-medium mb-1">
+                        Tips: Better EPKs
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        AI EPK Generator
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </DialogContent>
