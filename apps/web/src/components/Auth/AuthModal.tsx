@@ -547,7 +547,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
                         placeholder="e.g. Alex"
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
+                        className="bg-[#1a1a1a] border-[#2a2a2a] text-white h-14 text-base focus:border-[#D7FF3C] rounded-lg px-4"
                         disabled={isLoading}
                         required
                       />
@@ -560,7 +560,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
                         placeholder="e.g. Rivera"
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
+                        className="bg-[#1a1a1a] border-[#2a2a2a] text-white h-14 text-base focus:border-[#D7FF3C] rounded-lg px-4"
                         disabled={isLoading}
                         required
                       />
