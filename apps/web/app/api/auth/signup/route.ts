@@ -16,6 +16,13 @@ const ALLOWED_PROFILE_DOMAINS = [
   'youtube.com',
 ];
 
+const artistProfileSchema = z.object({
+  profileUrl: z.string().url('Invalid profile URL'),
+  genre: z.string().min(1, 'Genre is required').max(120),
+  socialLinks: z.array(z.string().url()).max(4).default([]),
+  techRider: z.any().nullable().optional(),
+});
+
 const signupSchema = z.object({
   firstName: z.string().min(1, 'First name is required').max(100),
   lastName: z.string().min(1, 'Last name is required').max(100),
@@ -24,21 +31,15 @@ const signupSchema = z.object({
   confirmPassword: z.string().min(1, 'Please confirm your password'),
   username: z.string().min(3, 'Username must be at least 3 characters').max(50).optional(),
   isArtist: z.boolean().default(false),
-  // Artist-specific fields (required only if isArtist is true)
   artistName: z.string().min(2).max(100).optional(),
-  region: z.string().min(1).max(60).optional(),
-  genre: z.string().min(1).max(120).optional(),
-  profileUrl: z.string().url().optional(),
-  socialProfileUrl: z.string().url().optional(),
-  bio: z.string().max(500).optional(),
-  socialLinks: z.array(z.string().url()).max(5).default([]),
+  artistProfile: artistProfileSchema.optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
 }).refine((data) => {
   // If isArtist is true, require artist fields
   if (data.isArtist) {
-    return !!(data.artistName && data.region && data.genre && (data.profileUrl || data.socialProfileUrl));
+    return !!(data.artistName && data.artistProfile?.profileUrl && data.artistProfile?.genre);
   }
   return true;
 }, {
@@ -52,16 +53,15 @@ export async function POST(request: NextRequest) {
     const validatedData = signupSchema.parse(body);
 
     // Validate profile URL domain (only for artists)
-    const profileUrl = validatedData.socialProfileUrl || validatedData.profileUrl;
-    if (validatedData.isArtist && profileUrl) {
-      const profileUrlObj = new URL(profileUrl);
+    if (validatedData.isArtist && validatedData.artistProfile?.profileUrl) {
+      const profileUrlObj = new URL(validatedData.artistProfile.profileUrl);
       const isAllowedDomain = ALLOWED_PROFILE_DOMAINS.some(domain => 
         profileUrlObj.hostname.includes(domain)
       );
       
       if (!isAllowedDomain) {
         return NextResponse.json(
-          { ok: false, error: 'Profile URL must be from SoundCloud, Bandcamp, Instagram, Mixcloud, or Spotify' },
+          { ok: false, error: 'Profile URL must be from an allowed music platform' },
           { status: 400 }
         );
       }
@@ -141,33 +141,31 @@ export async function POST(request: NextRequest) {
       .returning();
 
     // Create profile
-    const socialLinksObj = validatedData.socialLinks.reduce((acc, link, index) => {
+    const socialLinksObj = validatedData.artistProfile?.socialLinks.reduce((acc, link, index) => {
       if (link) acc[`link${index + 1}`] = link;
       return acc;
-    }, {} as Record<string, string>);
-
-    const finalProfileUrl = validatedData.socialProfileUrl || validatedData.profileUrl;
+    }, {} as Record<string, string>) || {};
 
     await db.insert(profiles).values({
       userId: newUser.id,
       firstName: validatedData.firstName,
       lastName: validatedData.lastName,
       artistName: validatedData.isArtist ? validatedData.artistName : null,
-      region: validatedData.region || null,
-      genre: validatedData.genre || null,
-      socialProfileUrl: validatedData.isArtist ? finalProfileUrl : null,
+      region: null,
+      genre: validatedData.artistProfile?.genre || null,
+      socialProfileUrl: validatedData.isArtist ? validatedData.artistProfile?.profileUrl : null,
       socialLinks: socialLinksObj,
-      bio: validatedData.bio || null,
+      bio: null,
     });
 
     // Create verification job for AI-based profile verification (only for artists)
     let verificationJobId: string | null = null;
-    if (validatedData.isArtist && finalProfileUrl) {
+    if (validatedData.isArtist && validatedData.artistProfile?.profileUrl) {
       const [job] = await db
         .insert(verificationJobs)
         .values({
           userId: newUser.id,
-          profileUrl: finalProfileUrl,
+          profileUrl: validatedData.artistProfile.profileUrl,
           status: 'queued',
           progress: 0,
         })

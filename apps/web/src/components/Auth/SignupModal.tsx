@@ -19,6 +19,7 @@ import {
   Info,
 } from "lucide-react";
 import { VerificationModal } from "../Auth/VerificationModal";
+import { SignupFieldsArtist } from "../Auth/SignupFieldsArtist";
 import { useRouter } from "next/navigation";
 
 interface SignupModalProps {
@@ -71,7 +72,8 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
   const [region, setRegion] = useState("");
   const [genre, setGenre] = useState("");
   const [socialProfileUrl, setSocialProfileUrl] = useState("");
-  const [socialLinks, setSocialLinks] = useState<string[]>([""]);
+  const [socialLinks, setSocialLinks] = useState<string[]>([]);
+  const [additionalSocialLinks, setAdditionalSocialLinks] = useState<string[]>([]);
 
   // Username generation
   const [generatedUsernames, setGeneratedUsernames] = useState<string[]>([]);
@@ -229,7 +231,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
     }
 
     if (isArtist) {
-      if (!artistName || !region || !genre || !socialProfileUrl) {
+      if (!artistName || !genre || !socialProfileUrl) {
         setError("All artist fields are required");
         return false;
       }
@@ -241,6 +243,8 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
         "instagram.com",
         "mixcloud.com",
         "spotify.com",
+        "youtube.com",
+        "beatport.com",
       ];
       try {
         const url = new URL(socialProfileUrl);
@@ -249,7 +253,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
         );
         if (!isAllowed) {
           setError(
-            "Social profile must be from SoundCloud, Bandcamp, Instagram, Mixcloud, or Spotify",
+            "Social profile must be from an allowed music platform",
           );
           return false;
         }
@@ -287,23 +291,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
     return true;
   };
 
-  // Social links handlers
-  const updateSocialLink = (index: number, value: string) => {
-    const newLinks = [...socialLinks];
-    newLinks[index] = value;
-    setSocialLinks(newLinks);
-  };
-
-  const addSocialLink = () => {
-    if (socialLinks.length < 5) {
-      setSocialLinks([...socialLinks, ""]);
-    }
-  };
-
-  const removeSocialLink = (index: number) => {
-    const newLinks = socialLinks.filter((_, i) => i !== index);
-    setSocialLinks(newLinks);
-  };
+  
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -349,7 +337,7 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
     setIsSubmitting(true);
 
     try {
-      const validSocialLinks = socialLinks.filter((link) => link.trim() !== "");
+      const validSocialLinks = additionalSocialLinks.filter((link) => link.trim() !== "");
 
       const payload: any = {
         firstName,
@@ -363,11 +351,12 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
       if (isArtist) {
         payload.artistName = artistName;
         payload.username = selectedUsername;
-        payload.region = region;
-        payload.genre = genre;
-        payload.socialProfileUrl = socialProfileUrl;
-        payload.profileUrl = socialProfileUrl;
-        payload.socialLinks = validSocialLinks;
+        payload.artistProfile = {
+          profileUrl: socialProfileUrl,
+          genre: genre,
+          socialLinks: validSocialLinks,
+          techRider: null, // Placeholder for future tech rider upload
+        };
       }
 
       const res = await fetch("/api/auth/signup", {
@@ -853,79 +842,14 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
                   </div>
 
                   {isArtist && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="region" className="text-lime-400">
-                          Region *
-                        </Label>
-                        <Input
-                          id="region"
-                          value={region}
-                          onChange={(e) => setRegion(e.target.value)}
-                          maxLength={60}
-                          className="bg-gray-900 border-gray-700 text-white"
-                          placeholder="e.g., London, UK"
-                          required={isArtist}
-                          aria-required={isArtist ? "true" : "false"}
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="genre" className="text-lime-400">
-                          Primary Genre *
-                        </Label>
-                        <Input
-                          id="genre"
-                          value={genre}
-                          onChange={(e) => setGenre(e.target.value)}
-                          maxLength={120}
-                          className="bg-gray-900 border-gray-700 text-white"
-                          placeholder="e.g., Techno, House"
-                          required={isArtist}
-                          aria-required={isArtist ? "true" : "false"}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {isArtist && (
-                    <div>
-                      <Label className="text-lime-400">
-                        Additional Social Links (Optional, max 5)
-                      </Label>
-                      {socialLinks.map((link, idx) => (
-                        <div key={idx} className="flex gap-2 mt-2">
-                          <Input
-                            value={link}
-                            onChange={(e) =>
-                              updateSocialLink(idx, e.target.value)
-                            }
-                            className="bg-gray-900 border-gray-700 text-white"
-                            placeholder="https://instagram.com/yourname"
-                          />
-                          {idx > 0 && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() => removeSocialLink(idx)}
-                              className="border-gray-700"
-                            >
-                              Remove
-                            </Button>
-                          )}
-                        </div>
-                      ))}
-                      {socialLinks.length < 5 && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={addSocialLink}
-                          className="mt-2 border-lime-400/50 text-lime-400"
-                        >
-                          + Add Link
-                        </Button>
-                      )}
-                    </div>
+                    <SignupFieldsArtist
+                      socialProfileUrl={socialProfileUrl}
+                      setSocialProfileUrl={setSocialProfileUrl}
+                      genre={genre}
+                      setGenre={setGenre}
+                      additionalSocialLinks={additionalSocialLinks}
+                      setAdditionalSocialLinks={setAdditionalSocialLinks}
+                    />
                   )}
 
                   {error && (
