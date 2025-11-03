@@ -83,7 +83,7 @@ export function CategorySidebar() {
 
         <div className="mt-6 pt-4 border-t border-[#1a1a1a]">
           <Link 
-            href="/forum/compose"
+            href="/community/forum/compose"
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#D7FF3C] hover:bg-[#e7ff6f] text-black font-semibold rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
