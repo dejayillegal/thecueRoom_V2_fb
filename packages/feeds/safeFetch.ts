@@ -1,92 +1,135 @@
-import { SafeFetchResult, SafeFetchOptions } from './types';
+
+import fetch from 'cross-fetch';
+
+export interface SafeFetchOptions {
+  timeout?: number;
+  attempts?: number;
+  headers?: Record<string, string>;
+  signal?: AbortSignal;
+  method?: string;
+  body?: any;
+}
+
+export interface SafeFetchResult {
+  ok: boolean;
+  status: number;
+  json?: any;
+  text?: string;
+  error?: string;
+}
 
 /**
- * Safe fetch with retries, timeout, and structured error handling
- * Never throws - always returns a structured result
+ * Safe fetch with timeout, retry, exponential backoff, and safe JSON parsing
  */
 export async function safeFetch(
   url: string,
-  options: SafeFetchOptions = {}
+  opts: SafeFetchOptions = {}
 ): Promise<SafeFetchResult> {
-  const {
-    timeout = parseInt(process.env.NODE_FETCH_TIMEOUT_MS || '15000'),
-    attempts = 3,
-    headers = {},
-    method = 'GET',
-  } = options;
+  const timeout = opts.timeout ?? 15000;
+  const attempts = opts.attempts ?? 3;
+  const headers = opts.headers ?? {};
+  const parentSignal = opts.signal;
 
-  let lastError: string | undefined;
+  let lastError: any = null;
 
-  for (let attempt = 1; attempt <= attempts; attempt++) {
+  for (let i = 0; i < attempts; i++) {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    const timer = setTimeout(() => controller.abort(), timeout);
+
+    // Combine parent signal with timeout controller
+    if (parentSignal?.aborted) {
+      clearTimeout(timer);
+      return { ok: false, status: 0, error: 'Aborted by parent signal' };
+    }
 
     try {
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'User-Agent': 'thecueRoom/2.0 (+https://thecueroom.com)',
-          ...headers,
-        },
+      const res = await fetch(url, {
+        method: opts.method ?? 'GET',
+        headers,
+        body: opts.body ? JSON.stringify(opts.body) : undefined,
         signal: controller.signal,
       });
 
-      clearTimeout(timeoutId);
+      clearTimeout(timer);
 
-      const text = await response.text();
+      const contentType = res.headers.get('content-type') || '';
+      const text = await res.text();
 
-      // Try to parse as JSON
-      let body: any;
-      try {
-        body = JSON.parse(text);
-      } catch {
-        // Not JSON, that's okay
-        body = null;
+      // Try JSON parse if content-type suggests JSON
+      if (contentType.includes('application/json')) {
+        try {
+          const json = JSON.parse(text);
+          return { ok: res.ok, status: res.status, json };
+        } catch (parseErr) {
+          // JSON parse failed, return text
+          return {
+            ok: false,
+            status: res.status,
+            text: text.slice(0, 1024),
+            error: 'Invalid JSON response',
+          };
+        }
       }
 
-      if (!response.ok) {
-        // Return error response but with ok: false
+      // HTML or other response
+      if (text.trim().startsWith('<')) {
         return {
           ok: false,
-          status: response.status,
-          text,
-          body,
-          error: `HTTP ${response.status}: ${response.statusText}`,
+          status: res.status,
+          text: text.slice(0, 1024),
+          error: 'HTML response received when JSON expected',
         };
       }
 
-      return {
-        ok: true,
-        status: response.status,
-        text,
-        body,
-      };
-    } catch (error: any) {
-      clearTimeout(timeoutId);
-      
-      lastError = error.name === 'AbortError' 
-        ? `Timeout after ${timeout}ms`
-        : error.message || String(error);
+      // Plain text or unknown
+      return { ok: res.ok, status: res.status, text };
+    } catch (err: any) {
+      clearTimeout(timer);
+      lastError = err;
 
-      // Exponential backoff
-      if (attempt < attempts) {
-        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-        await new Promise(resolve => setTimeout(resolve, delay));
+      // Don't retry on abort
+      if (err.name === 'AbortError') {
+        return { ok: false, status: 0, error: 'Request timeout' };
+      }
+
+      // Exponential backoff before retry
+      if (i < attempts - 1) {
+        const backoff = 500 * Math.pow(2, i);
+        await new Promise((r) => setTimeout(r, backoff));
       }
     }
   }
 
   return {
     ok: false,
-    error: `Failed after ${attempts} attempts: ${lastError}`,
+    status: 0,
+    error: lastError?.message || 'Network error after retries',
   };
 }
 
 /**
- * Parse HTML safely without heavy dependencies
+ * Safe response handler - never throws on non-JSON
  */
-export function parseHTML(html: string) {
-  // This is a placeholder - in production you'd use node-html-parser
-  const parser = require('node-html-parser');
-  return parser.parse(html);
+export async function safeJsonResponse(response: Response): Promise<any> {
+  const text = await response.text();
+  
+  if (!text || text.trim().startsWith('<')) {
+    return {
+      ok: false,
+      status: response.status,
+      error: 'HTML response',
+      snippet: text.slice(0, 1024),
+    };
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {
+      ok: false,
+      status: response.status,
+      error: 'Invalid JSON',
+      snippet: text.slice(0, 1024),
+    };
+  }
 }

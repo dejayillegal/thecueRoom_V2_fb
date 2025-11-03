@@ -19,6 +19,79 @@ export interface FallbackSVGOptions {
   seed?: number;
 }
 
+export interface SVGGeneratorOptions {
+  preset?: string;
+  seed?: number;
+  artist?: string;
+  release?: string;
+  resolution?: string;
+}
+
+const PRESETS = {
+  'neon-accent': {
+    bg: '#0B0B0B',
+    gradient1: '#D7FF3C',
+    gradient2: '#9B5CFF',
+    pattern: 'grain',
+  },
+  'monochrome': {
+    bg: '#1A1A1A',
+    gradient1: '#FFFFFF',
+    gradient2: '#808080',
+    pattern: 'lines',
+  },
+  'geometric': {
+    bg: '#000000',
+    gradient1: '#FF006E',
+    gradient2: '#00F5FF',
+    pattern: 'circles',
+  },
+  'brutalist': {
+    bg: '#2A2A2A',
+    gradient1: '#FF3C00',
+    gradient2: '#FFFF00',
+    pattern: 'blocks',
+  },
+  // Adding the remaining presets to ensure compatibility with existing SVGPreset type
+  // These will not be used by the new generateSVG but keep the type definition valid
+  'cybergrind': {
+    bg: '#000000',
+    gradient1: '#00ffff',
+    gradient2: '#00ff00',
+    pattern: '',
+  },
+  'vaporwave': {
+    bg: '#FF6EC7',
+    gradient1: '#B28DFF',
+    gradient2: '#FFB5E8',
+    pattern: '',
+  },
+  'chromatic-grid': {
+    bg: '#000000',
+    gradient1: '#FF00FF',
+    gradient2: '#00FFFF',
+    pattern: '',
+  },
+  'noir-light': {
+    bg: '#000000',
+    gradient1: '#FFFFFF',
+    gradient2: '#FFFFFF',
+    pattern: '',
+  },
+  'acid-geometry': {
+    bg: '#1a001a',
+    gradient1: '#FF00FF',
+    gradient2: '#00FF00',
+    pattern: '',
+  },
+  'liquid-metal': {
+    bg: '#C0C0C0',
+    gradient1: '#E8E8E8',
+    gradient2: '#A8A8A8',
+    pattern: '',
+  },
+};
+
 function seededRandom(seed: number): () => number {
   let value = seed;
   return () => {
@@ -31,7 +104,7 @@ function generateNeonAccent(random: () => number, artist?: string, release?: str
   const angle = Math.floor(random() * 360);
   const hue1 = 280 + Math.floor(random() * 40);
   const hue2 = 320 + Math.floor(random() * 40);
-  
+
   const shapes: string[] = [];
   for (let i = 0; i < 8; i++) {
     const cx = random() * 1024;
@@ -39,7 +112,7 @@ function generateNeonAccent(random: () => number, artist?: string, release?: str
     const r = 100 + random() * 200;
     shapes.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#grad${i})" opacity="${0.3 + random() * 0.4}"/>`);
   }
-  
+
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -72,7 +145,7 @@ function generateMonochrome(random: () => number, artist?: string, release?: str
   const gridSize = 8;
   const cellSize = 1024 / gridSize;
   const cells: string[] = [];
-  
+
   for (let y = 0; y < gridSize; y++) {
     for (let x = 0; x < gridSize; x++) {
       if (random() > 0.5) {
@@ -80,7 +153,7 @@ function generateMonochrome(random: () => number, artist?: string, release?: str
       }
     }
   }
-  
+
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <rect width="1024" height="1024" fill="#fff"/>
   ${cells.join('\n  ')}
@@ -93,25 +166,25 @@ function generateMonochrome(random: () => number, artist?: string, release?: str
 function generateGeometric(random: () => number, artist?: string, release?: string): string {
   const shapes: string[] = [];
   const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8'];
-  
+
   for (let i = 0; i < 12; i++) {
     const points: string[] = [];
     const sides = 3 + Math.floor(random() * 4);
     const cx = random() * 1024;
     const cy = random() * 1024;
     const radius = 50 + random() * 150;
-    
+
     for (let j = 0; j < sides; j++) {
       const angle = (j * 2 * Math.PI) / sides;
       const x = cx + radius * Math.cos(angle);
       const y = cy + radius * Math.sin(angle);
       points.push(`${x},${y}`);
     }
-    
+
     const color = colors[Math.floor(random() * colors.length)];
     shapes.push(`<polygon points="${points.join(' ')}" fill="${color}" opacity="${0.6 + random() * 0.3}"/>`);
   }
-  
+
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -134,7 +207,7 @@ function generateBrutalist(random: () => number, artist?: string, release?: stri
     const shade = Math.floor(random() * 100);
     bars.push(`<rect x="0" y="${y}" width="${width}" height="60" fill="rgb(${shade}, ${shade}, ${shade})"/>`);
   }
-  
+
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
     <pattern id="noise" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
@@ -157,7 +230,7 @@ function generateBrutalist(random: () => number, artist?: string, release?: stri
 function generateCybergrind(random: () => number, artist?: string, release?: string): string {
   const lines: string[] = [];
   const circuits: string[] = [];
-  
+
   for (let i = 0; i < 30; i++) {
     const x1 = random() * 1024;
     const y1 = random() * 1024;
@@ -165,14 +238,14 @@ function generateCybergrind(random: () => number, artist?: string, release?: str
     const y2 = random() * 1024;
     lines.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#00ffff" stroke-width="${1 + random() * 3}" opacity="${0.2 + random() * 0.5}"/>`);
   }
-  
+
   for (let i = 0; i < 20; i++) {
     const cx = random() * 1024;
     const cy = random() * 1024;
     const r = 5 + random() * 15;
     circuits.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#00ff00" stroke-width="2" opacity="${0.6 + random() * 0.4}"/>`);
   }
-  
+
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -199,12 +272,12 @@ function generateCybergrind(random: () => number, artist?: string, release?: str
 function generateVaporwave(random: () => number, artist?: string, release?: string): string {
   const gridLines: string[] = [];
   const spacing = 40;
-  
+
   for (let i = 0; i < 1024; i += spacing) {
     gridLines.push(`<line x1="0" y1="${i}" x2="1024" y2="${i}" stroke="#ff00ff" stroke-width="1" opacity="0.3"/>`);
     gridLines.push(`<line x1="${i}" y1="0" x2="${i}" y2="1024" stroke="#00ffff" stroke-width="1" opacity="0.3"/>`);
   }
-  
+
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
     <linearGradient id="sunset" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -218,7 +291,7 @@ function generateVaporwave(random: () => number, artist?: string, release?: stri
     ${gridLines.join('\n    ')}
   </g>
   <circle cx="512" cy="300" r="150" fill="#FFD700" opacity="0.8"/>
-  <circle cx="512" cy="300" r="140" fill="#FFA500" opacity="0.6"/>
+  <circle cx="512" cy="300" r="140" fill="#FFA000" opacity="0.6"/>
   ${artist ? `<text x="512" y="850" text-anchor="middle" font-family="Arial, sans-serif" font-size="64" font-weight="bold" fill="#fff" stroke="#ff00ff" stroke-width="2">${escapeXML(artist)}</text>` : ''}
   ${release ? `<text x="512" y="920" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" fill="#fff" opacity="0.9">${escapeXML(release)}</text>` : ''}
 </svg>`;
@@ -228,7 +301,7 @@ function generateChromaticGrid(random: () => number, artist?: string, release?: 
   const gridSize = 16;
   const cellSize = 1024 / gridSize;
   const cells: string[] = [];
-  
+
   for (let y = 0; y < gridSize; y++) {
     for (let x = 0; x < gridSize; x++) {
       const hue = ((x + y) * 20) % 360;
@@ -236,7 +309,7 @@ function generateChromaticGrid(random: () => number, artist?: string, release?: 
       cells.push(`<rect x="${x * cellSize}" y="${y * cellSize}" width="${cellSize}" height="${cellSize}" fill="hsl(${hue}, 80%, ${lightness}%)" opacity="${0.7 + random() * 0.3}"/>`);
     }
   }
-  
+
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
     <filter id="blur">
@@ -254,13 +327,13 @@ function generateChromaticGrid(random: () => number, artist?: string, release?: 
 
 function generateNoirLight(random: () => number, artist?: string, release?: string): string {
   const beams: string[] = [];
-  
+
   for (let i = 0; i < 5; i++) {
     const x = 200 + i * 150;
     const width = 30 + random() * 50;
     beams.push(`<rect x="${x}" y="0" width="${width}" height="1024" fill="url(#beam${i})" opacity="${0.3 + random() * 0.4}"/>`);
   }
-  
+
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
     <radialGradient id="spotlight">
@@ -284,13 +357,13 @@ function generateNoirLight(random: () => number, artist?: string, release?: stri
 function generateAcidGeometry(random: () => number, artist?: string, release?: string): string {
   const shapes: string[] = [];
   const neonColors = ['#FF00FF', '#00FF00', '#00FFFF', '#FFFF00', '#FF0080'];
-  
+
   for (let i = 0; i < 20; i++) {
     const cx = random() * 1024;
     const cy = random() * 1024;
     const r = 20 + random() * 100;
     const color = neonColors[Math.floor(random() * neonColors.length)];
-    
+
     if (random() > 0.5) {
       shapes.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${2 + random() * 4}" opacity="${0.4 + random() * 0.5}"/>`);
     } else {
@@ -298,7 +371,7 @@ function generateAcidGeometry(random: () => number, artist?: string, release?: s
       shapes.push(`<rect x="${cx - size / 2}" y="${cy - size / 2}" width="${size}" height="${size}" fill="none" stroke="${color}" stroke-width="${2 + random() * 4}" opacity="${0.4 + random() * 0.5}" transform="rotate(${random() * 360} ${cx} ${cy})"/>`);
     }
   }
-  
+
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
     <radialGradient id="bg">
@@ -324,22 +397,22 @@ function generateAcidGeometry(random: () => number, artist?: string, release?: s
 
 function generateLiquidMetal(random: () => number, artist?: string, release?: string): string {
   const waves: string[] = [];
-  
+
   for (let i = 0; i < 10; i++) {
     const y = i * 100;
     const amplitude = 30 + random() * 50;
     const frequency = 0.005 + random() * 0.01;
     const points: string[] = [];
-    
+
     for (let x = 0; x <= 1024; x += 10) {
       const offsetY = Math.sin(x * frequency) * amplitude;
       points.push(`${x},${y + offsetY}`);
     }
-    
+
     const path = `M ${points.join(' L ')} L 1024,1024 L 0,1024 Z`;
     waves.push(`<path d="${path}" fill="url(#wave${i})" opacity="${0.3 + random() * 0.4}"/>`);
   }
-  
+
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
     <linearGradient id="metal" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -386,7 +459,7 @@ function escapeXML(text: string): string {
 export function generateFallbackSVG(options: FallbackSVGOptions): string {
   const seed = options.seed ?? Math.floor(Math.random() * 1000000);
   const random = seededRandom(seed);
-  
+
   const generators: Record<SVGPreset, (random: () => number, artist?: string, release?: string) => string> = {
     'neon-accent': generateNeonAccent,
     'monochrome': generateMonochrome,
@@ -399,7 +472,7 @@ export function generateFallbackSVG(options: FallbackSVGOptions): string {
     'acid-geometry': generateAcidGeometry,
     'liquid-metal': generateLiquidMetal,
   };
-  
+
   const generator = generators[options.preset];
   return generator(random, options.artist, options.release);
 }
@@ -462,3 +535,62 @@ export const PRESET_METADATA: Record<SVGPreset, { name: string; description: str
     description: 'Silver distortions, wave mesh lighting',
   },
 };
+
+export function generateSVG(options: SVGGeneratorOptions): string {
+  const presetKey = options.preset || 'neon-accent';
+  const preset = PRESETS[presetKey] || PRESETS['neon-accent'];
+  const seed = options.seed || Math.random();
+
+  // Seeded random
+  const rng = (s: number) => {
+    const x = Math.sin(s * seed) * 10000;
+    return x - Math.floor(x);
+  };
+
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:${preset.gradient1};stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:${preset.gradient2};stop-opacity:0.8" />
+    </linearGradient>
+    <filter id="noise">
+      <feTurbulence type="fractalNoise" baseFrequency="${rng(1) * 0.5 + 0.5}" numOctaves="4" />
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="1024" fill="${preset.bg}"/>
+  <rect width="1024" height="1024" fill="url(#grad1)" opacity="0.6"/>
+  <rect width="1024" height="1024" filter="url(#noise)" opacity="0.15"/>
+
+  ${generatePattern(preset.pattern, seed, rng)}
+
+  <rect x="64" y="64" width="896" height="896" fill="none" stroke="${preset.gradient1}" stroke-width="4" opacity="0.3"/>
+  ${options.artist ? `<text x="512" y="900" text-anchor="middle" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white" opacity="0.9">${escapeXML(options.artist)}</text>` : ''}
+  ${options.release ? `<text x="512" y="960" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" fill="${preset.gradient1}" opacity="0.8">${escapeXML(options.release)}</text>` : ''}
+</svg>`;
+
+  return svg;
+}
+
+function generatePattern(type: string, seed: number, rng: (s: number) => number): string {
+  switch (type) {
+    case 'grain':
+      return `<circle cx="${rng(2) * 800 + 112}" cy="${rng(3) * 800 + 112}" r="${rng(4) * 300 + 100}" fill="white" opacity="0.05"/>`;
+    case 'lines':
+      return Array.from({ length: 20 }, (_, i) =>
+        `<line x1="0" y1="${i * 50}" x2="1024" y2="${i * 50}" stroke="white" stroke-width="2" opacity="0.1"/>`
+      ).join('');
+    case 'circles':
+      return Array.from({ length: 10 }, (_, i) =>
+        `<circle cx="${rng(i * 2) * 1024}" cy="${rng(i * 3) * 1024}" r="${rng(i * 4) * 200 + 50}" fill="none" stroke="white" stroke-width="2" opacity="0.1"/>`
+      ).join('');
+    case 'blocks':
+      return Array.from({ length: 15 }, (_, i) =>
+        `<rect x="${rng(i * 2) * 900}" y="${rng(i * 3) * 900}" width="${rng(i * 4) * 100 + 50}" height="${rng(i * 5) * 100 + 50}" fill="white" opacity="0.05"/>`
+      ).join('');
+    default:
+      return '';
+  }
+}
