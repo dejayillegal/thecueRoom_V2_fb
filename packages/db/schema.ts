@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, jsonb, integer, boolean, uuid, index, varchar } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, jsonb, integer, boolean, uuid, index, uniqueIndex, varchar } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 export const users = pgTable('users', {
@@ -108,10 +108,30 @@ export const spotlightItems = pgTable('spotlight_items', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
+export const artistSpotlight = pgTable('artist_spotlight', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  weight: integer('weight').notNull().default(1),
+  featuredUntil: timestamp('featured_until'),
+  status: text('status').notNull().default('pending'), // 'pending' | 'active' | 'expired'
+  requestedAt: timestamp('requested_at').defaultNow().notNull(),
+  approvedBy: uuid('approved_by').references(() => users.id),
+  approvedAt: timestamp('approved_at'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index('artist_spotlight_user_id_idx').on(table.userId),
+  statusIdx: index('artist_spotlight_status_idx').on(table.status),
+  featuredUntilIdx: index('artist_spotlight_featured_until_idx').on(table.featuredUntil),
+}));
+
 export const playlists = pgTable('playlists', {
   id: uuid('id').primaryKey().defaultRandom(),
   title: text('title').notNull(),
   description: text('description'),
+  curatorId: uuid('curator_id').references(() => users.id),
+  platform: text('platform'), // 'spotify' | 'soundcloud' | 'beatport' | 'mixcloud' | 'bandcamp' | 'youtube_music' | null for legacy
+  platformId: text('platform_id'),
+  embedUrl: text('embed_url'),
   soundcloudUrl: text('soundcloud_url'),
   embedHtml: text('embed_html'),
   thumbnail: text('thumbnail'),
@@ -519,4 +539,46 @@ export const artistEvents = pgTable('artist_events', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 }, (table) => ({
   artistEventIdx: index('artist_events_artist_event_idx').on(table.artistId, table.eventId),
+}));
+
+export const views = pgTable('views', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  targetType: text('target_type').notNull(), // 'thread' | 'post' | 'profile' | 'epk' | 'meme' | 'event'
+  targetId: uuid('target_id').notNull(),
+  userId: uuid('user_id').references(() => users.id), // Null for anonymous views
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  targetIdx: index('views_target_idx').on(table.targetType, table.targetId),
+  userIdIdx: index('views_user_id_idx').on(table.userId),
+  createdAtIdx: index('views_created_at_idx').on(table.createdAt),
+}));
+
+export const reactions = pgTable('reactions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  targetType: text('target_type').notNull(), // 'thread' | 'post' | 'profile' | 'epk' | 'meme' | 'event'
+  targetId: uuid('target_id').notNull(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  reaction: text('reaction').notNull(), // 'like' | 'love' | 'fire' | 'laugh'
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  targetUserUniqueIdx: uniqueIndex('reactions_target_user_unique_idx').on(table.targetType, table.targetId, table.userId),
+  userIdIdx: index('reactions_user_id_idx').on(table.userId),
+}));
+
+export const forumAttachments = pgTable('forum_attachments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  postType: text('post_type').notNull(), // 'thread' | 'reply'
+  postId: uuid('post_id').notNull(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(), // 'image' | 'ai_meme' | 'ai_cover' | 'file'
+  url: text('url').notNull(),
+  filename: text('filename'),
+  size: integer('size'),
+  aiJobId: uuid('ai_job_id').references(() => aiJobs.id),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  postIdx: index('forum_attachments_post_idx').on(table.postType, table.postId),
+  userIdIdx: index('forum_attachments_user_id_idx').on(table.userId),
 }));
