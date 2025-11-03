@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
+  ArrowRight,
 } from "lucide-react";
 import { useAvailability } from "@/src/hooks/use-availability";
 import { generateUsername } from "@/src/lib/username-generator";
@@ -338,11 +339,6 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     }
   };
 
-  const handleOAuthContinue = (provider: string) => {
-    console.log(`OAuth with ${provider} - Coming soon`);
-    setError(`${provider} authentication coming soon`);
-  };
-
   const addSocialLink = () => {
     if (socialLinks.length < 5) {
       setSocialLinks([...socialLinks, ""]);
@@ -364,7 +360,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-[920px] bg-black border border-[#2a2a2a] text-white p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col rounded-none">
+        <DialogContent className="max-w-[600px] bg-black border border-[#2a2a2a] text-white p-0 gap-0 overflow-hidden max-h-[90vh] rounded-2xl">
           <DialogTitle className="sr-only">
             {activeTab === "signin"
               ? "Sign In"
@@ -372,357 +368,300 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 ? "Sign Up"
                 : "Forgot Password"}
           </DialogTitle>
-          <div className="grid md:grid-cols-[1fr_360px] overflow-hidden flex-1">
-            {/* Left Column - Auth Forms */}
-            <div className="p-8 overflow-y-auto scrollbar-thin max-h-[calc(90vh-2rem)]">
-              {/* Header */}
-              <h2 className="text-2xl font-bold mb-6 text-[#D7FF3C]">
-                Welcome to thecueRoom
-              </h2>
 
-              {/* Tabs */}
-              <div className="flex gap-2 mb-8 border-b border-[#2a2a2a]">
+          {/* Header with Logo and Tabs */}
+          <div className="px-8 pt-8 pb-6 border-b border-[#2a2a2a]">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[#D7FF3C] rounded-lg"></div>
+                <span className="text-xl font-semibold">thecueRoom</span>
+              </div>
+              <div className="flex gap-2">
                 <button
                   onClick={() => setActiveTab("signin")}
-                  className={`px-6 py-3 text-sm font-semibold transition-all relative ${
+                  className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
                     activeTab === "signin"
-                      ? "text-[#D7FF3C] bg-[#1a1a1a]"
-                      : "text-gray-400 hover:text-white hover:bg-[#0a0a0a]"
+                      ? "bg-[#D7FF3C] text-black"
+                      : "bg-transparent text-gray-400 hover:text-white border border-[#2a2a2a]"
                   }`}
                 >
                   Sign In
-                  {activeTab === "signin" && (
-                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#D7FF3C]"></span>
-                  )}
                 </button>
                 <button
                   onClick={() => setActiveTab("signup")}
-                  className={`px-6 py-3 text-sm font-semibold transition-all relative ${
+                  className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
                     activeTab === "signup"
-                      ? "text-[#D7FF3C] bg-[#1a1a1a]"
-                      : "text-gray-400 hover:text-white hover:bg-[#0a0a0a]"
+                      ? "bg-[#D7FF3C] text-black"
+                      : "bg-transparent text-gray-400 hover:text-white border border-[#2a2a2a]"
                   }`}
                 >
                   Sign Up
-                  {activeTab === "signup" && (
-                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#D7FF3C]"></span>
-                  )}
                 </button>
                 <button
                   onClick={() => setActiveTab("forgot")}
-                  className={`px-6 py-3 text-sm font-semibold transition-all relative ${
+                  className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
                     activeTab === "forgot"
-                      ? "text-[#D7FF3C] bg-[#1a1a1a]"
-                      : "text-gray-400 hover:text-white hover:bg-[#0a0a0a]"
+                      ? "bg-[#D7FF3C] text-black"
+                      : "bg-transparent text-gray-400 hover:text-white border border-[#2a2a2a]"
                   }`}
                 >
-                  Forgot Password
-                  {activeTab === "forgot" && (
-                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#D7FF3C]"></span>
-                  )}
+                  Forgot
                 </button>
               </div>
+            </div>
+          </div>
 
-              {/* Sign In Form */}
-              {activeTab === "signin" && (
-                <form onSubmit={handleSignIn} className="space-y-5">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="signin-email"
-                      className="text-sm text-gray-400"
-                    >
-                      Email
-                    </Label>
-                    <Input
-                      id="signin-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="your@email.com"
-                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
+          {/* Form Content */}
+          <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
+            {/* Sign In Form */}
+            {activeTab === "signin" && (
+              <form onSubmit={handleSignIn} className="space-y-6">
+                <p className="text-gray-400 text-base mb-6">
+                  Welcome back. Enter your credentials to continue.
+                </p>
+
+                <div className="space-y-2">
+                  <Label htmlFor="signin-email" className="text-sm text-gray-400">
+                    Email
+                  </Label>
+                  <Input
+                    id="signin-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="name@artist.com"
+                    className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-14 text-base rounded-2xl px-4"
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="signin-password" className="text-sm text-gray-400">
+                    Password
+                  </Label>
+                  <Input
+                    id="signin-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-14 text-base rounded-2xl px-4"
+                    disabled={isLoading}
+                  />
+                </div>
+
+                {error && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">
+                    {error}
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="bg-[#D7FF3C] text-black hover:bg-[#c5ed2a] font-semibold h-14 px-8 rounded-2xl text-base"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Signing in...
+                      </>
+                    ) : (
+                      <>
+                        <ArrowRight className="mr-2 h-5 w-5" />
+                        Sign In
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={onClose}
+                    variant="outline"
+                    className="border-[#2a2a2a] bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] h-14 px-8 rounded-2xl text-base"
+                    disabled={isLoading}
+                  >
+                    Back
+                  </Button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("forgot")}
+                  className="text-sm text-gray-400 hover:text-white mt-4"
+                  disabled={isLoading}
+                >
+                  Forgot password?
+                </button>
+              </form>
+            )}
+
+            {/* Sign Up Form */}
+            {activeTab === "signup" && (
+              <form onSubmit={handleSignUp} className="space-y-4">
+                {/* Artist Checkbox */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3 p-4 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg hover:border-[#D7FF3C]/30 transition-colors">
+                    <input
+                      type="checkbox"
+                      id="artist-checkbox"
+                      checked={isArtist}
+                      onChange={(e) => setIsArtist(e.target.checked)}
+                      className="w-5 h-5 rounded border-[#2a2a2a] bg-[#0a0a0a] text-[#D7FF3C] focus:ring-[#D7FF3C] focus:ring-offset-0 cursor-pointer"
                       disabled={isLoading}
                     />
-                  </div>
-
-                  <div className="space-y-2">
                     <Label
-                      htmlFor="signin-password"
-                      className="text-sm text-gray-400"
+                      htmlFor="artist-checkbox"
+                      className="text-white cursor-pointer text-sm font-medium flex-1"
                     >
-                      Password
+                      Sign up as Artist / DJ
                     </Label>
+                  </div>
+                  <p className="text-xs text-gray-500 px-4">
+                    Check this if you're an artist or DJ. Additional verification fields will appear.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm text-gray-400">First Name *</Label>
                     <Input
-                      id="signin-password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••••"
-                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="e.g. Alex"
+                      className="bg-[#1a1a1a] border-[#2a2a2a] text-white h-14 text-base focus:border-[#D7FF3C] rounded-lg px-4"
                       disabled={isLoading}
+                      required
                     />
                   </div>
-
-                  <div className="flex items-center justify-end text-sm">
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab("forgot")}
-                      className="text-white hover:text-[#D7FF3C] font-medium"
-                      disabled={isLoading}
-                    >
-                      Forgot Password
-                    </button>
-                  </div>
-
-                  {error && (
-                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded text-sm text-red-400">
-                      {error}
-                    </div>
-                  )}
-
-                  <div className="flex gap-3 pt-2">
-                    <Button
-                      type="submit"
-                      disabled={isLoading}
-                      className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold h-11 px-8"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Signing in...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 className="mr-2 h-4 w-4" />
-                          Continue
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={onClose}
-                      variant="outline"
-                      className="border-[#2a2a2a] bg-transparent text-white hover:bg-[#1a1a1a] h-11 px-8"
-                      disabled={isLoading}
-                    >
-                      <XCircle className="mr-2 h-4 w-4" />
-                      Cancel
-                    </Button>
-                  </div>
-                </form>
-              )}
-
-              {/* Sign Up Form */}
-              {activeTab === "signup" && (
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  {/* Artist Checkbox - Prominently placed at top */}
                   <div className="space-y-2">
-                    <div className="flex items-center gap-3 p-4 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg hover:border-[#D7FF3C]/30 transition-colors">
-                      <input
-                        type="checkbox"
-                        id="artist-checkbox"
-                        checked={isArtist}
-                        onChange={(e) => setIsArtist(e.target.checked)}
-                        className="w-5 h-5 rounded border-[#2a2a2a] bg-[#0a0a0a] text-[#D7FF3C] focus:ring-[#D7FF3C] focus:ring-offset-0 cursor-pointer"
-                        aria-describedby="artist-checkbox-description"
-                        disabled={isLoading}
-                      />
-                      <Label
-                        htmlFor="artist-checkbox"
-                        className="text-white cursor-pointer text-sm font-medium flex-1"
-                      >
-                        Sign up as Artist / DJ
-                      </Label>
-                    </div>
-                    <p id="artist-checkbox-description" className="text-xs text-gray-500 px-4">
-                      Check this if you're an artist or DJ. Additional verification fields will appear.
-                    </p>
+                    <Label className="text-sm text-gray-400">Last Name *</Label>
+                    <Input
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="e.g. Rivera"
+                      className="bg-[#1a1a1a] border-[#2a2a2a] text-white h-14 text-base focus:border-[#D7FF3C] rounded-lg px-4"
+                      disabled={isLoading}
+                      required
+                    />
                   </div>
+                </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm text-gray-400">
-                        First Name *
-                      </Label>
+                {isArtist && (
+                  <div className="space-y-2">
+                    <Label className="text-sm text-gray-400">Artist / Project Name *</Label>
+                    <div className="relative">
                       <Input
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        placeholder="e.g. Alex"
-                        className="bg-[#1a1a1a] border-[#2a2a2a] text-white h-14 text-base focus:border-[#D7FF3C] rounded-lg px-4"
+                        value={artistName}
+                        onChange={(e) => setArtistName(e.target.value)}
+                        placeholder="e.g. Midnight Echo"
+                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C] pr-10"
                         disabled={isLoading}
                         required
                       />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm text-gray-400">
-                        Last Name *
-                      </Label>
-                      <Input
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        placeholder="e.g. Rivera"
-                        className="bg-[#1a1a1a] border-[#2a2a2a] text-white h-14 text-base focus:border-[#D7FF3C] rounded-lg px-4"
-                        disabled={isLoading}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {isArtist && (
-                    <div className="space-y-2">
-                      <Label className="text-sm text-gray-400">
-                        Artist / Project Name *
-                      </Label>
-                      <div className="relative">
-                        <Input
-                          value={artistName}
-                          onChange={(e) => setArtistName(e.target.value)}
-                          placeholder="e.g. Midnight Echo"
-                          className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C] pr-10"
-                          disabled={isLoading}
-                          required
-                        />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
                         {artistAvailability.checking && (
                           <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
                         )}
                         {!artistAvailability.checking &&
                           artistAvailability.available === true && (
-                            <CheckCircle2
-                              className="h-4 w-4 text-green-500"
-                              aria-label="Available"
-                            />
+                            <CheckCircle2 className="h-4 w-4 text-green-500" />
                           )}
                         {!artistAvailability.checking &&
                           artistAvailability.available === false && (
-                            <XCircle
-                              className="h-4 w-4 text-red-500"
-                              aria-label="Taken"
-                            />
+                            <XCircle className="h-4 w-4 text-red-500" />
                           )}
                       </div>
                     </div>
                     {artistAvailability.reason && (
-                      <p className="text-xs text-red-400" role="alert">
-                        {artistAvailability.reason}
-                      </p>
+                      <p className="text-xs text-red-400">{artistAvailability.reason}</p>
                     )}
                     {generatedUsername && (
-                        <p className="text-xs text-gray-400">
-                          Username:{" "}
-                          <span className="text-[#D7FF3C]">
-                            {generatedUsername}
-                          </span>
-                        </p>
+                      <p className="text-xs text-gray-400">
+                        Username: <span className="text-[#D7FF3C]">{generatedUsername}</span>
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label className="text-sm text-gray-400">Email *</Label>
+                  <div className="relative">
+                    <Input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="e.g. alex@example.com"
+                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C] pr-10"
+                      disabled={isLoading}
+                      required
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {emailAvailability.checking && (
+                        <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
                       )}
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <Label className="text-sm text-gray-400">Email *</Label>
-                    <div className="relative">
-                      <Input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="e.g. alex@example.com"
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C] pr-10"
-                        disabled={isLoading}
-                        required
-                      />
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        {emailAvailability.checking && (
-                          <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                      {!emailAvailability.checking &&
+                        emailAvailability.available === true && (
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
                         )}
-                        {!emailAvailability.checking &&
-                          emailAvailability.available === true && (
-                            <CheckCircle2
-                              className="h-4 w-4 text-green-500"
-                              aria-label="Available"
-                            />
-                          )}
-                        {!emailAvailability.checking &&
-                          emailAvailability.available === false && (
-                            <XCircle
-                              className="h-4 w-4 text-red-500"
-                              aria-label="Taken"
-                            />
-                          )}
-                      </div>
-                    </div>
-                    {emailAvailability.reason && (
-                      <p className="text-xs text-red-400" role="alert">
-                        {emailAvailability.reason}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm text-gray-400">
-                        Password *
-                      </Label>
-                      <Input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="e.g. Strong@Pass123"
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
-                        disabled={isLoading}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm text-gray-400">
-                        Confirm Password *
-                      </Label>
-                      <Input
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="e.g. Strong@Pass123"
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
-                        disabled={isLoading}
-                        required
-                      />
+                      {!emailAvailability.checking &&
+                        emailAvailability.available === false && (
+                          <XCircle className="h-4 w-4 text-red-500" />
+                        )}
                     </div>
                   </div>
-
-                  {password && strength && (
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-400">
-                          Password strength:
-                        </span>
-                        <span className="text-gray-300 capitalize">
-                          {strength.level}
-                        </span>
-                      </div>
-                      <div className="h-1.5 w-full bg-[#1a1a1a] rounded-full overflow-hidden">
-                        <div
-                          className={`h-full ${strength.color} transition-all duration-300`}
-                          style={{ width: strength.width }}
-                          role="progressbar"
-                          aria-valuenow={parseInt(strength.width)}
-                          aria-valuemin={0}
-                          aria-valuemax={100}
-                        />
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        Min 10 chars, must include letter + number + symbol
-                      </p>
-                    </div>
+                  {emailAvailability.reason && (
+                    <p className="text-xs text-red-400">{emailAvailability.reason}</p>
                   )}
+                </div>
 
-                  {password &&
-                    confirmPassword &&
-                    password !== confirmPassword && (
-                      <div className="flex items-center gap-2 text-xs text-red-400">
-                        <XCircle className="h-3 w-3" />
-                        <span>Passwords do not match</span>
-                      </div>
-                    )}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm text-gray-400">Password *</Label>
+                    <Input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="e.g. Strong@Pass123"
+                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
+                      disabled={isLoading}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm text-gray-400">Confirm Password *</Label>
+                    <Input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="e.g. Strong@Pass123"
+                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
+                      disabled={isLoading}
+                      required
+                    />
+                  </div>
+                </div>
 
-                  {isArtist && (
+                {password && strength && (
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-400">Password strength:</span>
+                      <span className="text-gray-300 capitalize">{strength.level}</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-[#1a1a1a] rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${strength.color} transition-all duration-300`}
+                        style={{ width: strength.width }}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Min 10 chars, must include letter + number + symbol
+                    </p>
+                  </div>
+                )}
+
+                {isArtist && (
+                  <>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label className="text-sm text-gray-400">Region *</Label>
@@ -737,9 +676,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-sm text-gray-400">
-                          Primary Genre *
-                        </Label>
+                        <Label className="text-sm text-gray-400">Primary Genre *</Label>
                         <Input
                           value={genre}
                           onChange={(e) => setGenre(e.target.value)}
@@ -751,257 +688,162 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                         />
                       </div>
                     </div>
-                  )}
 
-                  {isArtist && (
                     <div className="space-y-2">
-                      <Label className="text-sm text-gray-400">
-                        Public Profile URL *
-                      </Label>
-                    <Input
-                      type="url"
-                      value={publicProfileUrl}
-                      onChange={(e) => setPublicProfileUrl(e.target.value)}
-                      placeholder="https://soundcloud.com/yourname"
-                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
-                      disabled={isLoading}
-                      required
-                    />
-                    <p className="text-xs text-gray-500">
-                        Required music platform link. Will be verified by AI to
-                        prevent fake/duplicate accounts.
+                      <Label className="text-sm text-gray-400">Public Profile URL *</Label>
+                      <Input
+                        type="url"
+                        value={publicProfileUrl}
+                        onChange={(e) => setPublicProfileUrl(e.target.value)}
+                        placeholder="https://soundcloud.com/yourname"
+                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
+                        disabled={isLoading}
+                        required
+                      />
+                      <p className="text-xs text-gray-500">
+                        Required music platform link. Will be verified by AI to prevent fake/duplicate accounts.
                       </p>
                     </div>
-                  )}
+                  </>
+                )}
 
-                  {isArtist && (
-                    <div className="space-y-2">
-                      <Label className="text-sm text-gray-400">
-                        Social Links (Max 5)
-                      </Label>
-                    {socialLinks.map((link, idx) => (
-                      <div key={idx} className="flex gap-2">
-                        <Input
-                          type="url"
-                          value={link}
-                          onChange={(e) =>
-                            updateSocialLink(idx, e.target.value)
-                          }
-                          placeholder="https://..."
-                          className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
-                          disabled={isLoading}
-                        />
-                        {idx > 0 && (
-                          <Button
-                            type="button"
-                            onClick={() => removeSocialLink(idx)}
-                            variant="outline"
-                            className="border-[#2a2a2a] text-gray-400 hover:bg-[#1a1a1a]"
-                            disabled={isLoading}
-                          >
-                            Remove
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                    {socialLinks.length < 5 && (
-                      <Button
-                        type="button"
-                        onClick={addSocialLink}
-                        variant="outline"
-                        className="border-[#2a2a2a] text-gray-400 hover:bg-[#1a1a1a]"
-                        disabled={isLoading}
-                      >
-                        + Add Link
-                      </Button>
+                <div className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    id="agree-terms"
+                    checked={agreeTerms}
+                    onChange={(e) => setAgreeTerms(e.target.checked)}
+                    className="mt-1"
+                    disabled={isLoading}
+                  />
+                  <Label htmlFor="agree-terms" className="text-xs text-gray-400 cursor-pointer">
+                    I agree to the{" "}
+                    <button
+                      type="button"
+                      onClick={() => setShowInfoModal("terms")}
+                      className="text-[#D7FF3C] hover:underline"
+                    >
+                      Terms
+                    </button>{" "}
+                    and{" "}
+                    <button
+                      type="button"
+                      onClick={() => setShowInfoModal("privacy")}
+                      className="text-[#D7FF3C] hover:underline"
+                    >
+                      Privacy Policy
+                    </button>{" "}
+                    *
+                  </Label>
+                </div>
+
+                {error && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/20 rounded text-sm text-red-400">
+                    {error}
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    type="submit"
+                    disabled={
+                      isLoading ||
+                      !emailAvailability.available ||
+                      (isArtist && !artistAvailability.available) ||
+                      !agreeTerms ||
+                      (isArtist && !publicProfileUrl)
+                    }
+                    className="bg-[#D7FF3C] text-black hover:bg-[#c5ed2a] font-semibold h-11 px-8"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                        Continue
+                      </>
                     )}
-                    </div>
-                  )}
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={onClose}
+                    variant="outline"
+                    className="border-[#2a2a2a] bg-transparent text-white hover:bg-[#1a1a1a] h-11 px-8"
+                    disabled={isLoading}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            )}
 
-                  <div className="flex items-start gap-2">
-                    <input
-                      type="checkbox"
-                      id="agree-terms"
-                      checked={agreeTerms}
-                      onChange={(e) => setAgreeTerms(e.target.checked)}
-                      className="mt-1"
-                      disabled={isLoading}
-                    />
-                    <Label
-                      htmlFor="agree-terms"
-                      className="text-xs text-gray-400 cursor-pointer"
-                    >
-                      I agree to the{" "}
-                      <button
-                        type="button"
-                        onClick={() => setShowInfoModal("terms")}
-                        className="text-[#D7FF3C] hover:underline"
-                      >
-                        Terms
-                      </button>{" "}
-                      and{" "}
-                      <button
-                        type="button"
-                        onClick={() => setShowInfoModal("privacy")}
-                        className="text-[#D7FF3C] hover:underline"
-                      >
-                        Privacy Policy
-                      </button>{" "}
-                      *
-                    </Label>
+            {/* Forgot Password Form */}
+            {activeTab === "forgot" && (
+              <form onSubmit={handleForgotPassword} className="space-y-6">
+                <p className="text-gray-400 text-base mb-6">
+                  Enter your email to receive a password reset link.
+                </p>
+
+                <div className="space-y-2">
+                  <Label htmlFor="forgot-email" className="text-sm text-gray-400">
+                    Email
+                  </Label>
+                  <Input
+                    id="forgot-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-14 text-base rounded-2xl px-4"
+                    disabled={isLoading}
+                  />
+                </div>
+
+                {error && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">
+                    {error}
                   </div>
+                )}
 
-                  {error && (
-                    <div
-                      className="p-3 bg-red-500/10 border border-red-500/20 rounded text-sm text-red-400"
-                      role="alert"
-                    >
-                      {error}
-                    </div>
-                  )}
-
-                  <div className="flex gap-3 pt-2">
-                    <Button
-                      type="submit"
-                      disabled={
-                        isLoading ||
-                        !emailAvailability.available ||
-                        (isArtist && !artistAvailability.available) ||
-                        !agreeTerms ||
-                        (isArtist && !publicProfileUrl)
-                      }
-                      className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold h-11 px-8"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Creating...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 className="mr-2 h-4 w-4" />
-                          Continue
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={onClose}
-                      variant="outline"
-                      className="border-[#2a2a2a] bg-transparent text-white hover:bg-[#1a1a1a] h-11 px-8"
-                      disabled={isLoading}
-                    >
-                      <XCircle className="mr-2 h-4 w-4" />
-                      Cancel
-                    </Button>
+                {success && (
+                  <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-sm text-green-400">
+                    {success}
                   </div>
-                </form>
-              )}
+                )}
 
-              {/* Forgot Password Form */}
-              {activeTab === "forgot" && (
-                <form onSubmit={handleForgotPassword} className="space-y-5">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="forgot-email"
-                      className="text-sm text-gray-400"
-                    >
-                      Email
-                    </Label>
-                    <Input
-                      id="forgot-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="your@email.com"
-                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
-                      disabled={isLoading}
-                    />
-                  </div>
-
-                  {error && (
-                    <div
-                      className="p-3 bg-red-500/10 border border-red-500/20 rounded text-sm text-red-400"
-                      role="alert"
-                    >
-                      {error}
-                    </div>
-                  )}
-
-                  {success && (
-                    <div className="p-3 bg-green-500/10 border border-green-500/20 rounded text-sm text-green-400">
-                      {success}
-                    </div>
-                  )}
-
-                  <div className="flex gap-3 pt-2">
-                    <Button
-                      type="submit"
-                      disabled={isLoading}
-                      className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold h-11 px-8"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Sending...
-                        </>
-                      ) : (
-                        <>
-                          <Mail className="mr-2 h-4 w-4" />
-                          Send Reset Link
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={onClose}
-                      variant="outline"
-                      className="border-[#2a2a2a] bg-transparent text-white hover:bg-[#1a1a1a] h-11 px-8"
-                      disabled={isLoading}
-                    >
-                      <XCircle className="mr-2 h-4 w-4" />
-                      Cancel
-                    </Button>
-                  </div>
-                </form>
-              )}
-            </div>
-
-            {/* Right Column - Welcome Panel */}
-            <div className="hidden md:block bg-[#0a0a0a] border-l border-[#2a2a2a] p-8 overflow-y-auto scrollbar-thin">
-              <h2 className="text-xl font-semibold mb-4 text-[#D7FF3C]">
-                Welcome to thecueRoom
-              </h2>
-              <p className="text-sm text-gray-400 mb-6">
-                Invite-first platform. Approved members get access to the gated
-                dashboard.
-              </p>
-
-              <ul className="space-y-3 text-sm">
-                <li className="flex items-start gap-2">
-                  <span className="text-[#D7FF3C] mt-1">■</span>
-                  <span className="text-gray-300">
-                    Reduced motion respected.
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-[#D7FF3C] mt-1">■</span>
-                  <span className="text-gray-300">
-                    WCAG AA contrast on dark.
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-[#D7FF3C] mt-1">■</span>
-                  <span className="text-gray-300">
-                    Scam-free, AI-verified community.
-                  </span>
-                </li>
-              </ul>
-
-              <div className="mt-8 pt-6 border-t border-[#2a2a2a] text-xs text-gray-500">
-                By continuing you agree to our Terms and Privacy.
-              </div>
-            </div>
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="bg-[#D7FF3C] text-black hover:bg-[#c5ed2a] font-semibold h-14 px-8 rounded-2xl text-base"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="mr-2 h-5 w-5" />
+                        Send Reset Link
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={onClose}
+                    variant="outline"
+                    className="border-[#2a2a2a] bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] h-14 px-8 rounded-2xl text-base"
+                    disabled={isLoading}
+                  >
+                    Back
+                  </Button>
+                </div>
+              </form>
+            )}
           </div>
         </DialogContent>
       </Dialog>
