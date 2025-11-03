@@ -13,6 +13,11 @@ import {
   XCircle,
   AlertCircle,
   ArrowRight,
+  Lock,
+  Music,
+  MapPin,
+  Link as LinkIcon,
+  User,
 } from "lucide-react";
 import { useAvailability } from "@/src/hooks/use-availability";
 import { generateUsername } from "@/src/lib/username-generator";
@@ -370,14 +375,14 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </DialogTitle>
 
           {/* Header with Logo and Tabs */}
-          <div className="px-8 pt-8 pb-6 border-b border-[#2a2a2a]">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
+          <div className="px-8 pt-6 pb-4 border-b border-[#2a2a2a]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 1000 1000"
                   aria-label="thecueRoom logo icon"
-                  className="w-10 h-10"
+                  className="w-9 h-9"
                   fill="#D7FF3C"
                 >
                   <g transform="translate(150, 150) scale(0.8)">
@@ -393,12 +398,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     </g>
                   </g>
                 </svg>
-                <span className="text-lg font-semibold">thecueRoom</span>
+                <span className="text-base font-semibold">thecueRoom</span>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => setActiveTab("signin")}
-                  className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
+                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
                     activeTab === "signin"
                       ? "bg-[#D7FF3C] text-black"
                       : "bg-transparent text-gray-400 hover:text-white border border-[#2a2a2a]"
@@ -408,7 +413,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 </button>
                 <button
                   onClick={() => setActiveTab("signup")}
-                  className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
+                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
                     activeTab === "signup"
                       ? "bg-[#D7FF3C] text-black"
                       : "bg-transparent text-gray-400 hover:text-white border border-[#2a2a2a]"
@@ -418,13 +423,13 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 </button>
                 <button
                   onClick={() => setActiveTab("forgot")}
-                  className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
+                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
                     activeTab === "forgot"
                       ? "bg-[#D7FF3C] text-black"
                       : "bg-transparent text-gray-400 hover:text-white border border-[#2a2a2a]"
                   }`}
                 >
-                  Forgot
+                  Forget
                 </button>
               </div>
             </div>
@@ -436,39 +441,45 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             <div className="flex-1">
             {/* Sign In Form */}
             {activeTab === "signin" && (
-              <form onSubmit={handleSignIn} className="space-y-6">
-                <p className="text-gray-400 text-base mb-6">
+              <form onSubmit={handleSignIn} className="space-y-5">
+                <p className="text-gray-400 text-sm">
                   Welcome back. Enter your credentials to continue.
                 </p>
 
                 <div className="space-y-2">
-                  <Label htmlFor="signin-email" className="text-sm text-gray-400">
+                  <Label htmlFor="signin-email" className="text-sm text-white">
                     Email
                   </Label>
-                  <Input
-                    id="signin-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@artist.com"
-                    className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-14 text-base rounded-2xl px-4"
-                    disabled={isLoading}
-                  />
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Input
+                      id="signin-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="name@artist.com"
+                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-14 text-base rounded-2xl pl-12 pr-4"
+                      disabled={isLoading}
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="signin-password" className="text-sm text-gray-400">
+                  <Label htmlFor="signin-password" className="text-sm text-white">
                     Password
                   </Label>
-                  <Input
-                    id="signin-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-14 text-base rounded-2xl px-4"
-                    disabled={isLoading}
-                  />
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Input
+                      id="signin-password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-14 text-base rounded-2xl pl-12 pr-4"
+                      disabled={isLoading}
+                    />
+                  </div>
                 </div>
 
                 {error && (
@@ -509,7 +520,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 <button
                   type="button"
                   onClick={() => setActiveTab("forgot")}
-                  className="text-sm text-gray-400 hover:text-white mt-4"
+                  className="text-sm text-gray-400 hover:text-[#a78bfa] transition-colors"
                   disabled={isLoading}
                 >
                   Forgot password?
@@ -556,48 +567,54 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName" className="text-sm text-gray-300 font-medium">
+                    <Label htmlFor="firstName" className="text-sm text-white font-medium">
                       First Name *
                     </Label>
-                    <Input
-                      id="firstName"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      placeholder="Alex"
-                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 text-base focus:border-[#D7FF3C] rounded-lg px-4"
-                      disabled={isLoading}
-                      required
-                    />
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="firstName"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        placeholder="Alex"
+                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 text-base focus:border-[#D7FF3C] rounded-lg pl-11 pr-4"
+                        disabled={isLoading}
+                        required
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lastName" className="text-sm text-gray-300 font-medium">
+                    <Label htmlFor="lastName" className="text-sm text-white font-medium">
                       Last Name *
                     </Label>
-                    <Input
-                      id="lastName"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      placeholder="Rivera"
-                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 text-base focus:border-[#D7FF3C] rounded-lg px-4"
-                      disabled={isLoading}
-                      required
-                    />
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="lastName"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        placeholder="Rivera"
+                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 text-base focus:border-[#D7FF3C] rounded-lg pl-11 pr-4"
+                        disabled={isLoading}
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
 
                 {isArtist && (
                   <div className="space-y-2">
-                    <Label htmlFor="artistName" className="text-sm text-gray-300 font-medium">
+                    <Label htmlFor="artistName" className="text-sm text-white font-medium">
                       Artist Name *
                     </Label>
-                    <p className="text-xs text-gray-500 mb-1">Your stage name</p>
                     <div className="relative">
+                      <Music className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
                         id="artistName"
                         value={artistName}
                         onChange={(e) => setArtistName(e.target.value)}
                         placeholder="Your stage name"
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] pr-10 rounded-lg px-4"
+                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] pl-11 pr-10 rounded-lg"
                         disabled={isLoading}
                         required
                       />
@@ -627,17 +644,18 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm text-gray-300 font-medium">
+                  <Label htmlFor="email" className="text-sm text-white font-medium">
                     Email *
                   </Label>
                   <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
                       id="email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="alex@example.com"
-                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] pr-10 rounded-lg px-4"
+                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] pl-11 pr-10 rounded-lg"
                       disabled={isLoading}
                       required
                     />
@@ -662,34 +680,40 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm text-gray-300 font-medium">
+                    <Label htmlFor="password" className="text-sm text-white font-medium">
                       Password *
                     </Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Min 8 characters"
-                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] rounded-lg px-4"
-                      disabled={isLoading}
-                      required
-                    />
+                    <div className="relative">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Min 8 characters"
+                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] rounded-lg pl-11 pr-4"
+                        disabled={isLoading}
+                        required
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword" className="text-sm text-gray-300 font-medium">
+                    <Label htmlFor="confirmPassword" className="text-sm text-white font-medium">
                       Confirm Password *
                     </Label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Re-enter password"
-                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] rounded-lg px-4"
-                      disabled={isLoading}
-                      required
-                    />
+                    <div className="relative">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Re-enter password"
+                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] rounded-lg pl-11 pr-4"
+                        disabled={isLoading}
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -715,53 +739,62 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="primaryGenre" className="text-sm text-gray-300 font-medium">
+                        <Label htmlFor="primaryGenre" className="text-sm text-white font-medium">
                           Primary Genre *
                         </Label>
-                        <Input
-                          id="primaryGenre"
-                          value={genre}
-                          onChange={(e) => setGenre(e.target.value)}
-                          placeholder="Techno"
-                          maxLength={120}
-                          className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] rounded-lg px-4"
-                          disabled={isLoading}
-                          required
-                        />
+                        <div className="relative">
+                          <Music className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="primaryGenre"
+                            value={genre}
+                            onChange={(e) => setGenre(e.target.value)}
+                            placeholder="Techno"
+                            maxLength={120}
+                            className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] rounded-lg pl-11 pr-4"
+                            disabled={isLoading}
+                            required
+                          />
+                        </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="cityRegion" className="text-sm text-gray-300 font-medium">
+                        <Label htmlFor="cityRegion" className="text-sm text-white font-medium">
                           City / Region *
                         </Label>
-                        <Input
-                          id="cityRegion"
-                          value={region}
-                          onChange={(e) => setRegion(e.target.value)}
-                          placeholder="Berlin, DE"
-                          maxLength={60}
-                          className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] rounded-lg px-4"
-                          disabled={isLoading}
-                          required
-                        />
+                        <div className="relative">
+                          <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="cityRegion"
+                            value={region}
+                            onChange={(e) => setRegion(e.target.value)}
+                            placeholder="Berlin, DE"
+                            maxLength={60}
+                            className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] rounded-lg pl-11 pr-4"
+                            disabled={isLoading}
+                            required
+                          />
+                        </div>
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="portfolio" className="text-sm text-gray-300 font-medium">
+                      <Label htmlFor="portfolio" className="text-sm text-white font-medium">
                         Portfolio / Music Links *
                       </Label>
-                      <Input
-                        id="portfolio"
-                        type="url"
-                        value={publicProfileUrl}
-                        onChange={(e) => setPublicProfileUrl(e.target.value)}
-                        placeholder="SoundCloud / Spotify / EPK"
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] rounded-lg px-4"
-                        disabled={isLoading}
-                        required
-                      />
+                      <div className="relative">
+                        <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="portfolio"
+                          type="url"
+                          value={publicProfileUrl}
+                          onChange={(e) => setPublicProfileUrl(e.target.value)}
+                          placeholder="SoundCloud / Spotify / EPK"
+                          className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] rounded-lg pl-11 pr-4"
+                          disabled={isLoading}
+                          required
+                        />
+                      </div>
                       <p className="text-xs text-gray-500">
-                        SoundCloud, Spotify, Bandcamp, Mixcloud, Beatport, or YouTube profile URL
+                        SoundCloud, Spotify, Bandcamp, Mixcloud, Beatport, or YouTube
                       </p>
                     </div>
                   </>
@@ -842,24 +875,27 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
             {/* Forgot Password Form */}
             {activeTab === "forgot" && (
-              <form onSubmit={handleForgotPassword} className="space-y-6">
-                <p className="text-gray-400 text-base mb-6">
+              <form onSubmit={handleForgotPassword} className="space-y-5">
+                <p className="text-gray-400 text-sm">
                   Enter your email to receive a password reset link.
                 </p>
 
                 <div className="space-y-2">
-                  <Label htmlFor="forgot-email" className="text-sm text-gray-400">
+                  <Label htmlFor="forgot-email" className="text-sm text-white">
                     Email
                   </Label>
-                  <Input
-                    id="forgot-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-14 text-base rounded-2xl px-4"
-                    disabled={isLoading}
-                  />
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Input
+                      id="forgot-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="your@email.com"
+                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-14 text-base rounded-2xl pl-12 pr-4"
+                      disabled={isLoading}
+                    />
+                  </div>
                 </div>
 
                 {error && (
