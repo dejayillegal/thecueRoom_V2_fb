@@ -6,6 +6,7 @@
   "exports": {
     ".": "./poller.ts",
     "./sources": "./sources/index.ts",
+    "./sources/india-gigs-aggregator": "./sources/india-gigs-aggregator.ts",
     "./normalize": "./normalize.ts",
     "./poller-gigs": "./poller-gigs.ts",
     "./cache": "./cache.ts",

@@ -484,3 +484,39 @@ export const loginAttempts = pgTable('login_attempts', {
 }, (table) => ({
   identifierIdx: index('login_attempts_identifier_idx').on(table.identifier),
 }));
+
+// New tables for events and artist_events
+export const events = pgTable('events', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  title: text('title').notNull(),
+  venue: text('venue').notNull(),
+  location: text('location').notNull(),
+  city: text('city'),
+  lat: text('lat'),
+  lng: text('lng'),
+  startTime: timestamp('start_time').notNull(),
+  endTime: timestamp('end_time'),
+  ticketUrl: text('ticket_url'),
+  genres: jsonb('genres').$type<string[]>().default(sql`'[]'::jsonb`),
+  source: text('source'),
+  imageUrl: text('image_url'),
+  isPrivate: boolean('is_private').notNull().default(false),
+  approved: boolean('approved').notNull().default(false),
+  visibility: text('visibility').notNull().default('public'), // 'public', 'private', 'artist_only'
+  status: text('status').notNull().default('pending'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => ({
+  startTimeIdx: index('events_start_time_idx').on(table.startTime),
+  approvedIdx: index('events_approved_idx').on(table.approved),
+  visibilityIdx: index('events_visibility_idx').on(table.visibility),
+}));
+
+export const artistEvents = pgTable('artist_events', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  artistId: uuid('artist_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  eventId: uuid('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  artistEventIdx: index('artist_events_artist_event_idx').on(table.artistId, table.eventId),
+}));

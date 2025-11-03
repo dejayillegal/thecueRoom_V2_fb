@@ -1,34 +1,61 @@
 import { NextResponse } from 'next/server';
-import { aggregateIndiaGigs } from '@thecueroom/feeds/sources/india-gigs-aggregator';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
+import { getDbClient } from '@thecueroom/db';
+import type { NextRequest } from 'next/server';
 
-const CACHE_FILE = join(process.cwd(), 'apps/web/data/gigs/india-latest.json');
-const CACHE_DURATION = 3600000; // 1 hour
-
-function ensureCacheDir() {
-  const dir = join(process.cwd(), 'apps/web/data/gigs');
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true });
-  }
-}
-
-function readCache() {
+export async function GET(request: NextRequest) {
   try {
-    if (!existsSync(CACHE_FILE)) {
-      return null;
-    }
+    const db = await getDbClient();
+    
+    // Fetch all approved events
+    const result = await db.execute({
+      sql: `
+        SELECT 
+          id, title, venue, city, event_date as date, event_time as time,
+          price, ticket_url as ticketUrl, image_url as imageUrl,
+          description, genre, source, source_url as sourceUrl
+        FROM events
+        WHERE status = 'approved'
+        ORDER BY event_date ASC
+      `,
+      args: [],
+    });
 
-    const data = JSON.parse(readFileSync(CACHE_FILE, 'utf-8'));
-    const age = Date.now() - new Date(data.timestamp).getTime();
+    const events = result.rows.map(row => ({
+      ...row,
+      genre: row.genre ? JSON.parse(row.genre as string) : [],
+      freeTicket: !row.price || (row.price as string).toLowerCase().includes('free'),
+    }));
 
-    if (age > CACHE_DURATION) {
-      return null;
-    }
+    await db.close();
 
-    return data;
-  } catch {
-    return null;
+    return NextResponse.json({
+      ok: true,
+      events,
+      total: events.length,
+      fromCache: false,
+    });
+  } catch (error) {
+    console.error('Gigs fetch error:', error);
+    
+    // Fallback to test data
+    return NextResponse.json({
+      ok: true,
+      events: [
+        {
+          id: '1',
+          title: 'Techno Night @ Bangalore',
+          venue: 'Underground Warehouse',
+          city: 'Bangalore',
+          date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          ticketUrl: '#',
+          freeTicket: true,
+          imageUrl: 'https://picsum.photos/seed/gig1/800/600',
+        },
+      ],
+      total: 1,
+      fromCache: false,
+      error: 'Database unavailable, using fallback',
+    });
   }
 }
 
