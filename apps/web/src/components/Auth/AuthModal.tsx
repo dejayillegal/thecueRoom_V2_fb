@@ -425,7 +425,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   </g>
                 </g>
               </svg>
-              <span className="text-xl font-semibold">thecueRoom</span>
+              <span className="text-2xl font-semibold">thecueRoom</span>
             </div>
             <div className="flex gap-1">
               <button
@@ -468,7 +468,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               {/* Sign In Form */}
               {activeTab === "signin" && (
                 <form onSubmit={handleSignIn} className="space-y-4">
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-[#9B5CFF] text-sm">
                     Welcome back. Enter your credentials to continue.
                   </p>
 
@@ -559,18 +559,18 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 <form onSubmit={handleSignUp} className="space-y-3">
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <h2 className="text-lg font-bold text-white">
+                      <h2 className="text-base font-bold text-white">
                         Create your {isArtist ? "artist " : ""}account
                       </h2>
                       <button
                         type="button"
                         onClick={() => setActiveTab("signin")}
-                        className="text-sm text-gray-400 hover:text-white transition-colors"
+                        className="text-xs text-gray-400 hover:text-white transition-colors"
                       >
                         Have an account? <span className="text-[#D7FF3C]">Sign in</span>
                       </button>
                     </div>
-                    <p className="text-gray-400 text-sm">
+                    <p className="text-[#9B5CFF] text-sm italic">
                       Join thecueRoom community
                     </p>
                   </div>
@@ -593,7 +593,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                         >
                           Sign up as Artist / DJ
                         </Label>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-[#9B5CFF]">
                           Additional verification fields will appear for artist accounts.
                         </p>
                       </div>
@@ -725,7 +725,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                           type="password"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          placeholder="Min 8 characters"
+                          placeholder="Min 10 characters"
                           className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C] text-sm rounded-lg pl-10 pr-4"
                           disabled={isLoading}
                           required
@@ -878,7 +878,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   {isArtist && (
                     <div className="flex items-start gap-2 p-3 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg mt-3">
                       <Info className="h-4 w-4 text-[#D7FF3C] flex-shrink-0 mt-0.5" />
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-[#9B5CFF]">
                         thecueRoom's AI verification system automatically authenticates artist profiles to prevent fraudulent accounts, duplicate registrations, and identity misrepresentation.
                       </p>
                     </div>
