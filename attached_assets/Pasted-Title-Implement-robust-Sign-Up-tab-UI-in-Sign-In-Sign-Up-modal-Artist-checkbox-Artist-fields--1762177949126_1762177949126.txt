@@ -1,0 +1,166 @@
+Title: Implement robust Sign Up tab UI in Sign In / Sign Up modal (Artist checkbox + Artist fields + Social links + validation + accessibility + tests)
+
+Summary:
+Implement a production-ready, robust, accessible Sign Up tab UI inside the existing Sign In / Sign Up modal.  
+The Sign Up tab must show an Artist checkbox (visible, accessible, keyboard operable).  
+When the Artist checkbox is checked, the Artist-only fields must become enabled and required: **Artist Name**, Region, Primary Genre, Public Profile URL, Required Music Platform Link.  
+Add Social Links management (add up to 5, edit, remove).  
+Implement client-side validation, clear UX error states, loading states, success flow, and integration hooks for server-side AI verification.  
+Deliver UI only (no backend logic) but include clear integration points and test cases.
+
+---
+
+Tasks (implementation steps):
+
+1. **Locate current modal:**
+   - Find the Sign In / Sign Up modal component(s) and the Sign Up tab.
+   - Replace the Sign Up tab content with the new UI component or integrate the new UI module into the existing tab.
+
+2. **Artist checkbox:**
+   - Add an explicit, clearly labeled checkbox: **"Sign up as Artist / DJ"**.
+   - Checkbox must be visible by default in the Sign Up tab.
+   - Must be keyboard- and screen-reader-accessible.
+   - Toggling the checkbox should instantly enable/disable the Artist-only fields.
+
+3. **Artist-only fields** (display only when checkbox checked; required when visible):
+   - **Artist Name * (text input)**
+     - Placeholder: "e.g. Dotslash, Brutal Frequencies, or DJ Alias".
+     - Must be required for Artist signups.
+     - Validate: min length 2, alphanumeric + symbols allowed but disallow blank or emoji-only names.
+   - **Region * (select input)**
+     - Provide common regions and an “Other” option.
+     - Placeholder: "Select region — e.g., Berlin, EU".
+   - **Primary Genre * (text or searchable select)**
+     - Placeholder: "e.g. Techno, House".
+     - Allow free text with optional genre suggestions.
+   - **Public Profile URL * (text input)**
+     - Placeholder: "https://soundcloud.com/yourname".
+     - Show helper text: “This will be verified by AI to prevent fake or duplicate accounts.”
+   - **Required Music Platform Link * (text input)**
+     - Placeholder: "https://soundcloud.com/yourname or https://open.spotify.com/artist/..."
+     - Must validate that it’s a supported platform (SoundCloud, Spotify, Bandcamp, Mixcloud, Beatport, YouTube Music).
+   - All Artist-only fields must be required and validated only when checkbox is checked.
+
+4. **Social Links UI:**
+   - Allow up to 5 social links.
+   - Each row includes a URL field and a Remove button.
+   - "+ Add Link" adds a new empty input until limit reached.
+   - Disable "+ Add Link" button when 5 links exist.
+   - Validate URLs; inline error messages under each field.
+
+5. **Client-side validation:**
+   - Display Name (min 2 chars).
+   - Artist Name (if artist, required).
+   - Region, Genre, Public Profile URL, Music Platform Link (if artist, required).
+   - Validate URLs using strict URL parsing.
+   - Restrict Music Platform link to allowed domains.
+   - Inline field-level errors; no modal-blocking alerts.
+   - Submit button disabled during submission.
+
+6. **Form behavior and UX:**
+   - Submit button: "Save Profile" → "Saving…" on submit.
+   - Cancel closes modal (preserve form state if reopened).
+   - On success: show success toast and refresh page or trigger navigation.
+   - On failure: display inline error message or toast.
+   - If AI verification queued: show message “Verification in progress — you’ll be notified once approved.”
+
+7. **Accessibility (a11y):**
+   - All fields labeled and connected via `aria-labelledby` / `aria-describedby`.
+   - Focus trap within modal.
+   - ESC closes modal.
+   - Keyboard-only flow fully supported (tab through all inputs, add/remove social links via Enter/Space).
+   - Contrast must meet WCAG AA.
+
+8. **Responsive and visual design:**
+   - Mobile-first stacked layout; optional two-column for ≥768px screens.
+   - Use theme tokens for color, spacing, typography.
+   - Subtle section divider before Artist-only fields.
+   - Add small “(for Artists only)” caption above Artist section for clarity.
+
+9. **Integration notes (backend contract):**
+   - Endpoint: `POST /api/signup`
+   - Headers: `x-user-id` with current user’s Supabase Auth ID.
+   - Body JSON:
+     ```
+     {
+       display_name,
+       bio,
+       is_artist,
+       artist_name,
+       region,
+       primary_genre,
+       public_profile_url,
+       music_platform_link,
+       social_links
+     }
+     ```
+   - Server responses:
+     - `200`: success with `verification` status.
+     - `400`: validation errors with `fieldErrors`.
+     - `500`: general failure.
+   - If verification = 'queued', show verification info banner.
+
+10. **Feature flags and rollback:**
+    - Add feature flag `ENABLE_ARTIST_SIGNUP`.
+    - If disabled, hide Artist checkbox and related fields.
+    - Provide instant rollback capability.
+
+11. **Error handling and edge cases:**
+    - Offline submission: show “You’re offline, retry later.”
+    - Double submit prevention: debounce submit 2–3s.
+    - Server duplicate/invalid artist response: show “This artist profile already exists or needs manual review.”
+
+12. **Tests (add in CI and local QA):**
+    - Unit:
+      - Artist checkbox toggles fields.
+      - Artist Name required only if checked.
+      - Add/remove social links limit.
+      - Music platform domain validation.
+    - E2E:
+      - Fill and submit both normal and artist forms; expect correct payload.
+      - Max social links = 5 enforced.
+      - Accessibility audit: focus trap, labels.
+    - Visual snapshot: modal in desktop/mobile states.
+
+13. **Acceptance criteria (must pass before merge):**
+    - [ ] Artist checkbox visible and toggles Artist fields.
+    - [ ] Artist-only fields include Artist Name, Region, Genre, Public Profile URL, Required Music Platform Link.
+    - [ ] Artist Name required only when Artist checkbox is checked.
+    - [ ] Social Links up to 5, add/remove functional.
+    - [ ] Client validation for URLs and required fields.
+    - [ ] Proper error, loading, success, queued-verification states.
+    - [ ] a11y and responsive behavior verified.
+    - [ ] Unit and E2E tests added and passing.
+
+14. **Deliverables:**
+    - Updated Sign Up tab UI component.
+    - Component README or Storybook entry.
+    - Tests (unit + e2e).
+    - Documentation in `components/auth/README.md`.
+    - PR notes on feature flag and backend payload updates.
+
+15. **QA review checklist:**
+    - Confirm Artist checkbox visible in modal.
+    - Check Artist Name field appears and required.
+    - Validate Music Platform URL restrictions.
+    - Test form submission and visual success banner.
+    - Verify keyboard navigation and mobile layout.
+
+16. **Rollout and telemetry:**
+    - Log events: `signup_artist_checked`, `signup_artist_fields_filled`, `signup_artist_submitted`.
+    - Capture errors in Sentry or Replit logs.
+    - Monitor verification queue volume post-launch.
+
+Notes:
+- Do not modify backend verification logic in this task.
+- UI must be visually cohesive with existing modal theme.
+- All text copy should be editable via constants for localization.
+- Artist-only section header: “Artist Details (for verification)”.
+
+Estimated effort:
+- Implementation + local QA: 8–12 hrs
+- Unit + E2E tests: 4–6 hrs
+- Storybook/docs: 1–2 hrs
+- Total: ~14–20 hrs per developer
+
+End of task.
