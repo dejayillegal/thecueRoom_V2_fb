@@ -1,0 +1,370 @@
+Implement the thecueRoom full feature rollout described below. Modify code, add new files, add tests & diagnostics, run checks, and commit. Preserve currently working parts; any change that risks breakage must include snapshot tests that protect the dashboard layout.
+
+ALWAYS run commands exactly where indicated.
+
+High-level deliverables (implement all)
+
+Signup / Auth:
+
+Full signup modal (artist checkbox). Artist signup shows extra fields (social profile URL(s), genre(s) as plain text, tech rider selection).
+
+Real-time availability checks (username & email) with debounce and rate-limited API. Show green tick when available.
+
+Auto-generated creative username (unique, deterministic).
+
+Verification flow: on artist signup, enqueue verification job that tries TEST_MODE auto-verify (social link heuristic) then fallback to admin queue. Show verification modal with progress and final status. If auto-verified, grant artist privileges; else show pending and send admin notification.
+
+Roles & RBAC:
+
+Three roles: admin, artist, user. Enforce server-side role checks for pages/APIs.
+
+Artist-only features restricted server-side: AI Cover Art, AI Meme, AI EPK, Submission of events, ticket scanning page, artist dashboard sections.
+
+Regular users: access browsing, RSVP, ticket download, community forum read/participate but not post artist-only content (document conditions).
+
+AI Cover Art, AI Meme, AI EPK:
+
+Free-first AI image generation: primary Hugging Face (if HF_TOKEN), fallback Google (if GOOGLE_API_KEY), final fallback: deterministic SVG generator + sharp or pure SVG→PNG rasterization if sharp unavailable.
+
+Job queue: enqueue jobs to packages/ai/worker.js using child_process or worker_threads with concurrency AI_WORKER_CONCURRENCY.
+
+Provide /api/ai/env, /api/ai/generate, /api/ai/job/:jobId, /api/ai/result/:jobId, /api/ai/compose (server-side stamping: add artist name + release title + watermark), and /api/ai/fallback-presets.
+
+UI: CoverArtStudio with presets (only visible when no AI key), prompt box (only visible when AI key present), polling for job status, preview, download (auto-stamp or open Editor).
+
+CanvasEditor (client-side) for editing text placement + watermark; export to PNG and/or send to /api/ai/compose to store final image.
+
+EPK generator:
+
+3 tabs merged: Choose Template (show 3-4 templates), Edit Content (full editor fields: bio, links, photos, releases, tech rider with drag-drop components), Preview & Export (live preview, export PDF).
+
+EPK export must create production-grade PDF (HTML→PDF via puppeteer in server worker or playwright/@react-pdf fallback). Provide TEST_MODE fallback that outputs SVG→PDF without headful browsers.
+
+Provide sample templates and live preview canvas. Export should trigger a proper browser download dialog (Content-Disposition attachment) with no corruption.
+
+Community Forum:
+
+ThreadList, ThreadView, ReplyComposer, Like/Upvote, views counter, attachments (image/audio embeds).
+
+Realtime counters (likes/views) using SSE / WebSocket (or server-sent events fallback).
+
+AI moderation pipeline: new posts/replies pass through packages/moderation/ai-moderator.js (uses free model heuristics or simple rules) and flag abusive content. Auto-hide flagged content pending admin review, send admin notification.
+
+Artists may embed artwork & attach audio players (SoundCloud, Mixcloud, Bandcamp, Spotify embed links). Enforce "no self-promotion + no mainstream" via moderation heuristics and admin review (configurable).
+
+Improve right panel contributors font size (reduce by 1.5 units) and ensure thread click loads replies fast using virtualization.
+
+News & Weekly Curated Music:
+
+Feed ingestion robust: use safeFetch, per-source adapters with timeouts & retry, cache results in DB or local cache with TTL.
+
+Weekly playlist feature: aggregate sources (SoundCloud, Spotify, Bandcamp, Mixcloud, Beatport). Provide embeddable players per track; store track metadata and canonical provider link.
+
+Provide admin UI to manage playlist curation and automate weekly generation.
+
+Events & Ticketing:
+
+Robust gigs fetch architecture: implement adapters for RollingStoneIndia, ZomatoLive, BookMyShow, Paytm Insider, Dice, SortMyScene, Swiggy Events, etc. For sources that block scraping (403), implement fallback using official APIs, RSS, or use partner scraping headless worker with polite rate-limiting and caching. When blocked, mark source disabled and log.
+
+Event submission: artists submit events with flyer image, ticketing options (free RSVP or external ticket link), produce downloadable graphical ticket (PNG+PDF) with QR code using qrcode lib and workerized image composition.
+
+AI event verification flow: auto-validate event metadata & image (heuristics), accept or send to admin review. After acceptance, event appears in feed and artist events list.
+
+Ticket scanning: artist admin page to scan QR codes and mark attendees.
+
+Provide default fallback thumbnail for events /public/fallback-thumbnail.png. Add 4 variants and rotation policy if desired.
+
+Sidebar & UI:
+
+Robust responsive sidebar: icon-only collapsed by default on desktop; explicit expand button to toggle full (not expanding on any icon click). Mobile: hamburger toggles overlay sidebar; ensure body scroll locking and no memory leaks.
+
+Replace icon-only controls with IconLabelButton component where label visible when expanded (or always visible for accessibility) and icons kept.
+
+Preserve dashboard look tokens exactly; only landing page allowed different visuals.
+
+Performance & Memory:
+
+Virtualize long lists (forum threads, feeds) with react-virtual.
+
+Debounce heavy inputs (search/filter).
+
+Use memoization and React.lazy + Suspense for heavy components.
+
+Add scripts/diag/check-heavy-css.js, scripts/diag/run-scroll-stress.js, scripts/diag/check-memory.js and run them.
+
+Add Lighthouse script scripts/diag/run-lighthouse-local.js.
+
+All workers to stream file writes, avoid large memory buffers; limit concurrency.
+
+Tests, Diagnostics, CI:
+
+Add unit tests (Vitest/Jest) for: safeFetch, feed adapters, AI job queue (TEST_MODE), EPK export test, event submission, signup flow.
+
+Add e2e tests (Playwright) for critical flows: signup (artist and user), AI cover art generate + download, EPK export, event submission + download ticket, forum post+reply+like.
+
+Add snapshot tests to ensure dashboard layout unchanged.
+
+Provide scripts/diag/run-acceptance.sh that executes the required checks and returns machine-readable report.
+
+Seeds & Scripts:
+
+Provide seeds for users (admin/artist/user), forum (threads + replies), events (various cities), weekly playlists.
+
+Add scripts/seed/all.sh and scripts/diag/run-acceptance.sh.
+
+Safety & Security:
+
+Zod or similar validation for all API inputs.
+
+Rate limit public endpoints (availability checks, feed poller triggers).
+
+Sanitize user content to prevent XSS; escape text in SVG overlays.
+
+Protect admin endpoints with header x-admin:true in dev; require real admin auth in prod.
+
+Limit file uploads and validate mime types.
+
+Concrete files to add / update (implement full code – no stubs)
+
+Implement these files or updated equivalents. When logic is complex, implement the workerized, tested, streaming, fallback-safe version.
+
+Backend
+
+apps/web/app/api/auth/signup/route.ts (handle roles/isArtist, enqueue verification job)
+
+apps/web/app/api/auth/check-availability/route.ts (rate-limited)
+
+apps/web/app/api/verification/job/[jobId]/route.ts (job status)
+
+apps/web/app/api/ai/env/route.ts
+
+apps/web/app/api/ai/generate/route.ts (enqueue)
+
+apps/web/app/api/ai/job/[jobId]/route.ts (status)
+
+apps/web/app/api/ai/result/[jobId]/route.ts (serve image with proper cache headers)
+
+apps/web/app/api/ai/compose/route.ts (server-side stamp with text/watermark)
+
+apps/web/app/api/epk/export/route.ts (generate PDF via worker)
+
+apps/web/app/api/gigs/india/route.ts (consolidated aggregator: use adapters + cache)
+
+packages/ai/worker.js (jobs: hfGenerate, fallbackSvgRasterize, composeTextWatermark, epkPdfRender, ticketGenerate)
+
+packages/feeds/poller.js (workerized poller with concurrency + backoff)
+
+packages/moderation/ai-moderator.js (free heuristics + optional HF_MODEL if HF_TOKEN available)
+
+packages/qrcode/generate.js (generate QR + stream)
+
+apps/web/app/api/tickets/generate/route.ts (enqueue ticket job)
+
+apps/web/app/api/admin/notifications/route.ts (list admin notifications)
+
+Frontend
+
+apps/web/src/components/Auth/SignupModal.tsx (full UI with artist checkbox and fields + tick availability)
+
+apps/web/src/components/Auth/VerificationModal.tsx (polling progress UI)
+
+apps/web/src/components/ui/IconLabelButton.tsx
+
+apps/web/src/components/AI/CoverArtStudio.tsx
+
+apps/web/src/components/AI/CanvasEditor.tsx
+
+apps/web/src/components/EPK/EPKStudio.tsx (3 tabs: template/edit/preview-export)
+
+apps/web/src/components/Forum/ThreadList.tsx, ThreadView.tsx, ReplyComposer.tsx
+
+apps/web/src/components/Event/EventSubmitForm.tsx
+
+apps/web/src/components/Event/TicketDownload.tsx
+
+apps/web/src/components/ImageWithFallback.tsx (centralizes fallback thumbnail)
+
+apps/web/src/lib/safe-fetch.ts (safe fetch wrapper)
+
+apps/web/src/hooks/use-debounce.ts, use-safe-interval.ts, use-event-listener.ts
+
+apps/web/app/(admin)/feed-settings/page.tsx
+
+Update apps/web/app/globals.css to add .reduced-motion and remove heavy global filters for dashboard only (landing page allowed exceptions). Preserve root tokens exactly.
+
+Assets
+
+/public/fallback-thumbnail.png (4 variants optionally uploaded; choose one as default).
+
+/public/fonts/Inter-Variable.woff2 and SourceCodePro (for EPK).
+
+/public/icons/watermark-small.svg
+
+Tests & Scripts
+
+tests/unit/safe-fetch.test.ts
+
+tests/unit/ai-worker.test.ts (TEST_MODE)
+
+tests/e2e/signup.spec.ts (Playwright)
+
+scripts/diag/check-heavy-css.js
+
+scripts/diag/run-scroll-stress.js
+
+scripts/diag/check-memory.js
+
+scripts/diag/run-lighthouse-local.js
+
+scripts/seed/all.sh
+
+scripts/diag/run-acceptance.sh
+
+Implementation constraints & patterns (must be followed)
+
+All external calls use safeFetch(url, { attempts, timeout, headers }) and return normalized { ok, status, data?, buffer?, error? }.
+
+Worker must stream file outputs and use fs.createWriteStream. Do not buffer large images in memory.
+
+Always validate inputs with Zod (or similar). Return structured JSON errors.
+
+Avoid heavy global CSS (backdrop-filter, big blur) — move to landing page only. Add .reduced-motion applied automatically if prefers-reduced-motion.
+
+Virtualize long lists with react-virtual.
+
+Debounce text inputs (search, availability) with use-debounce.
+
+Add caching for feed adapters (in DB or simple LRU file cache).
+
+For blocked sources returning 403/blocks, implement alternative strategies:
+
+Use official APIs if available.
+
+Use RSS / JSON endpoints.
+
+Headless scrape only via the worker (not in request lifecycle), with exponential backoff and cache results.
+
+If entirely blocked, mark source temporarily disabled and log detailed reason.
+
+Environment variables to add (update .env.example)
+DATABASE_URL=
+HF_TOKEN=               # optional
+GOOGLE_API_KEY=         # optional
+AI_TEMP_DIR=/tmp/thecueroom-ai
+AI_WORKER_CONCURRENCY=1
+POLL_INTERVAL_SECONDS=60
+POLL_CONCURRENCY=3
+FEED_FAILURE_THRESHOLD=5
+NODE_FETCH_TIMEOUT_MS=15000
+POLL_RETRY_ATTEMPTS=3
+TEST_MODE=false
+
+Dependency commands (run in project root)
+
+Run these commands exactly (failures for optional native modules allowed, but script must continue):
+
+pnpm -w install
+pnpm --filter apps/web add p-limit cross-fetch fast-xml-parser nanoid react-virtual qrcode sharp || echo "sharp may fail on Replit; TEST_MODE fallback used"
+pnpm --filter apps/web add -D vitest playwright @playwright/test eslint prettier husky lint-staged
+
+
+If sharp fails, the worker must fall back to pure SVG rasterization methods.
+
+Acceptance checks (run after implementation)
+
+Run these and paste output to confirm success.
+
+Typecheck
+
+pnpm -w tsc --noEmit
+
+
+→ 0 errors
+
+Unit tests
+
+pnpm --filter apps/web test:unit
+
+
+→ All tests pass
+
+Snapshot tests (to guarantee dashboard layout unchanged)
+
+pnpm --filter apps/web test:snap
+
+
+→ No snapshot diffs for /dashboard routes
+
+Poller simulation
+
+TEST_MODE=true node packages/feeds/poller.js --simulate 50 --duration 15
+
+
+→ Respect concurrency, disable failing sources after threshold, not crash.
+
+AI worker test
+
+TEST_MODE=true node packages/ai/worker.js &
+# enqueue three fallback jobs via API or queue file - ensure they finish
+
+
+→ All jobs complete, files stored at $AI_TEMP_DIR with stable size.
+
+EPK export test
+
+curl -X POST http://localhost:3000/api/epk/export -d '{"template":"modern","data":{...}}'
+# Ensure returned PDF is downloadable and not corrupted (Content-Type: application/pdf)
+
+
+Event submission + ticket generation
+
+Submit an event as artist via UI, attach flyer image, choose free RSVP.
+
+Ensure ticket download works and QR scans (local scan simulation).
+
+Forum flow
+
+Create thread, add reply, like reply, view counters update in real-time.
+
+Performance & memory diagnostics
+
+node scripts/diag/run-scroll-stress.js http://localhost:3000/feed
+node scripts/diag/check-memory.js
+node scripts/diag/check-heavy-css.js
+
+
+→ Scroll frame drops <= 5%, heap growth within acceptable bounds (<50MB for concurrent worker tasks), no heavy CSS in dashboard.
+
+Commit rules
+
+Commit in small logical batches with meaningful messages. Final commit message:
+
+feat: full platform rollout — signup roles, AI studios (cover/meme/epk), forum (moderation + realtime), events & tickets, workerized tasks, feeds aggregator, tests & diagnostics; preserve dashboard layout
+
+Post-implementation deliverable (what to paste back here)
+
+After running everything, produce a short verification report that includes:
+
+git show --name-status HEAD output
+
+pnpm -w tsc --noEmit output
+
+pnpm --filter apps/web test:unit output
+
+node scripts/diag/check-heavy-css.js output
+
+node scripts/diag/run-scroll-stress.js summary
+
+node scripts/diag/check-memory.js summary
+
+Snapshot diffs summary
+
+A small human-friendly 5-line summary of what changed and any follow-ups.
+
+Final note (do not change)
+
+Do not change dashboard theme tokens or core layout files used by internal pages. Landing page allowed exceptions.
+
+If external AI keys are missing, use TEST_MODE deterministic fallbacks so the app is fully functional (SVG presets, compositing).
+
+All changes must include tests or diagnostic scripts that validate behavior and protect regressions.
