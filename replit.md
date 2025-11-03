@@ -85,13 +85,23 @@ The project utilizes a pnpm monorepo structure with `apps/web` for the Next.js f
   - Comprehensive duplicate detection (email, artist name, social URL exact and normalized)
   - Suspicion scoring system (threshold: 40+ = rejected)
   - Multi-factor analysis combining profile completeness, social presence, and authenticity
-- **Community Forum (October 31, 2025):**
-  - Forum interface at `/community/forum`
-  - Social profile display integration with UserProfileCard component
-  - Three card variants: inline (compact avatar+name), compact (forum threads), full (detailed profiles)
-  - Thread display shows: verified badges, bio, genre, region, social links
-  - Mock API at `/api/forum/threads` with enriched user profile data
-  - Ready for database integration when forum schema implemented
+- **Community Forum (November 2025):**
+  - **Database Schema (Nov 3):** Enhanced with 4 new tables for advanced features:
+    * `thread_drafts` - Autosave functionality for thread composition
+    * `mentions` - @mention tracking and notifications
+    * `thread_followers` - Thread subscription system
+    * `moderation_queue` - AI-powered moderation workflow
+    * Added `visibility` field to `forum_threads` (public/members/private)
+  - **Validation Schemas (Nov 3):** Comprehensive Zod schemas for all forum operations in `packages/shared/forumSchemas.ts`
+  - **UI Components (Nov 3):** Pixel-perfect dark theme with lime-green (#D7FF3C) accents:
+    * ForumList - Responsive 3-column layout (categories, threads, sidebar)
+    * ThreadView - Thread detail page with verified badges, upvotes, thread info sidebar
+    * ThreadComposer - Create form with toolbar (Mention, Link, Media, AI Draft) and settings sidebar
+    * ThreadAssistModal - AI suggestion modal with tone selectors and safety toggles
+    * ProfileModal - User profile with stats, badges, activity feed, and quick mention composer
+  - **Features Implemented:** Category filtering, thread sorting, verified artist badges, upvote system, visibility controls
+  - **Documentation:** Comprehensive implementation guide for tasks 10-25 in `docs/FORUM_REMAINING_TASKS.md`
+  - **Remaining Work:** Mentions, drafts, attachments, real-time updates, AI moderation, notifications (see documentation)
 - **Admin Console:** Planned for content management and moderation.
 
 **System Design Choices:**
