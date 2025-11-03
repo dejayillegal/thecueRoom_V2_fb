@@ -42,7 +42,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch (jsonError) {
+      return NextResponse.json(
+        { available: false, reason: 'Invalid request body' },
+        { status: 400 }
+      );
+    }
+
     const { type, value } = checkSchema.parse(body);
     const db = getDbClient();
 

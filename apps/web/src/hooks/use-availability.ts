@@ -23,7 +23,7 @@ export function useAvailability(
 
   const checkAvailability = useCallback(
     async (val: string) => {
-      if (!val) {
+      if (!val || val.trim() === '') {
         setResult({ available: null, checking: false });
         return;
       }
@@ -41,7 +41,7 @@ export function useAvailability(
         const response = await fetch("/api/auth/check-availability", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type, value: val }),
+          body: JSON.stringify({ type, value: val.trim() }),
           signal: controller.signal,
         });
 
