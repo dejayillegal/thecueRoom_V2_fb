@@ -1,0 +1,448 @@
+Implement thecueRoom full feature set (artist/user signup, AI flows, forum, feeds, events, tickets, notifications)
+
+Implement the following in the repository currently loaded in Replit. Make all changes, run tests, and produce a final verification report that includes test results, git show --name-status HEAD, and a short human summary.
+
+0 — Preflight & env
+
+Ensure the following environment variables are available in Replit Secrets or .env:
+
+SESSION_SECRET=changeme_development
+TEST_MODE=true
+AI_WORKER_CONCURRENCY=1
+AI_TEMP_DIR=/tmp/thecueroom-ai
+HF_TOKEN=               # optional
+NODE_FETCH_TIMEOUT_MS=15000
+POLL_INTERVAL_SECONDS=300
+POLL_CONCURRENCY=3
+FEED_FAILURE_THRESHOLD=5
+SMTP_URL=smtp://localhost  # for email verification in dev (optional)
+
+
+Install or ensure dependencies:
+
+pnpm -w install
+pnpm --filter apps/web add p-limit cross-fetch nanoid sharp zod react-virtual
+pnpm --filter apps/web add -D vitest playwright @types/jest
+
+
+If sharp fails in Replit, set TEST_MODE=true and the code must fallback to pure-SVG rasterization.
+
+1 — Global rules (do this first)
+
+Preserve exact dashboard tokens and layout components. Do not change root CSS tokens (e.g., --background, --surface, --tcr-accent, --primary, --lime) — only add .reduced-motion and remove heavy GPU filters globally.
+
+Create apps/web/public/fallback-thumbnail.png as the canonical feed fallback. Use the supplied four dark underground PNGs; include code to rotate deterministically across jobId seed but the feed UI must always show the same fallback image (single path) for missing thumbnails.
+
+Add AI_TEMP_DIR directory creation on startup if missing and ensure worker writes there.
+
+Add scripts/diag tools (check-heavy-css.js, run-scroll-stress.js, check-memory.js, check-signup-ui.js).
+
+2 — Backend: job & worker infra (core)
+
+Create a safe worker-based AI and long-job infrastructure.
+
+A. packages/ai/worker.js (Node worker)
+
+Uses worker_threads or child_process.fork() to process a job queue stored in file ./.local/ai-queue.json (simple durable queue).
+
+Supported job types:
+
+hfGenerateImage (if HF_TOKEN present) — call Hugging Face Inference API with safeFetch & timeouts.
+
+fallbackSvgRasterize — generate 1024×1024 SVG via packages/ai/impl/fallback-svg.ts and rasterize using sharp or svg2png fallback; write stream to AI_TEMP_DIR/<jobId>.png.
+
+composeTextWatermark — overlay Artist + Release + watermark using SVG overlay + sharp composite or SVG fallback.
+
+verifyArtist — small deterministic verifier: fetch social profile, parse for presence of tracks/links, follower count heuristics. In TEST_MODE it completes fast.
+
+thumbnailProcess — small thumbnail conversions.
+
+Worker must:
+
+Respect AI_WORKER_CONCURRENCY and limit concurrency.
+
+Stream outputs to disk (no huge buffers).
+
+Write status files AI_TEMP_DIR/<jobId>.status.json for polling.
+
+Expose enqueue(job) via IPC or HTTP (we'll call via filesystem queue for simplicity).
+
+B. Helper: packages/ai/impl/utils.ts
+
+safeFetch(url, opts) with AbortController, attempts, backoff, and safe JSON parsing fallback to return {ok:false, text} when non-JSON response.
+
+C. Fallback SVG generator: packages/ai/impl/fallback-svg.ts
+
+Export generateSVG({prompt, preset, artist, release, seed}) returns SVG string (1024x1024) with layered gradients, grain/noise pattern, geometric shapes, subtle lens-glow, and embedded fonts for later overlaid text.
+
+3 — Backend: API routes (Next.js App Router style)
+
+A. apps/web/app/api/ai/env/route.ts → GET { hasAIKey: boolean } (true if HF_TOKEN present)
+B. apps/web/app/api/ai/generate/route.ts (POST)
+
+Zod validate: { prompt, preset, artistName, releaseTitle, resolution? }.
+
+Enqueue job in worker queue: prefer HF if HF_TOKEN and model available; fallback to fallbackSvgRasterize.
+
+Return { jobId, status: 'queued' }.
+C. apps/web/app/api/ai/job/[jobId]/route.ts (GET)
+
+Read AI_TEMP_DIR/<jobId>.status.json and return { jobId, status, progress, resultUrl? }.
+D. apps/web/app/api/ai/result/[jobId]/route.ts → Serve the PNG with Content-Type: image/png.
+E. apps/web/app/api/ai/compose/route.ts (POST)
+
+Accept: { jobId, mode:'auto'|'editor', artistName, releaseTitle, watermark, fontFamily, color, size, position }.
+
+Enqueue composeTextWatermark job and return composeJobId.
+F. apps/web/app/api/auth/signup/route.ts (POST)
+
+Zod validate signup fields.
+
+Required fields for all: firstName, lastName, artistName, email, password, regionText, primaryGenreText.
+
+If artist===true:
+
+Required: socialProfileUrl (validate host list).
+
+Create user with role: 'artist' & status: 'verification_pending'.
+
+Enqueue verifyArtist job and attach verificationJobId.
+
+Return { userId, verificationJobId }.
+
+Else create role: 'user', status: 'active'.
+
+Hash passwords with bcrypt/argon2; in TEST_MODE can use bcrypt with low rounds.
+
+G. apps/web/app/api/verification/job/[jobId]/route.ts → GET status for verification job.
+
+H. apps/web/app/api/events/submit/route.ts (POST)
+
+Accept event payload: title, venue, city, date/time, ticketUrl (optional), flyer (image upload / base64), isPaid (bool), rsvpLimit, timezone.
+
+Validate: artists and admin only can submit; if artist signs up and artist===true allow submit with status: 'pending' and enqueue verifyEvent job (validate flyer, check duplicates).
+
+verifyEvent job uses heuristics to accept or flag for admin review; if accepted, status: 'published' and send notification.
+
+I. apps/web/app/api/gigs/india/route.ts (GET)
+
+Consolidate many sources; implement per-source fetch handlers that:
+
+Use safeFetch with UA header and timeouts.
+
+Prefer published RSS or JSON APIs if present.
+
+For blocked sources (BookMyShow, DICE), use fallback scraping via packages/feeds/headless.ts but only if the environment has Playwright configured; otherwise rely on sources with public feeds (Rolling Stone India, Zomato Live, Ticketmaster India if exists, Paytm Insider via their RSS/JSON if accessible).
+
+Cache results for 5–15 minutes and return normalized { id, title, venue, city, start, end, url, source }.
+
+In Replit, if headless unavailable, skip headless and log that some sources are skipped.
+
+4 — Frontend: Components & UX (React + Tailwind)
+
+All screens must preserve dashboard layout & tokens.
+
+A. Signup modal: apps/web/src/components/Auth/SignupModal.tsx
+
+Add visible checkbox Artist sign up.
+
+When checked: reveal Artist-only fields (Social Profile URL, Genre text input — not dropdown, Tech Rider toggle, sample upload).
+
+Real-time availability checks (debounced 400ms) for email & artistName via /api/auth/check-availability.
+
+Auto-generate username preview with username-generator.ts.
+
+On submit, call /api/auth/signup and if verificationJobId present open VerificationModal showing polling of /api/verification/job/:jobId.
+
+Accessibility: aria attributes, focus management.
+
+B. Verification Modal: apps/web/src/components/Auth/VerificationModal.tsx
+
+Poll GET /api/verification/job/:jobId with exponential backoff; show progress bar & messages: scanning, heuristics, manual review pending.
+
+On verified: redirect to the artist dashboard.
+
+C. AI Cover Art Studio: apps/web/src/components/AI/CoverArtStudio.tsx
+
+Prompt textbox, style preset dropdown (visible only when hasAIKey===false? user requested presets visible only when API keys not present — implement: when hasAIKey===false show presets and "Randomize", disable prompt; when hasAIKey===true show prompt input and hide presets).
+
+Submit → POST /api/ai/generate → returns jobId.
+
+Poll /api/ai/job/:jobId for progress; show placeholder SVG while queued.
+
+On result: preview + buttons: "Open Editor" (client CanvasEditor), "Download (Auto stamp)" (POST /api/ai/compose mode auto), "Regenerate".
+
+CanvasEditor component (apps/web/src/components/AI/CanvasEditor.tsx) — HTMLCanvas export 1024×1024, overlay Artist/Release/watermark editable, undo stack (3), export triggers client download and also posts result to /api/ai/compose for persistence.
+
+Ensure download triggers browser download dialog, Content-Disposition, and correct PNG data.
+
+D. AI EPK Studio: apps/web/src/components/EPK/EPKStudio.tsx
+
+Three tabs (1) Choose Template — show grid of templates (Brutalist One-Page, Minimalist Clean, Magazine Editorial, Tech Neon). Template metadata stored in apps/web/src/data/epk-templates/.
+
+(2) Edit Content — dynamic list of modules (Biography, Photos, Press Quotes, Tech Rider, Discography, Social Links, SoundCloud embed, YouTube, Bandcamp). Modules are drag/drop reorder. Provide image upload with auto-resize. Live preview panel shows how final EPK looks.
+
+(3) Preview & Export — Export as PDF via server endpoint /api/epk/export which renders EPK HTML to PDF using puppeteer or playwright server side if available; otherwise client-side html2pdf fallback. Ensure PDF download popup works and file is not corrupted.
+
+Provide AI rewrite button for Biography using a free local LLM fallback or heuristic rewrite: if no HF_TOKEN or Google key, use a lightweight rule-based rewrite and templated tone presets (press, editorial, bio-short, bio-long) — in TEST_MODE emulate.
+
+E. AI Meme Studio: allow generating memes from prompts; embed memes into forum comments via upload or creation pipeline. Memes must be sanitized and small (<1MB) and displayed inline.
+
+F. Community Forum: apps/web/src/pages/forum/* & components
+Features:
+
+Threads, replies, likes, upvotes, views (views incremented on server with dedupe cookie/session).
+
+Realtime optimistic UI for likes & replies (use websockets or server-sent events if available; otherwise poll endpoints & optimistic updates).
+
+AI moderation pipeline: when a comment is posted, enqueue aiModeration job (packages/ai/worker) to analyze for hate, bullying, doxxing, spam. If abusive, auto-hide and create admin review entry. Provide an appeals flow.
+
+Artist posts can embed audio players (SoundCloud, Bandcamp, Mixcloud), images (cover art), and attach tracks. Disallow promotional links that point to buy pages except ticketing or music platform links. Build a whitelist/blacklist for link domains.
+
+Provide Karma & Verified badges. Sorting: pinned, trending, latest.
+
+Thread modal must be clickable and open replies instantly. Fix client-side routing and ensure Link components point to canonical thread IDs.
+
+Provide "Insert AI Meme" button in reply composer (only for verified artists with constraints).
+
+Add moderation UI for admin: flag queue, review, approve/hide.
+
+G. Spotlight pages:
+
+apps/web/src/pages/spotlight/[artist].tsx — artist profile page (public), shows bio, tracks, gigs, press kit link, verification badge.
+
+Public profile view hides sensitive fields. Admin view shows additional settings.
+
+H. Feeds & Weekly Curated Music:
+
+apps/web/src/lib/feed-image.ts central logic returns fallback thumbnail when missing.
+
+Feed poller (packages/feeds/poller.ts) with concurrency, timeouts, exponential backoff, cache, admin-configurable settings (/admin/feed-settings), ability to disable failing sources. Use p-limit.
+
+Integrations: SoundCloud, Bandcamp, Spotify (embed links only), Beatport (if API available), Mixcloud, YouTube Music (embed). For weekly curated playlists, save playlist metadata + embedded iframe links (Spotify + SoundCloud).
+
+5 — Events & Ticketing
+
+A. Event submission page apps/web/src/pages/events/submit.tsx
+
+Artist-only submit (if user is artist). User can fill: title, description, venue, address, city, date/time, timezone, ticketUrl (optional), price, rsvpLimit, flyer upload.
+
+On submit: save event with status: pending and enqueue verifyEvent job.
+
+Worker verifyEvent checks flyer for authenticity (size/format), checks duplicates in DB by normalized title+venue+date similarity, checks ticketUrl validity. If high-confidence match, publish automatically; else mark for admin review and notify admin.
+
+B. Ticket generation:
+
+On published event, artist can generate tickets (free / RSVPs). UI to create ticket batches that produce downloadable PNG-based tickets with QR code (content: eventId+ticketId signature).
+
+Implement server endpoint apps/web/app/api/tickets/generate/route.ts which uses SVG template + sharp to render to PNG for each ticket; returns downloadable file or ZIP for batch. The UI should trigger browser download popup and provide per-ticket PNG.
+
+Ticket scanning: provide apps/web/app/admin/ticket-scan/page.tsx which accepts QR code value and validates signature against DB. For offline scanning, provide apps/web/src/tools/qr/decoder.js using jsqr or instruct artists to use any standard QR scanner.
+
+C. RSVP & free ticket flow:
+
+Users can RSVP to published events. If event is free & no ticketUrl, the system issues a downloadable ticket (PNG) with QR.
+
+If ticketUrl filled (external), link opens to buy page.
+
+D. Notifications:
+
+Implement in-app notification center apps/web/src/components/Notifications storing notifications in DB (or in-memory for dev). Notify users for:
+
+verification results
+
+event publish/approval
+
+forum replies & mentions
+
+ticket purchases & RSVPs
+
+For dev, implement simple WebSocket server (or SSE) to push new notifications; fallback to polling.
+
+6 — Security & Roles
+
+Roles: admin, artist, user. Protect endpoints: events submit only artist+admin; ai tools (Cover Art, Meme, EPK) only for artist & admin; forum available to all but moderators/admin have extra tools.
+
+Implement CSRF protection for forms and rate-limit signup and critical endpoints.
+
+Password hashing with argon2 (or bcrypt with sufficient rounds if argon2 not installed).
+
+Sanitize all inputs (Zod). Escape any user text injected into SVG overlays.
+
+Provide admin-only endpoints guarded by x-admin:true in dev (documented).
+
+7 — Tests, diagnostics & acceptance
+
+Add tests and diagnostics, run them, and report results.
+
+A. Tests to add:
+
+tests/auth/signup.unit.ts (artist & user flows)
+
+tests/ai/coverart.test.ts (TEST_MODE generate job -> result)
+
+tests/events/submit.test.ts (submit event as artist -> verification job)
+
+tests/forum/thread.test.ts (create thread, reply, like)
+
+tests/gigs/fetch.test.ts (simulate source fetches & normalization)
+
+Snapshot tests for /dashboard, /ai/cover-art, /epk to ensure layout tokens unchanged.
+
+B. Diagnostic scripts:
+
+scripts/diag/check-heavy-css.js — look for banned props (backdrop-filter, excessive filter, large box-shadows), but allow on landing page exceptions.
+
+scripts/diag/check-memory.js — spawn 3 TEST_MODE raster jobs using packages/ai/worker.js and ensure heap growth < 50MB.
+
+scripts/diag/run-scroll-stress.js — Playwright script to scroll /feed and measure frame drops (fail if >5%).
+
+scripts/diag/check-signup-ui.js — Playwright check for signup modal flows.
+
+C. Acceptance checks to run automatically:
+
+pnpm -w tsc --noEmit → 0 errors
+
+pnpm --filter apps/web test:unit → pass
+
+node scripts/diag/check-heavy-css.js → no banned props in dashboard CSS
+
+node scripts/diag/check-memory.js → memory OK
+
+Start dev server and run node scripts/diag/run-scroll-stress.js http://localhost:3000/feed → pass thresholds (or mark skipped if Playwright unavailable)
+
+Manual UI checks:
+
+Sign Up: artist checkbox visible, artist fields appear, social profile validation, submit returns verificationJobId, verification modal polls to done (TEST_MODE).
+
+AI Cover Art: generate in TEST_MODE, open editor, download PNG (download dialog shows).
+
+EPK: choose template, edit content, export PDF (download dialog).
+
+Forum: create thread, reply, like, view counts increase.
+
+Events: artist submits event, event published in TEST_MODE, ticket download works.
+
+Feed: /api/gigs/india returns normalized events (check sample Rolling Stone & Zomato entries).
+
+8 — Implementation steps (file list & snippets)
+
+For the Assistant: implement the following files/changes exactly. (When you paste into Replit Assistant it should create/modify files accordingly.)
+
+Backend
+
+packages/ai/worker.js — full worker
+
+packages/ai/impl/fallback-svg.ts — SVG generator
+
+packages/ai/impl/utils.ts — safeFetch
+
+apps/web/app/api/ai/env/route.ts
+
+apps/web/app/api/ai/generate/route.ts
+
+apps/web/app/api/ai/job/[jobId]/route.ts
+
+apps/web/app/api/ai/result/[jobId]/route.ts
+
+apps/web/app/api/ai/compose/route.ts
+
+apps/web/app/api/auth/signup/route.ts (create/extend)
+
+apps/web/app/api/auth/check-availability/route.ts
+
+apps/web/app/api/verification/job/[jobId]/route.ts
+
+apps/web/app/api/events/submit/route.ts
+
+apps/web/app/api/gigs/india/route.ts (consolidated)
+
+packages/feeds/poller.ts (concurrency, backoff, cache)
+
+packages/feeds/sources/*.ts : modular source fetchers (zomato, rollingstone, bookmyshow wrapper, paytm wrapper, dice wrapper) — each uses safeFetch and returns normalized events. If source inaccessible or 403, log and continue.
+
+DB migrations / fallback JSON files for development data/users.json, data/events.json, data/gigs-cache.json.
+
+Frontend
+
+apps/web/src/hooks/use-debounce.ts (if missing)
+
+apps/web/src/components/Auth/SignupModal.tsx (implement artist checkbox, fields, availability checks)
+
+apps/web/src/components/Auth/VerificationModal.tsx
+
+apps/web/src/components/AI/CoverArtStudio.tsx
+
+apps/web/src/components/AI/CanvasEditor.tsx
+
+apps/web/src/components/EPK/EPKStudio.tsx + apps/web/src/data/epk-templates/*
+
+apps/web/src/components/Forum/* (ThreadList, ThreadView, ReplyComposer, ModerationQueue)
+
+apps/web/src/components/ui/IconLabelButton.tsx
+
+apps/web/src/components/ImageWithFallback.tsx
+
+apps/web/src/lib/feed-image.ts
+
+apps/web/src/components/Notifications/*
+
+apps/web/public/fallback-thumbnail.png (canonical)
+
+apps/web/public/fonts/Inter-Variable.woff2, SourceCodePro-Regular.woff2 (or use Google fonts if file size an issue)
+
+apps/web/src/pages/gigs/india.tsx (display normalized gigs)
+
+apps/web/src/pages/epk/export-client (client-side PDF fallback if server pdf not available)
+
+9 — Commands to run (after changes)
+
+Run these and paste results in the final report:
+
+# typecheck
+pnpm -w tsc --noEmit
+
+# unit tests
+pnpm --filter apps/web test:unit
+
+# start dev (in background) and run diagnostics
+pnpm --filter apps/web dev &
+
+# diagnostics
+node scripts/diag/check-heavy-css.js
+node scripts/diag/check-memory.js
+
+# optional playwright tests (may require extra setup)
+pnpm --filter apps/web playwright test
+
+10 — Final report (assistant must produce)
+
+When implementation completes, produce the following in the Replit console output:
+
+git show --name-status HEAD
+
+pnpm -w tsc --noEmit output
+
+pnpm --filter apps/web test:unit output
+
+node scripts/diag/check-heavy-css.js output
+
+node scripts/diag/check-memory.js output
+
+brief summary: which acceptance checks passed/failed, any sources skipped due to remote blocking (403s), and actionable next steps (e.g., add HF_TOKEN in Secrets to enable HF generation).
+
+11 — If anything cannot be done inside Replit
+
+If the environment lacks native modules (sharp) or Playwright for headless scraping, implement TEST_MODE fallbacks with pure-SVG rasterization and safe mocks for headless scraping; mark the diagnostics as "skipped in Replit — run locally" with exact commands to reproduce locally.
+
+12 — UX final notes (small, but important)
+
+Ensure all interactive elements include an icon + visible label (IconLabelButton).
+
+Ensure reduced-motion respects user preferences (prefers-reduced-motion).
+
+Keep landing page as the only area allowed heavy visuals; internal dashboard pages must be reduced-motion and low GPU usage.
+
+All long-running operations must use background jobs and polling endpoints that return consistent JSON — never response.json() on HTML.
+
+No TODOs left in committed code.
