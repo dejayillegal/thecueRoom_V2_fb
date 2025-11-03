@@ -654,56 +654,51 @@ export default function SignupModal({ isOpen, onClose }: SignupModalProps) {
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="firstName" className="text-lime-400">
+                      <Label htmlFor="firstName" className="text-sm text-gray-400">
                         First Name *
                       </Label>
                       <Input
                         id="firstName"
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
-                        className="bg-gray-900 border-gray-700 text-white"
+                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
                         required
                         aria-required="true"
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="lastName" className="text-lime-400">
+                      <Label htmlFor="lastName" className="text-sm text-gray-400">
                         Last Name *
                       </Label>
                       <Input
                         id="lastName"
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
-                        className="bg-gray-900 border-gray-700 text-white"
+                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
                         required
                         aria-required="true"
                       />
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 p-3 bg-gray-900/50 rounded border border-gray-700">
-                    <input
-                      id="artist-checkbox"
-                      type="checkbox"
-                      checked={isArtist}
-                      onChange={(e) => setIsArtist(e.target.checked)}
-                      className="w-4 h-4 accent-lime-400"
-                    />
-                    <Label
-                      htmlFor="artist-checkbox"
-                      className="text-lime-400 cursor-pointer"
-                    >
-                      Artist sign up — verify my artist profile
-                    </Label>
-                  </div>
-
-                  {isArtist && (
-                    <div className="text-xs text-gray-400 bg-blue-500/10 border border-blue-500/20 rounded p-2">
-                      ℹ️ Artist signups start an AI verification job — allow a
-                      few minutes for processing.
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 p-4 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg hover:border-[#D7FF3C]/30 transition-colors">
+                      <input
+                        id="artist-checkbox"
+                        type="checkbox"
+                        checked={isArtist}
+                        onChange={(e) => setIsArtist(e.target.checked)}
+                        className="w-5 h-5 rounded border-[#2a2a2a] bg-[#0a0a0a] text-[#D7FF3C] focus:ring-[#D7FF3C] focus:ring-offset-0 cursor-pointer"
+                      />
+                      <Label
+                        htmlFor="artist-checkbox"
+                        className="text-white cursor-pointer text-sm font-medium flex-1"
+                      >
+                        I'm an artist — verify my profile
+                      </Label>
                     </div>
-                  )}
+                  </div>
 
                   {isArtist && (
                     <div>
