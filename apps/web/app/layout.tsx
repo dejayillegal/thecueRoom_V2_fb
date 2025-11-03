@@ -2,6 +2,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import '../src/styles/performance.css';
 import FooterLinks from '@/components/FooterLinks';
 
 const inter = Inter({ 
