@@ -26,53 +26,48 @@ export function CategorySidebar() {
 
   return (
     <div className="sticky top-6">
-      <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-bold text-white uppercase tracking-wide">Categories</h3>
-          <button className="p-1 hover:bg-[#1a1a1a] rounded transition-colors">
-            <Plus className="w-4 h-4 text-gray-400" />
-          </button>
+      <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl p-5 shadow-lg">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider">Categories</h3>
         </div>
         
-        <nav className="space-y-1">
+        <nav className="space-y-2">
           {categories.map((category) => (
             <button
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
               className={`
-                w-full flex items-center justify-between px-3 py-2.5 rounded-lg
-                transition-all duration-150 group
+                w-full flex items-center justify-between px-4 py-3 rounded-lg
+                transition-all duration-200 group
                 ${activeCategory === category.id 
-                  ? 'bg-[#1a1a1a] border border-[#2a2a2a]' 
-                  : 'hover:bg-[#111111]'
+                  ? 'bg-[#1a1a1a] border border-[#2a2a2a] shadow-sm' 
+                  : 'hover:bg-[#111111] border border-transparent'
                 }
               `}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div 
-                  className={`
-                    flex items-center justify-center w-8 h-8 rounded-lg
-                    ${activeCategory === category.id ? 'bg-opacity-20' : 'bg-opacity-10'}
-                    transition-all
-                  `}
-                  style={{ backgroundColor: `${category.color}20` }}
+                  className="flex items-center justify-center w-9 h-9 rounded-lg flex-shrink-0"
+                  style={{ 
+                    backgroundColor: `${category.color}${activeCategory === category.id ? '20' : '15'}` 
+                  }}
                 >
                   <div style={{ color: category.color }}>
                     {category.icon}
                   </div>
                 </div>
                 <span className={`
-                  text-sm font-medium transition-colors
+                  text-sm font-medium transition-colors truncate
                   ${activeCategory === category.id ? 'text-white' : 'text-gray-400 group-hover:text-gray-300'}
                 `}>
                   {category.name}
                 </span>
               </div>
               <span className={`
-                text-xs font-medium px-2 py-0.5 rounded-full
+                text-xs font-semibold px-2.5 py-1 rounded-full ml-2 flex-shrink-0 min-w-[2.5rem] text-center
                 ${activeCategory === category.id 
                   ? 'bg-[#D7FF3C] text-black' 
-                  : 'bg-[#1a1a1a] text-gray-500'
+                  : 'bg-[#1a1a1a] text-gray-500 group-hover:text-gray-400'
                 }
               `}>
                 {category.count}
@@ -81,10 +76,10 @@ export function CategorySidebar() {
           ))}
         </nav>
 
-        <div className="mt-6 pt-4 border-t border-[#1a1a1a]">
+        <div className="mt-6 pt-5 border-t border-[#1a1a1a]">
           <Link 
             href="/community/forum/compose"
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#D7FF3C] hover:bg-[#e7ff6f] text-black font-semibold rounded-lg transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#D7FF3C] hover:bg-[#e7ff6f] text-black font-semibold rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-[#D7FF3C]/20"
           >
             <Plus className="w-4 h-4" />
             New Thread
