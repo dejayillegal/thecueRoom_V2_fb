@@ -271,6 +271,7 @@ export const forumThreads = pgTable('forum_threads', {
   isPinned: boolean('is_pinned').default(false),
   isLocked: boolean('is_locked').default(false),
   isHidden: boolean('is_hidden').default(false),
+  visibility: text('visibility').default('public'), // 'public' | 'members' | 'private'
   viewCount: integer('view_count').default(0),
   replyCount: integer('reply_count').default(0),
   likesCount: integer('likes_count').default(0),
@@ -581,4 +582,70 @@ export const forumAttachments = pgTable('forum_attachments', {
 }, (table) => ({
   postIdx: index('forum_attachments_post_idx').on(table.postType, table.postId),
   userIdIdx: index('forum_attachments_user_id_idx').on(table.userId),
+}));
+
+export const threadDrafts = pgTable('thread_drafts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  title: text('title'),
+  categoryId: uuid('category_id').references(() => forumCategories.id),
+  body: text('body'),
+  tags: jsonb('tags').$type<string[]>().default(sql`'[]'::jsonb`),
+  visibility: text('visibility').default('public'), // 'public' | 'members' | 'private'
+  metadata: jsonb('metadata').$type<any>(), // For mentions, attachments data
+  lastSavedAt: timestamp('last_saved_at').notNull().defaultNow(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index('thread_drafts_user_id_idx').on(table.userId),
+  lastSavedAtIdx: index('thread_drafts_last_saved_at_idx').on(table.lastSavedAt),
+}));
+
+export const mentions = pgTable('mentions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  contentType: text('content_type').notNull(), // 'thread' | 'reply'
+  contentId: uuid('content_id').notNull(),
+  authorId: uuid('author_id').notNull().references(() => users.id),
+  mentionedUserId: uuid('mentioned_user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  notificationSent: boolean('notification_sent').default(false),
+  read: boolean('read').default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  mentionedUserIdx: index('mentions_mentioned_user_idx').on(table.mentionedUserId),
+  contentIdx: index('mentions_content_idx').on(table.contentType, table.contentId),
+  createdAtIdx: index('mentions_created_at_idx').on(table.createdAt),
+}));
+
+export const threadFollowers = pgTable('thread_followers', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  threadId: uuid('thread_id').notNull().references(() => forumThreads.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  notifyOnReply: boolean('notify_on_reply').default(true),
+  notifyOnMention: boolean('notify_on_mention').default(true),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  threadUserUniqueIdx: uniqueIndex('thread_followers_thread_user_unique_idx').on(table.threadId, table.userId),
+  userIdIdx: index('thread_followers_user_id_idx').on(table.userId),
+}));
+
+export const moderationQueue = pgTable('moderation_queue', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  contentType: text('content_type').notNull(), // 'thread' | 'reply'
+  contentId: uuid('content_id').notNull(),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  reason: text('reason').notNull(), // 'spam' | 'toxicity' | 'scam' | 'promo' | 'flagged'
+  aiVerdict: text('ai_verdict'), // 'allow' | 'flag' | 'block'
+  aiConfidence: integer('ai_confidence'), // 0-100
+  aiReasoning: text('ai_reasoning'),
+  content: text('content').notNull(),
+  metadata: jsonb('metadata').$type<any>(),
+  status: text('status').notNull().default('pending'), // 'pending' | 'approved' | 'rejected' | 'auto_approved'
+  reviewedBy: uuid('reviewed_by').references(() => users.id),
+  reviewedAt: timestamp('reviewed_at'),
+  reviewNotes: text('review_notes'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  statusIdx: index('moderation_queue_status_idx').on(table.status),
+  contentIdx: index('moderation_queue_content_idx').on(table.contentType, table.contentId),
+  createdAtIdx: index('moderation_queue_created_at_idx').on(table.createdAt),
+  userIdIdx: index('moderation_queue_user_id_idx').on(table.userId),
 }));
