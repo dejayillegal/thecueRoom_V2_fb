@@ -24,6 +24,7 @@ import { generateUsername } from "@/src/lib/username-generator";
 import VerificationModal from "./VerificationModal";
 import InfoModal from "@/components/InfoModal";
 import { useRouter } from "next/navigation";
+import { Logo } from "@/components/Logo";
 
 interface AuthModalProps {
   isOpen: boolean;
