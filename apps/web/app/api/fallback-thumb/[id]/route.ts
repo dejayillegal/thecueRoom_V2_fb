@@ -51,9 +51,9 @@ export async function GET(
 
     // Stream the file directly - no sharp processing needed
     const stats = await fs.stat(imagePath);
-    const stream = createReadStream(imagePath);
+    const fileBuffer = await fs.readFile(imagePath);
 
-    return new NextResponse(stream as any, {
+    return new NextResponse(fileBuffer, {
       headers: {
         'Content-Type': 'image/png',
         'Content-Length': stats.size.toString(),
