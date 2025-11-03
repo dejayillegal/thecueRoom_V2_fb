@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getDbClient } from '@thecueroom/db/client';
-import { forumReplies, forumThreads, userReputation } from '@thecueroom/db/schema';
+import { forumReplies, forumThreads, userReputation, users, profiles } from '@thecueroom/db/schema';
 import { eq, sql } from 'drizzle-orm';
 import { analyzeTextForToxicity } from '@thecueroom/ai/moderation';
 import { getSession } from '@/lib/auth';
