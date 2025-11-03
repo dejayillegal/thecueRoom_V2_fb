@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db-client';
 import { requireRole } from '@/lib/rbac';
-import { aiJobs } from '@packages/db/schema';
+import { aiJobs } from '@thecueroom/db/schema';
 
 const eventSchema = z.object({
   title: z.string().min(3).max(200),
