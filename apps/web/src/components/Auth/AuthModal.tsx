@@ -376,14 +376,14 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </DialogTitle>
 
           {/* Header with Logo and Tabs */}
-          <div className="px-8 pt-6 pb-4 border-b border-[#2a2a2a]">
-            <div className="flex items-center justify-between">
+          <div className="px-6 pt-6 pb-4 border-b border-[#2a2a2a]">
+            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 1000 1000"
                   aria-label="thecueRoom logo icon"
-                  className="w-9 h-9"
+                  className="w-8 h-8"
                   fill="#D7FF3C"
                 >
                   <g transform="translate(150, 150) scale(0.8)">
@@ -401,546 +401,546 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 </svg>
                 <span className="text-base font-semibold">thecueRoom</span>
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setActiveTab("signin")}
-                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
-                    activeTab === "signin"
-                      ? "bg-[#D7FF3C] text-black"
-                      : "bg-transparent text-gray-400 hover:text-white border border-[#2a2a2a]"
-                  }`}
-                >
-                  Sign In
-                </button>
-                <button
-                  onClick={() => setActiveTab("signup")}
-                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
-                    activeTab === "signup"
-                      ? "bg-[#D7FF3C] text-black"
-                      : "bg-transparent text-gray-400 hover:text-white border border-[#2a2a2a]"
-                  }`}
-                >
-                  Sign Up
-                </button>
-                <button
-                  onClick={() => setActiveTab("forgot")}
-                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
-                    activeTab === "forgot"
-                      ? "bg-[#D7FF3C] text-black"
-                      : "bg-transparent text-gray-400 hover:text-white border border-[#2a2a2a]"
-                  }`}
-                >
-                  Forget
-                </button>
-              </div>
+            </div>
+            <div className="flex gap-1">
+              <button
+                onClick={() => setActiveTab("signin")}
+                className={`px-6 py-2 text-sm font-medium transition-colors ${
+                  activeTab === "signin"
+                    ? "text-[#D7FF3C] border-b-2 border-[#D7FF3C]"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => setActiveTab("signup")}
+                className={`px-6 py-2 text-sm font-medium transition-colors ${
+                  activeTab === "signup"
+                    ? "text-[#D7FF3C] border-b-2 border-[#D7FF3C]"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                Sign Up
+              </button>
+              <button
+                onClick={() => setActiveTab("forgot")}
+                className={`px-6 py-2 text-sm font-medium transition-colors ${
+                  activeTab === "forgot"
+                    ? "text-[#D7FF3C] border-b-2 border-[#D7FF3C]"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                Forgot
+              </button>
             </div>
           </div>
 
-          {/* Form Content - Two Column Layout for Desktop */}
-          <div className="flex flex-col lg:flex-row gap-8 p-8 overflow-y-auto flex-1">
+          {/* Form Content */}
+          <div className="flex flex-col lg:flex-row gap-6 p-6 overflow-y-auto flex-1">
             {/* Main Form Column */}
             <div className="flex-1">
-            {/* Sign In Form */}
-            {activeTab === "signin" && (
-              <form onSubmit={handleSignIn} className="space-y-5">
-                <p className="text-gray-400 text-sm">
-                  Welcome back. Enter your credentials to continue.
-                </p>
-
-                <div className="space-y-2">
-                  <Label htmlFor="signin-email" className="text-sm text-white">
-                    Email
-                  </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <Input
-                      id="signin-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="name@artist.com"
-                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-14 text-base rounded-2xl pl-12 pr-4"
-                      disabled={isLoading}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="signin-password" className="text-sm text-white">
-                    Password
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <Input
-                      id="signin-password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-14 text-base rounded-2xl pl-12 pr-4"
-                      disabled={isLoading}
-                    />
-                  </div>
-                </div>
-
-                {error && (
-                  <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">
-                    {error}
-                  </div>
-                )}
-
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    type="submit"
-                    disabled={isLoading}
-                    className="bg-[#D7FF3C] text-black hover:bg-[#c5ed2a] font-semibold h-14 px-8 rounded-2xl text-base"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Signing in...
-                      </>
-                    ) : (
-                      <>
-                        <ArrowRight className="mr-2 h-5 w-5" />
-                        Sign In
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={onClose}
-                    variant="outline"
-                    className="border-[#2a2a2a] bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] h-14 px-8 rounded-2xl text-base"
-                    disabled={isLoading}
-                  >
-                    Back
-                  </Button>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("forgot")}
-                  className="text-sm text-gray-400 hover:text-[#a78bfa] transition-colors"
-                  disabled={isLoading}
-                >
-                  Forgot password?
-                </button>
-              </form>
-            )}
-
-            {/* Sign Up Form */}
-            {activeTab === "signup" && (
-              <form onSubmit={handleSignUp} className="space-y-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-white mb-2">
-                    Create your {isArtist ? "artist " : ""}account
-                  </h2>
+              {/* Sign In Form */}
+              {activeTab === "signin" && (
+                <form onSubmit={handleSignIn} className="space-y-4">
                   <p className="text-gray-400 text-sm">
-                    Join thecueRoom community
+                    Welcome back. Enter your credentials to continue.
                   </p>
-                </div>
 
-                {/* Artist Checkbox */}
-                <div className="space-y-2">
-                  <div className="flex items-start gap-3">
-                    <input
-                      type="checkbox"
-                      id="artist-checkbox"
-                      checked={isArtist}
-                      onChange={(e) => setIsArtist(e.target.checked)}
-                      className="mt-1 w-4 h-4 rounded border-[#2a2a2a] bg-[#0a0a0a] text-[#D7FF3C] focus:ring-[#D7FF3C] focus:ring-offset-0 cursor-pointer"
-                      disabled={isLoading}
-                    />
-                    <div className="flex-1">
-                      <Label
-                        htmlFor="artist-checkbox"
-                        className="text-white cursor-pointer text-sm font-medium block mb-1"
-                      >
-                        Sign up as Artist / DJ
-                      </Label>
-                      <p className="text-xs text-gray-500">
-                        Additional verification fields will appear for artist accounts.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName" className="text-sm text-white font-medium">
-                      First Name *
+                  <div className="space-y-1.5">
+                    <Label htmlFor="signin-email" className="text-sm text-white">
+                      Email
                     </Label>
                     <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
-                        id="firstName"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        placeholder="Alex"
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 text-base focus:border-[#D7FF3C] rounded-lg pl-11 pr-4"
+                        id="signin-email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="name@artist.com"
+                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 text-sm rounded-lg pl-10 pr-4"
                         disabled={isLoading}
-                        required
                       />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName" className="text-sm text-white font-medium">
-                      Last Name *
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="signin-password" className="text-sm text-white">
+                      Password
                     </Label>
                     <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
-                        id="lastName"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        placeholder="Rivera"
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 text-base focus:border-[#D7FF3C] rounded-lg pl-11 pr-4"
-                        disabled={isLoading}
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {isArtist && (
-                  <div className="space-y-2">
-                    <Label htmlFor="artistName" className="text-sm text-white font-medium">
-                      Artist Name *
-                    </Label>
-                    <div className="relative">
-                      <Music className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="artistName"
-                        value={artistName}
-                        onChange={(e) => setArtistName(e.target.value)}
-                        placeholder="Your stage name"
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] pl-11 pr-10 rounded-lg"
-                        disabled={isLoading}
-                        required
-                      />
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        {artistAvailability.checking && (
-                          <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-                        )}
-                        {!artistAvailability.checking &&
-                          artistAvailability.available === true && (
-                            <CheckCircle2 className="h-4 w-4 text-green-500" />
-                          )}
-                        {!artistAvailability.checking &&
-                          artistAvailability.available === false && (
-                            <XCircle className="h-4 w-4 text-red-500" />
-                          )}
-                      </div>
-                    </div>
-                    {artistAvailability.reason && (
-                      <p className="text-xs text-red-400">{artistAvailability.reason}</p>
-                    )}
-                    {generatedUsername && (
-                      <p className="text-xs text-gray-400">
-                        Username: <span className="text-[#D7FF3C]">{generatedUsername}</span>
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm text-white font-medium">
-                    Email *
-                  </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="alex@example.com"
-                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] pl-11 pr-10 rounded-lg"
-                      disabled={isLoading}
-                      required
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      {emailAvailability.checking && (
-                        <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-                      )}
-                      {!emailAvailability.checking &&
-                        emailAvailability.available === true && (
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
-                        )}
-                      {!emailAvailability.checking &&
-                        emailAvailability.available === false && (
-                          <XCircle className="h-4 w-4 text-red-500" />
-                        )}
-                    </div>
-                  </div>
-                  {emailAvailability.reason && (
-                    <p className="text-xs text-red-400">{emailAvailability.reason}</p>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm text-white font-medium">
-                      Password *
-                    </Label>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="password"
+                        id="signin-password"
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Min 8 characters"
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] rounded-lg pl-11 pr-4"
+                        placeholder="••••••••"
+                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 text-sm rounded-lg pl-10 pr-4"
                         disabled={isLoading}
-                        required
                       />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword" className="text-sm text-white font-medium">
-                      Confirm Password *
-                    </Label>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="confirmPassword"
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Re-enter password"
-                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] rounded-lg pl-11 pr-4"
-                        disabled={isLoading}
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
 
-                {password && strength && (
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-400">Password strength:</span>
-                      <span className="text-gray-300 capitalize">{strength.level}</span>
+                  {error && (
+                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">
+                      {error}
                     </div>
-                    <div className="h-1.5 w-full bg-[#1a1a1a] rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${strength.color} transition-all duration-300`}
-                        style={{ width: strength.width }}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      Min 10 chars, must include letter + number + symbol
+                  )}
+
+                  <div className="flex gap-3 pt-2">
+                    <Button
+                      type="submit"
+                      disabled={isLoading}
+                      className="bg-[#D7FF3C] text-black hover:bg-[#c5ed2a] font-semibold h-11 px-8 rounded-full text-sm"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Signing in...
+                        </>
+                      ) : (
+                        <>
+                          <ArrowRight className="mr-2 h-4 w-4" />
+                          Sign In
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={onClose}
+                      variant="outline"
+                      className="border-[#2a2a2a] bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] h-11 px-8 rounded-full text-sm"
+                      disabled={isLoading}
+                    >
+                      Back
+                    </Button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("forgot")}
+                    className="text-sm text-gray-400 hover:text-[#9B5CFF] transition-colors"
+                    disabled={isLoading}
+                  >
+                    Forgot password?
+                  </button>
+                </form>
+              )}
+
+              {/* Sign Up Form */}
+              {activeTab === "signup" && (
+                <form onSubmit={handleSignUp} className="space-y-3">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white mb-2">
+                      Create your {isArtist ? "artist " : ""}account
+                    </h2>
+                    <p className="text-gray-400 text-sm">
+                      Join thecueRoom community
                     </p>
                   </div>
-                )}
 
-                {isArtist && (
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="primaryGenre" className="text-sm text-white font-medium">
-                          Primary Genre *
+                  {/* Artist Checkbox */}
+                  <div className="space-y-2">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        id="artist-checkbox"
+                        checked={isArtist}
+                        onChange={(e) => setIsArtist(e.target.checked)}
+                        className="mt-1 w-4 h-4 rounded border-[#2a2a2a] bg-[#0a0a0a] text-[#D7FF3C] focus:ring-[#D7FF3C] focus:ring-offset-0 cursor-pointer"
+                        disabled={isLoading}
+                      />
+                      <div className="flex-1">
+                        <Label
+                          htmlFor="artist-checkbox"
+                          className="text-white cursor-pointer text-sm font-medium block mb-1"
+                        >
+                          Sign up as Artist / DJ
                         </Label>
-                        <div className="relative">
-                          <Music className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input
-                            id="primaryGenre"
-                            value={genre}
-                            onChange={(e) => setGenre(e.target.value)}
-                            placeholder="Techno"
-                            maxLength={120}
-                            className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] rounded-lg pl-11 pr-4"
-                            disabled={isLoading}
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="cityRegion" className="text-sm text-white font-medium">
-                          City / Region *
-                        </Label>
-                        <div className="relative">
-                          <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input
-                            id="cityRegion"
-                            value={region}
-                            onChange={(e) => setRegion(e.target.value)}
-                            placeholder="Berlin, DE"
-                            maxLength={60}
-                            className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] rounded-lg pl-11 pr-4"
-                            disabled={isLoading}
-                            required
-                          />
-                        </div>
+                        <p className="text-xs text-gray-500">
+                          Additional verification fields will appear for artist accounts.
+                        </p>
                       </div>
                     </div>
+                  </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="portfolio" className="text-sm text-white font-medium">
-                        Portfolio / Music Links *
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="firstName" className="text-sm text-white font-medium">
+                        First Name *
                       </Label>
                       <div className="relative">
-                        <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input
-                          id="portfolio"
-                          type="url"
-                          value={publicProfileUrl}
-                          onChange={(e) => setPublicProfileUrl(e.target.value)}
-                          placeholder="SoundCloud / Spotify / EPK"
-                          className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-12 focus:border-[#D7FF3C] rounded-lg pl-11 pr-4"
+                          id="firstName"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          placeholder="Alex"
+                          className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 text-sm focus:border-[#D7FF3C] rounded-lg pl-10 pr-4"
                           disabled={isLoading}
                           required
                         />
                       </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="lastName" className="text-sm text-white font-medium">
+                        Last Name *
+                      </Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="lastName"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          placeholder="Rivera"
+                          className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 text-sm focus:border-[#D7FF3C] rounded-lg pl-10 pr-4"
+                          disabled={isLoading}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {isArtist && (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="artistName" className="text-sm text-white font-medium">
+                        Artist Name *
+                      </Label>
+                      <div className="relative">
+                        <Music className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="artistName"
+                          value={artistName}
+                          onChange={(e) => setArtistName(e.target.value)}
+                          placeholder="Your stage name"
+                          className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C] text-sm rounded-lg pl-10 pr-10"
+                          disabled={isLoading}
+                          required
+                        />
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          {artistAvailability.checking && (
+                            <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                          )}
+                          {!artistAvailability.checking &&
+                            artistAvailability.available === true && (
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            )}
+                          {!artistAvailability.checking &&
+                            artistAvailability.available === false && (
+                              <XCircle className="h-4 w-4 text-red-500" />
+                            )}
+                        </div>
+                      </div>
+                      {artistAvailability.reason && (
+                        <p className="text-xs text-red-400">{artistAvailability.reason}</p>
+                      )}
+                      {generatedUsername && (
+                        <p className="text-xs text-gray-400">
+                          Username: <span className="text-[#D7FF3C]">{generatedUsername}</span>
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="email" className="text-sm text-white font-medium">
+                      Email *
+                    </Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="alex@example.com"
+                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C] text-sm rounded-lg pl-10 pr-10"
+                        disabled={isLoading}
+                        required
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        {emailAvailability.checking && (
+                          <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                        )}
+                        {!emailAvailability.checking &&
+                          emailAvailability.available === true && (
+                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          )}
+                        {!emailAvailability.checking &&
+                          emailAvailability.available === false && (
+                            <XCircle className="h-4 w-4 text-red-500" />
+                          )}
+                      </div>
+                    </div>
+                    {emailAvailability.reason && (
+                      <p className="text-xs text-red-400">{emailAvailability.reason}</p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="password" className="text-sm text-white font-medium">
+                        Password *
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="password"
+                          type="password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Min 8 characters"
+                          className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C] text-sm rounded-lg pl-10 pr-4"
+                          disabled={isLoading}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="confirmPassword" className="text-sm text-white font-medium">
+                        Confirm Password *
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="confirmPassword"
+                          type="password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Re-enter password"
+                          className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C] text-sm rounded-lg pl-10 pr-4"
+                          disabled={isLoading}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {password && strength && (
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-400">Password strength:</span>
+                        <span className="text-gray-300 capitalize">{strength.level}</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-[#1a1a1a] rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${strength.color} transition-all duration-300`}
+                          style={{ width: strength.width }}
+                        />
+                      </div>
                       <p className="text-xs text-gray-500">
-                        SoundCloud, Spotify, Bandcamp, Mixcloud, Beatport, or YouTube
+                        Min 10 chars, must include letter + number + symbol
                       </p>
                     </div>
-                  </>
-                )}
+                  )}
 
-                <div className="flex items-start gap-2">
-                  <input
-                    type="checkbox"
-                    id="agree-terms"
-                    checked={agreeTerms}
-                    onChange={(e) => setAgreeTerms(e.target.checked)}
-                    className="mt-1"
-                    disabled={isLoading}
-                  />
-                  <Label htmlFor="agree-terms" className="text-xs text-gray-400 cursor-pointer">
-                    I agree to the{" "}
-                    <button
-                      type="button"
-                      onClick={() => setShowInfoModal("terms")}
-                      className="text-[#D7FF3C] hover:underline"
-                    >
-                      Terms
-                    </button>{" "}
-                    and{" "}
-                    <button
-                      type="button"
-                      onClick={() => setShowInfoModal("privacy")}
-                      className="text-[#D7FF3C] hover:underline"
-                    >
-                      Privacy Policy
-                    </button>{" "}
-                    *
-                  </Label>
-                </div>
+                  {isArtist && (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="primaryGenre" className="text-sm text-white font-medium">
+                            Primary Genre *
+                          </Label>
+                          <div className="relative">
+                            <Music className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                              id="primaryGenre"
+                              value={genre}
+                              onChange={(e) => setGenre(e.target.value)}
+                              placeholder="Techno"
+                              maxLength={120}
+                              className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C] text-sm rounded-lg pl-10 pr-4"
+                              disabled={isLoading}
+                              required
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="cityRegion" className="text-sm text-white font-medium">
+                            City / Region *
+                          </Label>
+                          <div className="relative">
+                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                              id="cityRegion"
+                              value={region}
+                              onChange={(e) => setRegion(e.target.value)}
+                              placeholder="Berlin, DE"
+                              maxLength={60}
+                              className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C] text-sm rounded-lg pl-10 pr-4"
+                              disabled={isLoading}
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
 
-                {error && (
-                  <div className="p-3 bg-red-500/10 border border-red-500/20 rounded text-sm text-red-400">
-                    {error}
-                  </div>
-                )}
+                      <div className="space-y-1.5">
+                        <Label htmlFor="portfolio" className="text-sm text-white font-medium">
+                          Portfolio / Music Links *
+                        </Label>
+                        <div className="relative">
+                          <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="portfolio"
+                            type="url"
+                            value={publicProfileUrl}
+                            onChange={(e) => setPublicProfileUrl(e.target.value)}
+                            placeholder="SoundCloud / Spotify / EPK"
+                            className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C] text-sm rounded-lg pl-10 pr-4"
+                            disabled={isLoading}
+                            required
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          SoundCloud, Spotify, Bandcamp, Mixcloud, Beatport, or YouTube
+                        </p>
+                      </div>
+                    </>
+                  )}
 
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    type="submit"
-                    disabled={
-                      isLoading ||
-                      !emailAvailability.available ||
-                      (isArtist && !artistAvailability.available) ||
-                      !agreeTerms ||
-                      (isArtist && !publicProfileUrl)
-                    }
-                    className="bg-[#D7FF3C] text-black hover:bg-[#c5ed2a] font-semibold h-12 px-8 rounded-full disabled:opacity-50"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <ArrowRight className="mr-2 h-5 w-5" />
-                        {isArtist ? "Create Artist Account" : "Create Account"}
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={onClose}
-                    variant="outline"
-                    className="border-[#2a2a2a] bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] h-12 px-8 rounded-2xl"
-                    disabled={isLoading}
-                  >
-                    Back
-                  </Button>
-                </div>
-              </form>
-            )}
-
-            {/* Forgot Password Form */}
-            {activeTab === "forgot" && (
-              <form onSubmit={handleForgotPassword} className="space-y-5">
-                <p className="text-gray-400 text-sm">
-                  Enter your email to receive a password reset link.
-                </p>
-
-                <div className="space-y-2">
-                  <Label htmlFor="forgot-email" className="text-sm text-white">
-                    Email
-                  </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <Input
-                      id="forgot-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="your@email.com"
-                      className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-14 text-base rounded-2xl pl-12 pr-4"
+                  <div className="flex items-start gap-2">
+                    <input
+                      type="checkbox"
+                      id="agree-terms"
+                      checked={agreeTerms}
+                      onChange={(e) => setAgreeTerms(e.target.checked)}
+                      className="mt-1 w-4 h-4 rounded border-[#2a2a2a] bg-[#0a0a0a] text-[#D7FF3C] focus:ring-[#D7FF3C] focus:ring-offset-0 cursor-pointer"
                       disabled={isLoading}
                     />
+                    <Label htmlFor="agree-terms" className="text-xs text-gray-400 cursor-pointer">
+                      I agree to the{" "}
+                      <button
+                        type="button"
+                        onClick={() => setShowInfoModal("terms")}
+                        className="text-[#D7FF3C] hover:underline"
+                      >
+                        Terms
+                      </button>{" "}
+                      and{" "}
+                      <button
+                        type="button"
+                        onClick={() => setShowInfoModal("privacy")}
+                        className="text-[#D7FF3C] hover:underline"
+                      >
+                        Privacy Policy
+                      </button>{" "}
+                      *
+                    </Label>
                   </div>
-                </div>
 
-                {error && (
-                  <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">
-                    {error}
+                  {error && (
+                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded text-sm text-red-400">
+                      {error}
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 pt-2">
+                    <Button
+                      type="submit"
+                      disabled={
+                        isLoading ||
+                        !emailAvailability.available ||
+                        (isArtist && !artistAvailability.available) ||
+                        !agreeTerms ||
+                        (isArtist && !publicProfileUrl)
+                      }
+                      className="bg-[#D7FF3C] text-black hover:bg-[#c5ed2a] font-semibold h-11 px-8 rounded-full disabled:opacity-50 text-sm"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <ArrowRight className="mr-2 h-4 w-4" />
+                          {isArtist ? "Create Artist Account" : "Create Account"}
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={onClose}
+                      variant="outline"
+                      className="border-[#2a2a2a] bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] h-11 px-8 rounded-full text-sm"
+                      disabled={isLoading}
+                    >
+                      Back
+                    </Button>
                   </div>
-                )}
+                </form>
+              )}
 
-                {success && (
-                  <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-sm text-green-400">
-                    {success}
+              {/* Forgot Password Form */}
+              {activeTab === "forgot" && (
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <p className="text-gray-400 text-sm">
+                    Enter your email to receive a password reset link.
+                  </p>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="forgot-email" className="text-sm text-white">
+                      Email
+                    </Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="forgot-email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="your@email.com"
+                        className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 text-sm rounded-lg pl-10 pr-4"
+                        disabled={isLoading}
+                      />
+                    </div>
                   </div>
-                )}
 
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    type="submit"
-                    disabled={isLoading}
-                    className="bg-[#D7FF3C] text-black hover:bg-[#c5ed2a] font-semibold h-14 px-8 rounded-2xl text-base"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <Mail className="mr-2 h-5 w-5" />
-                        Send Reset Link
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={onClose}
-                    variant="outline"
-                    className="border-[#2a2a2a] bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] h-14 px-8 rounded-2xl text-base"
-                    disabled={isLoading}
-                  >
-                    Back
-                  </Button>
-                </div>
-              </form>
-            )}
+                  {error && (
+                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">
+                      {error}
+                    </div>
+                  )}
+
+                  {success && (
+                    <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-sm text-green-400">
+                      {success}
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 pt-2">
+                    <Button
+                      type="submit"
+                      disabled={isLoading}
+                      className="bg-[#D7FF3C] text-black hover:bg-[#c5ed2a] font-semibold h-11 px-8 rounded-full text-sm"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="mr-2 h-4 w-4" />
+                          Send Reset Link
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={onClose}
+                      variant="outline"
+                      className="border-[#2a2a2a] bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] h-11 px-8 rounded-full text-sm"
+                      disabled={isLoading}
+                    >
+                      Back
+                    </Button>
+                  </div>
+                </form>
+              )}
             </div>
 
             {/* Right Rail - Desktop Only */}

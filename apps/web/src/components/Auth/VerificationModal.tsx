@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -74,7 +75,7 @@ export default function VerificationModal({
           } else if (data.job.status === "completed") {
             setProgress(100);
             if (data.job.decision === "verified") {
-              setTimeout(() => setAutoRedirectSeconds(2), 500);
+              setTimeout(() => setAutoRedirectSeconds(3), 500);
             }
           }
 
@@ -104,7 +105,6 @@ export default function VerificationModal({
   }, [autoRedirectSeconds, onComplete]);
 
   const handleSignOut = () => {
-    // Clear any auth tokens/session
     document.cookie = "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
     window.location.href = "/";
   };
@@ -113,15 +113,19 @@ export default function VerificationModal({
     onOpenChange(false);
   };
 
+  const getStepStatus = (stepValue: number) => {
+    if (progress >= stepValue) return "completed";
+    if (progress >= stepValue - 20) return "active";
+    return "pending";
+  };
+
   const renderContent = () => {
     if (!job) {
       return (
-        <div className="space-y-8">
-          <div className="flex items-start gap-4 p-6 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg">
-            <Loader2 className="h-12 w-12 animate-spin text-[#D7FF3C] flex-shrink-0" />
-            <div className="flex-1">
-              <p className="text-white text-lg">Loading verification status...</p>
-            </div>
+        <div className="space-y-6 py-8">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-16 w-16 animate-spin text-[#D7FF3C]" />
+            <p className="text-white text-lg">Loading verification status...</p>
           </div>
         </div>
       );
@@ -130,31 +134,29 @@ export default function VerificationModal({
     // Verification Success
     if (job.status === "completed" && job.decision === "verified") {
       return (
-        <div className="space-y-8">
-          <div className="flex items-start gap-4 p-6 bg-[#1a1a1a] border border-[#D7FF3C]/30 rounded-lg">
-            <CheckCircle2 className="h-12 w-12 text-[#D7FF3C] flex-shrink-0" />
-            <div className="flex-1">
-              <p className="text-white text-lg">Your artist profile is verified. Redirecting to dashboard...</p>
+        <div className="space-y-6 py-8">
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-20 w-20 rounded-full bg-[#D7FF3C]/20 flex items-center justify-center">
+              <CheckCircle2 className="h-12 w-12 text-[#D7FF3C]" />
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-2xl font-bold text-white">Verification Complete!</h3>
+              <p className="text-gray-400">Your artist profile has been verified</p>
             </div>
           </div>
           
-          <p className="text-gray-400 text-base">
-            If you are not redirected automatically, continue below.
-          </p>
+          <div className="bg-[#D7FF3C]/10 border border-[#D7FF3C]/20 rounded-lg p-4">
+            <p className="text-[#D7FF3C] text-center font-medium">
+              Redirecting to dashboard in {autoRedirectSeconds}s...
+            </p>
+          </div>
 
-          <div className="flex justify-end gap-4">
-            <Button
-              onClick={handleBack}
-              variant="outline"
-              className="bg-transparent border-[#D7FF3C] text-[#D7FF3C] hover:bg-[#D7FF3C]/10 px-8 h-12"
-            >
-              Back
-            </Button>
+          <div className="flex justify-center gap-3">
             <Button
               onClick={onComplete}
-              className="bg-[#D7FF3C] text-black hover:bg-[#D7FF3C]/90 font-semibold px-8 h-12"
+              className="bg-[#D7FF3C] text-black hover:bg-[#D7FF3C]/90 font-semibold px-8 h-12 rounded-full"
             >
-              Open Dashboard
+              Go to Dashboard
             </Button>
           </div>
         </div>
@@ -164,29 +166,27 @@ export default function VerificationModal({
     // Pending Admin Review
     if (job.status === "completed" && job.decision === "pending_admin") {
       return (
-        <div className="space-y-8">
-          <div className="flex items-start gap-4 p-6 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg">
-            <Loader2 className="h-12 w-12 animate-spin text-[#D7FF3C] flex-shrink-0" />
-            <div className="flex-1">
-              <p className="text-white text-lg">Checking your credentials and artist verification...</p>
+        <div className="space-y-6 py-8">
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-20 w-20 rounded-full bg-yellow-400/20 flex items-center justify-center">
+              <Clock className="h-12 w-12 text-yellow-400" />
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-2xl font-bold text-white">Manual Review Required</h3>
+              <p className="text-gray-400">Your profile is being reviewed by our team</p>
             </div>
           </div>
           
-          <p className="text-gray-400 text-base">
-            Access to dashboard is gated until approval. We'll notify you in under a minute.
-          </p>
+          <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-lg p-4">
+            <p className="text-yellow-400 text-center text-sm">
+              You'll receive a notification once the review is complete (usually 24-48 hours)
+            </p>
+          </div>
 
-          <div className="flex justify-end gap-4">
-            <Button
-              onClick={handleBack}
-              variant="outline"
-              className="bg-transparent border-[#D7FF3C] text-[#D7FF3C] hover:bg-[#D7FF3C]/10 px-8 h-12"
-            >
-              Back
-            </Button>
+          <div className="flex justify-center gap-3">
             <Button
               onClick={handleSignOut}
-              className="bg-[#D7FF3C] text-black hover:bg-[#D7FF3C]/90 font-semibold px-8 h-12"
+              className="bg-[#D7FF3C] text-black hover:bg-[#D7FF3C]/90 font-semibold px-8 h-12 rounded-full"
             >
               Sign Out
             </Button>
@@ -198,28 +198,27 @@ export default function VerificationModal({
     // Failed or Rejected
     if (job.status === "failed" || (job.status === "completed" && job.decision === "rejected")) {
       return (
-        <div className="space-y-8">
-          <div className="flex items-start gap-4 p-6 bg-[#1a1a1a] border border-red-500/30 rounded-lg">
-            <XCircle className="h-12 w-12 text-red-500 flex-shrink-0" />
-            <div className="flex-1">
-              <p className="text-white text-lg">Verification failed. Please check your credentials and try again.</p>
-              {job.metadata?.reason && (
-                <p className="text-gray-400 text-sm mt-2">{job.metadata.reason}</p>
-              )}
+        <div className="space-y-6 py-8">
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-20 w-20 rounded-full bg-red-500/20 flex items-center justify-center">
+              <XCircle className="h-12 w-12 text-red-500" />
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-2xl font-bold text-white">Verification Failed</h3>
+              <p className="text-gray-400">We couldn't verify your profile</p>
             </div>
           </div>
+          
+          {job.metadata?.reason && (
+            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+              <p className="text-red-400 text-center text-sm">{job.metadata.reason}</p>
+            </div>
+          )}
 
-          <div className="flex justify-end gap-4">
-            <Button
-              onClick={handleBack}
-              variant="outline"
-              className="bg-transparent border-[#D7FF3C] text-[#D7FF3C] hover:bg-[#D7FF3C]/10 px-8 h-12"
-            >
-              Back
-            </Button>
+          <div className="flex justify-center gap-3">
             <Button
               onClick={onComplete}
-              className="bg-[#D7FF3C] text-black hover:bg-[#D7FF3C]/90 font-semibold px-8 h-12"
+              className="bg-[#D7FF3C] text-black hover:bg-[#D7FF3C]/90 font-semibold px-8 h-12 rounded-full"
             >
               Try Again
             </Button>
@@ -228,34 +227,59 @@ export default function VerificationModal({
       );
     }
 
-    // Processing/Queued state - Verification Pending
+    // Processing/Queued state
     return (
-      <div className="space-y-8">
-        <div className="flex items-start gap-4 p-6 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg">
-          <Loader2 className="h-12 w-12 animate-spin text-[#D7FF3C] flex-shrink-0" />
-          <div className="flex-1">
-            <p className="text-white text-lg">Checking your credentials and artist verification...</p>
+      <div className="space-y-6 py-8">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-16 w-16 animate-spin text-[#D7FF3C]" />
+          <div className="text-center space-y-2">
+            <h3 className="text-xl font-bold text-white">Verifying Your Profile</h3>
+            <p className="text-gray-400 text-sm">This may take a few moments...</p>
           </div>
         </div>
         
-        <p className="text-gray-400 text-base">
-          Access to dashboard is gated until approval. We'll notify you in under a minute.
-        </p>
+        <div className="space-y-4">
+          <Progress value={progress} className="h-2" />
+          <p className="text-center text-sm text-gray-400">{progress}% Complete</p>
+        </div>
 
-        <div className="flex justify-end gap-4">
-          <Button
-            onClick={handleBack}
-            variant="outline"
-            className="bg-transparent border-[#D7FF3C] text-[#D7FF3C] hover:bg-[#D7FF3C]/10 px-8 h-12"
-          >
-            Back
-          </Button>
-          <Button
-            onClick={handleSignOut}
-            className="bg-[#D7FF3C] text-black hover:bg-[#D7FF3C]/90 font-semibold px-8 h-12"
-          >
-            Sign Out
-          </Button>
+        <div className="space-y-2">
+          {PROGRESS_STEPS.map((step, idx) => {
+            const status = getStepStatus(step.value);
+            return (
+              <div
+                key={idx}
+                className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
+                  status === 'completed'
+                    ? 'bg-[#D7FF3C]/10 border border-[#D7FF3C]/20'
+                    : status === 'active'
+                    ? 'bg-yellow-400/10 border border-yellow-400/20'
+                    : 'bg-[#1a1a1a] border border-[#2a2a2a]'
+                }`}
+              >
+                <div>
+                  {status === 'completed' ? (
+                    <CheckCircle2 className="w-5 h-5 text-[#D7FF3C]" />
+                  ) : status === 'active' ? (
+                    <Loader2 className="w-5 h-5 text-yellow-400 animate-spin" />
+                  ) : (
+                    <div className="w-5 h-5 rounded-full border-2 border-gray-700" />
+                  )}
+                </div>
+                <span
+                  className={`text-sm font-medium ${
+                    status === 'completed'
+                      ? 'text-[#D7FF3C]'
+                      : status === 'active'
+                      ? 'text-yellow-400'
+                      : 'text-gray-500'
+                  }`}
+                >
+                  {step.label}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
     );
@@ -270,27 +294,20 @@ export default function VerificationModal({
     }
   };
 
-  const getTitle = () => {
-    if (job?.status === "completed" && job.decision === "verified") {
-      return "Verification Success";
-    }
-    return "Verification Pending";
-  };
-
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent
-        className="max-w-2xl bg-[#0B0B0B] border-[#1a1a1a] text-white"
+        className="max-w-md bg-black border border-[#2a2a2a] text-white p-8"
         onEscapeKeyDown={(e) => !canClose && e.preventDefault()}
         onPointerDownOutside={(e) => !canClose && e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-[#D7FF3C]">
-            {getTitle()}
+          <DialogTitle className="text-center text-2xl font-bold text-[#D7FF3C]">
+            Profile Verification
           </DialogTitle>
         </DialogHeader>
 
-        <div className="mt-4">{renderContent()}</div>
+        {renderContent()}
       </DialogContent>
     </Dialog>
   );
