@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getDbClient } from '@/lib/db-client';
 import { forumThreads, forumReplies } from '@thecueroom/db/schema';
-import { cookies } from 'next/headers';
 import { eq } from 'drizzle-orm';
+import { getSession } from '@/lib/auth';
 
 const db = getDbClient();
 
@@ -14,32 +14,18 @@ const createThreadSchema = z.object({
   tags: z.array(z.string()).optional(),
 });
 
-async function getUserIdFromSession(): Promise<string | null> {
-  try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('session');
-
-    if (!sessionCookie?.value) {
-      return null;
-    }
-
-    const sessionData = JSON.parse(sessionCookie.value);
-    return sessionData.userId || null;
-  } catch {
-    return null;
-  }
-}
-
 export async function POST(request: NextRequest) {
   try {
-    const userId = await getUserIdFromSession();
+    const session = await getSession();
 
-    if (!userId) {
+    if (!session?.uid) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
+
+    const userId = session.uid;
 
     const body = await request.json();
     const data = createThreadSchema.parse(body);
@@ -63,6 +49,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      threadId: thread.id,
       thread,
     }, { status: 201 });
 
