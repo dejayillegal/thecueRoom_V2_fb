@@ -100,8 +100,8 @@ export function ThreadView({ threadId }: { threadId: string }) {
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="max-w-[1200px] mx-auto px-4 py-6">
-        <Link 
-          href="/forum"
+        <Link
+          href="/community/forum"
           className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-[#D7FF3C] mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -173,7 +173,7 @@ export function ThreadView({ threadId }: { threadId: string }) {
 
                 <div className="flex items-center gap-2 mb-6">
                   {thread.tags.map((tag) => (
-                    <span 
+                    <span
                       key={tag}
                       className="text-xs px-3 py-1.5 bg-[#1a1a1a] border border-[#2a2a2a] text-gray-400 rounded-full hover:border-[#D7FF3C] hover:text-[#D7FF3C] transition-colors cursor-pointer"
                     >
@@ -187,8 +187,8 @@ export function ThreadView({ threadId }: { threadId: string }) {
                     onClick={() => setIsLiked(!isLiked)}
                     className={`
                       flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all
-                      ${isLiked 
-                        ? 'bg-[#D7FF3C]/10 text-[#D7FF3C] border border-[#D7FF3C]/30' 
+                      ${isLiked
+                        ? 'bg-[#D7FF3C]/10 text-[#D7FF3C] border border-[#D7FF3C]/30'
                         : 'bg-[#1a1a1a] text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
                       }
                     `}
@@ -297,7 +297,7 @@ export function ThreadView({ threadId }: { threadId: string }) {
                 <h3 className="text-sm font-bold text-white uppercase tracking-wide mb-4">
                   Thread Info
                 </h3>
-                
+
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-400">Created</span>
@@ -322,8 +322,8 @@ export function ThreadView({ threadId }: { threadId: string }) {
                     onClick={() => setIsBookmarked(!isBookmarked)}
                     className={`
                       w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all
-                      ${isBookmarked 
-                        ? 'bg-[#D7FF3C]/10 text-[#D7FF3C] border border-[#D7FF3C]/30' 
+                      ${isBookmarked
+                        ? 'bg-[#D7FF3C]/10 text-[#D7FF3C] border border-[#D7FF3C]/30'
                         : 'bg-[#1a1a1a] text-gray-400 hover:bg-[#2a2a2a]'
                       }
                     `}
@@ -336,8 +336,8 @@ export function ThreadView({ threadId }: { threadId: string }) {
                     onClick={() => setIsFollowing(!isFollowing)}
                     className={`
                       w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all
-                      ${isFollowing 
-                        ? 'bg-[#9B5CFF]/10 text-[#9B5CFF] border border-[#9B5CFF]/30' 
+                      ${isFollowing
+                        ? 'bg-[#9B5CFF]/10 text-[#9B5CFF] border border-[#9B5CFF]/30'
                         : 'bg-[#1a1a1a] text-gray-400 hover:bg-[#2a2a2a]'
                       }
                     `}
@@ -363,7 +363,7 @@ export function ThreadView({ threadId }: { threadId: string }) {
                   {[1, 2, 3].map((i) => (
                     <Link
                       key={i}
-                      href={`/forum/thread/${i}`}
+                      href={`/community/forum/thread/${i}`}
                       className="block hover:bg-[#111111] rounded p-2 -mx-2 transition-colors"
                     >
                       <h4 className="text-sm font-medium text-white mb-1 line-clamp-2">
@@ -388,11 +388,11 @@ export function ThreadView({ threadId }: { threadId: string }) {
 
 function formatTimeAgo(date: Date): string {
   const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-  
+
   if (seconds < 60) return 'just now';
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
   if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
-  
+
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }

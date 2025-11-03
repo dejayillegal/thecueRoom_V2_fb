@@ -3,6 +3,7 @@
 import { CategorySidebar } from './CategorySidebar';
 import { ThreadsList } from './ThreadsList';
 import { ForumSidebar } from './ForumSidebar';
+import Link from 'next/link';
 
 export function ForumList() {
   return (
@@ -12,11 +13,11 @@ export function ForumList() {
           <div className="lg:col-span-2">
             <CategorySidebar />
           </div>
-          
+
           <div className="lg:col-span-7">
             <ThreadsList />
           </div>
-          
+
           <div className="lg:col-span-3">
             <ForumSidebar />
           </div>
