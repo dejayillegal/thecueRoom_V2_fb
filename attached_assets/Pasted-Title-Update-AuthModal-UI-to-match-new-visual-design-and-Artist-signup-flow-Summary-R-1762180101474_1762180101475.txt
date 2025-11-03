@@ -1,0 +1,161 @@
+Title
+-----
+Update AuthModal UI to match new visual design and Artist-signup flow
+
+Summary
+-------
+Replace and harden the Sign In / Sign Up modal UI in apps/web/src/components/Auth/AuthModal.tsx so it matches the supplied visual designs and implements the Artist flow (Artist checkbox -> Artist-only fields). The updated modal must be pixel-faithful to the provided screenshots, responsive, accessible, and wired to the existing /api/signup contract (client-side only; do not change server logic). Add tests, Storybook story, and a PR-ready commit.
+
+Files to update
+---------------
+Primary: apps/web/src/components/Auth/AuthModal.tsx
+Supporting: add or update story at apps/web/.storybook/stories/AuthModal.stories.tsx
+Tests: apps/web/src/components/Auth/__tests__/AuthModal.test.tsx (unit) and e2e/playwright spec at e2e/auth-modal.spec.ts
+
+Design assets
+-------------
+Use screenshots at:
+- /mnt/data/Screenshot Capture - 2025-11-03 - 19-45-25.png (sign-in state)
+- /mnt/data/Screenshot Capture - 2025-11-03 - 19-54-04.png (sign-up artist state)
+
+Implementation tasks
+--------------------
+1. Replace existing Sign Up tab content
+   - Open apps/web/src/components/Auth/AuthModal.tsx and replace the current Sign Up tab UI with the updated layout and fields described below.
+   - Keep Sign In and Forgot tabs visually consistent with current theme but ensure active tab styles match screenshot (rounded lime pill for active).
+
+2. Visual fidelity & theme
+   - Match page/background color (#0b0b0b / near-black), form input rounded corners, subtle inner borders, and lime accent (#D1E231) for primary CTA and active tab.
+   - Button shapes/labels must match: primary CTA use pill with left icon for sign-in/sign-up; secondary buttons are dark rounded rectangles.
+   - Typography: headings and body sizes consistent with screenshots — bold large heading on Sign Up: "Create your artist account".
+   - Right-side panel: implement the right rail with "What's next", "Verification steps", and "Community" cards as a vertical aside on large screens; collapse under main content on mobile.
+
+3. Layout & responsiveness
+   - Mobile-first: stacked single-column form on small widths, 2-column grid (main form + right rail) for ≥1024px as per screenshot.
+   - Inputs: full-width on mobile; on desktop, arrange email + password side-by-side where the screenshot shows them.
+   - Ensure modal max-width matches screenshot proportions and is centered with proper padding.
+
+4. Form fields & Artist flow
+   - Sign Up tab default shows general fields; when "Sign up as Artist / DJ" checkbox is checked (or user selects Artist flow), show *Artist-only section* with these required fields:
+     - Artist Name * (text) — placeholder "Your stage name"
+     - Email & Password (existing)
+     - Primary Genre * (select or searchable pill) — placeholder "Techno"
+     - City / Region * — placeholder "Berlin, DE" (use a location icon in input, not required to implement icon asset)
+     - Portfolio / Music links input (single line placeholder: "SoundCloud / Spotify / EPK")
+   - The Artist-only fields must be required only when artist checkbox is checked.
+   - Social links (optional) can be shown as the Portfolio field or separate; minimum requirement: portfolio link field visible and required for artist flow.
+
+5. UX behavior & validations
+   - Client-side validation:
+     - Display name / Artist name: min length 2.
+     - Email and password: standard validation (email format, password min length 8).
+     - Primary genre & city/region: required for artist.
+     - Portfolio/music link: URL validation and allowlist hint (SoundCloud/Spotify/Bandcamp/Mixcloud/Beatport/YouTube).
+   - Show inline validation messages under fields (small, semi-transparent red text).
+   - Submit button disabled while submitting; show "Saving…" spinner state.
+   - Cancel/Back button returns to Sign In tab or closes modal preserving filled data (session-local storage optional).
+
+6. Accessibility (must)
+   - Modal must trap focus while open and restore focus on close.
+   - All inputs must have labels and aria-describedby when errors present.
+   - Tab order must be logical; Artist checkbox reachable by keyboard.
+   - ESC closes modal.
+
+7. Right rail & microcopy
+   - Implement right-side content (desktop only) that shows:
+     - "What's next" short instructions with tag pills (Artist, Techno, House).
+     - "Verification steps" numbered list (Email confirmation, Link your music profiles, Get access).
+     - Community card preview (tile with small thumbnail + text "Tips: Better EPKs — AI EPK Generator").
+   - On mobile, collapse right rail under the form (accordion or stacked).
+
+8. Theming & design tokens
+   - Use existing design tokens/colors/components wherever possible (button, input, pill).
+   - If tokens missing, match the styles in screenshots and add a short comment in the component noting color hex values used for maintainers.
+
+9. Storybook & preview
+   - Add a Storybook story demonstrating:
+     - Sign In modal default state (screenshot 1).
+     - Sign Up Artist state (screenshot 2) — with Artist checkbox checked and Artist-only fields visible.
+   - Provide knobs/controls for toggling artist checkbox and simulating validation errors.
+
+10. Tests
+    - Unit tests (React Testing Library / Vitest):
+      - Toggling Artist checkbox reveals Artist fields and enforces required validation.
+      - Submit disabled during save and re-enabled on complete.
+      - Social/portfolio link validation rejects non-URL.
+    - E2E (Playwright recommended):
+      - Open modal, switch to Sign Up, tick Artist checkbox, fill fields, submit -> intercept POST to /api/signup and assert payload body includes artist_name, primary_genre, city/region, and portfolio link.
+      - Accessibility test: modal traps focus and ESC closes modal.
+
+11. Integration note (client-side)
+    - The component must send payload to `POST /api/signup` with header `x-user-id` (current auth user id).
+    - Payload shape:
+      {
+        display_name,
+        bio,
+        is_artist,
+        artist_name,
+        region,
+        primary_genre,
+        public_profile_url (portfolio),
+        music_platform_link,
+        social_links
+      }
+    - Do not modify server API. If backend contract differs, add mapping adapter and log a clear console warning.
+
+12. Feature flag
+    - Wrap Artist flow behind a local dev feature flag `ENABLE_ARTIST_SIGNUP`. Default to true in dev.
+    - Add a single place to toggle it in the component for QA.
+
+13. PR & commit
+    - Commit message: feat(auth): redesign AuthModal — artist signup UI + right rail
+    - PR description must include:
+      - Links to the two screenshots (file paths above).
+      - List of acceptance criteria passed.
+      - How to test locally (commands + steps).
+      - Note about feature flag and how to disable.
+
+Acceptance criteria (must be green)
+----------------------------------
+- [ ] AuthModal updated at apps/web/src/components/Auth/AuthModal.tsx exactly as specified.
+- [ ] Visual parity: Sign In state closely matches screenshot 1; Sign Up Artist state matches screenshot 2 (spacing, colors, CTA shapes).
+- [ ] Artist checkbox visible and toggles required Artist-only fields including Artist Name.
+- [ ] Form client-side validation works and shows inline errors.
+- [ ] Modal is accessible: focus trap, keyboard navigation, ESC closes.
+- [ ] Storybook stories added and render both states.
+- [ ] Unit + E2E tests added and passing locally.
+- [ ] POST /api/signup payload includes all artist fields when artist checkbox is checked (verified by intercept in E2E).
+
+QA checklist for reviewer
+-------------------------
+1. Open app and trigger AuthModal (Sign In default). Compare visually with screenshot 1.
+2. Click "Sign Up" tab. Sign Up layout should match screenshot 2.
+3. Check "Sign up as Artist / DJ" -> Artist Name, Primary Genre, City/Region, Portfolio fields appear and require input.
+4. Try invalid input (invalid URL, short name) -> inline errors appear.
+5. Fill valid data, intercept network request on submit, assert POST body contains artist fields; server returns 200 -> success toast shown.
+6. Keyboard test: Tab through inputs, toggle checkbox with Space/Enter, add/remove links with keyboard.
+7. Resize to mobile: main content stacks, right rail collapses under form.
+8. Run Storybook and confirm both scenarios render.
+9. Run unit tests and E2E spec.
+
+Estimated effort
+----------------
+- Implementation + styling + Storybook: 6–10 hours
+- Unit tests + E2E: 3–5 hours
+- QA & polish: 1–2 hours
+
+Notes / constraints
+-------------------
+- Do not change server endpoints or server behavior in this task.
+- Keep component modular (break into subcomponents: ArtistFields, RightRail, FormFooter).
+- Use existing shared components (Button, Input) where available.
+- If any existing CSS tokens or components are missing, add a short inline comment with hex values and a TODO to migrate to tokens.
+
+Deliverables
+------------
+- Updated component at apps/web/src/components/Auth/AuthModal.tsx
+- Storybook story
+- Unit + E2E tests
+- PR with screenshots and testing instructions
+
+End of task.
