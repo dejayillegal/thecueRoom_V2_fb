@@ -6,7 +6,7 @@
  * Check if code is running in browser environment
  */
 export function isClient(): boolean {
-  return typeof window !== 'undefined';
+  return typeof window !== "undefined";
 }
 
 /**
@@ -15,9 +15,12 @@ export function isClient(): boolean {
  * @param defaultValue - default value if key doesn't exist or SSR
  * @returns stored value or default
  */
-export function safeLocalStorageGet(key: string, defaultValue: string = ''): string {
+export function safeLocalStorageGet(
+  key: string,
+  defaultValue: string = "",
+): string {
   if (!isClient()) return defaultValue;
-  
+
   try {
     const item = window.localStorage.getItem(key);
     return item !== null ? item : defaultValue;
@@ -35,7 +38,7 @@ export function safeLocalStorageGet(key: string, defaultValue: string = ''): str
  */
 export function safeLocalStorageSet(key: string, value: string): boolean {
   if (!isClient()) return false;
-  
+
   try {
     window.localStorage.setItem(key, value);
     return true;
@@ -52,7 +55,7 @@ export function safeLocalStorageSet(key: string, value: string): boolean {
  */
 export function safeLocalStorageRemove(key: string): boolean {
   if (!isClient()) return false;
-  
+
   try {
     window.localStorage.removeItem(key);
     return true;

@@ -1,9 +1,8 @@
-
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from "react";
 
 interface AIJob {
   id: string;
-  status: 'queued' | 'processing' | 'completed' | 'failed';
+  status: "queued" | "processing" | "completed" | "failed";
   progress?: number;
   resultUrl?: string;
   error?: string;
@@ -32,7 +31,7 @@ export function useAIJobPolling(jobId: string | null) {
 
         setJob(data);
 
-        if (data.status === 'completed' || data.status === 'failed') {
+        if (data.status === "completed" || data.status === "failed") {
           setIsPolling(false);
           if (intervalRef.current) {
             clearInterval(intervalRef.current);
@@ -47,7 +46,7 @@ export function useAIJobPolling(jobId: string | null) {
           }
         }
       } catch (error) {
-        console.error('Job polling error:', error);
+        console.error("Job polling error:", error);
       }
     };
 

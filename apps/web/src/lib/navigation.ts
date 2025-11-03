@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
 export function safeNavigate(
   router: { push: (url: string) => void; replace: (url: string) => void },
   url: string,
-  options: { replace?: boolean; scroll?: boolean } = {}
+  options: { replace?: boolean; scroll?: boolean } = {},
 ) {
   const { replace = false, scroll = true } = options;
 
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
 
   if (replace) {
     router.replace(url);
@@ -15,13 +15,13 @@ export function safeNavigate(
     router.push(url);
   }
 
-  if (!scroll && typeof window !== 'undefined') {
-    window.history.scrollRestoration = 'manual';
+  if (!scroll && typeof window !== "undefined") {
+    window.history.scrollRestoration = "manual";
   }
 }
 
 export function preserveScroll(callback: () => void) {
-  if (typeof window === 'undefined') return callback();
+  if (typeof window === "undefined") return callback();
 
   const scrollPos = window.scrollY;
   callback();

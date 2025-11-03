@@ -1,36 +1,41 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import TemplatePicker from './TemplatePicker';
-import TechRiderEditor from './TechRiderEditor';
-import { 
-  createModule, 
-  debounce, 
-  enqueueEPKJob, 
+import { useState, useEffect, useRef } from "react";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "react-beautiful-dnd";
+import TemplatePicker from "./TemplatePicker";
+import TechRiderEditor from "./TechRiderEditor";
+import {
+  createModule,
+  debounce,
+  enqueueEPKJob,
   pollJobStatus,
   safeFetch,
   safeParseJSON,
   type EPKModule,
-  type EPKModuleType
-} from '@/lib/epk/utils';
+  type EPKModuleType,
+} from "@/lib/epk/utils";
 
 const MODULE_PALETTE: { type: EPKModuleType; label: string; icon: string }[] = [
-  { type: 'bio', label: 'Biography', icon: '📝' },
-  { type: 'tracklist', label: 'Tracklist', icon: '🎵' },
-  { type: 'gallery', label: 'Photo Gallery', icon: '🖼️' },
-  { type: 'techRider', label: 'Tech Rider', icon: '🎛️' },
-  { type: 'links', label: 'Links', icon: '🔗' },
-  { type: 'quotes', label: 'Press Quotes', icon: '💬' }
+  { type: "bio", label: "Biography", icon: "📝" },
+  { type: "tracklist", label: "Tracklist", icon: "🎵" },
+  { type: "gallery", label: "Photo Gallery", icon: "🖼️" },
+  { type: "techRider", label: "Tech Rider", icon: "🎛️" },
+  { type: "links", label: "Links", icon: "🔗" },
+  { type: "quotes", label: "Press Quotes", icon: "💬" },
 ];
 
 export default function EPKStudio() {
-  const [templateId, setTemplateId] = useState<string>('brutalist-onepage');
+  const [templateId, setTemplateId] = useState<string>("brutalist-onepage");
   const [modules, setModules] = useState<EPKModule[]>([]);
-  const [artistName, setArtistName] = useState('');
-  const [releaseTitle, setReleaseTitle] = useState('');
+  const [artistName, setArtistName] = useState("");
+  const [releaseTitle, setReleaseTitle] = useState("");
   const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
-  const [previewHTML, setPreviewHTML] = useState('');
+  const [previewHTML, setPreviewHTML] = useState("");
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [aiRewriting, setAiRewriting] = useState(false);
@@ -39,21 +44,21 @@ export default function EPKStudio() {
 
   const updatePreview = debounce(async () => {
     try {
-      const response = await safeFetch('/api/epk/template-preview', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await safeFetch("/api/epk/template-preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           templateId,
           modules,
           artistName,
-          releaseTitle
-        })
+          releaseTitle,
+        }),
       });
 
       const html = await response.text();
       setPreviewHTML(html);
     } catch (error) {
-      console.error('Preview error:', error);
+      console.error("Preview error:", error);
     }
   }, 600);
 
@@ -79,16 +84,14 @@ export default function EPKStudio() {
   }
 
   function removeModule(id: string) {
-    setModules(modules.filter(m => m.id !== id));
+    setModules(modules.filter((m) => m.id !== id));
     if (selectedModuleId === id) {
       setSelectedModuleId(null);
     }
   }
 
   function updateModuleData(id: string, data: any) {
-    setModules(modules.map(m =>
-      m.id === id ? { ...m, data } : m
-    ));
+    setModules(modules.map((m) => (m.id === id ? { ...m, data } : m)));
   }
 
   function handleDragEnd(result: DropResult) {
@@ -106,27 +109,31 @@ export default function EPKStudio() {
 
     setAiRewriting(true);
     try {
-      const response = await safeFetch('/api/epk/ai/rewrite', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, tone: 'bio' })
+      const response = await safeFetch("/api/epk/ai/rewrite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, tone: "bio" }),
       });
 
-      const data = await safeParseJSON<{ ok: boolean; rewritten: string; usedHF?: boolean }>(response);
+      const data = await safeParseJSON<{
+        ok: boolean;
+        rewritten: string;
+        usedHF?: boolean;
+      }>(response);
 
       if (data.ok) {
         updateModuleData(moduleId, { text: data.rewritten });
       }
     } catch (error) {
-      console.error('AI rewrite error:', error);
+      console.error("AI rewrite error:", error);
     } finally {
       setAiRewriting(false);
     }
   }
 
-  async function handleExport(format: 'pdf' | 'zip') {
+  async function handleExport(format: "pdf" | "zip") {
     if (modules.length === 0) {
-      alert('Please add at least one module before exporting.');
+      alert("Please add at least one module before exporting.");
       return;
     }
 
@@ -142,44 +149,46 @@ export default function EPKStudio() {
         artistName,
         releaseTitle,
         exportFormat: format,
-        includeWatermark: true
+        includeWatermark: true,
       });
 
-      console.log('[EPK Export] Job created:', jobId);
+      console.log("[EPK Export] Job created:", jobId);
       setExportProgress(20);
 
       // Step 2: Poll for completion
       const result = await pollJobStatus(jobId, (progress) => {
         // Map progress from 20-90%
-        const mappedProgress = 20 + (progress * 0.7);
+        const mappedProgress = 20 + progress * 0.7;
         setExportProgress(Math.round(mappedProgress));
       });
 
       setExportProgress(95);
 
       if (result.resultUrl) {
-        console.log('[EPK Export] Download URL:', result.resultUrl);
-        
+        console.log("[EPK Export] Download URL:", result.resultUrl);
+
         // Step 3: Download the file
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = result.resultUrl;
-        link.download = `${artistName || 'epk'}.${format}`;
-        link.target = '_blank';
+        link.download = `${artistName || "epk"}.${format}`;
+        link.target = "_blank";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
+
         setExportProgress(100);
-        
+
         setTimeout(() => {
           alert(`${format.toUpperCase()} exported successfully!`);
         }, 500);
       } else {
-        throw new Error('No download URL received');
+        throw new Error("No download URL received");
       }
     } catch (error) {
-      console.error('[EPK Export] Error:', error);
-      alert(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error("[EPK Export] Error:", error);
+      alert(
+        `Export failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     } finally {
       setTimeout(() => {
         setIsExporting(false);
@@ -188,20 +197,24 @@ export default function EPKStudio() {
     }
   }
 
-  const selectedModule = modules.find(m => m.id === selectedModuleId);
+  const selectedModule = modules.find((m) => m.id === selectedModuleId);
 
   return (
     <div className="min-h-screen bg-[#0B0B0B] text-white p-6">
       <div className="max-w-[1800px] mx-auto">
         <header className="mb-6">
           <h1 className="text-3xl font-bold text-[#D7FF3C]">EPK Studio</h1>
-          <p className="text-gray-400 mt-1">Create professional electronic press kits</p>
+          <p className="text-gray-400 mt-1">
+            Create professional electronic press kits
+          </p>
         </header>
 
         <div className="grid grid-cols-12 gap-6">
           <div className="col-span-3 space-y-6">
             <section className="dashboard-card p-4">
-              <h2 className="text-lg font-semibold text-[#D7FF3C] mb-3">Artist Info</h2>
+              <h2 className="text-lg font-semibold text-[#D7FF3C] mb-3">
+                Artist Info
+              </h2>
               <div className="space-y-3">
                 <input
                   type="text"
@@ -221,7 +234,9 @@ export default function EPKStudio() {
             </section>
 
             <section className="dashboard-card p-4">
-              <h2 className="text-lg font-semibold text-[#D7FF3C] mb-3">Add Modules</h2>
+              <h2 className="text-lg font-semibold text-[#D7FF3C] mb-3">
+                Add Modules
+              </h2>
               <div className="space-y-2">
                 {MODULE_PALETTE.map((item) => (
                   <button
@@ -237,12 +252,14 @@ export default function EPKStudio() {
             </section>
 
             <section className="dashboard-card p-4">
-              <h2 className="text-lg font-semibold text-[#D7FF3C] mb-3">Current Modules</h2>
+              <h2 className="text-lg font-semibold text-[#D7FF3C] mb-3">
+                Current Modules
+              </h2>
               {modules.length === 0 ? (
                 <p className="text-gray-500 text-sm">No modules added yet</p>
               ) : (
                 <DragDropContext onDragEnd={handleDragEnd}>
-                  <Droppable 
+                  <Droppable
                     droppableId="epk-modules"
                     isDropDisabled={false}
                     isCombineEnabled={false}
@@ -255,7 +272,11 @@ export default function EPKStudio() {
                         className="space-y-2"
                       >
                         {modules.map((module, index) => (
-                          <Draggable key={module.id} draggableId={module.id} index={index}>
+                          <Draggable
+                            key={module.id}
+                            draggableId={module.id}
+                            index={index}
+                          >
                             {(provided, snapshot) => (
                               <div
                                 ref={provided.innerRef}
@@ -263,14 +284,18 @@ export default function EPKStudio() {
                                 {...provided.dragHandleProps}
                                 className={`p-2 rounded cursor-move ${
                                   selectedModuleId === module.id
-                                    ? 'bg-[#9B5CFF]'
-                                    : 'bg-[#0B0B0B] hover:bg-[#1a1a1a]'
-                                } ${snapshot.isDragging ? 'ring-2 ring-[#D7FF3C]' : ''}`}
+                                    ? "bg-[#9B5CFF]"
+                                    : "bg-[#0B0B0B] hover:bg-[#1a1a1a]"
+                                } ${snapshot.isDragging ? "ring-2 ring-[#D7FF3C]" : ""}`}
                                 onClick={() => setSelectedModuleId(module.id)}
                               >
                                 <div className="flex items-center justify-between">
                                   <span className="text-sm">
-                                    {MODULE_PALETTE.find(p => p.type === module.type)?.label}
+                                    {
+                                      MODULE_PALETTE.find(
+                                        (p) => p.type === module.type,
+                                      )?.label
+                                    }
                                   </span>
                                   <button
                                     onClick={(e) => {
@@ -297,7 +322,9 @@ export default function EPKStudio() {
 
           <div className="col-span-6">
             <div className="dashboard-card p-4 h-full">
-              <h2 className="text-lg font-semibold text-[#D7FF3C] mb-3">Live Preview</h2>
+              <h2 className="text-lg font-semibold text-[#D7FF3C] mb-3">
+                Live Preview
+              </h2>
               <iframe
                 ref={previewRef}
                 className="w-full h-[800px] bg-[#0B0B0B] rounded-lg"
@@ -308,7 +335,9 @@ export default function EPKStudio() {
 
           <div className="col-span-3 space-y-6">
             <section className="dashboard-card p-4">
-              <h2 className="text-lg font-semibold text-[#D7FF3C] mb-3">Template</h2>
+              <h2 className="text-lg font-semibold text-[#D7FF3C] mb-3">
+                Template
+              </h2>
               <TemplatePicker
                 onSelect={setTemplateId}
                 selectedTemplateId={templateId}
@@ -318,42 +347,59 @@ export default function EPKStudio() {
             {selectedModule && (
               <section className="dashboard-card p-4">
                 <h2 className="text-lg font-semibold text-[#D7FF3C] mb-3">
-                  Edit {MODULE_PALETTE.find(p => p.type === selectedModule.type)?.label}
+                  Edit{" "}
+                  {
+                    MODULE_PALETTE.find((p) => p.type === selectedModule.type)
+                      ?.label
+                  }
                 </h2>
 
-                {selectedModule.type === 'bio' && (
+                {selectedModule.type === "bio" && (
                   <div className="space-y-3">
                     <textarea
-                      value={selectedModule.data.text || ''}
-                      onChange={(e) => updateModuleData(selectedModule.id, { text: e.target.value })}
+                      value={selectedModule.data.text || ""}
+                      onChange={(e) =>
+                        updateModuleData(selectedModule.id, {
+                          text: e.target.value,
+                        })
+                      }
                       placeholder="Enter artist biography..."
                       rows={8}
                       className="w-full px-3 py-2 bg-[#0B0B0B] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#9B5CFF] resize-none"
                     />
                     <button
-                      onClick={() => handleAIRewrite(selectedModule.id, selectedModule.data.text)}
+                      onClick={() =>
+                        handleAIRewrite(
+                          selectedModule.id,
+                          selectedModule.data.text,
+                        )
+                      }
                       disabled={aiRewriting || !selectedModule.data.text}
                       className="w-full py-2 bg-[#9B5CFF] text-white rounded-lg hover:bg-[#8a4dee] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                     >
-                      {aiRewriting ? 'AI Rewriting...' : '✨ AI Suggest Rewrite'}
+                      {aiRewriting
+                        ? "AI Rewriting..."
+                        : "✨ AI Suggest Rewrite"}
                     </button>
                   </div>
                 )}
 
-                {selectedModule.type === 'techRider' && (
+                {selectedModule.type === "techRider" && (
                   <TechRiderEditor
                     items={selectedModule.data.items || []}
-                    onChange={(items) => updateModuleData(selectedModule.id, { items })}
+                    onChange={(items) =>
+                      updateModuleData(selectedModule.id, { items })
+                    }
                   />
                 )}
 
-                {selectedModule.type === 'tracklist' && (
+                {selectedModule.type === "tracklist" && (
                   <div className="space-y-2">
                     <button
                       onClick={() => {
                         const tracks = selectedModule.data.tracks || [];
                         updateModuleData(selectedModule.id, {
-                          tracks: [...tracks, { title: '', soundcloudUrl: '' }]
+                          tracks: [...tracks, { title: "", soundcloudUrl: "" }],
                         });
                       }}
                       className="w-full py-2 bg-[#9B5CFF] text-white rounded-lg hover:bg-[#8a4dee] transition-colors font-medium"
@@ -366,16 +412,22 @@ export default function EPKStudio() {
             )}
 
             <section className="dashboard-card p-4">
-              <h2 className="text-lg font-semibold text-[#D7FF3C] mb-3">Export</h2>
+              <h2 className="text-lg font-semibold text-[#D7FF3C] mb-3">
+                Export
+              </h2>
               <div className="space-y-3">
                 {isExporting && exportProgress > 0 && (
                   <div className="w-full bg-[#0B0B0B] rounded-lg p-3">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-gray-400">Exporting...</span>
-                      <span className="text-xs font-bold text-[#D7FF3C]">{exportProgress}%</span>
+                      <span className="text-xs text-gray-400">
+                        Exporting...
+                      </span>
+                      <span className="text-xs font-bold text-[#D7FF3C]">
+                        {exportProgress}%
+                      </span>
                     </div>
                     <div className="w-full bg-gray-700 rounded-full h-2">
-                      <div 
+                      <div
                         className="bg-[#D7FF3C] h-2 rounded-full transition-all duration-300"
                         style={{ width: `${exportProgress}%` }}
                       />
@@ -383,21 +435,23 @@ export default function EPKStudio() {
                   </div>
                 )}
                 <button
-                  onClick={() => handleExport('pdf')}
+                  onClick={() => handleExport("pdf")}
                   disabled={isExporting || modules.length === 0}
                   className="w-full py-3 bg-[#D7FF3C] text-[#0B0B0B] rounded-lg hover:bg-[#c8f02e] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold"
                 >
-                  {isExporting ? 'Exporting...' : '📄 Export as PDF'}
+                  {isExporting ? "Exporting..." : "📄 Export as PDF"}
                 </button>
                 <button
-                  onClick={() => handleExport('zip')}
+                  onClick={() => handleExport("zip")}
                   disabled={isExporting || modules.length === 0}
                   className="w-full py-3 bg-[#9B5CFF] text-white rounded-lg hover:bg-[#8a4dee] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold"
                 >
                   📦 Export as ZIP
                 </button>
                 {modules.length === 0 && (
-                  <p className="text-xs text-yellow-500 text-center">Add modules to enable export</p>
+                  <p className="text-xs text-yellow-500 text-center">
+                    Add modules to enable export
+                  </p>
                 )}
               </div>
             </section>

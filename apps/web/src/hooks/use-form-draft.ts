@@ -1,23 +1,23 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from "react";
 
 export function useFormDraft<T extends Record<string, any>>(
   key: string,
   initialData: T,
   enabled: boolean = true,
-  intervalMs: number = 5000
+  intervalMs: number = 5000,
 ) {
   const [data, setData] = useState<T>(() => {
-    if (!enabled || typeof window === 'undefined') return initialData;
-    
+    if (!enabled || typeof window === "undefined") return initialData;
+
     try {
       const saved = localStorage.getItem(`draft_${key}`);
       if (saved) {
         return JSON.parse(saved) as T;
       }
     } catch (error) {
-      console.error('Failed to load draft:', error);
+      console.error("Failed to load draft:", error);
     }
     return initialData;
   });
@@ -25,7 +25,7 @@ export function useFormDraft<T extends Record<string, any>>(
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (!enabled || typeof window === 'undefined') return;
+    if (!enabled || typeof window === "undefined") return;
 
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
@@ -33,14 +33,14 @@ export function useFormDraft<T extends Record<string, any>>(
 
     saveTimeoutRef.current = setTimeout(() => {
       try {
-        const hasData = Object.values(data).some(v => 
-          Array.isArray(v) ? v.some(s => s) : v
+        const hasData = Object.values(data).some((v) =>
+          Array.isArray(v) ? v.some((s) => s) : v,
         );
         if (hasData) {
           localStorage.setItem(`draft_${key}`, JSON.stringify(data));
         }
       } catch (error) {
-        console.error('Failed to save draft:', error);
+        console.error("Failed to save draft:", error);
       }
     }, intervalMs);
 
@@ -52,11 +52,11 @@ export function useFormDraft<T extends Record<string, any>>(
   }, [key, data, enabled, intervalMs]);
 
   const clearDraft = () => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       try {
         localStorage.removeItem(`draft_${key}`);
       } catch (error) {
-        console.error('Failed to clear draft:', error);
+        console.error("Failed to clear draft:", error);
       }
     }
   };

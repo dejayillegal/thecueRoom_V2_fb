@@ -12,7 +12,7 @@ export class OptimizedImageLoader {
   }
 
   constructor() {
-    if (typeof window !== 'undefined' && 'IntersectionObserver' in window) {
+    if (typeof window !== "undefined" && "IntersectionObserver" in window) {
       this.observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
@@ -22,7 +22,7 @@ export class OptimizedImageLoader {
               if (src) {
                 this.loadImage(src).then((loadedSrc) => {
                   img.src = loadedSrc;
-                  img.removeAttribute('data-src');
+                  img.removeAttribute("data-src");
                   this.observer?.unobserve(img);
                 });
               }
@@ -30,9 +30,9 @@ export class OptimizedImageLoader {
           });
         },
         {
-          rootMargin: '50px',
-          threshold: 0.01
-        }
+          rootMargin: "50px",
+          threshold: 0.01,
+        },
       );
     }
   }
@@ -85,5 +85,5 @@ export class OptimizedImageLoader {
 
 export function preloadImages(urls: string[]): Promise<void[]> {
   const loader = OptimizedImageLoader.getInstance();
-  return Promise.all(urls.map(url => loader.loadImage(url).catch(() => {})));
+  return Promise.all(urls.map((url) => loader.loadImage(url).catch(() => {})));
 }

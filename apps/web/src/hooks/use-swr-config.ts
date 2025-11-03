@@ -1,4 +1,3 @@
-
 export const swrConfig = {
   revalidateOnFocus: false,
   revalidateOnReconnect: false,

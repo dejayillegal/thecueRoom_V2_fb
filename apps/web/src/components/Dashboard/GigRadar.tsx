@@ -1,9 +1,8 @@
+"use client";
 
-'use client';
-
-import { VirtualList } from '@/components/VirtualList';
-import { Card } from '@/components/ui/card';
-import { Calendar } from 'lucide-react';
+import { VirtualList } from "@/components/VirtualList";
+import { Card } from "@/components/ui/card";
+import { Calendar } from "lucide-react";
 
 interface Gig {
   id: string;

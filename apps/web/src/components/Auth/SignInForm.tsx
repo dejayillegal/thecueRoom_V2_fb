@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, FormEvent } from 'react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Loader2, LogIn, AlertCircle } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useState, FormEvent } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Loader2, LogIn, AlertCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface SignInFormProps {
   onSuccess?: () => void;
@@ -14,33 +14,33 @@ interface SignInFormProps {
 
 export function SignInForm({ onSuccess, onForgotPassword }: SignInFormProps) {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (!email || !password) {
-      setError('Please enter both email and password');
+      setError("Please enter both email and password");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/auth/signin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.message || 'Sign in failed');
+        setError(data.message || "Sign in failed");
         setIsSubmitting(false);
         return;
       }
@@ -48,10 +48,10 @@ export function SignInForm({ onSuccess, onForgotPassword }: SignInFormProps) {
       if (onSuccess) {
         onSuccess();
       }
-      router.push('/dashboard');
+      router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError("An error occurred. Please try again.");
       setIsSubmitting(false);
     }
   };
@@ -103,7 +103,7 @@ export function SignInForm({ onSuccess, onForgotPassword }: SignInFormProps) {
       )}
 
       {error && (
-        <div 
+        <div
           className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 flex items-start gap-2"
           role="alert"
         >
@@ -134,7 +134,8 @@ export function SignInForm({ onSuccess, onForgotPassword }: SignInFormProps) {
         <div className="flex items-start gap-2 text-sm text-gray-400">
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <p>
-            New: Artist profiles are AI-verified after sign-up to keep the community real.
+            New: Artist profiles are AI-verified after sign-up to keep the
+            community real.
           </p>
         </div>
       </div>

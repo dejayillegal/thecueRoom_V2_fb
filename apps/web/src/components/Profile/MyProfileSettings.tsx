@@ -1,37 +1,64 @@
+"use client";
 
-'use client';
+import { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Loader2, Save, X, Plus, Trash2, Upload } from "lucide-react";
 
-import { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, Save, X, Plus, Trash2, Upload } from 'lucide-react';
-
-const REGIONS = ['North America', 'Europe', 'Asia', 'South America', 'Africa', 'Oceania', 'Middle East'];
-const GENRES = ['House', 'Techno', 'Trance', 'Drum & Bass', 'Dubstep', 'Hip Hop', 'Pop', 'Rock', 'Electronic', 'Ambient', 'Other'];
+const REGIONS = [
+  "North America",
+  "Europe",
+  "Asia",
+  "South America",
+  "Africa",
+  "Oceania",
+  "Middle East",
+];
+const GENRES = [
+  "House",
+  "Techno",
+  "Trance",
+  "Drum & Bass",
+  "Dubstep",
+  "Hip Hop",
+  "Pop",
+  "Rock",
+  "Electronic",
+  "Ambient",
+  "Other",
+];
 
 export default function MyProfileSettings() {
   const [profile, setProfile] = useState({
-    artistName: '',
-    bio: '',
-    avatar: '',
-    region: '',
-    genre: '',
-    socialLinks: [''],
+    artistName: "",
+    bio: "",
+    avatar: "",
+    region: "",
+    genre: "",
+    socialLinks: [""],
     showEmail: true,
     showPhone: false,
     publicReleases: true,
-    allowContactRequests: true
+    allowContactRequests: true,
   });
 
   const [originalProfile, setOriginalProfile] = useState(profile);
   const [isSaving, setIsSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
@@ -45,43 +72,43 @@ export default function MyProfileSettings() {
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch('/api/profile/me');
+      const response = await fetch("/api/profile/me");
       const data = await response.json();
-      
+
       if (data.ok) {
         setProfile(data.profile);
         setOriginalProfile(data.profile);
       }
     } catch (error) {
-      console.error('Failed to fetch profile:', error);
+      console.error("Failed to fetch profile:", error);
     }
   };
 
   const handleSave = async () => {
     setIsSaving(true);
-    setSaveStatus('saving');
+    setSaveStatus("saving");
 
     try {
-      const response = await fetch('/api/profile/me', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/profile/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...profile,
-          socialLinks: profile.socialLinks.filter(link => link.trim() !== '')
-        })
+          socialLinks: profile.socialLinks.filter((link) => link.trim() !== ""),
+        }),
       });
 
       if (response.ok) {
         const data = await response.json();
         setOriginalProfile(data.profile);
-        setSaveStatus('saved');
-        setTimeout(() => setSaveStatus('idle'), 3000);
+        setSaveStatus("saved");
+        setTimeout(() => setSaveStatus("idle"), 3000);
       } else {
-        setSaveStatus('error');
+        setSaveStatus("error");
       }
     } catch (error) {
-      console.error('Failed to save profile:', error);
-      setSaveStatus('error');
+      console.error("Failed to save profile:", error);
+      setSaveStatus("error");
     } finally {
       setIsSaving(false);
     }
@@ -89,7 +116,7 @@ export default function MyProfileSettings() {
 
   const handleCancel = () => {
     setProfile(originalProfile);
-    setSaveStatus('idle');
+    setSaveStatus("idle");
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,43 +124,45 @@ export default function MyProfileSettings() {
     if (!file) return;
 
     const formData = new FormData();
-    formData.append('avatar', file);
+    formData.append("avatar", file);
 
     try {
-      const response = await fetch('/api/profile/avatar', {
-        method: 'POST',
-        body: formData
+      const response = await fetch("/api/profile/avatar", {
+        method: "POST",
+        body: formData,
       });
 
       if (response.ok) {
         const data = await response.json();
-        setProfile(prev => ({ ...prev, avatar: data.avatarUrl }));
+        setProfile((prev) => ({ ...prev, avatar: data.avatarUrl }));
       }
     } catch (error) {
-      console.error('Failed to upload avatar:', error);
+      console.error("Failed to upload avatar:", error);
     }
   };
 
   const addSocialLink = () => {
     if (profile.socialLinks.length < 5) {
-      setProfile(prev => ({
+      setProfile((prev) => ({
         ...prev,
-        socialLinks: [...prev.socialLinks, '']
+        socialLinks: [...prev.socialLinks, ""],
       }));
     }
   };
 
   const removeSocialLink = (index: number) => {
-    setProfile(prev => ({
+    setProfile((prev) => ({
       ...prev,
-      socialLinks: prev.socialLinks.filter((_, i) => i !== index)
+      socialLinks: prev.socialLinks.filter((_, i) => i !== index),
     }));
   };
 
   const updateSocialLink = (index: number, value: string) => {
-    setProfile(prev => ({
+    setProfile((prev) => ({
       ...prev,
-      socialLinks: prev.socialLinks.map((link, i) => i === index ? value : link)
+      socialLinks: prev.socialLinks.map((link, i) =>
+        i === index ? value : link,
+      ),
     }));
   };
 
@@ -141,17 +170,19 @@ export default function MyProfileSettings() {
     <div className="max-w-3xl mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-white">Profile Settings</h1>
-        {saveStatus === 'saved' && (
+        {saveStatus === "saved" && (
           <span className="text-sm text-green-400">✓ Saved successfully</span>
         )}
-        {saveStatus === 'error' && (
+        {saveStatus === "error" && (
           <span className="text-sm text-red-400">Error saving changes</span>
         )}
       </div>
 
       {/* Avatar Section */}
       <Card className="bg-[#0B0B0B] border-[#1a1a1a] p-6">
-        <h2 className="text-xl font-semibold text-white mb-4">Profile Picture</h2>
+        <h2 className="text-xl font-semibold text-white mb-4">
+          Profile Picture
+        </h2>
         <div className="flex items-center gap-4">
           <Avatar className="h-24 w-24">
             <AvatarImage src={profile.avatar} alt={profile.artistName} />
@@ -173,21 +204,27 @@ export default function MyProfileSettings() {
                 onChange={handleAvatarUpload}
               />
             </Label>
-            <p className="text-xs text-gray-400 mt-2">JPG, PNG or GIF. Max 2MB.</p>
+            <p className="text-xs text-gray-400 mt-2">
+              JPG, PNG or GIF. Max 2MB.
+            </p>
           </div>
         </div>
       </Card>
 
       {/* Basic Info */}
       <Card className="bg-[#0B0B0B] border-[#1a1a1a] p-6">
-        <h2 className="text-xl font-semibold text-white mb-4">Basic Information</h2>
+        <h2 className="text-xl font-semibold text-white mb-4">
+          Basic Information
+        </h2>
         <div className="space-y-4">
           <div>
             <Label htmlFor="artistName">Artist Name</Label>
             <Input
               id="artistName"
               value={profile.artistName}
-              onChange={(e) => setProfile(prev => ({ ...prev, artistName: e.target.value }))}
+              onChange={(e) =>
+                setProfile((prev) => ({ ...prev, artistName: e.target.value }))
+              }
               className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
             />
           </div>
@@ -197,7 +234,9 @@ export default function MyProfileSettings() {
             <Textarea
               id="bio"
               value={profile.bio}
-              onChange={(e) => setProfile(prev => ({ ...prev, bio: e.target.value }))}
+              onChange={(e) =>
+                setProfile((prev) => ({ ...prev, bio: e.target.value }))
+              }
               rows={4}
               className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
               placeholder="Tell us about yourself..."
@@ -207,13 +246,24 @@ export default function MyProfileSettings() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="region">Region</Label>
-              <Select value={profile.region} onValueChange={(value) => setProfile(prev => ({ ...prev, region: value }))}>
+              <Select
+                value={profile.region}
+                onValueChange={(value) =>
+                  setProfile((prev) => ({ ...prev, region: value }))
+                }
+              >
                 <SelectTrigger className="bg-[#0a0a0a] border-[#1a1a1a] text-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-[#0a0a0a] border-[#1a1a1a]">
-                  {REGIONS.map(region => (
-                    <SelectItem key={region} value={region} className="text-white">{region}</SelectItem>
+                  {REGIONS.map((region) => (
+                    <SelectItem
+                      key={region}
+                      value={region}
+                      className="text-white"
+                    >
+                      {region}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -221,13 +271,24 @@ export default function MyProfileSettings() {
 
             <div>
               <Label htmlFor="genre">Genre</Label>
-              <Select value={profile.genre} onValueChange={(value) => setProfile(prev => ({ ...prev, genre: value }))}>
+              <Select
+                value={profile.genre}
+                onValueChange={(value) =>
+                  setProfile((prev) => ({ ...prev, genre: value }))
+                }
+              >
                 <SelectTrigger className="bg-[#0a0a0a] border-[#1a1a1a] text-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-[#0a0a0a] border-[#1a1a1a]">
-                  {GENRES.map(genre => (
-                    <SelectItem key={genre} value={genre} className="text-white">{genre}</SelectItem>
+                  {GENRES.map((genre) => (
+                    <SelectItem
+                      key={genre}
+                      value={genre}
+                      className="text-white"
+                    >
+                      {genre}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -276,53 +337,82 @@ export default function MyProfileSettings() {
 
       {/* Privacy Settings */}
       <Card className="bg-[#0B0B0B] border-[#1a1a1a] p-6">
-        <h2 className="text-xl font-semibold text-white mb-4">Privacy Settings</h2>
+        <h2 className="text-xl font-semibold text-white mb-4">
+          Privacy Settings
+        </h2>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="showEmail" className="text-base">Show Email Publicly</Label>
-              <p className="text-sm text-gray-400">Allow others to see your email address</p>
+              <Label htmlFor="showEmail" className="text-base">
+                Show Email Publicly
+              </Label>
+              <p className="text-sm text-gray-400">
+                Allow others to see your email address
+              </p>
             </div>
             <Switch
               id="showEmail"
               checked={profile.showEmail}
-              onCheckedChange={(checked) => setProfile(prev => ({ ...prev, showEmail: checked }))}
+              onCheckedChange={(checked) =>
+                setProfile((prev) => ({ ...prev, showEmail: checked }))
+              }
             />
           </div>
 
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="showPhone" className="text-base">Show Phone Publicly</Label>
-              <p className="text-sm text-gray-400">Allow others to see your phone number</p>
+              <Label htmlFor="showPhone" className="text-base">
+                Show Phone Publicly
+              </Label>
+              <p className="text-sm text-gray-400">
+                Allow others to see your phone number
+              </p>
             </div>
             <Switch
               id="showPhone"
               checked={profile.showPhone}
-              onCheckedChange={(checked) => setProfile(prev => ({ ...prev, showPhone: checked }))}
+              onCheckedChange={(checked) =>
+                setProfile((prev) => ({ ...prev, showPhone: checked }))
+              }
             />
           </div>
 
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="publicReleases" className="text-base">Public Releases</Label>
-              <p className="text-sm text-gray-400">Show your releases on your public profile</p>
+              <Label htmlFor="publicReleases" className="text-base">
+                Public Releases
+              </Label>
+              <p className="text-sm text-gray-400">
+                Show your releases on your public profile
+              </p>
             </div>
             <Switch
               id="publicReleases"
               checked={profile.publicReleases}
-              onCheckedChange={(checked) => setProfile(prev => ({ ...prev, publicReleases: checked }))}
+              onCheckedChange={(checked) =>
+                setProfile((prev) => ({ ...prev, publicReleases: checked }))
+              }
             />
           </div>
 
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="allowContactRequests" className="text-base">Allow Contact Requests</Label>
-              <p className="text-sm text-gray-400">Let others send you contact requests</p>
+              <Label htmlFor="allowContactRequests" className="text-base">
+                Allow Contact Requests
+              </Label>
+              <p className="text-sm text-gray-400">
+                Let others send you contact requests
+              </p>
             </div>
             <Switch
               id="allowContactRequests"
               checked={profile.allowContactRequests}
-              onCheckedChange={(checked) => setProfile(prev => ({ ...prev, allowContactRequests: checked }))}
+              onCheckedChange={(checked) =>
+                setProfile((prev) => ({
+                  ...prev,
+                  allowContactRequests: checked,
+                }))
+              }
             />
           </div>
         </div>

@@ -1,11 +1,10 @@
+"use client";
 
-'use client';
-
-import { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Search, Filter } from 'lucide-react';
-import Image from 'next/image';
+import { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Search, Filter } from "lucide-react";
+import Image from "next/image";
 
 interface FeedItem {
   id: string;
@@ -20,7 +19,7 @@ interface FeedItem {
 
 export default function NewsPage() {
   const [feeds, setFeeds] = useState<FeedItem[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -31,20 +30,27 @@ export default function NewsPage() {
   const fetchFeeds = async () => {
     try {
       const params = new URLSearchParams();
-      if (searchQuery) params.set('search', searchQuery);
-      if (selectedTags.length) params.set('tags', selectedTags.join(','));
+      if (searchQuery) params.set("search", searchQuery);
+      if (selectedTags.length) params.set("tags", selectedTags.join(","));
 
       const response = await fetch(`/api/feeds?${params}`);
       const data = await response.json();
       setFeeds(data.data || []);
     } catch (error) {
-      console.error('Failed to fetch feeds:', error);
+      console.error("Failed to fetch feeds:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const allTags = ['techno', 'house', 'production', 'gear', 'events', 'interviews'];
+  const allTags = [
+    "techno",
+    "house",
+    "production",
+    "gear",
+    "events",
+    "interviews",
+  ];
 
   return (
     <div className="min-h-screen bg-black">
@@ -74,14 +80,16 @@ export default function NewsPage() {
                 <button
                   key={tag}
                   onClick={() => {
-                    setSelectedTags(prev =>
-                      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+                    setSelectedTags((prev) =>
+                      prev.includes(tag)
+                        ? prev.filter((t) => t !== tag)
+                        : [...prev, tag],
                     );
                   }}
                   className={`w-full text-left px-3 py-2 rounded text-sm capitalize transition-colors ${
                     selectedTags.includes(tag)
-                      ? 'bg-[#D1FF3D] text-black'
-                      : 'text-gray-400 hover:bg-[#1a1a1a] hover:text-white'
+                      ? "bg-[#D1FF3D] text-black"
+                      : "text-gray-400 hover:bg-[#1a1a1a] hover:text-white"
                   }`}
                 >
                   {tag}
@@ -98,7 +106,10 @@ export default function NewsPage() {
               <p className="text-gray-500 col-span-2">No news found</p>
             ) : (
               feeds.map((item) => (
-                <Card key={item.id} className="bg-[#111111] border-[#1a1a1a] overflow-hidden hover:border-[#333333] transition-colors">
+                <Card
+                  key={item.id}
+                  className="bg-[#111111] border-[#1a1a1a] overflow-hidden hover:border-[#333333] transition-colors"
+                >
                   <a href={item.url} target="_blank" rel="noopener noreferrer">
                     {item.image && (
                       <div className="aspect-video bg-[#0a0a0a] relative">
@@ -111,11 +122,17 @@ export default function NewsPage() {
                       </div>
                     )}
                     <div className="p-4">
-                      <h3 className="text-white font-medium mb-2 line-clamp-2">{item.title}</h3>
-                      <p className="text-gray-400 text-sm line-clamp-2 mb-3">{item.summary}</p>
+                      <h3 className="text-white font-medium mb-2 line-clamp-2">
+                        {item.title}
+                      </h3>
+                      <p className="text-gray-400 text-sm line-clamp-2 mb-3">
+                        {item.summary}
+                      </p>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-[#D1FF3D]">{item.source}</span>
-                        <span className="text-gray-500">{new Date(item.publishedAt).toLocaleDateString()}</span>
+                        <span className="text-gray-500">
+                          {new Date(item.publishedAt).toLocaleDateString()}
+                        </span>
                       </div>
                     </div>
                   </a>

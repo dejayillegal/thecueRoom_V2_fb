@@ -1,63 +1,73 @@
+"use client";
 
-'use client';
-
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Loader2, Mail, Info, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
-import { useAvailability } from '@/src/hooks/use-availability';
-import { generateUsername } from '@/src/lib/username-generator';
-import VerificationModal from './VerificationModal';
-import InfoModal from '@/components/InfoModal';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Loader2,
+  Mail,
+  Info,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+} from "lucide-react";
+import { useAvailability } from "@/src/hooks/use-availability";
+import { generateUsername } from "@/src/lib/username-generator";
+import VerificationModal from "./VerificationModal";
+import InfoModal from "@/components/InfoModal";
+import { useRouter } from "next/navigation";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type ActiveTab = 'signin' | 'signup' | 'forgot';
+type ActiveTab = "signin" | "signup" | "forgot";
 
 const PASSWORD_MIN_LENGTH = 8;
 
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<ActiveTab>('signin');
-  
+  const [activeTab, setActiveTab] = useState<ActiveTab>("signin");
+
   // Form state
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   // Sign up additional fields
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [artistName, setArtistName] = useState('');
-  const [region, setRegion] = useState('');
-  const [genre, setGenre] = useState('');
-  const [publicProfileUrl, setPublicProfileUrl] = useState('');
-  const [socialLinks, setSocialLinks] = useState<string[]>(['']);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [artistName, setArtistName] = useState("");
+  const [region, setRegion] = useState("");
+  const [genre, setGenre] = useState("");
+  const [publicProfileUrl, setPublicProfileUrl] = useState("");
+  const [socialLinks, setSocialLinks] = useState<string[]>([""]);
   const [agreeTerms, setAgreeTerms] = useState(false);
 
   // Generated username
-  const [generatedUsername, setGeneratedUsername] = useState('');
+  const [generatedUsername, setGeneratedUsername] = useState("");
 
   // Availability checks
-  const emailAvailability = useAvailability('email', email);
-  const artistAvailability = useAvailability('artist', artistName);
-  const usernameAvailability = useAvailability('username', generatedUsername);
+  const emailAvailability = useAvailability("email", email);
+  const artistAvailability = useAvailability("artist", artistName);
+  const usernameAvailability = useAvailability("username", generatedUsername);
 
   // Verification state
-  const [verificationJobId, setVerificationJobId] = useState<string | null>(null);
+  const [verificationJobId, setVerificationJobId] = useState<string | null>(
+    null,
+  );
   const [showVerificationModal, setShowVerificationModal] = useState(false);
 
   // Info modal state
-  const [showInfoModal, setShowInfoModal] = useState<'terms' | 'privacy' | null>(null);
+  const [showInfoModal, setShowInfoModal] = useState<
+    "terms" | "privacy" | null
+  >(null);
 
   // Reset form when modal closes or tab changes
   useEffect(() => {
@@ -67,8 +77,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   }, [isOpen]);
 
   useEffect(() => {
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
   }, [activeTab]);
 
   // Generate username when artist name changes
@@ -79,24 +89,24 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   }, [artistName, artistAvailability.available]);
 
   const resetForm = () => {
-    setEmail('');
-    setPassword('');
-    setConfirmPassword('');
-    setFirstName('');
-    setLastName('');
-    setArtistName('');
-    setRegion('');
-    setGenre('');
-    setPublicProfileUrl('');
-    setSocialLinks(['']);
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setFirstName("");
+    setLastName("");
+    setArtistName("");
+    setRegion("");
+    setGenre("");
+    setPublicProfileUrl("");
+    setSocialLinks([""]);
     setAgreeTerms(false);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     setIsLoading(false);
-    setActiveTab('signin');
+    setActiveTab("signin");
     setVerificationJobId(null);
     setShowVerificationModal(false);
-    setGeneratedUsername('');
+    setGeneratedUsername("");
   };
 
   const validatePassword = (pwd: string): string | null => {
@@ -104,20 +114,22 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       return `Password must be at least ${PASSWORD_MIN_LENGTH} characters`;
     }
     if (!/[0-9!@#$%^&*(),.?":{}|<>_\-+=]/.test(pwd)) {
-      return 'Password must include a number or special character';
+      return "Password must include a number or special character";
     }
     return null;
   };
 
-  const getPasswordStrength = (pwd: string): { level: string; color: string; width: string } => {
-    if (!pwd) return { level: '', color: 'bg-gray-700', width: '0%' };
-    
+  const getPasswordStrength = (
+    pwd: string,
+  ): { level: string; color: string; width: string } => {
+    if (!pwd) return { level: "", color: "bg-gray-700", width: "0%" };
+
     let score = 0;
     // Length scoring
     if (pwd.length >= 8) score += 1;
     if (pwd.length >= 12) score += 1;
     if (pwd.length >= 16) score += 1;
-    
+
     // Character variety scoring
     if (/[a-z]/.test(pwd)) score += 1;
     if (/[A-Z]/.test(pwd)) score += 1;
@@ -126,44 +138,44 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
     // Scoring thresholds
     if (score <= 2) {
-      return { level: 'Bad', color: 'bg-red-500', width: '33%' };
+      return { level: "Bad", color: "bg-red-500", width: "33%" };
     } else if (score <= 4) {
-      return { level: 'Weak', color: 'bg-yellow-500', width: '66%' };
+      return { level: "Weak", color: "bg-yellow-500", width: "66%" };
     } else {
-      return { level: 'Strong', color: 'bg-green-500', width: '100%' };
+      return { level: "Strong", color: "bg-green-500", width: "100%" };
     }
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
     try {
       if (!email || !password) {
-        setError('Please enter email and password');
+        setError("Please enter email and password");
         return;
       }
 
-      const response = await fetch('/api/auth/signin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Invalid email or password');
+        setError(data.error || "Invalid email or password");
         return;
       }
 
       onClose();
-      router.push('/dashboard');
+      router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      console.error('Sign in error:', err);
-      setError('An error occurred. Please try again.');
+      console.error("Sign in error:", err);
+      setError("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -171,46 +183,62 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
     try {
       // Validation
-      if (!email || !password || !firstName || !lastName || !artistName || !region || !genre || !publicProfileUrl) {
-        setError('Please fill in all required fields');
+      if (
+        !email ||
+        !password ||
+        !firstName ||
+        !lastName ||
+        !artistName ||
+        !region ||
+        !genre ||
+        !publicProfileUrl
+      ) {
+        setError("Please fill in all required fields");
         return;
       }
 
       // Validate profile URL format
-      if (!publicProfileUrl.startsWith('http://') && !publicProfileUrl.startsWith('https://')) {
-        setError('Public profile URL must be a valid URL (starting with http:// or https://)');
+      if (
+        !publicProfileUrl.startsWith("http://") &&
+        !publicProfileUrl.startsWith("https://")
+      ) {
+        setError(
+          "Public profile URL must be a valid URL (starting with http:// or https://)",
+        );
         return;
       }
 
       // Validate allowed domains for public profile URL
       const allowedDomains = [
-        'soundcloud.com',
-        'bandcamp.com',
-        'spotify.com',
-        'mixcloud.com',
-        'residentadvisor.net',
-        'beatport.com',
-        'instagram.com',
-        'youtube.com',
+        "soundcloud.com",
+        "bandcamp.com",
+        "spotify.com",
+        "mixcloud.com",
+        "residentadvisor.net",
+        "beatport.com",
+        "instagram.com",
+        "youtube.com",
       ];
-      
+
       const profileUrlObj = new URL(publicProfileUrl);
-      const isAllowedDomain = allowedDomains.some(domain => 
-        profileUrlObj.hostname.includes(domain)
+      const isAllowedDomain = allowedDomains.some((domain) =>
+        profileUrlObj.hostname.includes(domain),
       );
-      
+
       if (!isAllowedDomain) {
-        setError('Public profile URL must be from a recognized music platform (SoundCloud, Bandcamp, Spotify, etc.)');
+        setError(
+          "Public profile URL must be from a recognized music platform (SoundCloud, Bandcamp, Spotify, etc.)",
+        );
         return;
       }
 
       if (!agreeTerms) {
-        setError('You must agree to the Terms and Privacy Policy');
+        setError("You must agree to the Terms and Privacy Policy");
         return;
       }
 
@@ -221,23 +249,23 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       }
 
       if (password !== confirmPassword) {
-        setError('Passwords do not match');
+        setError("Passwords do not match");
         return;
       }
 
       if (!emailAvailability.available) {
-        setError('Email is not available');
+        setError("Email is not available");
         return;
       }
 
       if (!artistAvailability.available) {
-        setError('Artist name is not available');
+        setError("Artist name is not available");
         return;
       }
 
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           firstName,
           lastName,
@@ -248,14 +276,14 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           region,
           genre,
           profileUrl: publicProfileUrl,
-          socialLinks: socialLinks.filter(link => link.trim() !== ''),
+          socialLinks: socialLinks.filter((link) => link.trim() !== ""),
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Failed to create account');
+        setError(data.error || "Failed to create account");
         return;
       }
 
@@ -264,8 +292,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       setShowVerificationModal(true);
       onClose();
     } catch (err) {
-      console.error('Sign up error:', err);
-      setError('An error occurred. Please try again.');
+      console.error("Sign up error:", err);
+      setError("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -273,34 +301,34 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     setIsLoading(true);
 
     try {
       if (!email) {
-        setError('Please enter your email address');
+        setError("Please enter your email address");
         return;
       }
 
-      const response = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Failed to send reset email');
+        setError(data.error || "Failed to send reset email");
         return;
       }
 
-      setSuccess('Password reset email sent! Check your inbox.');
-      setEmail('');
+      setSuccess("Password reset email sent! Check your inbox.");
+      setEmail("");
     } catch (err) {
-      console.error('Forgot password error:', err);
-      setError('An error occurred. Please try again.');
+      console.error("Forgot password error:", err);
+      setError("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -313,7 +341,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   const addSocialLink = () => {
     if (socialLinks.length < 5) {
-      setSocialLinks([...socialLinks, '']);
+      setSocialLinks([...socialLinks, ""]);
     }
   };
 
@@ -334,62 +362,73 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-[920px] bg-black border border-[#2a2a2a] text-white p-0 gap-0 overflow-hidden max-h-[90vh] flex flex-col rounded-none">
           <DialogTitle className="sr-only">
-            {activeTab === 'signin' ? 'Sign In' : activeTab === 'signup' ? 'Sign Up' : 'Forgot Password'}
+            {activeTab === "signin"
+              ? "Sign In"
+              : activeTab === "signup"
+                ? "Sign Up"
+                : "Forgot Password"}
           </DialogTitle>
           <div className="grid md:grid-cols-[1fr_360px] overflow-hidden flex-1">
             {/* Left Column - Auth Forms */}
             <div className="p-8 overflow-y-auto scrollbar-thin max-h-[calc(90vh-2rem)]">
               {/* Header */}
-              <h2 className="text-2xl font-bold mb-6 text-[#D7FF3C]">Welcome to thecueRoom</h2>
-              
+              <h2 className="text-2xl font-bold mb-6 text-[#D7FF3C]">
+                Welcome to thecueRoom
+              </h2>
+
               {/* Tabs */}
               <div className="flex gap-2 mb-8 border-b border-[#2a2a2a]">
                 <button
-                  onClick={() => setActiveTab('signin')}
+                  onClick={() => setActiveTab("signin")}
                   className={`px-6 py-3 text-sm font-semibold transition-all relative ${
-                    activeTab === 'signin'
-                      ? 'text-[#D7FF3C] bg-[#1a1a1a]'
-                      : 'text-gray-400 hover:text-white hover:bg-[#0a0a0a]'
+                    activeTab === "signin"
+                      ? "text-[#D7FF3C] bg-[#1a1a1a]"
+                      : "text-gray-400 hover:text-white hover:bg-[#0a0a0a]"
                   }`}
                 >
                   Sign In
-                  {activeTab === 'signin' && (
+                  {activeTab === "signin" && (
                     <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#D7FF3C]"></span>
                   )}
                 </button>
                 <button
-                  onClick={() => setActiveTab('signup')}
+                  onClick={() => setActiveTab("signup")}
                   className={`px-6 py-3 text-sm font-semibold transition-all relative ${
-                    activeTab === 'signup'
-                      ? 'text-[#D7FF3C] bg-[#1a1a1a]'
-                      : 'text-gray-400 hover:text-white hover:bg-[#0a0a0a]'
+                    activeTab === "signup"
+                      ? "text-[#D7FF3C] bg-[#1a1a1a]"
+                      : "text-gray-400 hover:text-white hover:bg-[#0a0a0a]"
                   }`}
                 >
                   Sign Up
-                  {activeTab === 'signup' && (
+                  {activeTab === "signup" && (
                     <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#D7FF3C]"></span>
                   )}
                 </button>
                 <button
-                  onClick={() => setActiveTab('forgot')}
+                  onClick={() => setActiveTab("forgot")}
                   className={`px-6 py-3 text-sm font-semibold transition-all relative ${
-                    activeTab === 'forgot'
-                      ? 'text-[#D7FF3C] bg-[#1a1a1a]'
-                      : 'text-gray-400 hover:text-white hover:bg-[#0a0a0a]'
+                    activeTab === "forgot"
+                      ? "text-[#D7FF3C] bg-[#1a1a1a]"
+                      : "text-gray-400 hover:text-white hover:bg-[#0a0a0a]"
                   }`}
                 >
                   Forgot Password
-                  {activeTab === 'forgot' && (
+                  {activeTab === "forgot" && (
                     <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#D7FF3C]"></span>
                   )}
                 </button>
               </div>
 
               {/* Sign In Form */}
-              {activeTab === 'signin' && (
+              {activeTab === "signin" && (
                 <form onSubmit={handleSignIn} className="space-y-5">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email" className="text-sm text-gray-400">Email</Label>
+                    <Label
+                      htmlFor="signin-email"
+                      className="text-sm text-gray-400"
+                    >
+                      Email
+                    </Label>
                     <Input
                       id="signin-email"
                       type="email"
@@ -402,7 +441,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password" className="text-sm text-gray-400">Password</Label>
+                    <Label
+                      htmlFor="signin-password"
+                      className="text-sm text-gray-400"
+                    >
+                      Password
+                    </Label>
                     <Input
                       id="signin-password"
                       type="password"
@@ -415,10 +459,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   </div>
 
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Use a strong password.</span>
+                    <span className="text-gray-500">
+                      Use a strong password.
+                    </span>
                     <button
                       type="button"
-                      onClick={() => setActiveTab('forgot')}
+                      onClick={() => setActiveTab("forgot")}
                       className="text-white hover:text-[#D7FF3C] font-medium"
                       disabled={isLoading}
                     >
@@ -467,14 +513,16 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       <div className="w-full border-t border-[#2a2a2a]"></div>
                     </div>
                     <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-black px-2 text-gray-500">OR CONTINUE WITH</span>
+                      <span className="bg-black px-2 text-gray-500">
+                        OR CONTINUE WITH
+                      </span>
                     </div>
                   </div>
 
                   <div className="space-y-3">
                     <button
                       type="button"
-                      onClick={() => handleOAuthContinue('Email Link')}
+                      onClick={() => handleOAuthContinue("Email Link")}
                       className="w-full flex items-center gap-3 px-4 py-3 bg-[#0a0a0a] border border-[#2a2a2a] rounded hover:bg-[#1a1a1a] transition-colors text-left"
                       disabled={isLoading}
                     >
@@ -491,11 +539,13 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               )}
 
               {/* Sign Up Form */}
-              {activeTab === 'signup' && (
+              {activeTab === "signup" && (
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-sm text-gray-400">First Name *</Label>
+                      <Label className="text-sm text-gray-400">
+                        First Name *
+                      </Label>
                       <Input
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
@@ -506,7 +556,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-sm text-gray-400">Last Name *</Label>
+                      <Label className="text-sm text-gray-400">
+                        Last Name *
+                      </Label>
                       <Input
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
@@ -519,7 +571,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-sm text-gray-400">Artist / Project Name *</Label>
+                    <Label className="text-sm text-gray-400">
+                      Artist / Project Name *
+                    </Label>
                     <div className="relative">
                       <Input
                         value={artistName}
@@ -530,21 +584,36 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                         required
                       />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        {artistAvailability.checking && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
-                        {!artistAvailability.checking && artistAvailability.available === true && (
-                          <CheckCircle2 className="h-4 w-4 text-green-500" aria-label="Available" />
+                        {artistAvailability.checking && (
+                          <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
                         )}
-                        {!artistAvailability.checking && artistAvailability.available === false && (
-                          <XCircle className="h-4 w-4 text-red-500" aria-label="Taken" />
-                        )}
+                        {!artistAvailability.checking &&
+                          artistAvailability.available === true && (
+                            <CheckCircle2
+                              className="h-4 w-4 text-green-500"
+                              aria-label="Available"
+                            />
+                          )}
+                        {!artistAvailability.checking &&
+                          artistAvailability.available === false && (
+                            <XCircle
+                              className="h-4 w-4 text-red-500"
+                              aria-label="Taken"
+                            />
+                          )}
                       </div>
                     </div>
                     {artistAvailability.reason && (
-                      <p className="text-xs text-red-400" role="alert">{artistAvailability.reason}</p>
+                      <p className="text-xs text-red-400" role="alert">
+                        {artistAvailability.reason}
+                      </p>
                     )}
                     {generatedUsername && (
                       <p className="text-xs text-gray-400">
-                        Username: <span className="text-[#D7FF3C]">{generatedUsername}</span>
+                        Username:{" "}
+                        <span className="text-[#D7FF3C]">
+                          {generatedUsername}
+                        </span>
                       </p>
                     )}
                   </div>
@@ -562,23 +631,37 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                         required
                       />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        {emailAvailability.checking && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
-                        {!emailAvailability.checking && emailAvailability.available === true && (
-                          <CheckCircle2 className="h-4 w-4 text-green-500" aria-label="Available" />
+                        {emailAvailability.checking && (
+                          <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
                         )}
-                        {!emailAvailability.checking && emailAvailability.available === false && (
-                          <XCircle className="h-4 w-4 text-red-500" aria-label="Taken" />
-                        )}
+                        {!emailAvailability.checking &&
+                          emailAvailability.available === true && (
+                            <CheckCircle2
+                              className="h-4 w-4 text-green-500"
+                              aria-label="Available"
+                            />
+                          )}
+                        {!emailAvailability.checking &&
+                          emailAvailability.available === false && (
+                            <XCircle
+                              className="h-4 w-4 text-red-500"
+                              aria-label="Taken"
+                            />
+                          )}
                       </div>
                     </div>
                     {emailAvailability.reason && (
-                      <p className="text-xs text-red-400" role="alert">{emailAvailability.reason}</p>
+                      <p className="text-xs text-red-400" role="alert">
+                        {emailAvailability.reason}
+                      </p>
                     )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-sm text-gray-400">Password *</Label>
+                      <Label className="text-sm text-gray-400">
+                        Password *
+                      </Label>
                       <Input
                         type="password"
                         value={password}
@@ -590,7 +673,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-sm text-gray-400">Confirm Password *</Label>
+                      <Label className="text-sm text-gray-400">
+                        Confirm Password *
+                      </Label>
                       <Input
                         type="password"
                         value={confirmPassword}
@@ -606,11 +691,15 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   {password && strength && (
                     <div className="space-y-1">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-400">Password strength:</span>
-                        <span className="text-gray-300 capitalize">{strength.level}</span>
+                        <span className="text-gray-400">
+                          Password strength:
+                        </span>
+                        <span className="text-gray-300 capitalize">
+                          {strength.level}
+                        </span>
                       </div>
                       <div className="h-1.5 w-full bg-[#1a1a1a] rounded-full overflow-hidden">
-                        <div 
+                        <div
                           className={`h-full ${strength.color} transition-all duration-300`}
                           style={{ width: strength.width }}
                           role="progressbar"
@@ -619,16 +708,20 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                           aria-valuemax={100}
                         />
                       </div>
-                      <p className="text-xs text-gray-500">Min 10 chars, must include letter + number + symbol</p>
+                      <p className="text-xs text-gray-500">
+                        Min 10 chars, must include letter + number + symbol
+                      </p>
                     </div>
                   )}
 
-                  {password && confirmPassword && password !== confirmPassword && (
-                    <div className="flex items-center gap-2 text-xs text-red-400">
-                      <XCircle className="h-3 w-3" />
-                      <span>Passwords do not match</span>
-                    </div>
-                  )}
+                  {password &&
+                    confirmPassword &&
+                    password !== confirmPassword && (
+                      <div className="flex items-center gap-2 text-xs text-red-400">
+                        <XCircle className="h-3 w-3" />
+                        <span>Passwords do not match</span>
+                      </div>
+                    )}
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -644,7 +737,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-sm text-gray-400">Primary Genre *</Label>
+                      <Label className="text-sm text-gray-400">
+                        Primary Genre *
+                      </Label>
                       <Input
                         value={genre}
                         onChange={(e) => setGenre(e.target.value)}
@@ -658,7 +753,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-sm text-gray-400">Public Profile URL *</Label>
+                    <Label className="text-sm text-gray-400">
+                      Public Profile URL *
+                    </Label>
                     <Input
                       type="url"
                       value={publicProfileUrl}
@@ -669,18 +766,23 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       required
                     />
                     <p className="text-xs text-gray-500">
-                      Required music platform link. Will be verified by AI to prevent fake/duplicate accounts.
+                      Required music platform link. Will be verified by AI to
+                      prevent fake/duplicate accounts.
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-sm text-gray-400">Social Links (Max 5)</Label>
+                    <Label className="text-sm text-gray-400">
+                      Social Links (Max 5)
+                    </Label>
                     {socialLinks.map((link, idx) => (
                       <div key={idx} className="flex gap-2">
                         <Input
                           type="url"
                           value={link}
-                          onChange={(e) => updateSocialLink(idx, e.target.value)}
+                          onChange={(e) =>
+                            updateSocialLink(idx, e.target.value)
+                          }
                           placeholder="https://..."
                           className="bg-[#0a0a0a] border-[#2a2a2a] text-white h-11 focus:border-[#D7FF3C]"
                           disabled={isLoading}
@@ -720,29 +822,35 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       className="mt-1"
                       disabled={isLoading}
                     />
-                    <Label htmlFor="agree-terms" className="text-xs text-gray-400 cursor-pointer">
-                      I agree to the{' '}
+                    <Label
+                      htmlFor="agree-terms"
+                      className="text-xs text-gray-400 cursor-pointer"
+                    >
+                      I agree to the{" "}
                       <button
                         type="button"
-                        onClick={() => setShowInfoModal('terms')}
+                        onClick={() => setShowInfoModal("terms")}
                         className="text-[#D7FF3C] hover:underline"
                       >
                         Terms
-                      </button>
-                      {' '}and{' '}
+                      </button>{" "}
+                      and{" "}
                       <button
                         type="button"
-                        onClick={() => setShowInfoModal('privacy')}
+                        onClick={() => setShowInfoModal("privacy")}
                         className="text-[#D7FF3C] hover:underline"
                       >
                         Privacy Policy
-                      </button>
-                      {' '}*
+                      </button>{" "}
+                      *
                     </Label>
                   </div>
 
                   {error && (
-                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded text-sm text-red-400" role="alert">
+                    <div
+                      className="p-3 bg-red-500/10 border border-red-500/20 rounded text-sm text-red-400"
+                      role="alert"
+                    >
                       {error}
                     </div>
                   )}
@@ -750,7 +858,13 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   <div className="flex gap-3 pt-2">
                     <Button
                       type="submit"
-                      disabled={isLoading || !emailAvailability.available || !artistAvailability.available || !agreeTerms || !publicProfileUrl}
+                      disabled={
+                        isLoading ||
+                        !emailAvailability.available ||
+                        !artistAvailability.available ||
+                        !agreeTerms ||
+                        !publicProfileUrl
+                      }
                       className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold h-11 px-8"
                     >
                       {isLoading ? (
@@ -780,10 +894,15 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               )}
 
               {/* Forgot Password Form */}
-              {activeTab === 'forgot' && (
+              {activeTab === "forgot" && (
                 <form onSubmit={handleForgotPassword} className="space-y-5">
                   <div className="space-y-2">
-                    <Label htmlFor="forgot-email" className="text-sm text-gray-400">Email</Label>
+                    <Label
+                      htmlFor="forgot-email"
+                      className="text-sm text-gray-400"
+                    >
+                      Email
+                    </Label>
                     <Input
                       id="forgot-email"
                       type="email"
@@ -796,7 +915,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   </div>
 
                   {error && (
-                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded text-sm text-red-400" role="alert">
+                    <div
+                      className="p-3 bg-red-500/10 border border-red-500/20 rounded text-sm text-red-400"
+                      role="alert"
+                    >
                       {error}
                     </div>
                   )}
@@ -842,23 +964,32 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
             {/* Right Column - Welcome Panel */}
             <div className="hidden md:block bg-[#0a0a0a] border-l border-[#2a2a2a] p-8 overflow-y-auto scrollbar-thin">
-              <h2 className="text-xl font-semibold mb-4 text-[#D7FF3C]">Welcome to thecueRoom</h2>
+              <h2 className="text-xl font-semibold mb-4 text-[#D7FF3C]">
+                Welcome to thecueRoom
+              </h2>
               <p className="text-sm text-gray-400 mb-6">
-                Invite-first platform. Approved members get access to the gated dashboard.
+                Invite-first platform. Approved members get access to the gated
+                dashboard.
               </p>
-              
+
               <ul className="space-y-3 text-sm">
                 <li className="flex items-start gap-2">
                   <span className="text-[#D7FF3C] mt-1">■</span>
-                  <span className="text-gray-300">Reduced motion respected.</span>
+                  <span className="text-gray-300">
+                    Reduced motion respected.
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#D7FF3C] mt-1">■</span>
-                  <span className="text-gray-300">WCAG AA contrast on dark.</span>
+                  <span className="text-gray-300">
+                    WCAG AA contrast on dark.
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#D7FF3C] mt-1">■</span>
-                  <span className="text-gray-300">Scam-free, AI-verified community.</span>
+                  <span className="text-gray-300">
+                    Scam-free, AI-verified community.
+                  </span>
                 </li>
               </ul>
 
@@ -877,7 +1008,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           jobId={verificationJobId}
           onComplete={() => {
             setShowVerificationModal(false);
-            router.push('/dashboard');
+            router.push("/dashboard");
             router.refresh();
           }}
         />

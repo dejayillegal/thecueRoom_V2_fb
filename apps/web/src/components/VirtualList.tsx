@@ -1,8 +1,7 @@
+"use client";
 
-'use client';
-
-import { useRef, useEffect, useState, ReactNode } from 'react';
-import { useEventListener } from '@/hooks/use-event-listener';
+import { useRef, useEffect, useState, ReactNode } from "react";
+import { useEventListener } from "@/hooks/use-event-listener";
 
 interface VirtualListProps<T> {
   items: T[];
@@ -23,7 +22,7 @@ export function VirtualList<T>({
   itemHeight,
   containerHeight,
   overscan = 3,
-  className = '',
+  className = "",
 }: VirtualListProps<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
@@ -37,8 +36,8 @@ export function VirtualList<T>({
   useEffect(() => {
     const container = containerRef.current;
     if (container) {
-      container.addEventListener('scroll', handleScroll, { passive: true });
-      return () => container.removeEventListener('scroll', handleScroll);
+      container.addEventListener("scroll", handleScroll, { passive: true });
+      return () => container.removeEventListener("scroll", handleScroll);
     }
   }, []);
 
@@ -46,7 +45,7 @@ export function VirtualList<T>({
   const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
   const endIndex = Math.min(
     items.length - 1,
-    Math.ceil((scrollTop + containerHeight) / itemHeight) + overscan
+    Math.ceil((scrollTop + containerHeight) / itemHeight) + overscan,
   );
 
   const visibleItems = items.slice(startIndex, endIndex + 1);
@@ -58,22 +57,19 @@ export function VirtualList<T>({
       className={className}
       style={{
         height: containerHeight,
-        overflow: 'auto',
-        position: 'relative',
+        overflow: "auto",
+        position: "relative",
       }}
     >
-      <div style={{ height: totalHeight, position: 'relative' }}>
+      <div style={{ height: totalHeight, position: "relative" }}>
         <div
           style={{
             transform: `translateY(${offsetY}px)`,
-            willChange: 'transform',
+            willChange: "transform",
           }}
         >
           {visibleItems.map((item, index) => (
-            <div
-              key={startIndex + index}
-              style={{ height: itemHeight }}
-            >
+            <div key={startIndex + index} style={{ height: itemHeight }}>
               {renderItem(item, startIndex + index)}
             </div>
           ))}

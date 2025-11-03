@@ -1,6 +1,5 @@
-
-import { useVirtualizer } from '@tanstack/react-virtual';
-import { useRef } from 'react';
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useRef } from "react";
 
 interface VirtualizedListProps<T> {
   items: T[];
@@ -15,7 +14,7 @@ export function VirtualizedList<T>({
   renderItem,
   estimateSize = 200,
   overscan = 5,
-  className = '',
+  className = "",
 }: VirtualizedListProps<T>) {
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -31,18 +30,18 @@ export function VirtualizedList<T>({
       <div
         style={{
           height: `${virtualizer.getTotalSize()}px`,
-          width: '100%',
-          position: 'relative',
+          width: "100%",
+          position: "relative",
         }}
       >
         {virtualizer.getVirtualItems().map((virtualItem) => (
           <div
             key={virtualItem.key}
             style={{
-              position: 'absolute',
+              position: "absolute",
               top: 0,
               left: 0,
-              width: '100%',
+              width: "100%",
               transform: `translateY(${virtualItem.start}px)`,
             }}
           >

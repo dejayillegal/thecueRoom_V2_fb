@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState } from "react";
 
 interface CanvasEditorProps {
   imageUrl?: string;
@@ -9,29 +9,29 @@ interface CanvasEditorProps {
   onSave?: (dataUrl: string) => void;
 }
 
-export default function CanvasEditor({ 
-  imageUrl, 
-  width = 800, 
+export default function CanvasEditor({
+  imageUrl,
+  width = 800,
   height = 600,
-  onSave 
+  onSave,
 }: CanvasEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [watermarkText, setWatermarkText] = useState('thecueRoom');
+  const [watermarkText, setWatermarkText] = useState("thecueRoom");
   const [watermarkOpacity, setWatermarkOpacity] = useState(0.3);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    ctx.fillStyle = '#0B0B0B';
+    ctx.fillStyle = "#0B0B0B";
     ctx.fillRect(0, 0, width, height);
 
     if (imageUrl) {
       const img = new Image();
-      img.crossOrigin = 'anonymous';
+      img.crossOrigin = "anonymous";
       img.onload = () => {
         ctx.drawImage(img, 0, 0, width, height);
         drawWatermark(ctx);
@@ -47,26 +47,26 @@ export default function CanvasEditor({
 
     ctx.save();
     ctx.globalAlpha = watermarkOpacity;
-    ctx.fillStyle = '#D7FF3C';
-    ctx.font = 'bold 24px Inter';
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'bottom';
+    ctx.fillStyle = "#D7FF3C";
+    ctx.font = "bold 24px Inter";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "bottom";
     ctx.fillText(watermarkText, width - 20, height - 20);
     ctx.restore();
   }
 
   function handleSave() {
     if (!canvasRef.current || !onSave) return;
-    const dataUrl = canvasRef.current.toDataURL('image/png');
+    const dataUrl = canvasRef.current.toDataURL("image/png");
     onSave(dataUrl);
   }
 
   function handleDownload() {
     if (!canvasRef.current) return;
-    const dataUrl = canvasRef.current.toDataURL('image/png');
-    const link = document.createElement('a');
+    const dataUrl = canvasRef.current.toDataURL("image/png");
+    const link = document.createElement("a");
     link.href = dataUrl;
-    link.download = 'epk-image.png';
+    link.download = "epk-image.png";
     link.click();
   }
 

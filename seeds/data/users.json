@@ -1,0 +1,23 @@
+[
+  {
+    "id": "u1",
+    "username": "testdj",
+    "displayName": "Test DJ",
+    "role": "artist",
+    "verified": true
+  },
+  {
+    "id": "u2",
+    "username": "listener01",
+    "displayName": "Listener 01",
+    "role": "user",
+    "verified": true
+  },
+  {
+    "id": "u3",
+    "username": "producerx",
+    "displayName": "Producer X",
+    "role": "artist",
+    "verified": true
+  }
+]

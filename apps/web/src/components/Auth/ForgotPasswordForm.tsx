@@ -1,44 +1,44 @@
-'use client';
+"use client";
 
-import { useState, FormEvent } from 'react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Loader2, Mail, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useState, FormEvent } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Loader2, Mail, CheckCircle2, AlertCircle } from "lucide-react";
 
 interface ForgotPasswordFormProps {
   onBack?: () => void;
 }
 
 export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setSuccess(false);
 
     if (!email) {
-      setError('Please enter your email address');
+      setError("Please enter your email address");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.message || 'Failed to send reset email');
+        setError(data.message || "Failed to send reset email");
         setIsSubmitting(false);
         return;
       }
@@ -46,7 +46,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
       setSuccess(true);
       setIsSubmitting(false);
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError("An error occurred. Please try again.");
       setIsSubmitting(false);
     }
   };
@@ -62,11 +62,12 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
                 Check Your Email
               </h3>
               <p className="text-sm text-gray-300 mb-4">
-                We've sent a password reset link to <strong>{email}</strong>. 
+                We've sent a password reset link to <strong>{email}</strong>.
                 Please check your inbox and follow the instructions.
               </p>
               <p className="text-xs text-gray-400">
-                Didn't receive it? Check your spam folder or try again in a few minutes.
+                Didn't receive it? Check your spam folder or try again in a few
+                minutes.
               </p>
             </div>
           </div>
@@ -89,7 +90,8 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="mb-4">
         <p className="text-sm text-gray-400">
-          Enter your email address and we'll send you a link to reset your password.
+          Enter your email address and we'll send you a link to reset your
+          password.
         </p>
       </div>
 
@@ -110,7 +112,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
       </div>
 
       {error && (
-        <div 
+        <div
           className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 flex items-start gap-2"
           role="alert"
         >

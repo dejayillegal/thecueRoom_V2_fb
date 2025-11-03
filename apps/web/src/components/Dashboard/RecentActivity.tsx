@@ -1,8 +1,7 @@
+"use client";
 
-'use client';
-
-import { VirtualList } from '@/components/VirtualList';
-import { Card } from '@/components/ui/card';
+import { VirtualList } from "@/components/VirtualList";
+import { Card } from "@/components/ui/card";
 
 interface Activity {
   id: string;

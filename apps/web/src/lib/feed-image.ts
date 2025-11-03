@@ -1,4 +1,4 @@
-import { LRUCache } from 'lru-cache';
+import { LRUCache } from "lru-cache";
 
 /**
  * Centralized feed image handling module
@@ -18,7 +18,7 @@ const imageValidationCache = new LRUCache<string, boolean>({
 function isValidHttpUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
   } catch {
     return false;
   }
@@ -39,7 +39,7 @@ async function validateImageUrl(url: string): Promise<boolean> {
     const timeoutId = setTimeout(() => controller.abort(), 3000);
 
     const response = await fetch(url, {
-      method: 'HEAD',
+      method: "HEAD",
       signal: controller.signal,
     });
 
@@ -47,7 +47,7 @@ async function validateImageUrl(url: string): Promise<boolean> {
 
     const isValid =
       response.ok &&
-      (response.headers.get('content-type')?.startsWith('image/') ?? false);
+      (response.headers.get("content-type")?.startsWith("image/") ?? false);
 
     imageValidationCache.set(url, isValid);
     return isValid;
@@ -76,15 +76,17 @@ export function getFallbackSrcSet(id: string): string {
 /**
  * Get the article image URL with fallback support
  */
-export async function getArticleImage(article: {
-  image?: string | null;
-  guid?: string;
-  url?: string;
-  title?: string;
-} | null): Promise<string> {
+export async function getArticleImage(
+  article: {
+    image?: string | null;
+    guid?: string;
+    url?: string;
+    title?: string;
+  } | null,
+): Promise<string> {
   // If no image provided, return fallback immediately
   if (!article || !article.image || !isValidHttpUrl(article.image)) {
-    const id = article?.guid || article?.url || article?.title || 'default';
+    const id = article?.guid || article?.url || article?.title || "default";
     return getFallbackUrl(id);
   }
 
@@ -96,21 +98,23 @@ export async function getArticleImage(article: {
   }
 
   // Return fallback if invalid
-  const id = article.guid || article.url || article.title || 'default';
+  const id = article.guid || article.url || article.title || "default";
   return getFallbackUrl(id);
 }
 
 /**
  * Get article image synchronously (for client-side use)
  */
-export function getArticleImageSync(article: {
-  image?: string | null;
-  guid?: string;
-  url?: string;
-  title?: string;
-} | null): string {
+export function getArticleImageSync(
+  article: {
+    image?: string | null;
+    guid?: string;
+    url?: string;
+    title?: string;
+  } | null,
+): string {
   if (!article || !article.image || !isValidHttpUrl(article.image)) {
-    const id = article?.guid || article?.url || article?.title || 'default';
+    const id = article?.guid || article?.url || article?.title || "default";
     return getFallbackUrl(id);
   }
 

@@ -1,24 +1,27 @@
+"use client";
 
-'use client';
-
-import { useState, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card } from '@/components/ui/card';
-import { Download, Share2, Sparkles } from 'lucide-react';
+import { useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
+import { Download, Share2, Sparkles } from "lucide-react";
 
 const MEME_TEMPLATES = [
-  { id: 'drake', name: 'Drake', imageUrl: '/meme-templates/drake.jpg' },
-  { id: 'distracted', name: 'Distracted Boyfriend', imageUrl: '/meme-templates/distracted.jpg' },
-  { id: 'stonks', name: 'Stonks', imageUrl: '/meme-templates/stonks.jpg' },
-  { id: 'custom', name: 'Custom Upload', imageUrl: null },
+  { id: "drake", name: "Drake", imageUrl: "/meme-templates/drake.jpg" },
+  {
+    id: "distracted",
+    name: "Distracted Boyfriend",
+    imageUrl: "/meme-templates/distracted.jpg",
+  },
+  { id: "stonks", name: "Stonks", imageUrl: "/meme-templates/stonks.jpg" },
+  { id: "custom", name: "Custom Upload", imageUrl: null },
 ];
 
 export function MemeStudio() {
-  const [selectedTemplate, setSelectedTemplate] = useState('drake');
-  const [topText, setTopText] = useState('');
-  const [bottomText, setBottomText] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState("drake");
+  const [topText, setTopText] = useState("");
+  const [bottomText, setBottomText] = useState("");
   const [watermark, setWatermark] = useState(true);
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -27,9 +30,9 @@ export function MemeStudio() {
   const handleGenerate = async () => {
     setIsGenerating(true);
     try {
-      const response = await fetch('/api/ai/meme/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/ai/meme/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           template: selectedTemplate,
           topText,
@@ -43,7 +46,7 @@ export function MemeStudio() {
         setGeneratedUrl(data.url);
       }
     } catch (error) {
-      console.error('Failed to generate meme:', error);
+      console.error("Failed to generate meme:", error);
     } finally {
       setIsGenerating(false);
     }
@@ -51,14 +54,14 @@ export function MemeStudio() {
 
   const handleDownload = () => {
     if (!generatedUrl) return;
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = generatedUrl;
     a.download = `meme-${Date.now()}.png`;
     a.click();
   };
 
   const handleShare = async () => {
-    console.log('Share to forum');
+    console.log("Share to forum");
   };
 
   return (
@@ -78,8 +81,8 @@ export function MemeStudio() {
                     onClick={() => setSelectedTemplate(template.id)}
                     className={`p-3 rounded-lg border transition-all ${
                       selectedTemplate === template.id
-                        ? 'border-[#D1FF3D] bg-[#D1FF3D]/10'
-                        : 'border-[#1a1a1a] hover:border-[#333333]'
+                        ? "border-[#D1FF3D] bg-[#D1FF3D]/10"
+                        : "border-[#1a1a1a] hover:border-[#333333]"
                     }`}
                   >
                     <span className="text-sm text-white">{template.name}</span>
@@ -89,7 +92,9 @@ export function MemeStudio() {
             </div>
 
             <div>
-              <Label htmlFor="topText" className="text-white text-sm">Top Text</Label>
+              <Label htmlFor="topText" className="text-white text-sm">
+                Top Text
+              </Label>
               <Input
                 id="topText"
                 value={topText}
@@ -100,7 +105,9 @@ export function MemeStudio() {
             </div>
 
             <div>
-              <Label htmlFor="bottomText" className="text-white text-sm">Bottom Text</Label>
+              <Label htmlFor="bottomText" className="text-white text-sm">
+                Bottom Text
+              </Label>
               <Input
                 id="bottomText"
                 value={bottomText}
@@ -118,7 +125,9 @@ export function MemeStudio() {
                 onChange={(e) => setWatermark(e.target.checked)}
                 className="w-4 h-4"
               />
-              <Label htmlFor="watermark" className="text-white text-sm">Add thecueRoom watermark</Label>
+              <Label htmlFor="watermark" className="text-white text-sm">
+                Add thecueRoom watermark
+              </Label>
             </div>
 
             <Button
@@ -138,7 +147,11 @@ export function MemeStudio() {
         <h2 className="text-lg font-semibold text-white mb-4">Preview</h2>
         <div className="aspect-square bg-[#0a0a0a] rounded-lg flex items-center justify-center border border-[#1a1a1a] mb-4">
           {generatedUrl ? (
-            <img src={generatedUrl} alt="Generated meme" className="w-full h-full object-contain rounded-lg" />
+            <img
+              src={generatedUrl}
+              alt="Generated meme"
+              className="w-full h-full object-contain rounded-lg"
+            />
           ) : (
             <p className="text-gray-500 text-sm">Your meme will appear here</p>
           )}

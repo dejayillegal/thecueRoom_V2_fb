@@ -11,13 +11,13 @@ export interface SafeParseResult<T = any> {
 
 export function safeParseJSON<T = any>(
   text: string,
-  fallback?: T
+  fallback?: T,
 ): SafeParseResult<T> {
   try {
-    if (!text || text.trim() === '') {
+    if (!text || text.trim() === "") {
       return {
         success: false,
-        error: 'Empty input',
+        error: "Empty input",
         data: fallback,
       };
     }
@@ -30,16 +30,13 @@ export function safeParseJSON<T = any>(
   } catch (error: any) {
     return {
       success: false,
-      error: error.message || 'JSON parse error',
+      error: error.message || "JSON parse error",
       data: fallback,
     };
   }
 }
 
-export function safeStringifyJSON(
-  data: any,
-  fallback: string = '{}'
-): string {
+export function safeStringifyJSON(data: any, fallback: string = "{}"): string {
   try {
     return JSON.stringify(data);
   } catch (error) {
@@ -49,7 +46,7 @@ export function safeStringifyJSON(
 
 export function safeStringifyJSONPretty(
   data: any,
-  fallback: string = '{}'
+  fallback: string = "{}",
 ): string {
   try {
     return JSON.stringify(data, null, 2);

@@ -405,7 +405,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^1.6.1
-        version: 1.6.1(@types/node@20.19.23)(@vitest/ui@3.2.4)(happy-dom@17.6.3)(jsdom@23.2.0(canvas@2.11.2))
+        version: 1.6.1(@types/node@20.19.23)(@vitest/ui@3.2.4(vitest@3.2.4))(happy-dom@17.6.3)(jsdom@23.2.0(canvas@2.11.2))
 
   packages/ai:
     dependencies:
@@ -451,7 +451,7 @@ importers:
         specifier: ^0.36.4
         version: 0.36.4(@types/pg@8.15.6)(@types/react@19.2.2)(pg@8.16.3)(postgres@3.4.7)(react@19.2.0)
       pg:
-        specifier: ^8.11.3
+        specifier: ^8.16.3
         version: 8.16.3
       postgres:
         specifier: ^3.4.4
@@ -505,6 +505,9 @@ importers:
 
   packages/feeds:
     dependencies:
+      fast-xml-parser:
+        specifier: ^4.5.3
+        version: 4.5.3
       p-limit:
         specifier: ^7.2.0
         version: 7.2.0
@@ -12882,7 +12885,7 @@ snapshots:
       jiti: 1.21.7
       tsx: 4.20.6
 
-  vitest@1.6.1(@types/node@20.19.23)(@vitest/ui@3.2.4)(happy-dom@17.6.3)(jsdom@23.2.0(canvas@2.11.2)):
+  vitest@1.6.1(@types/node@20.19.23)(@vitest/ui@3.2.4(vitest@3.2.4))(happy-dom@17.6.3)(jsdom@23.2.0(canvas@2.11.2)):
     dependencies:
       '@vitest/expect': 1.6.1
       '@vitest/runner': 1.6.1

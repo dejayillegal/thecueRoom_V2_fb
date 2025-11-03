@@ -1,5 +1,4 @@
-
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 /**
  * Safe interval hook that automatically cleans up on unmount
@@ -8,7 +7,7 @@ import { useEffect, useRef } from 'react';
  */
 export function useSafeInterval(
   callback: () => void,
-  delay: number | null
+  delay: number | null,
 ): void {
   const savedCallback = useRef<() => void>();
 

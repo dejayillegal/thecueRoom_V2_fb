@@ -1,42 +1,43 @@
+"use client";
 
-'use client';
-
-import { lazy, Suspense, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { SpotlightColumn } from '@/components/Dashboard/SpotlightColumn';
-import { RecentActivity } from '@/components/Dashboard/RecentActivity';
-import { GigRadar } from '@/components/Dashboard/GigRadar';
-import { markStart, markEnd } from '@/lib/analytics/perf-marks';
+import { lazy, Suspense, useEffect } from "react";
+import { Card } from "@/components/ui/card";
+import { SpotlightColumn } from "@/components/Dashboard/SpotlightColumn";
+import { RecentActivity } from "@/components/Dashboard/RecentActivity";
+import { GigRadar } from "@/components/Dashboard/GigRadar";
+import { markStart, markEnd } from "@/lib/analytics/perf-marks";
 
 const TopBanner = lazy(() =>
-  import('@/components/Dashboard/TopBanner').then((mod) => ({ default: mod.TopBanner }))
+  import("@/components/Dashboard/TopBanner").then((mod) => ({
+    default: mod.TopBanner,
+  })),
 );
 
 // Mock data
 const spotlightItems = [
   {
-    id: '1',
-    title: 'New Techno Release',
-    image: '/api/og-fallback?title=Techno',
-    url: '#',
+    id: "1",
+    title: "New Techno Release",
+    image: "/api/og-fallback?title=Techno",
+    url: "#",
   },
   {
-    id: '2',
-    title: 'House Music Festival',
-    image: '/api/og-fallback?title=House',
-    url: '#',
+    id: "2",
+    title: "House Music Festival",
+    image: "/api/og-fallback?title=House",
+    url: "#",
   },
   {
-    id: '3',
-    title: 'Underground Interview',
-    image: '/api/og-fallback?title=Interview',
-    url: '#',
+    id: "3",
+    title: "Underground Interview",
+    image: "/api/og-fallback?title=Interview",
+    url: "#",
   },
 ];
 
 const activities = Array.from({ length: 50 }, (_, i) => ({
   id: `activity-${i}`,
-  type: 'release',
+  type: "release",
   title: `Activity ${i + 1}`,
   timestamp: new Date(Date.now() - i * 3600000).toISOString(),
 }));
@@ -50,16 +51,16 @@ const gigs = Array.from({ length: 15 }, (_, i) => ({
 
 export default function DashboardPage() {
   useEffect(() => {
-    markStart('dashboard-mount');
-    markStart('dashboard-render');
-    
+    markStart("dashboard-mount");
+    markStart("dashboard-render");
+
     return () => {
-      markEnd('dashboard-mount');
+      markEnd("dashboard-mount");
     };
   }, []);
 
   useEffect(() => {
-    markEnd('dashboard-render');
+    markEnd("dashboard-render");
   });
 
   return (
@@ -70,7 +71,11 @@ export default function DashboardPage() {
       </div>
 
       {/* Top Banner */}
-      <Suspense fallback={<div className="h-24 bg-[#111111] rounded-lg animate-pulse mb-6" />}>
+      <Suspense
+        fallback={
+          <div className="h-24 bg-[#111111] rounded-lg animate-pulse mb-6" />
+        }
+      >
         <div className="mb-6">
           <TopBanner />
         </div>
@@ -82,7 +87,9 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Recent Activity */}
           <Card className="bg-[#111111] border-[#1a1a1a] p-6">
-            <h2 className="text-white text-xl font-semibold mb-4">Recent Activity</h2>
+            <h2 className="text-white text-xl font-semibold mb-4">
+              Recent Activity
+            </h2>
             <RecentActivity activities={activities} />
           </Card>
 

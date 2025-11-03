@@ -1,5 +1,4 @@
-
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
 type SocketEventHandler = (data: any) => void;
 
@@ -19,7 +18,7 @@ class SharedSocket {
         const handlers = this.listeners.get(data.type);
         handlers?.forEach((handler) => handler(data));
       } catch (error) {
-        console.error('WebSocket message error:', error);
+        console.error("WebSocket message error:", error);
       }
     };
 
@@ -28,7 +27,7 @@ class SharedSocket {
     };
 
     this.socket.onerror = (error) => {
-      console.error('WebSocket error:', error);
+      console.error("WebSocket error:", error);
     };
   }
 
@@ -65,7 +64,7 @@ const sharedSocket = new SharedSocket();
 export function useSharedSocket(
   event: string,
   handler: SocketEventHandler,
-  url: string = 'ws://localhost:5000/ws'
+  url: string = "ws://localhost:5000/ws",
 ): void {
   const handlerRef = useRef(handler);
 

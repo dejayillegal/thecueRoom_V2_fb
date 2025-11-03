@@ -1,12 +1,17 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { createModuleId } from '@/lib/epk/utils';
+import { useState } from "react";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "react-beautiful-dnd";
+import { createModuleId } from "@/lib/epk/utils";
 
 interface TechRiderItem {
   id: string;
-  type: 'cdj' | 'mixer' | 'speakers' | 'turntable' | 'custom';
+  type: "cdj" | "mixer" | "speakers" | "turntable" | "custom";
   label: string;
   quantity?: number;
 }
@@ -17,24 +22,27 @@ interface TechRiderEditorProps {
 }
 
 const GEAR_ICONS: Record<string, string> = {
-  cdj: '🎧',
-  mixer: '🎛️',
-  speakers: '🔊',
-  turntable: '💿',
-  custom: '⚡'
+  cdj: "🎧",
+  mixer: "🎛️",
+  speakers: "🔊",
+  turntable: "💿",
+  custom: "⚡",
 };
 
-const PRESET_GEAR: Omit<TechRiderItem, 'id'>[] = [
-  { type: 'cdj', label: 'CDJ-3000', quantity: 2 },
-  { type: 'cdj', label: 'CDJ-2000NXS2', quantity: 2 },
-  { type: 'mixer', label: 'DJM-900NXS2', quantity: 1 },
-  { type: 'mixer', label: 'DJM-A9', quantity: 1 },
-  { type: 'turntable', label: 'Technics SL-1200', quantity: 2 },
-  { type: 'speakers', label: 'Pioneer XY-3', quantity: 2 }
+const PRESET_GEAR: Omit<TechRiderItem, "id">[] = [
+  { type: "cdj", label: "CDJ-3000", quantity: 2 },
+  { type: "cdj", label: "CDJ-2000NXS2", quantity: 2 },
+  { type: "mixer", label: "DJM-900NXS2", quantity: 1 },
+  { type: "mixer", label: "DJM-A9", quantity: 1 },
+  { type: "turntable", label: "Technics SL-1200", quantity: 2 },
+  { type: "speakers", label: "Pioneer XY-3", quantity: 2 },
 ];
 
-export default function TechRiderEditor({ items, onChange }: TechRiderEditorProps) {
-  const [customLabel, setCustomLabel] = useState('');
+export default function TechRiderEditor({
+  items,
+  onChange,
+}: TechRiderEditorProps) {
+  const [customLabel, setCustomLabel] = useState("");
 
   function handleDragEnd(result: DropResult) {
     if (!result.destination) return;
@@ -46,10 +54,10 @@ export default function TechRiderEditor({ items, onChange }: TechRiderEditorProp
     onChange(newItems);
   }
 
-  function addPresetGear(gear: Omit<TechRiderItem, 'id'>) {
+  function addPresetGear(gear: Omit<TechRiderItem, "id">) {
     const newItem: TechRiderItem = {
       id: createModuleId(),
-      ...gear
+      ...gear,
     };
     onChange([...items, newItem]);
   }
@@ -59,28 +67,30 @@ export default function TechRiderEditor({ items, onChange }: TechRiderEditorProp
 
     const newItem: TechRiderItem = {
       id: createModuleId(),
-      type: 'custom',
+      type: "custom",
       label: customLabel.trim(),
-      quantity: 1
+      quantity: 1,
     };
     onChange([...items, newItem]);
-    setCustomLabel('');
+    setCustomLabel("");
   }
 
   function removeItem(id: string) {
-    onChange(items.filter(item => item.id !== id));
+    onChange(items.filter((item) => item.id !== id));
   }
 
   function updateQuantity(id: string, quantity: number) {
-    onChange(items.map(item =>
-      item.id === id ? { ...item, quantity } : item
-    ));
+    onChange(
+      items.map((item) => (item.id === id ? { ...item, quantity } : item)),
+    );
   }
 
   return (
     <div className="space-y-4">
       <div>
-        <h4 className="text-sm font-semibold text-[#D7FF3C] mb-3">Quick Add Gear</h4>
+        <h4 className="text-sm font-semibold text-[#D7FF3C] mb-3">
+          Quick Add Gear
+        </h4>
         <div className="grid grid-cols-2 gap-2">
           {PRESET_GEAR.map((gear, index) => (
             <button
@@ -99,13 +109,15 @@ export default function TechRiderEditor({ items, onChange }: TechRiderEditorProp
       </div>
 
       <div>
-        <h4 className="text-sm font-semibold text-[#D7FF3C] mb-2">Custom Gear</h4>
+        <h4 className="text-sm font-semibold text-[#D7FF3C] mb-2">
+          Custom Gear
+        </h4>
         <div className="flex gap-2">
           <input
             type="text"
             value={customLabel}
             onChange={(e) => setCustomLabel(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && addCustomGear()}
+            onKeyPress={(e) => e.key === "Enter" && addCustomGear()}
             placeholder="Add custom equipment..."
             className="flex-1 px-3 py-2 bg-[#1a1a1a] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#9B5CFF]"
           />
@@ -121,12 +133,13 @@ export default function TechRiderEditor({ items, onChange }: TechRiderEditorProp
 
       <div>
         <h4 className="text-sm font-semibold text-[#D7FF3C] mb-2">
-          Tech Rider ({items.length} {items.length === 1 ? 'item' : 'items'})
+          Tech Rider ({items.length} {items.length === 1 ? "item" : "items"})
         </h4>
 
         {items.length === 0 ? (
           <div className="dashboard-card p-6 text-center text-gray-500">
-            No equipment added yet. Add gear from the presets above or create custom items.
+            No equipment added yet. Add gear from the presets above or create
+            custom items.
           </div>
         ) : (
           <DragDropContext onDragEnd={handleDragEnd}>
@@ -138,28 +151,39 @@ export default function TechRiderEditor({ items, onChange }: TechRiderEditorProp
                   className="space-y-2"
                 >
                   {items.map((item, index) => (
-                    <Draggable key={item.id} draggableId={item.id} index={index}>
+                    <Draggable
+                      key={item.id}
+                      draggableId={item.id}
+                      index={index}
+                    >
                       {(provided, snapshot) => (
                         <div
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
                           className={`dashboard-card p-3 flex items-center gap-3 ${
-                            snapshot.isDragging ? 'ring-2 ring-[#D7FF3C]' : ''
+                            snapshot.isDragging ? "ring-2 ring-[#D7FF3C]" : ""
                           }`}
                         >
                           <span className="text-2xl cursor-grab active:cursor-grabbing">
                             {GEAR_ICONS[item.type]}
                           </span>
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium truncate">{item.label}</div>
+                            <div className="font-medium truncate">
+                              {item.label}
+                            </div>
                           </div>
                           <input
                             type="number"
                             min="1"
                             max="99"
                             value={item.quantity || 1}
-                            onChange={(e) => updateQuantity(item.id, parseInt(e.target.value) || 1)}
+                            onChange={(e) =>
+                              updateQuantity(
+                                item.id,
+                                parseInt(e.target.value) || 1,
+                              )
+                            }
                             className="w-16 px-2 py-1 bg-[#0B0B0B] rounded text-center text-sm focus:outline-none focus:ring-1 focus:ring-[#9B5CFF]"
                             onClick={(e) => e.stopPropagation()}
                           />

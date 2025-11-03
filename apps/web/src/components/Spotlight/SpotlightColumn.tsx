@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useRef, useEffect, useState, memo } from 'react';
-import { useEventListener } from '@/hooks/use-event-listener';
+import React, { useRef, useEffect, useState, memo } from "react";
+import { useEventListener } from "@/hooks/use-event-listener";
 
 interface SpotlightColumnProps {
   children: React.ReactNode;
@@ -10,7 +10,7 @@ interface SpotlightColumnProps {
 
 export const SpotlightColumn = memo(function SpotlightColumn({
   children,
-  className = '',
+  className = "",
 }: SpotlightColumnProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | undefined>(undefined);
@@ -18,12 +18,13 @@ export const SpotlightColumn = memo(function SpotlightColumn({
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     setPrefersReducedMotion(mediaQuery.matches);
 
-    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
+    const handler = (e: MediaQueryListEvent) =>
+      setPrefersReducedMotion(e.matches);
+    mediaQuery.addEventListener("change", handler);
+    return () => mediaQuery.removeEventListener("change", handler);
   }, []);
 
   useEffect(() => {
@@ -61,7 +62,7 @@ export const SpotlightColumn = memo(function SpotlightColumn({
       onMouseLeave={() => setIsPaused(false)}
       onFocus={() => setIsPaused(true)}
       onBlur={() => setIsPaused(false)}
-      style={{ scrollBehavior: 'auto' }}
+      style={{ scrollBehavior: "auto" }}
     >
       {children}
     </div>

@@ -1,21 +1,20 @@
-
 // This file is deprecated. Use @/components/dashboard/Sidebar instead.
 // Keeping for backwards compatibility but should be removed.
 
-'use client';
+"use client";
 
-import { memo } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Home, Music, Newspaper, Calendar, Settings } from 'lucide-react';
-import Image from 'next/image';
+import { memo } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Home, Music, Newspaper, Calendar, Settings } from "lucide-react";
+import Image from "next/image";
 
 const navItems = [
-  { href: '/dashboard', icon: Home, label: 'Dashboard' },
-  { href: '/music/weekly', icon: Music, label: 'Music' },
-  { href: '/news', icon: Newspaper, label: 'News' },
-  { href: '/gigs/india', icon: Calendar, label: 'Gigs' },
-  { href: '/settings', icon: Settings, label: 'Settings' },
+  { href: "/dashboard", icon: Home, label: "Dashboard" },
+  { href: "/music/weekly", icon: Music, label: "Music" },
+  { href: "/news", icon: Newspaper, label: "News" },
+  { href: "/gigs/india", icon: Calendar, label: "Gigs" },
+  { href: "/settings", icon: Settings, label: "Settings" },
 ];
 
 /**
@@ -50,8 +49,8 @@ export const Sidebar = memo(function Sidebar() {
                   href={item.href}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     isActive
-                      ? 'bg-[#D1FF3D] text-black'
-                      : 'text-gray-400 hover:bg-[#1a1a1a] hover:text-white'
+                      ? "bg-[#D1FF3D] text-black"
+                      : "text-gray-400 hover:bg-[#1a1a1a] hover:text-white"
                   }`}
                 >
                   <Icon className="w-5 h-5" />

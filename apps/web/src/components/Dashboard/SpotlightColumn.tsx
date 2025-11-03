@@ -1,10 +1,9 @@
+"use client";
 
-'use client';
-
-import { useRef, useEffect, useState } from 'react';
-import { useEventListener } from '@/hooks/use-event-listener';
-import { ImageWithFallback } from '@/components/ImageWithFallback';
-import { Card } from '@/components/ui/card';
+import { useRef, useEffect, useState } from "react";
+import { useEventListener } from "@/hooks/use-event-listener";
+import { ImageWithFallback } from "@/components/ImageWithFallback";
+import { Card } from "@/components/ui/card";
 
 interface SpotlightItem {
   id: string;
@@ -28,12 +27,13 @@ export function SpotlightColumn({ items }: SpotlightColumnProps) {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     setPrefersReducedMotion(mediaQuery.matches);
 
-    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
+    const handler = (e: MediaQueryListEvent) =>
+      setPrefersReducedMotion(e.matches);
+    mediaQuery.addEventListener("change", handler);
+    return () => mediaQuery.removeEventListener("change", handler);
   }, []);
 
   useEffect(() => {
@@ -80,7 +80,7 @@ export function SpotlightColumn({ items }: SpotlightColumnProps) {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       className="h-[600px] overflow-hidden"
-      style={{ scrollbarWidth: 'none' }}
+      style={{ scrollbarWidth: "none" }}
     >
       <div className="space-y-4">
         {[...items, ...items].map((item, index) => (
@@ -99,7 +99,9 @@ export function SpotlightColumn({ items }: SpotlightColumnProps) {
                 />
               </div>
               <div className="p-3">
-                <h3 className="text-white text-sm line-clamp-2">{item.title}</h3>
+                <h3 className="text-white text-sm line-clamp-2">
+                  {item.title}
+                </h3>
               </div>
             </a>
           </Card>

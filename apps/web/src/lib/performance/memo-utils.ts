@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback, DependencyList } from 'react';
+import React, { useEffect, useRef, useCallback, DependencyList } from "react";
 
 export function useAbortController() {
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -41,7 +41,7 @@ export function useDebounce<T>(value: T, delay: number): T {
 
 export function useMemoizedCallback<T extends (...args: any[]) => any>(
   callback: T,
-  deps: DependencyList
+  deps: DependencyList,
 ): T {
   const callbackRef = useRef(callback);
 
@@ -56,7 +56,7 @@ export function useMemoizedCallback<T extends (...args: any[]) => any>(
 
 export function createLazyLoader<T>(
   loader: () => Promise<T>,
-  cacheTime: number = 5 * 60 * 1000 
+  cacheTime: number = 5 * 60 * 1000,
 ) {
   let cache: { data: T; timestamp: number } | null = null;
 
@@ -79,11 +79,11 @@ export class ResourceCleanup {
   }
 
   cleanup() {
-    this.cleanupTasks.forEach(task => {
+    this.cleanupTasks.forEach((task) => {
       try {
         task();
       } catch (error) {
-        console.error('Cleanup error:', error);
+        console.error("Cleanup error:", error);
       }
     });
     this.cleanupTasks = [];

@@ -1,9 +1,8 @@
+"use client";
 
-'use client';
-
-import Image from 'next/image';
-import { useState, useEffect, useRef } from 'react';
-import { getFallbackUrl, getFallbackSrcSet } from '../lib/feed-image';
+import Image from "next/image";
+import { useState, useEffect, useRef } from "react";
+import { getFallbackUrl, getFallbackSrcSet } from "../lib/feed-image";
 
 interface ImageWithFallbackProps {
   src: string;
@@ -29,7 +28,7 @@ export function ImageWithFallback({
   width,
   height,
   fill = false,
-  className = '',
+  className = "",
   sizes,
   quality = 75,
   priority = false,
@@ -54,7 +53,7 @@ export function ImageWithFallback({
           }
         });
       },
-      { rootMargin: '50px' }
+      { rootMargin: "50px" },
     );
 
     observer.observe(imgRef.current);
@@ -70,7 +69,7 @@ export function ImageWithFallback({
   const handleError = () => {
     if (!hasError) {
       setHasError(true);
-      
+
       // Use deterministic fallback if articleId provided
       if (articleId) {
         setImgSrc(getFallbackUrl(articleId));
@@ -78,13 +77,14 @@ export function ImageWithFallback({
         setImgSrc(fallbackSrc);
       } else {
         // Default to first fallback if no articleId
-        setImgSrc(getFallbackUrl('default'));
+        setImgSrc(getFallbackUrl("default"));
       }
     }
   };
 
   // Build srcSet for responsive images if using fallback
-  const srcSet = hasError && articleId ? getFallbackSrcSet(articleId) : undefined;
+  const srcSet =
+    hasError && articleId ? getFallbackSrcSet(articleId) : undefined;
 
   if (fill) {
     return (
@@ -99,7 +99,7 @@ export function ImageWithFallback({
             quality={quality}
             priority={priority}
             onError={handleError}
-            loading={priority ? 'eager' : 'lazy'}
+            loading={priority ? "eager" : "lazy"}
             decoding="async"
             unoptimized={hasError}
           />
@@ -122,7 +122,7 @@ export function ImageWithFallback({
           quality={quality}
           priority={priority}
           onError={handleError}
-          loading={priority ? 'eager' : 'lazy'}
+          loading={priority ? "eager" : "lazy"}
           decoding="async"
           unoptimized={hasError}
         />

@@ -1,12 +1,20 @@
+"use client";
 
-'use client';
-
-import { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Mail, Phone, MapPin, Music, ExternalLink, Flag, MessageSquare } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import {
+  CheckCircle2,
+  Mail,
+  Phone,
+  MapPin,
+  Music,
+  ExternalLink,
+  Flag,
+  MessageSquare,
+} from "lucide-react";
 
 interface PublicProfileProps {
   username: string;
@@ -44,7 +52,10 @@ interface UserProfile {
   }>;
 }
 
-export default function PublicProfile({ username, currentUserId }: PublicProfileProps) {
+export default function PublicProfile({
+  username,
+  currentUserId,
+}: PublicProfileProps) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,13 +68,13 @@ export default function PublicProfile({ username, currentUserId }: PublicProfile
     try {
       const response = await fetch(`/api/profile/${username}`);
       const data = await response.json();
-      
+
       if (data.ok) {
         setProfile(data.profile);
         setIsFollowing(data.isFollowing || false);
       }
     } catch (error) {
-      console.error('Failed to fetch profile:', error);
+      console.error("Failed to fetch profile:", error);
     } finally {
       setIsLoading(false);
     }
@@ -71,32 +82,39 @@ export default function PublicProfile({ username, currentUserId }: PublicProfile
 
   const handleFollow = async () => {
     if (!currentUserId) return;
-    
+
     try {
       const response = await fetch(`/api/profile/${username}/follow`, {
-        method: isFollowing ? 'DELETE' : 'POST'
+        method: isFollowing ? "DELETE" : "POST",
       });
-      
+
       if (response.ok) {
         setIsFollowing(!isFollowing);
-        setProfile(prev => prev ? {
-          ...prev,
-          stats: { ...prev.stats, followers: prev.stats.followers + (isFollowing ? -1 : 1) }
-        } : null);
+        setProfile((prev) =>
+          prev
+            ? {
+                ...prev,
+                stats: {
+                  ...prev.stats,
+                  followers: prev.stats.followers + (isFollowing ? -1 : 1),
+                },
+              }
+            : null,
+        );
       }
     } catch (error) {
-      console.error('Failed to toggle follow:', error);
+      console.error("Failed to toggle follow:", error);
     }
   };
 
   const handleReport = async () => {
     // Implementation for reporting
-    alert('Report functionality coming soon');
+    alert("Report functionality coming soon");
   };
 
   const handleContact = async () => {
     // Implementation for contact requests
-    alert('Contact request functionality coming soon');
+    alert("Contact request functionality coming soon");
   };
 
   if (isLoading) {
@@ -114,7 +132,9 @@ export default function PublicProfile({ username, currentUserId }: PublicProfile
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Card className="bg-[#0B0B0B] border-[#1a1a1a] p-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-2">Profile Not Found</h2>
+          <h2 className="text-2xl font-bold text-white mb-2">
+            Profile Not Found
+          </h2>
           <p className="text-gray-400">The user @{username} does not exist.</p>
         </Card>
       </div>
@@ -135,7 +155,9 @@ export default function PublicProfile({ username, currentUserId }: PublicProfile
 
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <h1 className="text-3xl font-bold text-white">{profile.artistName}</h1>
+              <h1 className="text-3xl font-bold text-white">
+                {profile.artistName}
+              </h1>
               {profile.isVerified && (
                 <Badge className="bg-[#D7FF3C] text-black">
                   <CheckCircle2 className="h-3 w-3 mr-1" />
@@ -172,17 +194,30 @@ export default function PublicProfile({ username, currentUserId }: PublicProfile
               <div className="flex gap-2">
                 <Button
                   onClick={handleFollow}
-                  className={isFollowing ? 'bg-gray-700 hover:bg-gray-600' : 'bg-[#D7FF3C] text-black hover:bg-[#D7FF3C]/90'}
+                  className={
+                    isFollowing
+                      ? "bg-gray-700 hover:bg-gray-600"
+                      : "bg-[#D7FF3C] text-black hover:bg-[#D7FF3C]/90"
+                  }
                 >
-                  {isFollowing ? 'Following' : 'Follow'}
+                  {isFollowing ? "Following" : "Follow"}
                 </Button>
                 {profile.allowContactRequests && (
-                  <Button onClick={handleContact} variant="outline" className="border-[#1a1a1a]">
+                  <Button
+                    onClick={handleContact}
+                    variant="outline"
+                    className="border-[#1a1a1a]"
+                  >
                     <MessageSquare className="h-4 w-4 mr-2" />
                     Contact
                   </Button>
                 )}
-                <Button onClick={handleReport} variant="ghost" size="icon" className="text-red-400 hover:text-red-300">
+                <Button
+                  onClick={handleReport}
+                  variant="ghost"
+                  size="icon"
+                  className="text-red-400 hover:text-red-300"
+                >
                   <Flag className="h-4 w-4" />
                 </Button>
               </div>
@@ -195,15 +230,21 @@ export default function PublicProfile({ username, currentUserId }: PublicProfile
       <Card className="bg-[#0B0B0B] border-[#1a1a1a] p-6">
         <div className="grid grid-cols-3 gap-6 text-center">
           <div>
-            <p className="text-3xl font-bold text-[#D7FF3C]">{profile.stats.followers}</p>
+            <p className="text-3xl font-bold text-[#D7FF3C]">
+              {profile.stats.followers}
+            </p>
             <p className="text-sm text-gray-400">Followers</p>
           </div>
           <div>
-            <p className="text-3xl font-bold text-[#9B5CFF]">{profile.stats.gigs}</p>
+            <p className="text-3xl font-bold text-[#9B5CFF]">
+              {profile.stats.gigs}
+            </p>
             <p className="text-sm text-gray-400">Gigs</p>
           </div>
           <div>
-            <p className="text-3xl font-bold text-[#FF6B9D]">{profile.stats.releases}</p>
+            <p className="text-3xl font-bold text-[#FF6B9D]">
+              {profile.stats.releases}
+            </p>
             <p className="text-sm text-gray-400">Releases</p>
           </div>
         </div>
@@ -239,26 +280,32 @@ export default function PublicProfile({ username, currentUserId }: PublicProfile
       )}
 
       {/* Releases Card */}
-      {profile.publicReleases && profile.releases && profile.releases.length > 0 && (
-        <Card className="bg-[#0B0B0B] border-[#1a1a1a] p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">Recent Releases</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {profile.releases.map((release) => (
-              <div key={release.id} className="group cursor-pointer">
-                <div className="aspect-square bg-[#1a1a1a] rounded-lg mb-2 overflow-hidden">
-                  <img
-                    src={release.coverUrl}
-                    alt={release.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                  />
+      {profile.publicReleases &&
+        profile.releases &&
+        profile.releases.length > 0 && (
+          <Card className="bg-[#0B0B0B] border-[#1a1a1a] p-6">
+            <h2 className="text-xl font-semibold text-white mb-4">
+              Recent Releases
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {profile.releases.map((release) => (
+                <div key={release.id} className="group cursor-pointer">
+                  <div className="aspect-square bg-[#1a1a1a] rounded-lg mb-2 overflow-hidden">
+                    <img
+                      src={release.coverUrl}
+                      alt={release.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    />
+                  </div>
+                  <p className="text-sm font-medium text-white truncate">
+                    {release.title}
+                  </p>
+                  <p className="text-xs text-gray-400">{release.releaseDate}</p>
                 </div>
-                <p className="text-sm font-medium text-white truncate">{release.title}</p>
-                <p className="text-xs text-gray-400">{release.releaseDate}</p>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
+              ))}
+            </div>
+          </Card>
+        )}
     </div>
   );
 }

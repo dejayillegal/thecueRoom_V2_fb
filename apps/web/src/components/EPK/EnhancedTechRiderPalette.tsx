@@ -1,14 +1,20 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { Plus, X, GripVertical } from 'lucide-react';
+import { useState } from "react";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "react-beautiful-dnd";
+import { Plus, X, GripVertical } from "lucide-react";
 
-const createModuleId = () => `module_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+const createModuleId = () =>
+  `module_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
 export interface TechRiderItem {
   id: string;
-  type: 'cdj' | 'mixer' | 'speakers' | 'turntable' | 'microphone' | 'custom';
+  type: "cdj" | "mixer" | "speakers" | "turntable" | "microphone" | "custom";
   label: string;
   quantity?: number;
   notes?: string;
@@ -20,22 +26,80 @@ interface EnhancedTechRiderPaletteProps {
   onChange: (items: TechRiderItem[]) => void;
 }
 
-const PALETTE_ITEMS: Omit<TechRiderItem, 'id'>[] = [
-  { type: 'cdj', label: 'CDJ-3000', quantity: 2, icon: '/assets/tech-rider/cdj.png' },
-  { type: 'cdj', label: 'CDJ-2000NXS2', quantity: 2, icon: '/assets/tech-rider/cdj.png' },
-  { type: 'mixer', label: 'DJM-900NXS2', quantity: 1, icon: '/assets/tech-rider/mixer.png' },
-  { type: 'mixer', label: 'DJM-A9', quantity: 1, icon: '/assets/tech-rider/mixer.png' },
-  { type: 'turntable', label: 'Technics SL-1210', quantity: 2, icon: '/assets/tech-rider/turntable.png' },
-  { type: 'turntable', label: 'Technics SL-1200MK7', quantity: 2, icon: '/assets/tech-rider/turntable.png' },
-  { type: 'speakers', label: 'Monitor Speakers', quantity: 2, icon: '/assets/tech-rider/speaker.png' },
-  { type: 'speakers', label: 'PA System', quantity: 1, icon: '/assets/tech-rider/speaker.png' },
-  { type: 'speakers', label: 'In-Ear Monitors', quantity: 1, icon: '/assets/tech-rider/speaker.png' },
-  { type: 'microphone', label: 'Wireless Microphone', quantity: 1, icon: '/assets/tech-rider/microphone.png' },
-  { type: 'microphone', label: 'Wired Microphone', quantity: 1, icon: '/assets/tech-rider/microphone.png' },
+const PALETTE_ITEMS: Omit<TechRiderItem, "id">[] = [
+  {
+    type: "cdj",
+    label: "CDJ-3000",
+    quantity: 2,
+    icon: "/assets/tech-rider/cdj.png",
+  },
+  {
+    type: "cdj",
+    label: "CDJ-2000NXS2",
+    quantity: 2,
+    icon: "/assets/tech-rider/cdj.png",
+  },
+  {
+    type: "mixer",
+    label: "DJM-900NXS2",
+    quantity: 1,
+    icon: "/assets/tech-rider/mixer.png",
+  },
+  {
+    type: "mixer",
+    label: "DJM-A9",
+    quantity: 1,
+    icon: "/assets/tech-rider/mixer.png",
+  },
+  {
+    type: "turntable",
+    label: "Technics SL-1210",
+    quantity: 2,
+    icon: "/assets/tech-rider/turntable.png",
+  },
+  {
+    type: "turntable",
+    label: "Technics SL-1200MK7",
+    quantity: 2,
+    icon: "/assets/tech-rider/turntable.png",
+  },
+  {
+    type: "speakers",
+    label: "Monitor Speakers",
+    quantity: 2,
+    icon: "/assets/tech-rider/speaker.png",
+  },
+  {
+    type: "speakers",
+    label: "PA System",
+    quantity: 1,
+    icon: "/assets/tech-rider/speaker.png",
+  },
+  {
+    type: "speakers",
+    label: "In-Ear Monitors",
+    quantity: 1,
+    icon: "/assets/tech-rider/speaker.png",
+  },
+  {
+    type: "microphone",
+    label: "Wireless Microphone",
+    quantity: 1,
+    icon: "/assets/tech-rider/microphone.png",
+  },
+  {
+    type: "microphone",
+    label: "Wired Microphone",
+    quantity: 1,
+    icon: "/assets/tech-rider/microphone.png",
+  },
 ];
 
-export default function EnhancedTechRiderPalette({ items, onChange }: EnhancedTechRiderPaletteProps) {
-  const [customLabel, setCustomLabel] = useState('');
+export default function EnhancedTechRiderPalette({
+  items,
+  onChange,
+}: EnhancedTechRiderPaletteProps) {
+  const [customLabel, setCustomLabel] = useState("");
 
   function handleDragEnd(result: DropResult) {
     if (!result.destination) return;
@@ -47,10 +111,10 @@ export default function EnhancedTechRiderPalette({ items, onChange }: EnhancedTe
     onChange(newItems);
   }
 
-  function addPaletteItem(item: Omit<TechRiderItem, 'id'>) {
+  function addPaletteItem(item: Omit<TechRiderItem, "id">) {
     const newItem: TechRiderItem = {
       id: createModuleId(),
-      ...item
+      ...item,
     };
     onChange([...items, newItem]);
   }
@@ -60,36 +124,40 @@ export default function EnhancedTechRiderPalette({ items, onChange }: EnhancedTe
 
     const newItem: TechRiderItem = {
       id: createModuleId(),
-      type: 'custom',
+      type: "custom",
       label: customLabel.trim(),
       quantity: 1,
-      icon: undefined // Custom items are text-only
+      icon: undefined, // Custom items are text-only
     };
     onChange([...items, newItem]);
-    setCustomLabel('');
+    setCustomLabel("");
   }
 
   function removeItem(id: string) {
-    onChange(items.filter(item => item.id !== id));
+    onChange(items.filter((item) => item.id !== id));
   }
 
   function updateQuantity(id: string, quantity: number) {
-    onChange(items.map(item =>
-      item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item
-    ));
+    onChange(
+      items.map((item) =>
+        item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item,
+      ),
+    );
   }
 
   function updateNotes(id: string, notes: string) {
-    onChange(items.map(item =>
-      item.id === id ? { ...item, notes } : item
-    ));
+    onChange(items.map((item) => (item.id === id ? { ...item, notes } : item)));
   }
 
   return (
     <div className="space-y-4">
       <div>
-        <h4 className="text-sm font-semibold text-[#D1FF3D] mb-3">Equipment Palette</h4>
-        <p className="text-xs text-gray-400 mb-3">Click to add equipment to your tech rider</p>
+        <h4 className="text-sm font-semibold text-[#D1FF3D] mb-3">
+          Equipment Palette
+        </h4>
+        <p className="text-xs text-gray-400 mb-3">
+          Click to add equipment to your tech rider
+        </p>
         <div className="grid grid-cols-2 gap-2">
           {PALETTE_ITEMS.map((item, index) => (
             <button
@@ -99,11 +167,19 @@ export default function EnhancedTechRiderPalette({ items, onChange }: EnhancedTe
               aria-label={`Add ${item.label} to tech rider`}
             >
               {item.icon && (
-                <img src={item.icon} alt={item.type} className="w-8 h-8 object-contain" />
+                <img
+                  src={item.icon}
+                  alt={item.type}
+                  className="w-8 h-8 object-contain"
+                />
               )}
               <div className="flex-1">
-                <div className="text-white text-sm font-medium">{item.label}</div>
-                <div className="text-xs text-gray-400">Qty: {item.quantity}</div>
+                <div className="text-white text-sm font-medium">
+                  {item.label}
+                </div>
+                <div className="text-xs text-gray-400">
+                  Qty: {item.quantity}
+                </div>
               </div>
               <Plus className="w-4 h-4 text-[#9B5CFF]" />
             </button>
@@ -120,7 +196,7 @@ export default function EnhancedTechRiderPalette({ items, onChange }: EnhancedTe
             type="text"
             value={customLabel}
             onChange={(e) => setCustomLabel(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addCustomItem()}
+            onKeyDown={(e) => e.key === "Enter" && addCustomItem()}
             placeholder="e.g., Wireless Microphone"
             className="flex-1 bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#9B5CFF] focus:border-transparent"
             aria-label="Custom equipment name"
@@ -147,7 +223,12 @@ export default function EnhancedTechRiderPalette({ items, onChange }: EnhancedTe
           </div>
         ) : (
           <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="tech-rider" isDropDisabled={false} isCombineEnabled={false} ignoreContainerClipping={false}>
+            <Droppable
+              droppableId="tech-rider"
+              isDropDisabled={false}
+              isCombineEnabled={false}
+              ignoreContainerClipping={false}
+            >
               {(provided) => (
                 <div
                   {...provided.droppableProps}
@@ -157,13 +238,19 @@ export default function EnhancedTechRiderPalette({ items, onChange }: EnhancedTe
                   aria-label="Tech rider equipment list"
                 >
                   {items.map((item, index) => (
-                    <Draggable key={item.id} draggableId={item.id} index={index}>
+                    <Draggable
+                      key={item.id}
+                      draggableId={item.id}
+                      index={index}
+                    >
                       {(provided, snapshot) => (
                         <div
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           className={`bg-[#1a1a1a] border border-[#333] rounded-lg p-3 ${
-                            snapshot.isDragging ? 'ring-2 ring-[#9B5CFF] shadow-lg' : ''
+                            snapshot.isDragging
+                              ? "ring-2 ring-[#9B5CFF] shadow-lg"
+                              : ""
                           }`}
                           role="listitem"
                         >
@@ -177,23 +264,38 @@ export default function EnhancedTechRiderPalette({ items, onChange }: EnhancedTe
                             </div>
 
                             {item.icon && (
-                              <img src={item.icon} alt={item.type} className="w-10 h-10 object-contain mt-1" />
+                              <img
+                                src={item.icon}
+                                alt={item.type}
+                                className="w-10 h-10 object-contain mt-1"
+                              />
                             )}
 
                             <div className="flex-1 space-y-2">
                               <div className="flex items-start justify-between gap-2">
                                 <div className="flex-1">
-                                  <div className="text-white font-medium">{item.label}</div>
-                                  <div className="text-xs text-gray-400 capitalize">{item.type}</div>
+                                  <div className="text-white font-medium">
+                                    {item.label}
+                                  </div>
+                                  <div className="text-xs text-gray-400 capitalize">
+                                    {item.type}
+                                  </div>
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                  <label className="text-xs text-gray-400">Qty:</label>
+                                  <label className="text-xs text-gray-400">
+                                    Qty:
+                                  </label>
                                   <input
                                     type="number"
                                     min="1"
                                     value={item.quantity || 1}
-                                    onChange={(e) => updateQuantity(item.id, parseInt(e.target.value) || 1)}
+                                    onChange={(e) =>
+                                      updateQuantity(
+                                        item.id,
+                                        parseInt(e.target.value) || 1,
+                                      )
+                                    }
                                     className="w-16 bg-[#0B0B0B] border border-[#333] rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-[#9B5CFF]"
                                     aria-label={`Quantity for ${item.label}`}
                                   />
@@ -210,8 +312,10 @@ export default function EnhancedTechRiderPalette({ items, onChange }: EnhancedTe
 
                               <input
                                 type="text"
-                                value={item.notes || ''}
-                                onChange={(e) => updateNotes(item.id, e.target.value)}
+                                value={item.notes || ""}
+                                onChange={(e) =>
+                                  updateNotes(item.id, e.target.value)
+                                }
                                 placeholder="Additional notes or specifications..."
                                 className="w-full bg-[#0B0B0B] border border-[#333] rounded px-3 py-1.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-[#9B5CFF]"
                                 aria-label={`Notes for ${item.label}`}

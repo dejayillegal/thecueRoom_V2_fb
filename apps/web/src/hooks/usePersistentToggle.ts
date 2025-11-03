@@ -1,5 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
-import { safeLocalStorageGet, safeLocalStorageSet, isClient } from '@/lib/ui-safety';
+import { useState, useEffect, useCallback } from "react";
+import {
+  safeLocalStorageGet,
+  safeLocalStorageSet,
+  isClient,
+} from "@/lib/ui-safety";
 
 /**
  * Hook for persistent boolean toggle state with localStorage
@@ -9,27 +13,27 @@ import { safeLocalStorageGet, safeLocalStorageSet, isClient } from '@/lib/ui-saf
  */
 export function usePersistentToggle(
   key: string,
-  defaultValue: boolean = false
+  defaultValue: boolean = false,
 ): [boolean, () => void, (value: boolean) => void] {
   const storageKey = `tcr:${key}`;
-  
+
   const [value, setValue] = useState<boolean>(() => {
     if (!isClient()) return defaultValue;
-    
+
     const stored = safeLocalStorageGet(storageKey);
-    if (stored === '') return defaultValue;
-    
-    return stored === 'true';
+    if (stored === "") return defaultValue;
+
+    return stored === "true";
   });
 
   useEffect(() => {
     if (!isClient()) return;
-    
+
     safeLocalStorageSet(storageKey, String(value));
   }, [value, storageKey]);
 
   const toggle = useCallback(() => {
-    setValue(prev => !prev);
+    setValue((prev) => !prev);
   }, []);
 
   const set = useCallback((newValue: boolean) => {

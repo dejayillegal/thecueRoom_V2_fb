@@ -1,7 +1,6 @@
-
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { safeFetch } from '@/lib/safe-fetch';
-import { nanoid } from 'nanoid';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { safeFetch } from "@/lib/safe-fetch";
+import { nanoid } from "nanoid";
 
 interface Reply {
   id: string;
@@ -13,7 +12,7 @@ interface Reply {
   avatar?: string;
   likesCount: number;
   createdAt: string;
-  status?: 'pending' | 'approved' | 'rejected' | 'review';
+  status?: "pending" | "approved" | "rejected" | "review";
 }
 
 interface Thread {
@@ -66,7 +65,7 @@ export function useThread(threadId: string): UseThreadResult {
       {
         signal: abortControllerRef.current.signal,
         timeout: 8000,
-      }
+      },
     );
 
     if (result.ok && result.data) {
@@ -74,60 +73,67 @@ export function useThread(threadId: string): UseThreadResult {
       setReplies(result.data.replies || []);
       setError(null);
     } else {
-      setError(result.error || 'Failed to load thread');
+      setError(result.error || "Failed to load thread");
     }
 
     setLoading(false);
   }, [threadId]);
 
-  const postReply = useCallback(async (body: string) => {
-    if (!thread) return;
+  const postReply = useCallback(
+    async (body: string) => {
+      if (!thread) return;
 
-    const tempId = `temp-${nanoid()}`;
-    const optimisticReply: Reply = {
-      id: tempId,
-      threadId: thread.id,
-      userId: 'current-user',
-      body,
-      username: 'You',
-      likesCount: 0,
-      createdAt: new Date().toISOString(),
-      status: 'pending',
-    };
+      const tempId = `temp-${nanoid()}`;
+      const optimisticReply: Reply = {
+        id: tempId,
+        threadId: thread.id,
+        userId: "current-user",
+        body,
+        username: "You",
+        likesCount: 0,
+        createdAt: new Date().toISOString(),
+        status: "pending",
+      };
 
-    // Optimistic update
-    setReplies((prev) => [...prev, optimisticReply]);
-    setThread((prev) => prev ? { ...prev, replyCount: prev.replyCount + 1 } : null);
-
-    const result = await safeFetch<{ reply: Reply; status: string }>(
-      `/api/forum/thread/${threadId}/reply`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ body }),
-        timeout: 20000,
-      }
-    );
-
-    if (result.ok && result.data?.reply) {
-      setReplies((prev) =>
-        prev.map((r) => (r.id === tempId ? result.data!.reply : r))
+      // Optimistic update
+      setReplies((prev) => [...prev, optimisticReply]);
+      setThread((prev) =>
+        prev ? { ...prev, replyCount: prev.replyCount + 1 } : null,
       );
-      
-      if (result.data.status === 'review') {
+
+      const result = await safeFetch<{ reply: Reply; status: string }>(
+        `/api/forum/thread/${threadId}/reply`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ body }),
+          timeout: 20000,
+        },
+      );
+
+      if (result.ok && result.data?.reply) {
         setReplies((prev) =>
-          prev.map((r) =>
-            r.id === result.data!.reply.id ? { ...r, status: 'review' } : r
-          )
+          prev.map((r) => (r.id === tempId ? result.data!.reply : r)),
         );
+
+        if (result.data.status === "review") {
+          setReplies((prev) =>
+            prev.map((r) =>
+              r.id === result.data!.reply.id ? { ...r, status: "review" } : r,
+            ),
+          );
+        }
+      } else {
+        // Revert on error
+        setReplies((prev) => prev.filter((r) => r.id !== tempId));
+        setThread((prev) =>
+          prev ? { ...prev, replyCount: prev.replyCount - 1 } : null,
+        );
+        throw new Error(result.error || "Failed to post reply");
       }
-    } else {
-      // Revert on error
-      setReplies((prev) => prev.filter((r) => r.id !== tempId));
-      setThread((prev) => prev ? { ...prev, replyCount: prev.replyCount - 1 } : null);
-      throw new Error(result.error || 'Failed to post reply');
-    }
-  }, [thread, threadId]);
+    },
+    [thread, threadId],
+  );
 
   const toggleLike = useCallback(async () => {
     if (!thread) return;
@@ -139,10 +145,12 @@ export function useThread(threadId: string): UseThreadResult {
 
     // Optimistic update
     const wasLiked = thread.liked || false;
-    const newLikesCount = wasLiked ? thread.likesCount - 1 : thread.likesCount + 1;
+    const newLikesCount = wasLiked
+      ? thread.likesCount - 1
+      : thread.likesCount + 1;
 
     setThread((prev) =>
-      prev ? { ...prev, liked: !wasLiked, likesCount: newLikesCount } : null
+      prev ? { ...prev, liked: !wasLiked, likesCount: newLikesCount } : null,
     );
 
     // Debounced API call
@@ -150,10 +158,10 @@ export function useThread(threadId: string): UseThreadResult {
       const result = await safeFetch<{ liked: boolean; likesCount: number }>(
         `/api/forum/thread/${threadId}/like`,
         {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           timeout: 5000,
-        }
+        },
       );
 
       if (result.ok && result.data) {
@@ -164,12 +172,14 @@ export function useThread(threadId: string): UseThreadResult {
                 liked: result.data!.liked,
                 likesCount: result.data!.likesCount,
               }
-            : null
+            : null,
         );
       } else {
         // Revert on error
         setThread((prev) =>
-          prev ? { ...prev, liked: wasLiked, likesCount: thread.likesCount } : null
+          prev
+            ? { ...prev, liked: wasLiked, likesCount: thread.likesCount }
+            : null,
         );
       }
     }, 200);

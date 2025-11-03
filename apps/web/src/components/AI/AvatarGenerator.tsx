@@ -1,28 +1,27 @@
+"use client";
 
-'use client';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Download, User, Loader2 } from "lucide-react";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Download, User, Loader2 } from 'lucide-react';
-
-const AVATAR_STYLES = ['minimal', 'geometric', 'abstract', 'neon'];
-const HAIR_STYLES = ['short', 'long', 'mohawk', 'bald'];
-const ACCENT_COLORS = ['#D1FF3D', '#873BBF', '#FF3D7F', '#3DFFCB'];
+const AVATAR_STYLES = ["minimal", "geometric", "abstract", "neon"];
+const HAIR_STYLES = ["short", "long", "mohawk", "bald"];
+const ACCENT_COLORS = ["#D1FF3D", "#873BBF", "#FF3D7F", "#3DFFCB"];
 
 export function AvatarGenerator() {
-  const [style, setStyle] = useState('minimal');
-  const [hair, setHair] = useState('short');
-  const [accentColor, setAccentColor] = useState('#D1FF3D');
+  const [style, setStyle] = useState("minimal");
+  const [hair, setHair] = useState("short");
+  const [accentColor, setAccentColor] = useState("#D1FF3D");
   const [isGenerating, setIsGenerating] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
     try {
-      const response = await fetch('/api/ai/avatar/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/ai/avatar/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ style, hair, accentColor }),
       });
 
@@ -31,7 +30,7 @@ export function AvatarGenerator() {
         setAvatarUrl(data.url);
       }
     } catch (error) {
-      console.error('Avatar generation failed:', error);
+      console.error("Avatar generation failed:", error);
     } finally {
       setIsGenerating(false);
     }
@@ -40,7 +39,9 @@ export function AvatarGenerator() {
   return (
     <div className="max-w-2xl mx-auto">
       <Card className="bg-[#111111] border-[#1a1a1a] p-6">
-        <h2 className="text-lg font-semibold text-white mb-6">Generate Avatar</h2>
+        <h2 className="text-lg font-semibold text-white mb-6">
+          Generate Avatar
+        </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
@@ -53,8 +54,8 @@ export function AvatarGenerator() {
                     onClick={() => setStyle(s)}
                     className={`p-2 rounded border capitalize text-sm ${
                       style === s
-                        ? 'border-[#D1FF3D] bg-[#D1FF3D]/10 text-white'
-                        : 'border-[#1a1a1a] text-gray-400 hover:border-[#333333]'
+                        ? "border-[#D1FF3D] bg-[#D1FF3D]/10 text-white"
+                        : "border-[#1a1a1a] text-gray-400 hover:border-[#333333]"
                     }`}
                   >
                     {s}
@@ -72,8 +73,8 @@ export function AvatarGenerator() {
                     onClick={() => setHair(h)}
                     className={`p-2 rounded border capitalize text-sm ${
                       hair === h
-                        ? 'border-[#D1FF3D] bg-[#D1FF3D]/10 text-white'
-                        : 'border-[#1a1a1a] text-gray-400 hover:border-[#333333]'
+                        ? "border-[#D1FF3D] bg-[#D1FF3D]/10 text-white"
+                        : "border-[#1a1a1a] text-gray-400 hover:border-[#333333]"
                     }`}
                   >
                     {h}
@@ -83,14 +84,18 @@ export function AvatarGenerator() {
             </div>
 
             <div>
-              <label className="text-white text-sm mb-2 block">Accent Color</label>
+              <label className="text-white text-sm mb-2 block">
+                Accent Color
+              </label>
               <div className="flex gap-2">
                 {ACCENT_COLORS.map((color) => (
                   <button
                     key={color}
                     onClick={() => setAccentColor(color)}
                     className={`w-10 h-10 rounded-full border-2 ${
-                      accentColor === color ? 'border-white' : 'border-transparent'
+                      accentColor === color
+                        ? "border-white"
+                        : "border-transparent"
                     }`}
                     style={{ backgroundColor: color }}
                   />
@@ -120,7 +125,11 @@ export function AvatarGenerator() {
           <div>
             <div className="aspect-square bg-[#0a0a0a] rounded-lg flex items-center justify-center border border-[#1a1a1a] mb-4">
               {avatarUrl ? (
-                <img src={avatarUrl} alt="Generated avatar" className="w-full h-full object-cover rounded-lg" />
+                <img
+                  src={avatarUrl}
+                  alt="Generated avatar"
+                  className="w-full h-full object-cover rounded-lg"
+                />
               ) : (
                 <User className="w-24 h-24 text-gray-600" />
               )}
@@ -132,7 +141,10 @@ export function AvatarGenerator() {
                   <Download className="w-4 h-4 mr-2" />
                   Download
                 </Button>
-                <Button variant="outline" className="flex-1 border-[#333333] text-white hover:bg-[#1a1a1a]">
+                <Button
+                  variant="outline"
+                  className="flex-1 border-[#333333] text-white hover:bg-[#1a1a1a]"
+                >
                   Use as Avatar
                 </Button>
               </div>

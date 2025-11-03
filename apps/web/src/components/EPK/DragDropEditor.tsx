@@ -1,18 +1,34 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { EPKModule, EPKModuleType } from '@thecueroom/epk';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { 
-  GripVertical, Plus, Trash2, Image as ImageIcon, 
-  Video, Calendar, Music, Quote, Link2, 
-  FileText, Settings, Camera, TrendingUp, X 
-} from 'lucide-react';
+import { useState, useCallback } from "react";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "react-beautiful-dnd";
+import { EPKModule, EPKModuleType } from "@thecueroom/epk";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  GripVertical,
+  Plus,
+  Trash2,
+  Image as ImageIcon,
+  Video,
+  Calendar,
+  Music,
+  Quote,
+  Link2,
+  FileText,
+  Settings,
+  Camera,
+  TrendingUp,
+  X,
+} from "lucide-react";
 
 interface DragDropEditorProps {
   modules: EPKModule[];
@@ -32,64 +48,86 @@ const MODULE_ICONS: Record<EPKModuleType, any> = {
   discography: Music,
   pressTimeline: TrendingUp,
   stats: TrendingUp,
-  customText: FileText
+  customText: FileText,
 };
 
 const MODULE_LABELS: Record<EPKModuleType, string> = {
-  bio: 'Biography',
-  quotes: 'Press Quotes',
-  links: 'Social Links',
-  tracklist: 'Tracklist',
-  techRider: 'Tech Rider',
-  gallery: 'Photo Gallery',
-  video: 'Video Showcase',
-  tourDates: 'Tour Dates',
-  discography: 'Discography',
-  pressTimeline: 'Press Timeline',
-  stats: 'Statistics',
-  customText: 'Custom Text'
+  bio: "Biography",
+  quotes: "Press Quotes",
+  links: "Social Links",
+  tracklist: "Tracklist",
+  techRider: "Tech Rider",
+  gallery: "Photo Gallery",
+  video: "Video Showcase",
+  tourDates: "Tour Dates",
+  discography: "Discography",
+  pressTimeline: "Press Timeline",
+  stats: "Statistics",
+  customText: "Custom Text",
 };
 
-export function DragDropEditor({ modules, onModulesChange, supportedModules }: DragDropEditorProps) {
+export function DragDropEditor({
+  modules,
+  onModulesChange,
+  supportedModules,
+}: DragDropEditorProps) {
   const [expandedModuleId, setExpandedModuleId] = useState<string | null>(null);
 
-  const handleAddModule = useCallback((type: EPKModuleType) => {
-    const newModule: EPKModule = {
-      id: `module-${Date.now()}`,
-      type,
-      order: modules.length,
-      data: getDefaultDataForType(type)
-    };
-    onModulesChange([...modules, newModule]);
-    setExpandedModuleId(newModule.id);
-  }, [modules, onModulesChange]);
+  const handleAddModule = useCallback(
+    (type: EPKModuleType) => {
+      const newModule: EPKModule = {
+        id: `module-${Date.now()}`,
+        type,
+        order: modules.length,
+        data: getDefaultDataForType(type),
+      };
+      onModulesChange([...modules, newModule]);
+      setExpandedModuleId(newModule.id);
+    },
+    [modules, onModulesChange],
+  );
 
-  const handleDeleteModule = useCallback((id: string) => {
-    onModulesChange(modules.filter(m => m.id !== id));
-  }, [modules, onModulesChange]);
+  const handleDeleteModule = useCallback(
+    (id: string) => {
+      onModulesChange(modules.filter((m) => m.id !== id));
+    },
+    [modules, onModulesChange],
+  );
 
-  const handleUpdateModule = useCallback((id: string, updates: Partial<EPKModule>) => {
-    onModulesChange(modules.map(m => m.id === id ? { ...m, ...updates } : m));
-  }, [modules, onModulesChange]);
+  const handleUpdateModule = useCallback(
+    (id: string, updates: Partial<EPKModule>) => {
+      onModulesChange(
+        modules.map((m) => (m.id === id ? { ...m, ...updates } : m)),
+      );
+    },
+    [modules, onModulesChange],
+  );
 
-  const handleMoveModule = useCallback((fromIndex: number, toIndex: number) => {
-    const newModules = [...modules];
-    const [moved] = newModules.splice(fromIndex, 1);
-    newModules.splice(toIndex, 0, moved);
-    onModulesChange(newModules.map((m, i) => ({ ...m, order: i })));
-  }, [modules, onModulesChange]);
+  const handleMoveModule = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      const newModules = [...modules];
+      const [moved] = newModules.splice(fromIndex, 1);
+      newModules.splice(toIndex, 0, moved);
+      onModulesChange(newModules.map((m, i) => ({ ...m, order: i })));
+    },
+    [modules, onModulesChange],
+  );
 
-  const onDragEnd = useCallback((result: DropResult) => {
-    if (!result.destination) return;
-    handleMoveModule(result.source.index, result.destination.index);
-  }, [handleMoveModule]);
+  const onDragEnd = useCallback(
+    (result: DropResult) => {
+      if (!result.destination) return;
+      handleMoveModule(result.source.index, result.destination.index);
+    },
+    [handleMoveModule],
+  );
 
-  const availableModuleTypes = supportedModules || Object.keys(MODULE_LABELS) as EPKModuleType[];
+  const availableModuleTypes =
+    supportedModules || (Object.keys(MODULE_LABELS) as EPKModuleType[]);
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
-        {availableModuleTypes.map(type => {
+        {availableModuleTypes.map((type) => {
           const Icon = MODULE_ICONS[type];
           return (
             <Button
@@ -107,14 +145,14 @@ export function DragDropEditor({ modules, onModulesChange, supportedModules }: D
       </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable 
-          droppableId="epk-modules" 
+        <Droppable
+          droppableId="epk-modules"
           isDropDisabled={false}
           isCombineEnabled={false}
           ignoreContainerClipping={false}
         >
           {(provided) => (
-            <div 
+            <div
               {...provided.droppableProps}
               ref={provided.innerRef}
               className="space-y-3"
@@ -124,12 +162,16 @@ export function DragDropEditor({ modules, onModulesChange, supportedModules }: D
                 const isExpanded = expandedModuleId === module.id;
 
                 return (
-                  <Draggable key={module.id} draggableId={module.id} index={index}>
+                  <Draggable
+                    key={module.id}
+                    draggableId={module.id}
+                    index={index}
+                  >
                     {(provided, snapshot) => (
                       <div
                         ref={provided.innerRef}
                         {...provided.draggableProps}
-                        className={`${snapshot.isDragging ? 'opacity-50' : ''}`}
+                        className={`${snapshot.isDragging ? "opacity-50" : ""}`}
                       >
                         <Card className="bg-[#0a0a0a] border-[#1a1a1a] p-4">
                           <div className="flex items-center gap-3">
@@ -143,9 +185,13 @@ export function DragDropEditor({ modules, onModulesChange, supportedModules }: D
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => setExpandedModuleId(isExpanded ? null : module.id)}
+                              onClick={() =>
+                                setExpandedModuleId(
+                                  isExpanded ? null : module.id,
+                                )
+                              }
                             >
-                              {isExpanded ? 'Collapse' : 'Expand'}
+                              {isExpanded ? "Collapse" : "Expand"}
                             </Button>
                             <Button
                               size="sm"
@@ -159,7 +205,9 @@ export function DragDropEditor({ modules, onModulesChange, supportedModules }: D
 
                           {isExpanded && (
                             <div className="mt-4 space-y-3">
-                              {renderModuleEditor(module, (data) => handleUpdateModule(module.id, { data }))}
+                              {renderModuleEditor(module, (data) =>
+                                handleUpdateModule(module.id, { data }),
+                              )}
                             </div>
                           )}
                         </Card>
@@ -179,30 +227,30 @@ export function DragDropEditor({ modules, onModulesChange, supportedModules }: D
 
 function getDefaultDataForType(type: EPKModuleType): any {
   switch (type) {
-    case 'bio':
-      return { text: '' };
-    case 'quotes':
+    case "bio":
+      return { text: "" };
+    case "quotes":
       return { quotes: [] };
-    case 'links':
+    case "links":
       return { links: [] };
-    case 'tracklist':
+    case "tracklist":
       return { tracks: [] };
-    case 'techRider':
+    case "techRider":
       return { items: [] };
-    case 'gallery':
+    case "gallery":
       return { images: [] };
-    case 'video':
+    case "video":
       return { videos: [] };
-    case 'tourDates':
+    case "tourDates":
       return { dates: [] };
-    case 'discography':
+    case "discography":
       return { releases: [] };
-    case 'pressTimeline':
+    case "pressTimeline":
       return { events: [] };
-    case 'stats':
+    case "stats":
       return { metrics: [] };
-    case 'customText':
-      return { title: '', content: '' };
+    case "customText":
+      return { title: "", content: "" };
     default:
       return {};
   }
@@ -210,17 +258,17 @@ function getDefaultDataForType(type: EPKModuleType): any {
 
 function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
   switch (module.type) {
-    case 'bio':
+    case "bio":
       return (
         <Textarea
-          value={module.data.text || ''}
+          value={module.data.text || ""}
           onChange={(e) => onChange({ ...module.data, text: e.target.value })}
           placeholder="Enter artist biography..."
           className="bg-black border-[#1a1a1a] text-white min-h-[200px]"
         />
       );
 
-    case 'quotes':
+    case "quotes":
       return (
         <div className="space-y-2">
           {(module.data.quotes || []).map((quote: any, idx: number) => (
@@ -239,7 +287,9 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
                 size="sm"
                 variant="ghost"
                 onClick={() => {
-                  const newQuotes = (module.data.quotes || []).filter((_: any, i: number) => i !== idx);
+                  const newQuotes = (module.data.quotes || []).filter(
+                    (_: any, i: number) => i !== idx,
+                  );
                   onChange({ ...module.data, quotes: newQuotes });
                 }}
               >
@@ -249,30 +299,38 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
           ))}
           <Button
             size="sm"
-            onClick={() => onChange({ ...module.data, quotes: [...(module.data.quotes || []), ''] })}
+            onClick={() =>
+              onChange({
+                ...module.data,
+                quotes: [...(module.data.quotes || []), ""],
+              })
+            }
           >
             <Plus className="w-3 h-3 mr-1" /> Add Quote
           </Button>
         </div>
       );
 
-    case 'links':
+    case "links":
       return (
         <div className="space-y-2">
           {(module.data.links || []).map((link: any, idx: number) => (
             <div key={idx} className="flex gap-2">
               <Input
-                value={link.platform || ''}
+                value={link.platform || ""}
                 onChange={(e) => {
                   const newLinks = [...(module.data.links || [])];
-                  newLinks[idx] = { ...newLinks[idx], platform: e.target.value };
+                  newLinks[idx] = {
+                    ...newLinks[idx],
+                    platform: e.target.value,
+                  };
                   onChange({ ...module.data, links: newLinks });
                 }}
                 placeholder="Platform (e.g., Spotify, SoundCloud)"
                 className="bg-black border-[#1a1a1a] text-white flex-1"
               />
               <Input
-                value={link.url || ''}
+                value={link.url || ""}
                 onChange={(e) => {
                   const newLinks = [...(module.data.links || [])];
                   newLinks[idx] = { ...newLinks[idx], url: e.target.value };
@@ -285,7 +343,9 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
                 size="sm"
                 variant="ghost"
                 onClick={() => {
-                  const newLinks = (module.data.links || []).filter((_: any, i: number) => i !== idx);
+                  const newLinks = (module.data.links || []).filter(
+                    (_: any, i: number) => i !== idx,
+                  );
                   onChange({ ...module.data, links: newLinks });
                 }}
               >
@@ -295,20 +355,28 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
           ))}
           <Button
             size="sm"
-            onClick={() => onChange({ ...module.data, links: [...(module.data.links || []), { platform: '', url: '' }] })}
+            onClick={() =>
+              onChange({
+                ...module.data,
+                links: [
+                  ...(module.data.links || []),
+                  { platform: "", url: "" },
+                ],
+              })
+            }
           >
             <Plus className="w-3 h-3 mr-1" /> Add Link
           </Button>
         </div>
       );
 
-    case 'tracklist':
+    case "tracklist":
       return (
         <div className="space-y-2">
           {(module.data.tracks || []).map((track: any, idx: number) => (
             <div key={idx} className="flex gap-2">
               <Input
-                value={track.title || ''}
+                value={track.title || ""}
                 onChange={(e) => {
                   const newTracks = [...(module.data.tracks || [])];
                   newTracks[idx] = { ...newTracks[idx], title: e.target.value };
@@ -318,7 +386,7 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
                 className="bg-black border-[#1a1a1a] text-white flex-1"
               />
               <Input
-                value={track.url || ''}
+                value={track.url || ""}
                 onChange={(e) => {
                   const newTracks = [...(module.data.tracks || [])];
                   newTracks[idx] = { ...newTracks[idx], url: e.target.value };
@@ -331,7 +399,9 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
                 size="sm"
                 variant="ghost"
                 onClick={() => {
-                  const newTracks = (module.data.tracks || []).filter((_: any, i: number) => i !== idx);
+                  const newTracks = (module.data.tracks || []).filter(
+                    (_: any, i: number) => i !== idx,
+                  );
                   onChange({ ...module.data, tracks: newTracks });
                 }}
               >
@@ -341,14 +411,19 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
           ))}
           <Button
             size="sm"
-            onClick={() => onChange({ ...module.data, tracks: [...(module.data.tracks || []), { title: '', url: '' }] })}
+            onClick={() =>
+              onChange({
+                ...module.data,
+                tracks: [...(module.data.tracks || []), { title: "", url: "" }],
+              })
+            }
           >
             <Plus className="w-3 h-3 mr-1" /> Add Track
           </Button>
         </div>
       );
 
-    case 'gallery':
+    case "gallery":
       return (
         <div className="space-y-2">
           <Label className="text-gray-300 text-sm">Image URLs</Label>
@@ -368,7 +443,9 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
                 size="sm"
                 variant="ghost"
                 onClick={() => {
-                  const newImages = (module.data.images || []).filter((_: any, i: number) => i !== idx);
+                  const newImages = (module.data.images || []).filter(
+                    (_: any, i: number) => i !== idx,
+                  );
                   onChange({ ...module.data, images: newImages });
                 }}
               >
@@ -378,21 +455,31 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
           ))}
           <Button
             size="sm"
-            onClick={() => onChange({ ...module.data, images: [...(module.data.images || []), ''] })}
+            onClick={() =>
+              onChange({
+                ...module.data,
+                images: [...(module.data.images || []), ""],
+              })
+            }
           >
             <Plus className="w-3 h-3 mr-1" /> Add Image
           </Button>
         </div>
       );
 
-    case 'video':
+    case "video":
       return (
         <div className="space-y-2">
-          <Label className="text-gray-300 text-sm">Video Embeds (YouTube, Vimeo, SoundCloud)</Label>
+          <Label className="text-gray-300 text-sm">
+            Video Embeds (YouTube, Vimeo, SoundCloud)
+          </Label>
           {(module.data.videos || []).map((video: any, idx: number) => (
-            <div key={idx} className="space-y-2 border border-[#1a1a1a] p-3 rounded">
+            <div
+              key={idx}
+              className="space-y-2 border border-[#1a1a1a] p-3 rounded"
+            >
               <Input
-                value={video.title || ''}
+                value={video.title || ""}
                 onChange={(e) => {
                   const newVideos = [...(module.data.videos || [])];
                   newVideos[idx] = { ...newVideos[idx], title: e.target.value };
@@ -402,7 +489,7 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
                 className="bg-black border-[#1a1a1a] text-white"
               />
               <Input
-                value={video.url || ''}
+                value={video.url || ""}
                 onChange={(e) => {
                   const newVideos = [...(module.data.videos || [])];
                   newVideos[idx] = { ...newVideos[idx], url: e.target.value };
@@ -415,7 +502,9 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
                 size="sm"
                 variant="ghost"
                 onClick={() => {
-                  const newVideos = (module.data.videos || []).filter((_: any, i: number) => i !== idx);
+                  const newVideos = (module.data.videos || []).filter(
+                    (_: any, i: number) => i !== idx,
+                  );
                   onChange({ ...module.data, videos: newVideos });
                 }}
               >
@@ -425,21 +514,29 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
           ))}
           <Button
             size="sm"
-            onClick={() => onChange({ ...module.data, videos: [...(module.data.videos || []), { title: '', url: '' }] })}
+            onClick={() =>
+              onChange({
+                ...module.data,
+                videos: [...(module.data.videos || []), { title: "", url: "" }],
+              })
+            }
           >
             <Plus className="w-3 h-3 mr-1" /> Add Video
           </Button>
         </div>
       );
 
-    case 'tourDates':
+    case "tourDates":
       return (
         <div className="space-y-2">
           {(module.data.dates || []).map((date: any, idx: number) => (
-            <div key={idx} className="space-y-2 border border-[#1a1a1a] p-3 rounded">
+            <div
+              key={idx}
+              className="space-y-2 border border-[#1a1a1a] p-3 rounded"
+            >
               <Input
                 type="date"
-                value={date.date || ''}
+                value={date.date || ""}
                 onChange={(e) => {
                   const newDates = [...(module.data.dates || [])];
                   newDates[idx] = { ...newDates[idx], date: e.target.value };
@@ -448,7 +545,7 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
                 className="bg-black border-[#1a1a1a] text-white"
               />
               <Input
-                value={date.venue || ''}
+                value={date.venue || ""}
                 onChange={(e) => {
                   const newDates = [...(module.data.dates || [])];
                   newDates[idx] = { ...newDates[idx], venue: e.target.value };
@@ -458,10 +555,13 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
                 className="bg-black border-[#1a1a1a] text-white"
               />
               <Input
-                value={date.location || ''}
+                value={date.location || ""}
                 onChange={(e) => {
                   const newDates = [...(module.data.dates || [])];
-                  newDates[idx] = { ...newDates[idx], location: e.target.value };
+                  newDates[idx] = {
+                    ...newDates[idx],
+                    location: e.target.value,
+                  };
                   onChange({ ...module.data, dates: newDates });
                 }}
                 placeholder="Location"
@@ -471,7 +571,9 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
                 size="sm"
                 variant="ghost"
                 onClick={() => {
-                  const newDates = (module.data.dates || []).filter((_: any, i: number) => i !== idx);
+                  const newDates = (module.data.dates || []).filter(
+                    (_: any, i: number) => i !== idx,
+                  );
                   onChange({ ...module.data, dates: newDates });
                 }}
               >
@@ -481,33 +583,50 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
           ))}
           <Button
             size="sm"
-            onClick={() => onChange({ ...module.data, dates: [...(module.data.dates || []), { date: '', venue: '', location: '' }] })}
+            onClick={() =>
+              onChange({
+                ...module.data,
+                dates: [
+                  ...(module.data.dates || []),
+                  { date: "", venue: "", location: "" },
+                ],
+              })
+            }
           >
             <Plus className="w-3 h-3 mr-1" /> Add Tour Date
           </Button>
         </div>
       );
 
-    case 'discography':
+    case "discography":
       return (
         <div className="space-y-2">
           {(module.data.releases || []).map((release: any, idx: number) => (
-            <div key={idx} className="space-y-2 border border-[#1a1a1a] p-3 rounded">
+            <div
+              key={idx}
+              className="space-y-2 border border-[#1a1a1a] p-3 rounded"
+            >
               <Input
-                value={release.title || ''}
+                value={release.title || ""}
                 onChange={(e) => {
                   const newReleases = [...(module.data.releases || [])];
-                  newReleases[idx] = { ...newReleases[idx], title: e.target.value };
+                  newReleases[idx] = {
+                    ...newReleases[idx],
+                    title: e.target.value,
+                  };
                   onChange({ ...module.data, releases: newReleases });
                 }}
                 placeholder="Release title"
                 className="bg-black border-[#1a1a1a] text-white"
               />
               <Input
-                value={release.label || ''}
+                value={release.label || ""}
                 onChange={(e) => {
                   const newReleases = [...(module.data.releases || [])];
-                  newReleases[idx] = { ...newReleases[idx], label: e.target.value };
+                  newReleases[idx] = {
+                    ...newReleases[idx],
+                    label: e.target.value,
+                  };
                   onChange({ ...module.data, releases: newReleases });
                 }}
                 placeholder="Label"
@@ -515,10 +634,13 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
               />
               <Input
                 type="date"
-                value={release.date || ''}
+                value={release.date || ""}
                 onChange={(e) => {
                   const newReleases = [...(module.data.releases || [])];
-                  newReleases[idx] = { ...newReleases[idx], date: e.target.value };
+                  newReleases[idx] = {
+                    ...newReleases[idx],
+                    date: e.target.value,
+                  };
                   onChange({ ...module.data, releases: newReleases });
                 }}
                 className="bg-black border-[#1a1a1a] text-white"
@@ -527,7 +649,9 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
                 size="sm"
                 variant="ghost"
                 onClick={() => {
-                  const newReleases = (module.data.releases || []).filter((_: any, i: number) => i !== idx);
+                  const newReleases = (module.data.releases || []).filter(
+                    (_: any, i: number) => i !== idx,
+                  );
                   onChange({ ...module.data, releases: newReleases });
                 }}
               >
@@ -537,21 +661,32 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
           ))}
           <Button
             size="sm"
-            onClick={() => onChange({ ...module.data, releases: [...(module.data.releases || []), { title: '', label: '', date: '' }] })}
+            onClick={() =>
+              onChange({
+                ...module.data,
+                releases: [
+                  ...(module.data.releases || []),
+                  { title: "", label: "", date: "" },
+                ],
+              })
+            }
           >
             <Plus className="w-3 h-3 mr-1" /> Add Release
           </Button>
         </div>
       );
 
-    case 'pressTimeline':
+    case "pressTimeline":
       return (
         <div className="space-y-2">
           {(module.data.events || []).map((event: any, idx: number) => (
-            <div key={idx} className="space-y-2 border border-[#1a1a1a] p-3 rounded">
+            <div
+              key={idx}
+              className="space-y-2 border border-[#1a1a1a] p-3 rounded"
+            >
               <Input
                 type="date"
-                value={event.date || ''}
+                value={event.date || ""}
                 onChange={(e) => {
                   const newEvents = [...(module.data.events || [])];
                   newEvents[idx] = { ...newEvents[idx], date: e.target.value };
@@ -560,20 +695,26 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
                 className="bg-black border-[#1a1a1a] text-white"
               />
               <Input
-                value={event.publication || ''}
+                value={event.publication || ""}
                 onChange={(e) => {
                   const newEvents = [...(module.data.events || [])];
-                  newEvents[idx] = { ...newEvents[idx], publication: e.target.value };
+                  newEvents[idx] = {
+                    ...newEvents[idx],
+                    publication: e.target.value,
+                  };
                   onChange({ ...module.data, events: newEvents });
                 }}
                 placeholder="Publication"
                 className="bg-black border-[#1a1a1a] text-white"
               />
               <Textarea
-                value={event.description || ''}
+                value={event.description || ""}
                 onChange={(e) => {
                   const newEvents = [...(module.data.events || [])];
-                  newEvents[idx] = { ...newEvents[idx], description: e.target.value };
+                  newEvents[idx] = {
+                    ...newEvents[idx],
+                    description: e.target.value,
+                  };
                   onChange({ ...module.data, events: newEvents });
                 }}
                 placeholder="Description"
@@ -583,7 +724,9 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
                 size="sm"
                 variant="ghost"
                 onClick={() => {
-                  const newEvents = (module.data.events || []).filter((_: any, i: number) => i !== idx);
+                  const newEvents = (module.data.events || []).filter(
+                    (_: any, i: number) => i !== idx,
+                  );
                   onChange({ ...module.data, events: newEvents });
                 }}
               >
@@ -593,20 +736,28 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
           ))}
           <Button
             size="sm"
-            onClick={() => onChange({ ...module.data, events: [...(module.data.events || []), { date: '', publication: '', description: '' }] })}
+            onClick={() =>
+              onChange({
+                ...module.data,
+                events: [
+                  ...(module.data.events || []),
+                  { date: "", publication: "", description: "" },
+                ],
+              })
+            }
           >
             <Plus className="w-3 h-3 mr-1" /> Add Press Event
           </Button>
         </div>
       );
 
-    case 'techRider':
+    case "techRider":
       return (
         <div className="space-y-2">
           {(module.data.items || []).map((item: any, idx: number) => (
             <div key={idx} className="flex gap-2">
               <Input
-                value={item.label || ''}
+                value={item.label || ""}
                 onChange={(e) => {
                   const newItems = [...(module.data.items || [])];
                   newItems[idx] = { ...newItems[idx], label: e.target.value };
@@ -619,7 +770,9 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
                 size="sm"
                 variant="ghost"
                 onClick={() => {
-                  const newItems = (module.data.items || []).filter((_: any, i: number) => i !== idx);
+                  const newItems = (module.data.items || []).filter(
+                    (_: any, i: number) => i !== idx,
+                  );
                   onChange({ ...module.data, items: newItems });
                 }}
               >
@@ -629,51 +782,66 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
           ))}
           <Button
             size="sm"
-            onClick={() => onChange({ ...module.data, items: [...(module.data.items || []), { label: '' }] })}
+            onClick={() =>
+              onChange({
+                ...module.data,
+                items: [...(module.data.items || []), { label: "" }],
+              })
+            }
           >
             <Plus className="w-3 h-3 mr-1" /> Add Equipment
           </Button>
         </div>
       );
 
-    case 'customText':
+    case "customText":
       return (
         <>
           <Input
-            value={module.data.title || ''}
-            onChange={(e) => onChange({ ...module.data, title: e.target.value })}
+            value={module.data.title || ""}
+            onChange={(e) =>
+              onChange({ ...module.data, title: e.target.value })
+            }
             placeholder="Section title..."
             className="bg-black border-[#1a1a1a] text-white"
           />
           <Textarea
-            value={module.data.content || ''}
-            onChange={(e) => onChange({ ...module.data, content: e.target.value })}
+            value={module.data.content || ""}
+            onChange={(e) =>
+              onChange({ ...module.data, content: e.target.value })
+            }
             placeholder="Section content..."
             className="bg-black border-[#1a1a1a] text-white"
           />
         </>
       );
 
-    case 'stats':
+    case "stats":
       return (
         <div className="space-y-2">
           {(module.data.metrics || []).map((metric: any, idx: number) => (
             <div key={idx} className="flex gap-2">
               <Input
-                value={metric.label || ''}
+                value={metric.label || ""}
                 onChange={(e) => {
                   const newMetrics = [...(module.data.metrics || [])];
-                  newMetrics[idx] = { ...newMetrics[idx], label: e.target.value };
+                  newMetrics[idx] = {
+                    ...newMetrics[idx],
+                    label: e.target.value,
+                  };
                   onChange({ ...module.data, metrics: newMetrics });
                 }}
                 placeholder="Label (e.g., Monthly Listeners)"
                 className="bg-black border-[#1a1a1a] text-white flex-1"
               />
               <Input
-                value={metric.value || ''}
+                value={metric.value || ""}
                 onChange={(e) => {
                   const newMetrics = [...(module.data.metrics || [])];
-                  newMetrics[idx] = { ...newMetrics[idx], value: e.target.value };
+                  newMetrics[idx] = {
+                    ...newMetrics[idx],
+                    value: e.target.value,
+                  };
                   onChange({ ...module.data, metrics: newMetrics });
                 }}
                 placeholder="Value (e.g., 50K)"
@@ -683,7 +851,9 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
                 size="sm"
                 variant="ghost"
                 onClick={() => {
-                  const newMetrics = (module.data.metrics || []).filter((_: any, i: number) => i !== idx);
+                  const newMetrics = (module.data.metrics || []).filter(
+                    (_: any, i: number) => i !== idx,
+                  );
                   onChange({ ...module.data, metrics: newMetrics });
                 }}
               >
@@ -693,7 +863,15 @@ function renderModuleEditor(module: EPKModule, onChange: (data: any) => void) {
           ))}
           <Button
             size="sm"
-            onClick={() => onChange({ ...module.data, metrics: [...(module.data.metrics || []), { label: '', value: '' }] })}
+            onClick={() =>
+              onChange({
+                ...module.data,
+                metrics: [
+                  ...(module.data.metrics || []),
+                  { label: "", value: "" },
+                ],
+              })
+            }
           >
             <Plus className="w-3 h-3 mr-1" /> Add Metric
           </Button>

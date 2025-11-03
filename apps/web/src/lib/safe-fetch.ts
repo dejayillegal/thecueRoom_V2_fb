@@ -6,7 +6,7 @@ export interface SafeFetchOptions extends RequestInit {
 
 export async function safeFetch<T = any>(
   url: string,
-  options: SafeFetchOptions = {}
+  options: SafeFetchOptions = {},
 ): Promise<{ ok: boolean; data?: T; error?: string; status?: number }> {
   const {
     attempts = 3,
@@ -27,15 +27,15 @@ export async function safeFetch<T = any>(
 
       clearTimeout(timeoutId);
 
-      const contentType = response.headers.get('content-type');
-      const isJson = contentType?.includes('application/json');
+      const contentType = response.headers.get("content-type");
+      const isJson = contentType?.includes("application/json");
 
       if (!response.ok) {
         if (isJson) {
           const errorData = await response.json();
           return {
             ok: false,
-            error: errorData.error || errorData.message || 'Request failed',
+            error: errorData.error || errorData.message || "Request failed",
             status: response.status,
           };
         }
@@ -51,26 +51,34 @@ export async function safeFetch<T = any>(
         return { ok: true, data, status: response.status };
       }
 
-      return { ok: true, data: await response.text() as any, status: response.status };
+      return {
+        ok: true,
+        data: (await response.text()) as any,
+        status: response.status,
+      };
     } catch (error: any) {
       clearTimeout(timeoutId);
 
-      if (error.name === 'AbortError') {
+      if (error.name === "AbortError") {
         if (attempt < attempts) {
-          await new Promise((resolve) => setTimeout(resolve, retryDelay * attempt));
+          await new Promise((resolve) =>
+            setTimeout(resolve, retryDelay * attempt),
+          );
           continue;
         }
-        return { ok: false, error: 'Request timeout', status: 408 };
+        return { ok: false, error: "Request timeout", status: 408 };
       }
 
       if (attempt < attempts) {
-        await new Promise((resolve) => setTimeout(resolve, retryDelay * attempt));
+        await new Promise((resolve) =>
+          setTimeout(resolve, retryDelay * attempt),
+        );
         continue;
       }
 
-      return { ok: false, error: error.message || 'Network error', status: 0 };
+      return { ok: false, error: error.message || "Network error", status: 0 };
     }
   }
 
-  return { ok: false, error: 'Max retries exceeded', status: 0 };
+  return { ok: false, error: "Max retries exceeded", status: 0 };
 }
