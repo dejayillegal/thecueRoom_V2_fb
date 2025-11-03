@@ -1,0 +1,442 @@
+TASK: Implement a complete, backward-safe enhancement of thecueRoom monorepo. Keep every currently working behavior intact. Add robust, production-grade features for:
+
+Signup (artists + regular users) with artist verification
+
+Spotlight (artist / user experiences)
+
+AI Cover Art, AI Meme, AI EPK Generator (templates, live preview, server+client composition, download)
+
+Community Forum (AI moderation, embedded artwork, no self-promo rules, real-time likes/views)
+
+News Feeds (fast, memory-safe, weekly curated playlists embedded)
+
+Events, ticketing & RSVP (AI validate submit + admin fallback, graphical tickets, scanning)
+
+Notifications, RBAC, diagnostics, perf tests
+
+RULES (must enforce)
+
+Do not change dashboard tokens, layout components, or colors. Only landing page may be redesigned.
+
+Every edit must be committed in small logical commits with tests, and the repo must pass pnpm -w tsc --noEmit at each commit.
+
+Add TEST_MODE=true fallbacks for native binaries (sharp, playwright) and for missing AI keys.
+
+Always return valid JSON from APIs. Use safeFetch wrappers for all external requests.
+
+Workerize heavy tasks (child_process.fork or worker_threads) and limit concurrency with AI_WORKER_CONCURRENCY.
+
+Add snapshot tests that verify dashboard layout unaffected.
+
+Provide clear acceptance checks and a final report as described below.
+
+0) Quick safety: install & env (run first)
+
+Run these in Replit shell:
+
+# install packages
+pnpm -w install
+
+# add runtime deps (some may fail on Replit; code must fallback)
+pnpm --filter apps/web add cross-fetch p-limit nanoid react-virtual
+pnpm --filter apps/web add -D vitest playwright axe-core
+
+# optional native image library (may fail; code should handle failure)
+pnpm --filter apps/web add sharp || echo "sharp failed; TEST_MODE pure-SVG fallback will be used"
+
+# ensure directories & temp
+mkdir -p .local ai-temp public/ai-results packages/ai packages/feeds scripts tests
+
+
+Create .env or use Replit Secrets with:
+
+HF_TOKEN=                # optional
+AI_WORKER_CONCURRENCY=1
+AI_TEMP_DIR=/tmp/thecueroom-ai
+POLL_INTERVAL_SECONDS=60
+POLL_CONCURRENCY=3
+FEED_FAILURE_THRESHOLD=5
+TEST_MODE=false
+NODE_FETCH_TIMEOUT_MS=15000
+
+1) Add robust helpers & safety (files to create/update)
+
+Files (implement exactly or equivalent):
+
+apps/web/src/lib/safe-fetch.ts
+
+Implements safeFetch(url, {attempts, timeout, headers}) with AbortController, exponential backoff, and safe JSON parsing (if JSON, return parsed; if HTML/text, return structured { ok:false, status, snippet }).
+
+apps/web/src/hooks/use-debounce.ts
+
+Standard debounce hook used by forms.
+
+apps/web/src/lib/safe-json.ts
+
+safeParseJSON(text) wrapper that never throws to client.
+
+Add unit tests for these.
+
+2) Background AI worker & impl (files)
+
+Files:
+
+packages/ai/worker.js (node script)
+
+Job queue (simple file-backed or in-memory with persistence). Support job types:
+
+hfGenerateImage (calls HF if HF_TOKEN defined)
+
+fallbackSvgRasterize (generates high-quality SVG, streams to PNG with sharp if available else svg2png fallback)
+
+composeTextWatermark (compose artist+release+watermark using SVG overlay + sharp compositing, streaming)
+
+verifyArtist (simple AI check: fetch social profile, heuristics, optional HF/text model or TEST_MODE heuristics)
+
+Respect AI_WORKER_CONCURRENCY. Write status AI_TEMP_DIR/<jobId>.status.json and output AI_TEMP_DIR/<jobId>.png.
+
+Use streaming, not big memory buffers. Add progress reporting via status file.
+
+packages/ai/impl/utils.ts
+
+safeFetch wrappers, makeSVGOverlay({artist,release,watermark,font,color,position}).
+
+packages/ai/impl/fallback-svg.ts
+
+Procedural SVG generator with presets (Neon Accent, Monochrome, Geometric, Brutalist, Cybergrind, Vaporwave, Chromatic Grid, Noir Light, Acid Geometry, Liquid Metal). Randomization with seed param. Export 1024×1024 svg string.
+
+Add small test harness: node packages/ai/worker.js --test to run deterministic quick jobs.
+
+3) AI API endpoints (backend)
+
+Files:
+
+apps/web/app/api/ai/env/route.ts → returns { hasAIKey: boolean }.
+
+apps/web/app/api/ai/generate/route.ts (POST)
+
+Zod validation (prompt, style,preset,artist,release,resolution).
+
+Enqueue to worker (hfGenerateImage if hasAIKey else fallbackSvgRasterize). Return { jobId, status:'queued' }.
+
+apps/web/app/api/ai/job/[jobId]/route.ts (GET) → Return job status JSON from status file.
+
+apps/web/app/api/ai/result/[jobId]/route.ts → Streams image file safely with proper headers.
+
+apps/web/app/api/ai/compose/route.ts (POST) → Accept mode: "auto"|"editor", jobId or base64 blob; enqueue compose job and return jobId.
+
+apps/web/app/api/ai/compose/status/[composeJobId]/route.ts (GET)
+
+All must handle missing files and return structured JSON.
+
+4) Signup, verification & auth (backend)
+
+Files:
+
+apps/web/app/api/auth/signup/route.ts
+
+Zod schema: firstName,lastName,artistName,email,password,isArtist(boolean),socialProfile(optional if artist),genre(optional).
+
+Hash password with bcrypt or argon2 (use bcryptjs if native fail).
+
+If isArtist===true: create user and enqueue verifyArtist job; return { userId, verificationJobId }.
+
+If not, create user and return { userId }.
+
+Rate-limit signup endpoint (simple in-memory per-IP or express-rate-limit style).
+
+apps/web/app/api/auth/check-availability/route.ts
+
+Check email and artist-name uniqueness with DB.
+
+apps/web/app/api/verification/job/[jobId]/route.ts
+
+Read status JSON written by worker.
+
+apps/web/app/api/auth/login/route.ts, forgot-password → proper secure flows (hashed reset tokens, 6-digit code).
+
+DB: use existing DB (Postgres) or fallback to data/users.json in dev. All new fields must be added: role: 'admin'|'artist'|'user', verified: boolean, verificationJobId.
+
+Add unit tests for signup->verification flow in TEST_MODE.
+
+5) Frontend: SignUp modal & Verification UI
+
+Files/components to update:
+
+apps/web/src/components/Auth/SignupModal.tsx:
+
+Show isArtist checkbox.
+
+If checked show socialProfile (text), genre (text), techRider file upload optional.
+
+All fields required as per rules; implement real-time availability checks debounced (use use-debounce).
+
+Auto-generate username on artist creation: e.g., ${artistName.replace(/\s+/g,'').toLowerCase()}-${shortRand(3)}.
+
+On artist sign up, after successful response, open VerificationModal and poll /api/verification/job/:jobId.
+
+Accessibility: icon+label for controls, keyboard accessible.
+
+apps/web/src/components/Auth/VerificationModal.tsx:
+
+Progress UI using job status.
+
+Provide admin contact if manual review required.
+
+Ensure style tokens preserved and landing page unaffected.
+
+Add hist snapshot tests verifying modal layout unchanged on dashboard pages.
+
+6) AI Studios UI (Cover Art, Meme, EPK)
+
+Files:
+
+apps/web/src/components/AI/CoverArtStudio.tsx:
+
+If /api/ai/env -> hasAIKey===false: show style presets grid (all presets), Prompt input disabled or hidden? (per earlier: show presets only when no key; if key present show prompt).
+
+Submit -> POST /api/ai/generate, handle returned jobId, poll /api/ai/job/:id, show placeholder SVG and progress bar; finally show preview and Download and Open Editor buttons.
+
+Add Randomize button for fallback mode.
+
+apps/web/src/components/AI/CanvasEditor.tsx:
+
+Canvas editor allowing edit of Artist Name, Release Title, watermark, font, color, position, size. Use createImageBitmap and canvas.toBlob() for export.
+
+Export: client trigger download and optionally POST to /api/ai/compose to store final image server-side.
+
+apps/web/src/components/AI/EPKStudio.tsx:
+
+3-tab flow: Choose Template (cards with templates), Edit Content (full form), Preview & Export (live preview with PDF export and download).
+
+Templates: Brutalist One-Page, Minimalist Clean, Magazine Editorial, Tech Neon. Each template has pre-defined modules (Biography, Discography, Photos, Tech Rider, Press Quotes), draggable re-ordering panel (drag & drop).
+
+Add "AI Re-write bio" button: calls a safe, free LLM (use a locally implemented rewrite heuristic in TEST_MODE or call HF text if HF_TOKEN present). Limit rewrite counts per-IP.
+
+EPK Export:
+
+Server-side PDF generation endpoint apps/web/app/api/epk/export/route.ts:
+
+Accept EPK JSON and optional compose overlay.
+
+Render to HTML, then to PDF server-side using puppeteer or playwright if available; if not available (Replit), use html-pdf-node or pdfkit fallback.
+
+Always return proper Content-Disposition: attachment; filename="epk-<artist>.pdf" to trigger download.
+
+Client triggers download and shows success toast.
+
+Add unit and e2e tests for EPK export in TEST_MODE.
+
+7) Community Forum (advanced)
+
+Features & files:
+
+apps/web/src/pages/forum/* or components:
+
+ThreadList (virtualized), ThreadView (replies), ReplyComposer (rich text + image upload + embed SoundCloud/Bandcamp/Mixcloud), Like/Upvote buttons (icon+label).
+
+Realtime counts: implement with SSE or WebSocket (SSE simpler — apps/web/app/api/realtime/events/route.ts), fallback to polling.
+
+AI Moderation pipeline:
+
+On thread/reply submission enqueue aiModerate job to packages/ai/worker.js.
+
+Worker runs heuristics: profanity, hate, doxxing, self-promo detection (if self-promo -> flag; if borderline -> place in pending moderation queue).
+
+Admin UI to view moderation queue.
+
+Embed artwork: allow artists to attach images, allow AI Meme generation inside reply composer (generate small meme image) — images stored to AI_TEMP_DIR or public/uploads.
+
+Enforce no self-promotion: moderation checks detect links to personal stores and flag; allow only music-related links (SoundCloud, Spotify, Bandcamp, Mixcloud, YouTube Music, Beatport) — whitelist.
+
+Admin moderation UI: apps/web/app/(admin)/moderation/page.tsx.
+
+Add karma/rep system and Top Contributors widget (right panel) with smaller font (-1.5) per design.
+
+Add tests: create thread -> create reply -> moderation job -> status.
+
+8) News feeds & weekly curated music
+
+Files:
+
+packages/feeds/poller.ts (robust):
+
+Admin-configurable sources (RSS, JSON, official APIs). For blocked endpoints (BookMyShow, DICE), use official APIs or RSS where possible. Use safeFetch with backoff and caching. Use p-limit for concurrency. Cache results to disk with TTL and snapshotable format.
+
+Normalize event/article shape.
+
+Provide diagnostic endpoints: /api/feeds/diagnostics and /api/gigs/india/diagnostics.
+
+Weekly Curated Music:
+
+apps/web/app/api/curation/weekly/route.ts returns curated playlists (Spotify embed links, SoundCloud, Mixcloud). For private keys: if not provided, use static curated playlists seeded in DB.
+
+Frontend: playlist embeds (iframe embeds) for SoundCloud, Spotify, Bandcamp. Provide audio player component with lazy load and optimized rendering.
+
+Add perf checks: ensure virtualized list for feed items, lazy load images, centralized fallback thumbnail.
+
+9) Events, Tickets & RSVP
+
+Files:
+
+apps/web/app/api/events/submit/route.ts:
+
+Artists may submit events; validate schema; accept flyer image upload; enqueue verifyEvent job.
+
+verifyEvent worker: check flyer validity, check social presence, check duplicates; if passes -> auto-approve, else -> pending admin.
+
+apps/web/app/api/tickets/generate/route.ts:
+
+Generate QR code (use qrcode lib), unique ticket id, generate graphical PNG ticket via sharp/SVG composition; store to AI_TEMP_DIR.
+
+Return download link.
+
+RSVP flow in frontend: RSVP button -> create ticket if free -> show ticket with download and add-to-wallet (apple/google pass format optional in later phases).
+
+Ticket scanning page for artists: load list of tickets, accept scanning (webcam) or manual code check; mark ticket used.
+
+If event includes external ticketing URL, show that link prominently with "Buy on vendor" CTA.
+
+Add tests: submit event -> worker verify -> approved -> ticket generated and downloadable PNG.
+
+10) Notifications & Role-based access
+
+Add simple WebSocket/SSE notifications or polling fallback.
+
+Notification types: verification, moderation, event approved, new reply, ticket sold/rsvp.
+
+RBAC: ensure role field controls access for features:
+
+admin -> all
+
+artist -> artist features (EPK, AI CoverArt, event submit, moderation tools)
+
+user -> browsing, RSVP, ticket download, news feed, limited profile editing
+
+Implement server-side middleware to check roles on API endpoints.
+
+11) Performance & memory safety
+
+Add .reduced-motion CSS global rule and remove heavy GPU effects in dashboard CSS (except landing page).
+
+Replace icon-only buttons across codebase with IconLabelButton component and update usage.
+
+Virtualize long lists using react-virtual.
+
+Move heavy tasks to worker and limit concurrency.
+
+Add scripts/diag/check-heavy-css.js, scripts/diag/run-scroll-stress.js (Playwright optional), scripts/diag/check-memory.js to run diagnostics.
+
+12) Tests & CI
+
+Add Vitest test suites:
+
+tests/auth/*, tests/ai/*, tests/feeds/*, tests/events/*, tests/forum/*
+
+Snapshot tests verifying dashboard routes HTML unchanged.
+
+Acceptance tests:
+
+pnpm -w tsc --noEmit → 0 errors
+
+pnpm --filter apps/web test:unit pass
+
+node scripts/diag/check-heavy-css.js → banned properties zero for dashboard
+
+node scripts/diag/check-memory.js → heap growth acceptable (<50MB) for TEST_MODE
+
+/api/gigs/india returns normalized events and UI shows them
+
+13) Commit strategy & final report
+
+Make incremental commits for each major block (helpers, worker, auth, ai-api, frontend modals, forum, events).
+
+Each commit must run pnpm -w tsc --noEmit and run related tests.
+
+Final commit message:
+
+feat: workerized AI, robust signup+artist verification, EPK & AI studios, forum + moderation, events/tickets, feeds improvements, perf & diagnostics
+
+
+Produce final report with:
+
+git show --name-status HEAD
+
+pnpm -w tsc --noEmit output
+
+Unit & snapshot test outputs
+
+node scripts/diag/check-heavy-css.js output
+
+node scripts/diag/check-memory.js summary
+
+Representative API calls results:
+
+POST /api/auth/signup (artist) -> { userId, verificationJobId }
+
+Poll /api/verification/job/:id until done
+
+POST /api/ai/generate -> job -> resultURL
+
+POST /api/epk/export -> PDF download (Content-Disposition header)
+
+POST /api/events/submit -> job -> approval outcome
+
+List changed files (git)
+
+Extra environment & Replit notes (must include)
+
+If sharp fails to install on Replit, worker should auto-fallback to pure SVG → svg2png or @svg2img js renderer; document how to enable sharp on local machine.
+
+Playwright may not run in Replit; mark scroll stress tests optional and provide instructions to run locally.
+
+Use Replit secrets for HF_TOKEN and other keys.
+
+Acceptance criteria (final)
+
+pnpm -w tsc --noEmit → 0 errors
+
+pnpm --filter apps/web test:unit → all green
+
+GET /api/gigs/india returns normalized event array (>=1 event in seeded DB) and UI lists events
+
+Sign up (artist) flow: POST /api/auth/signup returns verificationJobId; /api/verification/job/:id progresses and sets verified:true or pending_review.
+
+AI Cover Art generate -> job -> /api/ai/result/:jobId returns PNG; Download triggers browser download UI.
+
+EPK export endpoint returns Content-Disposition: attachment; and valid PDF bytes.
+
+Forum: create thread -> reply -> like counts update and are persisted.
+
+Event submission -> AI auto-approve (or pending admin) -> ticket generation available for download.
+
+Diagnostics scripts pass or give clear skip messages if environment lacks binaries.
+
+Dashboard layout snapshot tests show no change.
+
+If anything fails
+
+Revert the last commit, run pnpm -w tsc --noEmit, and produce a short failure log.
+
+For blocked external sources (403), add fallback to cached aggregator and log which sources blocked.
+
+Lightweight test-run you can paste & run now (sanity)
+# sanity quick checks
+pnpm -w tsc --noEmit || (echo "Typecheck failed — fix failures before continuing" && exit 1)
+
+# run unit tests (may be empty until implemented)
+pnpm --filter apps/web test:unit || echo "Unit tests failing or none exist yet"
+
+# run smoke API calls (these rely on server started)
+pnpm --filter apps/web dev & sleep 4
+# In separate shell you can curl basic endpoints:
+curl -sS http://localhost:3000/api/ai/env | jq .
+curl -sS http://localhost:3000/api/gigs/india | jq '. | {count: length}'
+
+Final notes (short & human)
+
+Implement this in small commits (helpers → worker → auth → ai-api → ui) and run tests after each step.
+
+Use TEST_MODE=true to run everything in pure-JS mode on Replit. Enable production AI/Playwright features only on servers with required binaries and keys.
+
+I can now generate the first code bundle (safeFetch + worker scaffold + signup route + minimal signup modal) ready to paste. Tell me “START BUNDLE 1” and I will emit the full code for those files with tests and usage examples.
