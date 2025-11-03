@@ -541,6 +541,32 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               {/* Sign Up Form */}
               {activeTab === "signup" && (
                 <form onSubmit={handleSignUp} className="space-y-4">
+                  {/* Artist Checkbox - Prominently placed at top */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 p-4 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg hover:border-[#D7FF3C]/30 transition-colors">
+                      <input
+                        type="checkbox"
+                        id="artist-checkbox"
+                        checked={false}
+                        onChange={(e) => {
+                          // Artist signup logic - to be implemented
+                          console.log('Artist checkbox clicked:', e.target.checked);
+                        }}
+                        className="w-5 h-5 rounded border-[#2a2a2a] bg-[#0a0a0a] text-[#D7FF3C] focus:ring-[#D7FF3C] focus:ring-offset-0 cursor-pointer"
+                        aria-describedby="artist-checkbox-description"
+                      />
+                      <Label
+                        htmlFor="artist-checkbox"
+                        className="text-white cursor-pointer text-sm font-medium flex-1"
+                      >
+                        Sign up as Artist / DJ
+                      </Label>
+                    </div>
+                    <p id="artist-checkbox-description" className="text-xs text-gray-500 px-4">
+                      Check this if you're an artist or DJ. Additional verification fields will appear.
+                    </p>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-sm text-gray-400">
