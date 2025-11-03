@@ -34,7 +34,84 @@ export function ThreadComposer() {
   const [linkText, setLinkText] = useState('');
   const [showMediaDialog, setShowMediaDialog] = useState(false);
   const [mediaUrl, setMediaUrl] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleSaveDraft = async () => {
+    if (!title.trim() && !body.trim()) {
+      alert('Cannot save empty draft');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/forum/thread/save-draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          categoryId,
+          body,
+          tags,
+          visibility,
+          allowReplies,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to save draft');
+
+      const data = await response.json();
+      alert('Draft saved successfully!');
+    } catch (error) {
+      console.error('Save draft error:', error);
+      alert('Failed to save draft');
+    }
+  };
+
+  const handlePostThread = async () => {
+    if (!title.trim()) {
+      alert('Please enter a title');
+      return;
+    }
+    if (!categoryId) {
+      alert('Please select a category');
+      return;
+    }
+    if (!body.trim()) {
+      alert('Please enter thread content');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/forum/thread', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          categoryId,
+          body,
+          tags,
+          visibility,
+          allowReplies,
+          notifyOnReplies,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to create thread');
+
+      const data = await response.json();
+      alert('Thread posted successfully!');
+      
+      // Redirect to the new thread
+      window.location.href = `/community/forum/thread/${data.threadId}`;
+    } catch (error) {
+      console.error('Post thread error:', error);
+      alert('Failed to post thread');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const addTag = () => {
     if (tagInput.trim() && tags.length < 10) {
@@ -184,22 +261,63 @@ export function ThreadComposer() {
                   <Label htmlFor="body" className="text-sm font-semibold text-white mb-2 block">
                     Thread Body
                   </Label>
-                  <Textarea
-                    ref={textareaRef}
-                    id="body"
-                    value={body}
-                    onChange={handleBodyChange}
-                    placeholder="Share your thoughts, questions, or insights... (Use @ to mention users)"
-                    className="bg-[#111111] border-[#1a1a1a] text-white placeholder-gray-500 focus:border-[#D7FF3C] min-h-[300px] resize-none"
-                    maxLength={10000}
-                  />
-                  {showMentionAutocomplete && (
-                    <MentionAutocomplete
-                      query={mentionQuery}
-                      onSelect={handleMentionSelect}
-                      onClose={() => setShowMentionAutocomplete(false)}
-                      position={mentionPosition}
-                    />
+                  {showPreview ? (
+                    <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-4 min-h-[300px] text-white">
+                      <div className="prose prose-invert max-w-none">
+                        {body.split('\n').map((paragraph, idx) => (
+                          <p key={idx} className="mb-4 last:mb-0">
+                            {paragraph.split(/(@\w+)/g).map((part, i) => 
+                              part.startsWith('@') ? (
+                                <span key={i} className="text-[#D7FF3C] font-medium">{part}</span>
+                              ) : part.match(/\[([^\]]+)\]\(([^\)]+)\)/) ? (
+                                <a 
+                                  key={i}
+                                  href={part.match(/\[([^\]]+)\]\(([^\)]+)\)/)?.[2] || '#'}
+                                  className="text-blue-400 underline"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  {part.match(/\[([^\]]+)\]\(([^\)]+)\)/)?.[1] || part}
+                                </a>
+                              ) : part.startsWith('```') ? (
+                                <pre key={i} className="bg-[#0a0a0a] p-3 rounded-lg my-2 overflow-x-auto">
+                                  <code>{part.replace(/```/g, '')}</code>
+                                </pre>
+                              ) : part.startsWith('![') ? (
+                                <img 
+                                  key={i}
+                                  src={part.match(/!\[.*?\]\((.*?)\)/)?.[1] || ''}
+                                  alt="Embedded image"
+                                  className="max-w-full h-auto rounded-lg my-2"
+                                />
+                              ) : (
+                                <span key={i}>{part}</span>
+                              )
+                            )}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <Textarea
+                        ref={textareaRef}
+                        id="body"
+                        value={body}
+                        onChange={handleBodyChange}
+                        placeholder="Share your thoughts, questions, or insights... (Use @ to mention users)"
+                        className="bg-[#111111] border-[#1a1a1a] text-white placeholder-gray-500 focus:border-[#D7FF3C] min-h-[300px] resize-none"
+                        maxLength={10000}
+                      />
+                      {showMentionAutocomplete && (
+                        <MentionAutocomplete
+                          query={mentionQuery}
+                          onSelect={handleMentionSelect}
+                          onClose={() => setShowMentionAutocomplete(false)}
+                          position={mentionPosition}
+                        />
+                      )}
+                    </>
                   )}
                   <p className="text-xs text-gray-500 mt-1">
                     {body.length} / 10,000 characters
@@ -385,15 +503,27 @@ export function ThreadComposer() {
                 </div>
 
                 <div className="flex items-center justify-between pt-6 border-t border-[#1a1a1a]">
-                  <button className="px-4 py-2 text-gray-400 hover:text-white text-sm font-medium transition-colors">
+                  <button 
+                    onClick={handleSaveDraft}
+                    className="px-4 py-2 text-gray-400 hover:text-white text-sm font-medium transition-colors"
+                    disabled={isSubmitting}
+                  >
                     Save as Draft
                   </button>
                   <div className="flex items-center gap-3">
-                    <button className="px-4 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white text-sm font-medium rounded-lg transition-colors">
-                      Preview
+                    <button 
+                      onClick={() => setShowPreview(!showPreview)}
+                      className="px-4 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white text-sm font-medium rounded-lg transition-colors"
+                      disabled={isSubmitting}
+                    >
+                      {showPreview ? 'Edit' : 'Preview'}
                     </button>
-                    <Button className="bg-[#D7FF3C] hover:bg-[#e7ff6f] text-black font-semibold">
-                      Post Thread
+                    <Button 
+                      onClick={handlePostThread}
+                      className="bg-[#D7FF3C] hover:bg-[#e7ff6f] text-black font-semibold"
+                      disabled={isSubmitting || !title.trim() || !categoryId || !body.trim()}
+                    >
+                      {isSubmitting ? 'Posting...' : 'Post Thread'}
                     </Button>
                   </div>
                 </div>

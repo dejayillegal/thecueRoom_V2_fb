@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getDbClient } from '@/lib/db-client';
@@ -19,11 +18,11 @@ async function getUserIdFromSession(): Promise<string | null> {
   try {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('session');
-    
+
     if (!sessionCookie?.value) {
       return null;
     }
-    
+
     const sessionData = JSON.parse(sessionCookie.value);
     return sessionData.userId || null;
   } catch {
@@ -34,17 +33,17 @@ async function getUserIdFromSession(): Promise<string | null> {
 export async function POST(request: NextRequest) {
   try {
     const userId = await getUserIdFromSession();
-    
+
     if (!userId) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
-    
+
     const body = await request.json();
     const data = createThreadSchema.parse(body);
-    
+
     const [thread] = await db
       .insert(forumThreads)
       .values({
@@ -61,22 +60,22 @@ export async function POST(request: NextRequest) {
         updatedAt: new Date(),
       })
       .returning();
-    
+
     return NextResponse.json({
       success: true,
       thread,
     }, { status: 201 });
-    
+
   } catch (error) {
     console.error('Thread creation error:', error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid request data', details: error.errors },
         { status: 400 }
       );
     }
-    
+
     return NextResponse.json(
       { error: 'Failed to create thread' },
       { status: 500 }
@@ -91,18 +90,18 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const offset = (page - 1) * limit;
-    
+
     let query = db.select().from(forumThreads);
-    
+
     if (categoryId) {
       query = query.where(eq(forumThreads.categoryId, categoryId)) as any;
     }
-    
+
     const threads = await query
       .limit(limit)
       .offset(offset)
       .orderBy(forumThreads.isPinned, forumThreads.updatedAt);
-    
+
     return NextResponse.json({
       threads,
       pagination: {
@@ -111,7 +110,7 @@ export async function GET(request: NextRequest) {
         hasMore: threads.length === limit,
       },
     });
-    
+
   } catch (error) {
     console.error('Thread fetch error:', error);
     return NextResponse.json(
