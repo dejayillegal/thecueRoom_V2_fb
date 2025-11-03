@@ -262,7 +262,7 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0
       fast-xml-parser:
-        specifier: ^4.5.0
+        specifier: ^4.5.3
         version: 4.5.3
       framer-motion:
         specifier: 11.3.28
@@ -298,7 +298,7 @@ importers:
         specifier: ^3.4.4
         version: 3.4.7
       qrcode:
-        specifier: ^1.5.3
+        specifier: ^1.5.4
         version: 1.5.4
       react:
         specifier: ^19.0.0
@@ -405,7 +405,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^1.6.1
-        version: 1.6.1(@types/node@20.19.23)(@vitest/ui@3.2.4(vitest@3.2.4))(happy-dom@17.6.3)(jsdom@23.2.0(canvas@2.11.2))
+        version: 1.6.1(@types/node@20.19.23)(@vitest/ui@3.2.4)(happy-dom@17.6.3)(jsdom@23.2.0(canvas@2.11.2))
 
   packages/ai:
     dependencies:
@@ -12885,7 +12885,7 @@ snapshots:
       jiti: 1.21.7
       tsx: 4.20.6
 
-  vitest@1.6.1(@types/node@20.19.23)(@vitest/ui@3.2.4(vitest@3.2.4))(happy-dom@17.6.3)(jsdom@23.2.0(canvas@2.11.2)):
+  vitest@1.6.1(@types/node@20.19.23)(@vitest/ui@3.2.4)(happy-dom@17.6.3)(jsdom@23.2.0(canvas@2.11.2)):
     dependencies:
       '@vitest/expect': 1.6.1
       '@vitest/runner': 1.6.1

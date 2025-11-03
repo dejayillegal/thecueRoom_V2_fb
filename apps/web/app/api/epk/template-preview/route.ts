@@ -129,10 +129,10 @@ function generatePreviewHTML(templateId: string, modules: any[], artistName?: st
       @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #111827; padding: 60px; }
-      .header { margin-bottom: 50px; backdrop-filter: blur(10px); background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 40px; }
-      .header h1 { font-size: 58px; font-weight: 600; color: #fff; text-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+      .header { margin-bottom: 50px; background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; padding: 40px; box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+      .header h1 { font-size: 58px; font-weight: 600; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
       .header h2 { font-size: 22px; font-weight: 300; color: #E5E7EB; margin-top: 12px; }
-      .module { margin-bottom: 40px; backdrop-filter: blur(10px); background: rgba(255,255,255,0.15); border-radius: 16px; padding: 30px; border: 1px solid rgba(255,255,255,0.2); }
+      .module { margin-bottom: 40px; background: rgba(255,255,255,0.3); border-radius: 16px; padding: 30px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
       .module h3 { font-size: 24px; font-weight: 600; color: #fff; margin-bottom: 18px; }
       .bio-text { font-size: 15px; line-height: 1.7; color: #F3F4F6; }
     `,

@@ -18,7 +18,6 @@
 body:not(.landing-page) .heavy-animation,
 body:not(.landing-page) [class*="blur-"],
 body:not(.landing-page) [class*="backdrop-blur"] {
-  backdrop-filter: none !important;
   filter: none !important;
 }
 
