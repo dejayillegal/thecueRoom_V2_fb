@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, jsonb, integer, boolean, uuid, index, uniqueIndex, varchar } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, jsonb, integer, boolean, uuid, index, uniqueIndex, varchar, numeric } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 export const users = pgTable('users', {
@@ -504,6 +504,21 @@ export const verificationTasks = pgTable('verification_tasks', {
 }, (table) => ({
   statusIdx: index('verification_tasks_status_idx').on(table.status),
   userIdIdx: index('verification_tasks_user_id_idx').on(table.userId),
+}));
+
+export const signupVerifications = pgTable('signup_verifications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  profileId: uuid('profile_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
+  status: varchar('status', { length: 50 }).notNull().default('pending'),
+  input: jsonb('input').$type<any>().notNull(),
+  result: jsonb('result').$type<any>(),
+  aiScore: numeric('ai_score', { precision: 5, scale: 2 }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  processedAt: timestamp('processed_at'),
+}, (table) => ({
+  profileIdIdx: index('signup_verifications_profile_id_idx').on(table.profileId),
+  statusIdx: index('signup_verifications_status_idx').on(table.status),
+  createdAtIdx: index('signup_verifications_created_at_idx').on(table.createdAt),
 }));
 
 export const notifications = pgTable('notifications', {
