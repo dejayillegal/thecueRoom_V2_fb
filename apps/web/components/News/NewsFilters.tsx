@@ -32,28 +32,22 @@ export function NewsFilters({ onFiltersChange, availableTags = [] }: NewsFilters
         ? prev.filter(t => t !== tag)
         : [...prev, tag];
       
-      onFiltersChange({
-        search: debouncedSearch,
-        tags: newTags,
-      });
-      
       return newTags;
     });
-  }, [debouncedSearch, onFiltersChange]);
+  }, []);
 
   const clearFilters = useCallback(() => {
     setSearchQuery('');
     setSelectedTags([]);
-    onFiltersChange({ search: '', tags: [] });
-  }, [onFiltersChange]);
+  }, []);
 
-  // Trigger filter change when debounced search changes
+  // Trigger filter change when debounced search or tags change
   useEffect(() => {
     onFiltersChange({
       search: debouncedSearch,
       tags: selectedTags,
     });
-  }, [debouncedSearch, selectedTags, onFiltersChange]);
+  }, [debouncedSearch, selectedTags]);
 
   return (
     <div className="space-y-4">
