@@ -19,8 +19,6 @@ interface FeedItem {
   publishedAt: string;
 }
 
-let searchTimeout: NodeJS.Timeout;
-
 export default function NewsPage() {
   const [feeds, setFeeds] = useState<FeedItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -61,6 +59,12 @@ export default function NewsPage() {
     fetchFeeds();
   }, [fetchFeeds]);
 
+  const toggleTag = useCallback((tag: string) => {
+    setSelectedTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
+  }, []);
+
   const allTags = ['techno', 'house', 'production', 'gear', 'events', 'interviews'];
 
   return (
@@ -89,11 +93,7 @@ export default function NewsPage() {
               {allTags.map((tag) => (
                 <button
                   key={tag}
-                  onClick={() => {
-                    setSelectedTags(prev =>
-                      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-                    );
-                  }}
+                  onClick={() => toggleTag(tag)}
                   className={`w-full text-left px-3 py-2 rounded text-sm capitalize transition-colors ${
                     selectedTags.includes(tag)
                       ? 'bg-[#D1FF3D] text-black'
@@ -104,6 +104,14 @@ export default function NewsPage() {
                 </button>
               ))}
             </div>
+            {selectedTags.length > 0 && (
+              <button
+                onClick={() => setSelectedTags([])}
+                className="w-full mt-3 px-3 py-2 text-sm text-gray-400 hover:text-white border border-[#1a1a1a] rounded transition-colors"
+              >
+                Clear All
+              </button>
+            )}
           </Card>
 
           <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -135,6 +143,15 @@ export default function NewsPage() {
                         <span className="text-[#D1FF3D]">{item.source}</span>
                         <span className="text-gray-500">{new Date(item.publishedAt).toLocaleDateString()}</span>
                       </div>
+                      {item.tags && item.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {item.tags.slice(0, 3).map((tag, idx) => (
+                            <span key={idx} className="text-xs px-2 py-0.5 bg-[#1a1a1a] text-gray-400 rounded">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </a>
                 </Card>
