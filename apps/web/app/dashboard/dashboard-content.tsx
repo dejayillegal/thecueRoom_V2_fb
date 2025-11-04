@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo, useCallback, memo } from 'react';
-import SpotlightColumn from '@/../../src/components/Spotlight/SpotlightColumn';
+import { SpotlightColumn } from '@/../../src/components/Spotlight/SpotlightColumn';
 import { ImageWithFallback } from '@/../../src/components/ImageWithFallback';
 import { AlertCircle, Sparkles, Calendar } from 'lucide-react';
 
@@ -125,7 +125,7 @@ export const DashboardContent = memo(function DashboardContent({ user }: Dashboa
                 ))}
               </div>
             ) : spotlightFeeds.length > 0 ? (
-              <SpotlightColumn speed={20} className="h-[400px]">
+              <SpotlightColumn className="h-[400px]">
                 <div className="space-y-3 p-1">
                   {spotlightFeeds.map((feed, i) => (
                     <Link
