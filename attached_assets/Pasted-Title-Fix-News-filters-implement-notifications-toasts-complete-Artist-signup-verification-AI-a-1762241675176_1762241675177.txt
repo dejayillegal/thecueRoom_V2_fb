@@ -1,0 +1,213 @@
+Title: Fix News filters + implement notifications/toasts + complete Artist signup verification (AI auto-verify) + fix all signup issues
+
+Summary
+-------
+This task fixes and hardens three interdependent areas across the app:
+
+1. News page filters: repair and improve filtering, sorting, pagination, caching and UI states (loading/empty/error).
+2. Site-wide notifications & toasts: implement robust in-app notifications, toast patterns and admin/system notification flows.
+3. Signup flow fixes: make Artist & User signup rock-solid:
+   - show verification UX states (pending / success / failure) in signup flow,
+   - queue and perform AI verification automatically on signup for artists,
+   - rework client/server contract so music-profile verification is reliable,
+   - address all known signup edge-cases (missing checkbox, social links limit, url validation, duplicate accounts).
+
+Follow existing repo conventions for components, styles, auth and API routing. Do not change global architecture unless absolutely necessary — document any divergence in docs/IMPLEMENTATION_NOTES.md.
+
+Files / locations to inspect & update
+-----------------------------------
+UI:
+- apps/web/src/components/News/NewsFilters.tsx
+- apps/web/src/components/News/NewsList.tsx
+- apps/web/src/pages/news/page.tsx (or apps/web/app/news/page.tsx)
+- apps/web/src/components/UI/Toast.tsx
+- apps/web/src/components/UI/ToastProvider.tsx
+- apps/web/src/components/Notifications/NotificationsPanel.tsx
+- apps/web/src/components/Auth/SignupModal.tsx (or apps/web/src/components/Auth/AuthModal.tsx)
+- apps/web/src/components/Auth/ArtistVerificationDialog.tsx
+- apps/web/src/components/Auth/VerificationStatusBanner.tsx
+
+API (Next App Router):
+- apps/web/app/api/news/list/route.ts
+- apps/web/app/api/news/filters/route.ts
+- apps/web/app/api/notifications/list/route.ts
+- apps/web/app/api/notifications/mark-read/route.ts
+- apps/web/app/api/signup/route.ts (update)
+- apps/web/app/api/signup/verify/route.ts (new)
+- apps/web/app/api/ai/verify/route.ts (new)  — lightweight wrapper to queue AI verification
+
+Server worker:
+- packages/server/aiVerifier.ts (new) — worker that pulls queued verification jobs, calls AI moderation/verification, writes back results and triggers notifications
+
+DB / migrations:
+- migrations/20251105_notifications_and_signup.sql
+  - Ensure notifications table exists (user_id, payload jsonb, read boolean, created_at)
+  - Add signup_verifications table: id, profile_id, status (pending/approved/rejected), input jsonb, result jsonb, ai_score numeric, created_at, processed_at
+  - Add indexes for notifications.user_id and signup_verifications.profile_id
+
+Shared schemas & types:
+- packages/shared/notificationSchemas.ts
+- packages/shared/signupSchemas.ts (Zod validation for artist fields)
+
+Tests & stories:
+- apps/web/src/components/News/__tests__/NewsFilters.test.tsx
+- apps/web/src/components/UI/__tests__/Toast.test.tsx
+- apps/web/src/components/Auth/__tests__/SignupModal.test.tsx
+- e2e/playwright/news-notifications-signup.spec.ts
+- apps/web/.storybook/stories/Toast.stories.tsx
+- apps/web/.storybook/stories/NotificationsPanel.stories.tsx
+
+High level implementation steps
+-------------------------------
+Work in small, testable commits. Follow this order:
+
+A — Repo analysis (create docs/IMPLEMENTATION_NOTES.md)
+  - Document current news fetch implementation and where filters are applied (client vs server).
+  - Note how auth provides current user id (Supabase or session) and where to get it in frontend.
+  - Document any existing toast/notification utilities to reuse.
+
+B — DB + migrations
+  - Add/verify notifications table exists; if missing add migration.
+  - Add signup_verifications table for audit/history.
+  - Run migration locally and ensure Drizzle schema (if used) mirrors the SQL in packages/db.
+
+C — API: News filters
+  - Implement server-side filtered news endpoint `GET /api/news/list?tag=&q=&sort=latest|popular&offset=&limit=&platform=` that:
+    - Validates params via Zod.
+    - Uses cursor pagination.
+    - Applies tag/category filters, search (title & content), date range filter, and supports `platform` (spotify, soundcloud) where applicable.
+    - Returns `total`, `items[]`, and `nextCursor`.
+    - Cache results using HTTP cache headers and use server-side caching layer if available (Redis/Supabase cache).
+  - Add separate `POST /api/news/filters` if UI needs saved filters or complex queries.
+
+D — UI: News filters & list
+  - NewsFilters.tsx:
+    - Inputs: search, tag select, date range, platform select, sort dropdown, "Only verified artists" toggle.
+    - Debounce search input (300ms). Show skeleton loading state while waiting.
+    - Use server-side endpoint above (prefer SSR/ISR for initial page load when possible).
+    - Ensure filter UI accessibility, keyboard navigation, and mobile responsiveness.
+  - NewsList.tsx:
+    - Show skeleton loaders, empty-state copy and actionable CTAs.
+    - Show real-time counters (views) if supported.
+    - Wire filter values to query params so pages are linkable (push to history).
+    - Ensure no memory leaks with fetch/subscriptions.
+
+E — Notifications & Toasts
+  - Implement ToastProvider and Toast component:
+    - Toast types: success, error, info, pending.
+    - Animations: slide/stack; auto-dismiss with configurable timeout (e.g., 5s), but pending toasts should show spinner and be updatable.
+    - API: expose `useToast()` hook with `toast({type, title, message, id?, actions?})` and `updateToast(id, {...})`.
+  - Implement NotificationsPanel:
+    - Fetch `GET /api/notifications/list` for current user.
+    - Show unread counts in top nav badge.
+    - Mark read via `POST /api/notifications/mark-read`.
+    - Notifications payload should be flexible (type, link, meta).
+  - Integrate toasts with API flows:
+    - Signup success -> show success toast: "Success: Signed in. Finishing verification..." then update to "You're in. Welcome to thecueRoom." on final success.
+    - Signup pending -> show pending toast that updates when verification completes.
+    - AI verification result -> create notification row and show toast for user.
+
+F — Signup flow fixes (client + server)
+  - Update frontend SignupModal / AuthModal:
+    - Ensure Artist checkbox visible and toggles Artist fields (Artist Name, Region, Genre, Public Profile, Music Platform Link, Social links up to 5).
+    - Enforce client-side validation (URLs, allowed platforms, display name, artist name).
+    - Show clear inline errors returned from server.
+    - On submit, POST to `/api/signup` with `x-user-id` header and structured body (use packages/shared/signupSchemas.ts).
+    - After server accepts, immediately show a verification state dialog:
+      - If server responds `{ verification: 'queued' }` show Verification Pending UI (pending banner + Sign Out & Back buttons) and show a pending toast.
+      - If server responds `{ verification: 'approved' }` show Verification Success UI and redirect to dashboard.
+      - If server responds with `verification: 'failed'` show failure UI with instructions and appeal link.
+  - Implement `/api/signup/route.ts` server logic:
+    - Validate payload.
+    - Upsert profile row in `profiles` table (or repo's profile table).
+    - If `is_artist` true:
+      - Create signup_verifications row with status='pending' and queue an AI verification job (call internal `/api/ai/verify` or insert into a job queue table).
+      - Return `{ ok: true, verification:'queued' }` to client.
+    - If `is_artist` false:
+      - Mark profile as verified=false (or normal user) and return success.
+    - Protect against duplicates: check for existing profiles with same public_profile_url or same music_platform_link; if duplicate found return `400` with a `fieldErrors` object.
+  - Implement `/api/ai/verify/route.ts`:
+    - Accept a POST with `{ verification_id }` or `{ profile_id }` to trigger verification (this API is called internally by signup route or worker).
+    - Adds a job to verification queue (DB insert) for aiVerifier to pick up.
+
+G — Worker: AI verification
+  - Implement `packages/server/aiVerifier.ts`:
+    - Poll the signup_verifications queue.
+    - For each job:
+      - Retrieve profile data & URLs.
+      - Run lightweight checks: URL reachable, oEmbed metadata, platform metadata match.
+      - Call OpenAI (moderation & verification prompt) with profile data and platform URLs to judge authenticity, duplicate probability, and confidence score.
+      - Save result to signup_verifications.result json, status = 'approved'|'rejected', ai_score numeric, processed_at timestamp.
+      - Update profiles row: set artist_verified = true if approved; set spotlight/request flags if high confidence.
+      - Insert notification row for user about verification result.
+      - Send toast update via realtime if user currently connected (use Supabase realtime or socket).
+  - Ensure worker retries on transient errors and logs results.
+
+H — Notifications: push verification state changes to user
+  - When worker writes verification result, produce:
+    - notifications row for user,
+    - broadcast realtime message to the user's client (if connected) so the pending toast updates to success/failure,
+    - optionally send an email (if configured).
+  - On client, subscribe to realtime notifications stream and update NotificationsPanel and toasts accordingly.
+
+I — Edge-cases & fixes
+  - If AI verification fails due to missing public info, set status='manual_review' and create moderation_queue entry for admin review; send notification to admin team and to user telling them manual review required.
+  - Implement rate-limits on signup attempts from same IP within timeframe.
+  - Ensure social links limit maximum 5 and UI enforces it.
+  - Make sure public_profile_url/music_platform_link validation includes allowlist domains.
+
+J — Tests
+  - Unit tests for NewsFilters: ensure correct query generation, debounce behavior, and URL sync.
+  - Unit tests for ToastProvider: show/update/dismiss toasts, pending->success update.
+  - Signup tests:
+    - Happy path user signup.
+    - Artist signup -> queued verification -> worker approves -> profile updated & notification created -> client toast updates.
+    - Duplicate music link yields validation error.
+  - E2E Playwright:
+    - Sign up as artist and observe verification pending screen, then simulate worker approval and observe redirect and success toast.
+    - News filters: apply filters and assert list updates, pagination works.
+
+K — Storybook & UI polish
+  - Add stories for:
+    - NewsFilters variations (no filters, with filters, empty state).
+    - Toast states (success, error, pending).
+    - Verification dialogs (pending, success, failure).
+    - NotificationsPanel.
+  - Ensure design tokens used; if missing add TODOs to migrate.
+
+L — Acceptance criteria (must be green)
+  - [ ] News page filters work: search, tag, platform, date range, sort and pagination; URL reflects filters; loading/empty/error states present.
+  - [ ] Toast system works: success/info/error/pending toasts and update API (updateToast).
+  - [ ] Notifications panel lists notifications and unread count in header; mark-read works.
+  - [ ] Artist signup flow shows Verification Pending UI and queued status; worker processes and final result updates user (toast + notification + profile flag).
+  - [ ] Duplicate account and invalid music links properly blocked with inline field errors.
+  - [ ] All new endpoints are validated with Zod and protected appropriately (admin routes guarded).
+  - [ ] Unit + E2E tests pass locally.
+  - [ ] No regressions in Sign In/Sign Up behavior for regular users.
+
+M — Rollout & feature flags
+  - Wrap AI verification behind FEATURE_AI_VERIFY (env toggle). Default ON in staging, OFF in prod until smoke tests pass.
+  - Use a feature flag ENABLE_NEW_TOAST for gradual rollout.
+  - Document rollback steps and how to disable worker.
+
+N — PR & documentation
+  - PR title: fix(news): filters + notifications + robust signup verification
+  - PR description: include docs/IMPLEMENTATION_NOTES.md, migration SQL, how to run worker locally (node packages/server/aiVerifier.js), env vars required (OPENAI_API_KEY, FEATURE flags), test run commands and manual QA checklist.
+
+Estimated effort
+----------------
+- DB + API + worker: 8–12 hours
+- News filters + UI + toasts: 6–10 hours
+- Signup changes + verification dialog + tests: 6–10 hours
+- Tests & docs: 3–5 hours
+- Total: ~23–37 hours (single senior developer)
+
+Notes for developer
+-------------------
+- Keep AI calls in worker only; never block HTTP request-response for long-running AI verification.
+- Use optimistic UI for signup pending flow: inform user immediately that verification is queued.
+- Ensure notifications are GDPR-safe: do not expose sensitive profile info in notification payloads.
+- If the project uses Supabase Realtime, reuse it for notification broadcasting; otherwise add a lightweight socket or SSE.
+- Add telemetry events for signup_verification_queued, verification_result, news_filter_used for analytics.
+
+End of task.
