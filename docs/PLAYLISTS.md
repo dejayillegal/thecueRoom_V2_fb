@@ -220,9 +220,10 @@ pnpm run migrate
 
 ### Transaction Safety
 All playlist updates use database transactions to ensure:
-- Playlist and items are updated atomically
-- History is recorded before changes
-- Rollback capability in case of errors
+- Playlist and items are updated atomically (delete-then-insert pattern)
+- History snapshots include both playlist metadata AND all playlist_items for full rollback capability
+- Orphaned items are prevented by deleting all items before inserting new ones within the same transaction
+- Rollback capability with complete state reconstruction
 
 ### Caching Strategy
 - Live playlists: Cached for 2 minutes (public access)
@@ -255,8 +256,9 @@ The system is designed to be platform-agnostic:
 
 ## Security
 
-- All admin endpoints check for admin role
-- Track suggestions limited to artists and admins
-- SQL injection prevented by Drizzle ORM
-- XSS protection through input validation
-- Audit trail for all playlist changes
+- All admin endpoints check for admin role before processing
+- Track suggestions properly scoped: artists can ONLY see their own submissions, admins see all
+- Status query parameters ignored for non-admin users to prevent enumeration
+- SQL injection prevented by Drizzle ORM parameterized queries
+- XSS protection through input validation and Zod schema enforcement
+- Complete audit trail for all playlist changes with user attribution
