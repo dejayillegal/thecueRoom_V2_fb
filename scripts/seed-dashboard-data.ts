@@ -11,7 +11,7 @@ async function seedDashboardData() {
     const adminPassword = 'Closer@82';
 
     const existingUsers = await db.select().from(users).where(eq(users.email, adminEmail));
-    
+
     let adminUser;
     if (existingUsers.length === 0) {
       const passwordHash = await bcrypt.hash(adminPassword, 10);
@@ -45,7 +45,7 @@ async function seedDashboardData() {
     const createdUsers = [];
     for (const testUser of testUsers) {
       const existing = await db.select().from(users).where(eq(users.email, testUser.email));
-      
+
       if (existing.length === 0) {
         const passwordHash = await bcrypt.hash('test123', 10);
         const [newUser] = await db.insert(users).values({
@@ -53,13 +53,13 @@ async function seedDashboardData() {
           passwordHash,
           role: 'user',
         }).returning();
-        
+
         await db.insert(profiles).values({
           userId: newUser.id,
           displayName: testUser.displayName,
           aiCredits: 100,
         });
-        
+
         createdUsers.push(newUser);
         console.log(`✅ Created user: ${testUser.displayName}`);
       } else {
@@ -143,7 +143,7 @@ async function seedDashboardData() {
     console.log('\n📋 Test credentials:');
     console.log('Admin Email:', adminEmail);
     console.log('Admin Password:', adminPassword);
-    
+
   } catch (error) {
     console.error('❌ Error seeding dashboard data:', error);
     throw error;

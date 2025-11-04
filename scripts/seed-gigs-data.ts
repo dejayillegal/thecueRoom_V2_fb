@@ -1,6 +1,4 @@
 
-#!/usr/bin/env tsx
-
 import { getDbClient } from '@thecueroom/db';
 import { nanoid } from 'nanoid';
 

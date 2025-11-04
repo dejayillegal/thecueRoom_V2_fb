@@ -2,8 +2,6 @@
 import { execSync } from 'child_process';
 import { getDbClient } from '../packages/db';
 import { sql } from 'drizzle-orm';
-import fs from 'fs';
-import path from 'path';
 
 async function runCommand(command: string, description: string) {
   console.log(`\n${'='.repeat(60)}`);
@@ -28,7 +26,7 @@ async function checkDatabase() {
   }
   
   try {
-    const db = getDbClient();
+    const db = await getDbClient();
     await db.execute(sql`SELECT 1`);
     console.log('✅ Database connection successful\n');
     return true;
@@ -36,27 +34,6 @@ async function checkDatabase() {
     console.error('❌ Database connection failed:', error);
     throw error;
   }
-}
-
-async function ensureSeedData() {
-  console.log('\n🌱 Checking seed data...\n');
-  
-  const seedDir = path.join(process.cwd(), 'seeds', 'data');
-  if (!fs.existsSync(seedDir)) {
-    fs.mkdirSync(seedDir, { recursive: true });
-  }
-  
-  const seedFiles = ['users.json', 'threads.json', 'events.json'];
-  const missing = seedFiles.filter(f => !fs.existsSync(path.join(seedDir, f)));
-  
-  if (missing.length > 0) {
-    console.log(`⚠️  Missing seed files: ${missing.join(', ')}`);
-    console.log('Run seed scripts first: node seeds/seed-forum.js && node seeds/seed-events.js\n');
-    return false;
-  }
-  
-  console.log('✅ All seed data files present\n');
-  return true;
 }
 
 async function main() {
@@ -67,31 +44,52 @@ async function main() {
     // Step 1: Check database connection
     await checkDatabase();
     
-    // Step 2: Ensure seed data exists
-    await ensureSeedData();
-    
-    // Step 3: Run migrations
+    // Step 2: Run migrations
     await runCommand(
       'pnpm --filter @thecueroom/db migrate',
-      'Step 1/4: Running database migrations'
+      'Step 1/8: Running database migrations'
     );
     
-    // Step 4: Seed sources
+    // Step 3: Seed sources
     await runCommand(
       'tsx scripts/seed-sources.ts',
-      'Step 2/4: Seeding news sources'
+      'Step 2/8: Seeding news sources'
     );
     
-    // Step 5: Create admin user
+    // Step 4: Create admin user
     await runCommand(
-      'tsx scripts/create-admin-user.ts',
-      'Step 3/4: Creating admin user'
+      'tsx scripts/seed-admin.ts',
+      'Step 3/8: Creating admin user'
     );
     
-    // Step 6: Run initial ingestion
+    // Step 5: Seed test accounts
+    await runCommand(
+      'tsx scripts/seed-test-accounts.ts',
+      'Step 4/8: Seeding test user accounts'
+    );
+    
+    // Step 6: Seed forum data
+    await runCommand(
+      'tsx scripts/seed-forum-data.ts',
+      'Step 5/8: Seeding forum categories and threads'
+    );
+    
+    // Step 7: Seed gigs data
+    await runCommand(
+      'tsx scripts/seed-gigs-data.ts',
+      'Step 6/8: Seeding gigs and events'
+    );
+    
+    // Step 8: Seed playlist data
+    await runCommand(
+      'tsx scripts/seed-playlist.ts',
+      'Step 7/8: Seeding weekly playlist'
+    );
+    
+    // Step 9: Run initial ingestion
     await runCommand(
       'tsx scripts/enhanced-ingest.ts',
-      'Step 4/4: Running initial feed ingestion'
+      'Step 8/8: Running initial feed ingestion'
     );
     
     console.log('\n' + '='.repeat(60));
@@ -101,6 +99,10 @@ async function main() {
     console.log('  ✓ Database migrations applied');
     console.log('  ✓ News sources seeded');
     console.log('  ✓ Admin user created');
+    console.log('  ✓ Test accounts created (artists & users)');
+    console.log('  ✓ Forum data seeded (categories, threads, replies)');
+    console.log('  ✓ Gigs and events seeded');
+    console.log('  ✓ Weekly playlist seeded');
     console.log('  ✓ Initial feeds ingested');
     console.log('\n🎉 Your thecueRoom instance is ready!\n');
     console.log('🔐 Admin Login:');
@@ -109,7 +111,8 @@ async function main() {
     console.log('\n💡 Next steps:');
     console.log('   1. The server is already running');
     console.log('   2. Visit the app in the webview');
-    console.log('   3. Sign in with admin credentials\n');
+    console.log('   3. Sign in with admin credentials');
+    console.log('   4. Check /music/weekly for the seeded playlist\n');
     
     process.exit(0);
   } catch (error) {
