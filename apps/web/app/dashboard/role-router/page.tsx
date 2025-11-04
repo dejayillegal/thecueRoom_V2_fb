@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect } from 'react';
@@ -23,7 +22,7 @@ export default function DashboardRoleRouter() {
         }
 
         const role = session.user.role || 'user';
-        
+
         switch (role) {
           case 'admin':
             router.replace('/dashboard/admin');

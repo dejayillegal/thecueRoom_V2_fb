@@ -1,16 +1,16 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Image, MessageSquare, FileText, Calendar, Plus, Music } from 'lucide-react';
+import { Image, MessageSquare, FileText, Calendar, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { LatestPlaylistWidget } from '@/components/Dashboard/LatestPlaylistWidget';
 import { TrackSuggestionModal } from '@/components/Dashboard/TrackSuggestionModal';
 
 export default function ArtistDashboard() {
-  const [stats, setStats] = useState({
+  const [stats] = useState({
     myEvents: 0,
     aiCredits: 100,
     followers: 0,
