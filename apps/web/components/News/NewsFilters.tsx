@@ -71,19 +71,19 @@ export function NewsFilters({ onFiltersChange, availableTags = [] }: NewsFilters
       </div>
 
       {/* Tags Filter */}
-      <Card className="bg-[#111111] border-[#1a1a1a] p-4">
-        <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+      <Card className="bg-[#111111] border-[#1a1a1a] p-3">
+        <h3 className="text-white font-semibold mb-2 flex items-center gap-2 text-sm">
           <Filter className="w-4 h-4" />
           Filters
         </h3>
-        <div className="space-y-2">
+        <div className="space-y-1">
           {availableTags.map((tag) => (
             <button
               key={tag}
               onClick={() => toggleTag(tag)}
-              className={`w-full text-left px-3 py-2 rounded text-sm capitalize transition-colors ${
+              className={`w-full text-left px-2 py-1.5 rounded text-xs capitalize transition-colors ${
                 selectedTags.includes(tag)
-                  ? 'bg-[#D1FF3D] text-black'
+                  ? 'bg-[#D1FF3D] text-black font-medium'
                   : 'text-gray-400 hover:bg-[#1a1a1a] hover:text-white'
               }`}
             >
@@ -95,7 +95,8 @@ export function NewsFilters({ onFiltersChange, availableTags = [] }: NewsFilters
           <Button
             onClick={clearFilters}
             variant="outline"
-            className="w-full mt-3 border-[#1a1a1a] hover:bg-[#1a1a1a]"
+            size="sm"
+            className="w-full mt-2 border-[#1a1a1a] hover:bg-[#1a1a1a] text-xs"
           >
             Clear All
           </Button>
