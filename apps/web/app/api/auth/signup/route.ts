@@ -180,8 +180,20 @@ export async function POST(request: NextRequest) {
       
       // Update user with verification job ID
       await db.update(users)
-        .set({ verificationJobId: job.id })
+        .set({ 
+          verificationJobId: job.id,
+          verificationStatus: 'verification_pending',
+        })
         .where(eq(users.id, newUser.id));
+
+      // Create initial notification
+      await db.insert(notifications).values({
+        userId: newUser.id,
+        type: 'verification_started',
+        title: 'Verification Started',
+        message: 'Your artist profile verification is in progress. This usually takes a few moments.',
+        link: '/verification',
+      });
     }
 
     return NextResponse.json({
