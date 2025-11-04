@@ -16,7 +16,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, Save, X, Upload, CheckCircle2 } from 'lucide-react';
+import { Loader2, Save, X, Upload, CheckCircle2, Shield } from 'lucide-react';
+import { useToast } from '@/../../src/hooks/use-toast';
 
 const REGIONS = [
   'North America',
@@ -49,7 +50,7 @@ interface ProfileData {
     username: string;
     verified: boolean;
     verificationStatus: string;
-    artistName?: string;
+    role: string;
   };
   profile: {
     displayName?: string;
@@ -64,10 +65,12 @@ interface ProfileData {
     showPhone: boolean;
     publicReleases: boolean;
     allowContactRequests: boolean;
+    aiCredits?: number;
   } | null;
 }
 
 export function MyProfileSettings() {
+  const { toast } = useToast();
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [formData, setFormData] = useState({
     displayName: '',
@@ -85,7 +88,6 @@ export function MyProfileSettings() {
   });
   const [originalData, setOriginalData] = useState(formData);
   const [isSaving, setIsSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [isLoading, setIsLoading] = useState(true);
 
   const hasChanges = JSON.stringify(formData) !== JSON.stringify(originalData);
@@ -126,7 +128,11 @@ export function MyProfileSettings() {
       setOriginalData(newFormData);
     } catch (error) {
       console.error('Failed to fetch profile:', error);
-      setSaveStatus('error');
+      toast({
+        title: 'Error',
+        description: 'Failed to load profile settings',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -134,7 +140,6 @@ export function MyProfileSettings() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    setSaveStatus('saving');
 
     try {
       const response = await fetch('/api/profile', {
@@ -147,14 +152,18 @@ export function MyProfileSettings() {
         throw new Error('Failed to save profile');
       }
 
-      const data = await response.json();
       setOriginalData(formData);
-      setSaveStatus('saved');
-      
-      setTimeout(() => setSaveStatus('idle'), 3000);
+      toast({
+        title: 'Success',
+        description: 'Profile updated successfully',
+      });
     } catch (error) {
       console.error('Failed to save profile:', error);
-      setSaveStatus('error');
+      toast({
+        title: 'Error',
+        description: 'Failed to update profile',
+        variant: 'destructive',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -162,15 +171,6 @@ export function MyProfileSettings() {
 
   const handleCancel = () => {
     setFormData(originalData);
-    setSaveStatus('idle');
-  };
-
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // TODO: Implement avatar upload
-    console.log('Avatar upload not yet implemented');
   };
 
   if (isLoading) {
@@ -182,24 +182,21 @@ export function MyProfileSettings() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-6">
+    <div className="max-w-3xl mx-auto p-6 space-y-6 bg-[#0b0b0b]">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-white">Profile Settings</h1>
-        {saveStatus === 'saved' && (
-          <div className="flex items-center gap-2 text-green-400">
-            <CheckCircle2 className="w-4 h-4" />
-            <span className="text-sm">Saved successfully</span>
-          </div>
-        )}
-        {saveStatus === 'error' && (
-          <span className="text-sm text-red-400">Error saving changes</span>
-        )}
       </div>
 
-      {/* Read-only Info */}
+      {/* Read-only Account Info */}
       {profileData && (
-        <Card className="bg-[#0b0b0b] border-[#1a1a1a] p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">Account Information</h2>
+        <Card className="bg-[#111] border-[#222] p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Shield className="w-5 h-5 text-[#D7FF3C]" />
+            <h2 className="text-xl font-semibold text-white">Account Information</h2>
+            {profileData.user.verified && (
+              <CheckCircle2 className="w-5 h-5 text-green-500 ml-2" />
+            )}
+          </div>
           <div className="space-y-4">
             <div>
               <Label className="text-gray-400">Email</Label>
@@ -217,56 +214,35 @@ export function MyProfileSettings() {
                 className="bg-[#1a1a1a] border-[#333] text-gray-500 cursor-not-allowed"
               />
             </div>
-            {profileData.user.artistName && (
-              <div>
-                <Label className="text-gray-400">Artist Name</Label>
-                <Input
-                  value={profileData.user.artistName}
-                  disabled
-                  className="bg-[#1a1a1a] border-[#333] text-gray-500 cursor-not-allowed"
-                />
-              </div>
-            )}
             <div>
               <Label className="text-gray-400">Verification Status</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  value={profileData.user.verificationStatus}
-                  disabled
-                  className="bg-[#1a1a1a] border-[#333] text-gray-500 cursor-not-allowed flex-1 capitalize"
-                />
-                {profileData.user.verified && (
-                  <CheckCircle2 className="w-5 h-5 text-green-500" />
-                )}
-              </div>
+              <Input
+                value={profileData.user.verificationStatus}
+                disabled
+                className="bg-[#1a1a1a] border-[#333] text-gray-500 cursor-not-allowed capitalize"
+              />
             </div>
           </div>
         </Card>
       )}
 
-      {/* Avatar */}
-      <Card className="bg-[#0b0b0b] border-[#1a1a1a] p-6">
+      {/* Avatar Upload */}
+      <Card className="bg-[#111] border-[#222] p-6">
         <h2 className="text-xl font-semibold text-white mb-4">Profile Picture</h2>
         <div className="flex items-center gap-4">
           <Avatar className="h-24 w-24">
             <AvatarImage src={formData.avatar} alt="Profile" />
-            <AvatarFallback className="bg-[#9B5CFF] text-white text-2xl">
+            <AvatarFallback className="bg-[#D7FF3C] text-black text-2xl">
               {(profileData?.user.username || 'U').charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div>
             <Label htmlFor="avatar-upload" className="cursor-pointer">
               <div className="flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] rounded-lg transition-colors">
-                <Upload className="h-4 w-4" />
-                <span className="text-sm">Upload New Picture</span>
+                <Upload className="h-4 w-4 text-white" />
+                <span className="text-sm text-white">Upload New Picture</span>
               </div>
-              <Input
-                id="avatar-upload"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleAvatarUpload}
-              />
+              <Input id="avatar-upload" type="file" accept="image/*" className="hidden" />
             </Label>
             <p className="text-xs text-gray-400 mt-2">JPG, PNG or GIF. Max 2MB.</p>
           </div>
@@ -274,11 +250,11 @@ export function MyProfileSettings() {
       </Card>
 
       {/* Basic Info */}
-      <Card className="bg-[#0b0b0b] border-[#1a1a1a] p-6">
+      <Card className="bg-[#111] border-[#222] p-6">
         <h2 className="text-xl font-semibold text-white mb-4">Basic Information</h2>
         <div className="space-y-4">
           <div>
-            <Label htmlFor="displayName">Display Name</Label>
+            <Label htmlFor="displayName" className="text-gray-300">Display Name</Label>
             <Input
               id="displayName"
               value={formData.displayName}
@@ -286,10 +262,9 @@ export function MyProfileSettings() {
               className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
             />
           </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="firstName" className="text-gray-300">First Name</Label>
               <Input
                 id="firstName"
                 value={formData.firstName}
@@ -298,7 +273,7 @@ export function MyProfileSettings() {
               />
             </div>
             <div>
-              <Label htmlFor="lastName">Last Name</Label>
+              <Label htmlFor="lastName" className="text-gray-300">Last Name</Label>
               <Input
                 id="lastName"
                 value={formData.lastName}
@@ -307,21 +282,19 @@ export function MyProfileSettings() {
               />
             </div>
           </div>
-
           <div>
-            <Label htmlFor="bio">Bio</Label>
+            <Label htmlFor="bio" className="text-gray-300">Bio</Label>
             <Textarea
               id="bio"
               value={formData.bio}
               onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
               rows={4}
-              className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
+              className="bg-[#0a0a0a] border-[#1a1a1a] text-white resize-none"
               placeholder="Tell us about yourself..."
             />
           </div>
-
           <div>
-            <Label htmlFor="phone">Phone</Label>
+            <Label htmlFor="phone" className="text-gray-300">Phone</Label>
             <Input
               id="phone"
               type="tel"
@@ -330,10 +303,9 @@ export function MyProfileSettings() {
               className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
             />
           </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="region">Region</Label>
+              <Label htmlFor="region" className="text-gray-300">Region</Label>
               <Select
                 value={formData.region}
                 onValueChange={(value) => setFormData({ ...formData, region: value })}
@@ -350,9 +322,8 @@ export function MyProfileSettings() {
                 </SelectContent>
               </Select>
             </div>
-
             <div>
-              <Label htmlFor="genre">Genre</Label>
+              <Label htmlFor="genre" className="text-gray-300">Genre</Label>
               <Select
                 value={formData.genre}
                 onValueChange={(value) => setFormData({ ...formData, genre: value })}
@@ -374,12 +345,12 @@ export function MyProfileSettings() {
       </Card>
 
       {/* Privacy Settings */}
-      <Card className="bg-[#0b0b0b] border-[#1a1a1a] p-6">
+      <Card className="bg-[#111] border-[#222] p-6">
         <h2 className="text-xl font-semibold text-white mb-4">Privacy Settings</h2>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="showEmail" className="text-base">Show Email Publicly</Label>
+              <Label htmlFor="showEmail" className="text-base text-gray-300">Show Email Publicly</Label>
               <p className="text-sm text-gray-400">Allow others to see your email address</p>
             </div>
             <Switch
@@ -388,10 +359,9 @@ export function MyProfileSettings() {
               onCheckedChange={(checked) => setFormData({ ...formData, showEmail: checked })}
             />
           </div>
-
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="showPhone" className="text-base">Show Phone Publicly</Label>
+              <Label htmlFor="showPhone" className="text-base text-gray-300">Show Phone Publicly</Label>
               <p className="text-sm text-gray-400">Allow others to see your phone number</p>
             </div>
             <Switch
@@ -400,10 +370,9 @@ export function MyProfileSettings() {
               onCheckedChange={(checked) => setFormData({ ...formData, showPhone: checked })}
             />
           </div>
-
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="publicReleases" className="text-base">Public Releases</Label>
+              <Label htmlFor="publicReleases" className="text-base text-gray-300">Public Releases</Label>
               <p className="text-sm text-gray-400">Show your releases on your public profile</p>
             </div>
             <Switch
@@ -412,22 +381,30 @@ export function MyProfileSettings() {
               onCheckedChange={(checked) => setFormData({ ...formData, publicReleases: checked })}
             />
           </div>
-
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="allowContactRequests" className="text-base">Allow Contact Requests</Label>
+              <Label htmlFor="allowContactRequests" className="text-base text-gray-300">Allow Contact Requests</Label>
               <p className="text-sm text-gray-400">Let others send you contact requests</p>
             </div>
             <Switch
               id="allowContactRequests"
               checked={formData.allowContactRequests}
-              onCheckedChange={(checked) =>
-                setFormData({ ...formData, allowContactRequests: checked })
-              }
+              onCheckedChange={(checked) => setFormData({ ...formData, allowContactRequests: checked })}
             />
           </div>
         </div>
       </Card>
+
+      {/* AI Credits Display */}
+      {profileData?.profile?.aiCredits !== undefined && (
+        <Card className="bg-[#111] border-[#222] p-6">
+          <h2 className="text-xl font-semibold text-white mb-2">AI Credits</h2>
+          <p className="text-gray-400 text-sm mb-4">Your available AI generation credits</p>
+          <div className="text-4xl font-bold text-[#D7FF3C]">
+            {profileData.profile.aiCredits}
+          </div>
+        </Card>
+      )}
 
       {/* Save/Cancel Buttons */}
       {hasChanges && (
@@ -435,7 +412,7 @@ export function MyProfileSettings() {
           <Button
             onClick={handleCancel}
             variant="outline"
-            className="border-[#1a1a1a]"
+            className="border-[#1a1a1a] text-white"
             disabled={isSaving}
           >
             <X className="h-4 w-4 mr-2" />
