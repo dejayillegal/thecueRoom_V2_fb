@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDbClient } from '@thecueroom/db';
 import type { NextRequest } from 'next/server';
 import { LRUCache } from 'lru-cache';
+import { sql } from 'drizzle-orm';
 
 // Simple in-memory cache to reduce API hits
 const cache = new LRUCache({ max: 100, ttl: 1000 * 60 * 5 }); // 5 min TTL
@@ -27,29 +28,31 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const db = await getDbClient();
+    const db = getDbClient();
 
-    // Fetch all approved events
-    const result = await db.execute({
-      sql: `
-        SELECT 
-          id, title, venue, city, event_date as date, event_time as time,
-          price, ticket_url as ticketUrl, image_url as imageUrl,
-          description, genre, source, source_url as sourceUrl
-        FROM events
-        WHERE status = 'approved'
-        ORDER BY event_date ASC
-      `,
-      args: [],
-    });
+    // Fetch all approved events using Drizzle's raw SQL
+    const result = await db.execute(sql`
+      SELECT 
+        id, title, venue, city, start_time as date, 
+        ticket_url as "ticketUrl", image_url as "imageUrl",
+        genres, source, visibility, status
+      FROM gigs
+      WHERE approved = true AND status = 'approved'
+      ORDER BY start_time ASC
+    `);
 
-    const events = result.rows.map(row => ({
-      ...row,
-      genre: row.genre ? JSON.parse(row.genre as string) : [],
-      freeTicket: !row.price || (row.price as string).toLowerCase().includes('free'),
+    const events = result.rows.map((row: any) => ({
+      id: row.id,
+      title: row.title,
+      venue: row.venue,
+      city: row.city,
+      date: row.date,
+      ticketUrl: row.ticketUrl,
+      imageUrl: row.imageUrl,
+      genre: row.genres || [],
+      source: row.source,
+      freeTicket: true, // Default for now since we don't have price in gigs table
     }));
-
-    await db.close();
 
     // Cache successful results
     cache.set(cacheKey, events);
