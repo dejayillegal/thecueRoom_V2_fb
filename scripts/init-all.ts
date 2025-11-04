@@ -1,4 +1,3 @@
-
 import { execSync } from 'child_process';
 import { getDbClient } from '../packages/db';
 import { sql } from 'drizzle-orm';
@@ -7,7 +6,7 @@ async function runCommand(command: string, description: string) {
   console.log(`\n${'='.repeat(60)}`);
   console.log(`📋 ${description}`);
   console.log(`${'='.repeat(60)}\n`);
-  
+
   try {
     execSync(command, { stdio: 'inherit', cwd: process.cwd() });
     console.log(`\n✅ ${description} - Complete\n`);
@@ -20,11 +19,11 @@ async function runCommand(command: string, description: string) {
 
 async function checkDatabase() {
   console.log('\n🔍 Checking database connection...\n');
-  
+
   if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL environment variable is not set');
   }
-  
+
   try {
     const db = await getDbClient();
     await db.execute(sql`SELECT 1`);
@@ -39,59 +38,65 @@ async function checkDatabase() {
 async function main() {
   console.log('\n🚀 thecueRoom Full Initialization\n');
   console.log(`${'='.repeat(60)}\n`);
-  
+
   try {
     // Step 1: Check database connection
     await checkDatabase();
-    
+
     // Step 2: Run migrations
     await runCommand(
       'pnpm --filter @thecueroom/db migrate',
-      'Step 1/8: Running database migrations'
+      'Step 1/9: Running database migrations'
     );
-    
+
     // Step 3: Seed sources
     await runCommand(
       'tsx scripts/seed-sources.ts',
-      'Step 2/8: Seeding news sources'
+      'Step 2/9: Seeding news sources'
     );
-    
+
     // Step 4: Create admin user
     await runCommand(
       'tsx scripts/seed-admin.ts',
-      'Step 3/8: Creating admin user'
+      'Step 3/9: Creating admin user'
     );
-    
+
     // Step 5: Seed test accounts
     await runCommand(
       'tsx scripts/seed-test-accounts.ts',
-      'Step 4/8: Seeding test user accounts'
+      'Step 4/9: Seeding test user accounts'
     );
-    
+
     // Step 6: Seed forum data
     await runCommand(
       'tsx scripts/seed-forum-data.ts',
-      'Step 5/8: Seeding forum categories and threads'
+      'Step 5/9: Seeding forum categories and threads'
     );
-    
+
     // Step 7: Seed gigs data
     await runCommand(
       'tsx scripts/seed-gigs-data.ts',
-      'Step 6/8: Seeding gigs and events'
+      'Step 6/9: Seeding gigs and events'
     );
-    
-    // Step 8: Seed playlist data
+
+    // Step 8: Seed dashboard data
+    await runCommand(
+      'tsx scripts/seed-dashboard-data.ts',
+      'Step 7/9: Seeding dashboard test data'
+    );
+
+    // Step 9: Seed playlist data
     await runCommand(
       'tsx scripts/seed-playlist.ts',
-      'Step 7/8: Seeding weekly playlist'
+      'Step 8/9: Seeding weekly playlist'
     );
-    
-    // Step 9: Run initial ingestion
+
+    // Step 10: Run initial ingestion
     await runCommand(
       'tsx scripts/enhanced-ingest.ts',
-      'Step 8/8: Running initial feed ingestion'
+      'Step 9/9: Running initial feed ingestion'
     );
-    
+
     console.log('\n' + '='.repeat(60));
     console.log('✨ Initialization Complete!');
     console.log('='.repeat(60));
@@ -102,6 +107,7 @@ async function main() {
     console.log('  ✓ Test accounts created (artists & users)');
     console.log('  ✓ Forum data seeded (categories, threads, replies)');
     console.log('  ✓ Gigs and events seeded');
+    console.log('  ✓ Dashboard data seeded');
     console.log('  ✓ Weekly playlist seeded');
     console.log('  ✓ Initial feeds ingested');
     console.log('\n🎉 Your thecueRoom instance is ready!\n');
@@ -113,7 +119,7 @@ async function main() {
     console.log('   2. Visit the app in the webview');
     console.log('   3. Sign in with admin credentials');
     console.log('   4. Check /music/weekly for the seeded playlist\n');
-    
+
     process.exit(0);
   } catch (error) {
     console.error('\n❌ Initialization failed:', error);

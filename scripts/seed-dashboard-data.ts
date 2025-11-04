@@ -1,5 +1,5 @@
-import { db } from '../packages/db';
-import { users, profiles, gigs, forumThreads, memes } from '../packages/db/schema';
+import { getDbClient } from '../packages/db';
+import { users, profiles, gigs, forumThreads } from '../packages/db/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 
@@ -7,6 +7,7 @@ async function seedDashboardData() {
   console.log('🌱 Seeding dashboard test data...\n');
 
   try {
+    const db = getDbClient();
     const adminEmail = 'dejayillegal@gmail.com';
     const adminPassword = 'Closer@82';
 

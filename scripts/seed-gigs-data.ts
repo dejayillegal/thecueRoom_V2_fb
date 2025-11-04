@@ -1,140 +1,151 @@
 
 import { getDbClient } from '@thecueroom/db';
-import { nanoid } from 'nanoid';
+import { events, artistEvents, users } from '@thecueroom/db/schema';
+import { eq } from 'drizzle-orm';
 
 async function seedGigs() {
   console.log('🎫 Seeding gigs data...\n');
 
-  const db = await getDbClient();
+  const db = getDbClient();
   console.log('✅ Database client initialized');
 
-  // Sample gig events
+  // Sample gig events with more variety
   const gigs = [
     {
-      id: nanoid(),
       title: 'Techno Night @ Bangalore Underground',
       venue: 'Underground Warehouse',
+      location: 'Bangalore, Karnataka',
       city: 'Bangalore',
-      date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      time: '22:00',
-      price: 'Free Entry',
-      ticketUrl: '#',
+      startTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      ticketUrl: 'https://insider.in',
       imageUrl: 'https://picsum.photos/seed/gig1/800/600',
-      description: 'Deep techno night with local and international DJs',
-      artists: ['dj_phoenix', 'producer_nova'],
-      genre: ['Techno', 'Electronic'],
+      genres: ['Techno', 'Electronic'],
       source: 'thecueRoom',
-      sourceUrl: '#',
-      createdAt: new Date().toISOString(),
+      artistUsernames: ['dj_phoenix', 'producer_nova'],
+      status: 'approved',
+      approved: true,
     },
     {
-      id: nanoid(),
       title: 'House Music Festival - Goa Beach',
       venue: 'Sunset Beach Resort',
+      location: 'Anjuna, Goa',
       city: 'Goa',
-      date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-      time: '18:00',
-      price: '₹1500',
+      startTime: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       ticketUrl: 'https://bookmyshow.com',
       imageUrl: 'https://picsum.photos/seed/gig2/800/600',
-      description: 'Beach house music festival featuring top DJs',
-      artists: ['mixer_zen'],
-      genre: ['House', 'Deep House'],
+      genres: ['House', 'Deep House'],
       source: 'BookMyShow',
-      sourceUrl: 'https://bookmyshow.com',
-      createdAt: new Date().toISOString(),
+      artistUsernames: ['mixer_zen'],
+      status: 'approved',
+      approved: true,
     },
     {
-      id: nanoid(),
       title: 'Mumbai Underground Sessions',
       venue: 'The Junction',
+      location: 'Lower Parel, Mumbai',
       city: 'Mumbai',
-      date: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
-      time: '21:00',
-      price: '₹800',
-      ticketUrl: '#',
+      startTime: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
+      ticketUrl: 'https://insider.in',
       imageUrl: 'https://picsum.photos/seed/gig3/800/600',
-      description: 'Monthly underground music sessions',
-      artists: ['dj_phoenix', 'mixer_zen'],
-      genre: ['Techno', 'Minimal'],
+      genres: ['Techno', 'Minimal'],
       source: 'Insider',
-      sourceUrl: '#',
-      createdAt: new Date().toISOString(),
+      artistUsernames: ['dj_phoenix', 'mixer_zen'],
+      status: 'approved',
+      approved: true,
     },
     {
-      id: nanoid(),
       title: 'Delhi Electronic Music Showcase',
       venue: 'Studio XL',
+      location: 'Hauz Khas, Delhi',
       city: 'Delhi',
-      date: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString(),
-      time: '20:00',
-      price: 'Free',
-      ticketUrl: '#',
+      startTime: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000),
+      ticketUrl: 'https://zomato.com',
       imageUrl: 'https://picsum.photos/seed/gig4/800/600',
-      description: 'Showcase of emerging electronic music artists',
-      artists: ['producer_nova'],
-      genre: ['Electronic', 'Ambient'],
+      genres: ['Electronic', 'Ambient'],
       source: 'Zomato Live',
-      sourceUrl: '#',
-      createdAt: new Date().toISOString(),
+      artistUsernames: ['producer_nova'],
+      status: 'approved',
+      approved: true,
+    },
+    {
+      title: 'Psytrance Night - Kasol Mountains',
+      venue: 'Mountain View Cafe',
+      location: 'Kasol, Himachal Pradesh',
+      city: 'Kasol',
+      startTime: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000),
+      imageUrl: 'https://picsum.photos/seed/gig5/800/600',
+      genres: ['Psytrance', 'Progressive'],
+      source: 'thecueRoom',
+      artistUsernames: ['techno.wizard'],
+      status: 'approved',
+      approved: true,
+    },
+    {
+      title: 'Drum & Bass Warehouse Party',
+      venue: 'Secret Location',
+      location: 'Bangalore, Karnataka',
+      city: 'Bangalore',
+      startTime: new Date(Date.now() + 42 * 24 * 60 * 60 * 1000),
+      imageUrl: 'https://picsum.photos/seed/gig6/800/600',
+      genres: ['Drum & Bass', 'Jungle'],
+      source: 'thecueRoom',
+      artistUsernames: ['liquidbass'],
+      status: 'pending',
+      approved: false,
+    },
+    {
+      title: 'Experimental Electronic Showcase',
+      venue: 'Art District Gallery',
+      location: 'Kala Ghoda, Mumbai',
+      city: 'Mumbai',
+      startTime: new Date(Date.now() + 49 * 24 * 60 * 60 * 1000),
+      ticketUrl: 'https://insider.in',
+      imageUrl: 'https://picsum.photos/seed/gig7/800/600',
+      genres: ['Experimental', 'Ambient', 'IDM'],
+      source: 'Insider',
+      artistUsernames: ['underground.events'],
+      status: 'approved',
+      approved: true,
     },
   ];
 
   // Insert gigs into events table
   for (const gig of gigs) {
     try {
-      await db.execute({
-        sql: `
-          INSERT INTO events (
-            id, title, venue, city, event_date, event_time, 
-            price, ticket_url, image_url, description, 
-            genre, source, source_url, created_at, updated_at, status
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          ON CONFLICT(id) DO NOTHING
-        `,
-        args: [
-          gig.id,
-          gig.title,
-          gig.venue,
-          gig.city,
-          gig.date,
-          gig.time || null,
-          gig.price || null,
-          gig.ticketUrl || null,
-          gig.imageUrl || null,
-          gig.description || null,
-          JSON.stringify(gig.genre),
-          gig.source,
-          gig.sourceUrl,
-          gig.createdAt,
-          gig.createdAt,
-          'approved',
-        ],
-      });
+      const [insertedEvent] = await db.insert(events).values({
+        title: gig.title,
+        venue: gig.venue,
+        location: gig.location,
+        city: gig.city,
+        startTime: gig.startTime,
+        ticketUrl: gig.ticketUrl,
+        imageUrl: gig.imageUrl,
+        genres: gig.genres,
+        source: gig.source,
+        status: gig.status,
+        approved: gig.approved,
+        visibility: 'public',
+      }).returning();
 
       console.log(`✅ Created gig: ${gig.title}`);
 
       // Link artists to gigs
-      if (gig.artists && gig.artists.length > 0) {
-        for (const artistUsername of gig.artists) {
+      if (gig.artistUsernames && gig.artistUsernames.length > 0) {
+        for (const artistUsername of gig.artistUsernames) {
           // Get artist user ID
-          const artistResult = await db.execute({
-            sql: 'SELECT id FROM users WHERE username = ?',
-            args: [artistUsername],
-          });
+          const artistResult = await db.select({ id: users.id })
+            .from(users)
+            .where(eq(users.username, artistUsername))
+            .limit(1);
 
-          if (artistResult.rows.length > 0) {
-            const artistId = artistResult.rows[0].id as string;
+          if (artistResult.length > 0) {
+            const artistId = artistResult[0].id;
             
             // Create artist-event relationship
-            await db.execute({
-              sql: `
-                INSERT INTO artist_events (artist_id, event_id, created_at)
-                VALUES (?, ?, ?)
-                ON CONFLICT(artist_id, event_id) DO NOTHING
-              `,
-              args: [artistId, gig.id, new Date().toISOString()],
-            });
+            await db.insert(artistEvents).values({
+              artistId: artistId,
+              eventId: insertedEvent.id,
+            }).onConflictDoNothing();
             
             console.log(`  ↳ Linked artist ${artistUsername} to gig`);
           }
@@ -144,8 +155,6 @@ async function seedGigs() {
       console.error(`❌ Error creating gig ${gig.title}:`, error);
     }
   }
-
-  await db.close();
 
   console.log('\n✨ Gigs seeded successfully!');
   console.log('\n📋 Test Gigs Created:');
