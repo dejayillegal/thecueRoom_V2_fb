@@ -11,10 +11,11 @@ interface NewsItem {
   title: string;
   summary: string;
   link: string;
-  image: string;
-  source: string;
+  image: string | null;
   tags: string[];
   publishedAt: string;
+  sourceId: string;
+  sourceName: string;
 }
 
 interface NewsListProps {
@@ -47,7 +48,7 @@ export function NewsList({ filters }: NewsListProps) {
         params.set('tags', filters.tags.join(','));
       }
 
-      const response = await fetch(`/api/feeds?${params.toString()}`);
+      const response = await fetch(`/api/news/list?${params.toString()}`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch news: ${response.status}`);
@@ -59,7 +60,7 @@ export function NewsList({ filters }: NewsListProps) {
       }
 
       const data = await response.json();
-      const newItems = data.data || [];
+      const newItems = data.items || [];
 
       if (reset) {
         setItems(newItems);
@@ -69,7 +70,7 @@ export function NewsList({ filters }: NewsListProps) {
         setOffset(prev => prev + newItems.length);
       }
 
-      setHasMore(newItems.length === 24);
+      setHasMore(data.hasMore || false);
     } catch (err) {
       console.error('Failed to fetch news:', err);
       setError(err instanceof Error ? err.message : 'Failed to load news');
@@ -148,7 +149,7 @@ export function NewsList({ filters }: NewsListProps) {
                   {item.summary}
                 </p>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-[#D1FF3D]">{item.source}</span>
+                  <span className="text-[#D1FF3D]">{item.sourceName}</span>
                   <span className="text-gray-500">
                     {new Date(item.publishedAt).toLocaleDateString()}
                   </span>

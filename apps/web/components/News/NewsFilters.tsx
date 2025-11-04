@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -48,12 +48,12 @@ export function NewsFilters({ onFiltersChange, availableTags = [] }: NewsFilters
   }, [onFiltersChange]);
 
   // Trigger filter change when debounced search changes
-  useCallback(() => {
+  useEffect(() => {
     onFiltersChange({
       search: debouncedSearch,
       tags: selectedTags,
     });
-  }, [debouncedSearch, selectedTags, onFiltersChange])();
+  }, [debouncedSearch, selectedTags, onFiltersChange]);
 
   return (
     <div className="space-y-4">
