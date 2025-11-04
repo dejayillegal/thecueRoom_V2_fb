@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getDbClient } from '@thecueroom/db';
 import type { NextRequest } from 'next/server';
-import LRU from 'lru-cache';
+import { LRUCache } from 'lru-cache';
 
 // Simple in-memory cache to reduce API hits
-const cache = new LRU({ max: 100, ttl: 1000 * 60 * 5 }); // 5 min TTL
+const cache = new LRUCache({ max: 100, ttl: 1000 * 60 * 5 }); // 5 min TTL
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // Revalidate every hour
