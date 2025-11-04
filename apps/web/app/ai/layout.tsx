@@ -24,7 +24,7 @@ export default memo(function AILayout({
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0b0b0b]">
+    <div className="min-h-screen bg-black">
       <Sidebar
         isOpen={sidebarOpen}
         onToggle={handleSidebarToggle}
@@ -32,6 +32,7 @@ export default memo(function AILayout({
       <Header 
         user={mockUser}
         sidebarOpen={sidebarOpen}
+        onToggleSidebar={handleSidebarToggle}
       />
       <main 
         className={cn(

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useCallback, memo } from 'react';
@@ -23,7 +24,7 @@ export default memo(function NewsLayout({
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0b0b0b]">
+    <div className="min-h-screen bg-black">
       <Sidebar
         isOpen={sidebarOpen}
         onToggle={handleSidebarToggle}
@@ -31,6 +32,7 @@ export default memo(function NewsLayout({
       <Header 
         user={mockUser}
         sidebarOpen={sidebarOpen}
+        onToggleSidebar={handleSidebarToggle}
       />
       <main 
         className={cn(
