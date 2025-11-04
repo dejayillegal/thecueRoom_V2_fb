@@ -1,19 +1,32 @@
 
 'use client';
 
-import { useState, useCallback } from 'react';
-import { NewsFilters } from '@/components/News/NewsFilters';
+import { useState, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { NewsFilters, NewsFilterValues } from '@/components/News/NewsFilters';
 import { NewsList } from '@/components/News/NewsList';
 
 const DEFAULT_TAGS = ['techno', 'house', 'production', 'gear', 'events', 'interviews'];
 
-export default function NewsPage() {
-  const [filters, setFilters] = useState({
-    search: '',
-    tags: [] as string[],
-  });
+function getInitialFiltersFromURL(searchParams: URLSearchParams): NewsFilterValues {
+  return {
+    search: searchParams.get('search') || '',
+    tags: searchParams.get('tags')?.split(',').filter(Boolean) || [],
+    platform: (searchParams.get('platform') as any) || 'all',
+    sort: (searchParams.get('sort') as 'latest' | 'popular') || 'latest',
+    dateFrom: searchParams.get('dateFrom') || undefined,
+    dateTo: searchParams.get('dateTo') || undefined,
+    verifiedOnly: searchParams.get('verifiedOnly') === 'true' || undefined,
+  };
+}
 
-  const handleFiltersChange = useCallback((newFilters: { search: string; tags: string[] }) => {
+export default function NewsPage() {
+  const searchParams = useSearchParams();
+  const [filters, setFilters] = useState<NewsFilterValues>(() => 
+    getInitialFiltersFromURL(searchParams)
+  );
+
+  const handleFiltersChange = useCallback((newFilters: NewsFilterValues) => {
     setFilters(newFilters);
   }, []);
 
@@ -28,6 +41,7 @@ export default function NewsPage() {
           <NewsFilters
             onFiltersChange={handleFiltersChange}
             availableTags={DEFAULT_TAGS}
+            initialFilters={filters}
           />
           <div className="lg:col-span-3">
             <NewsList filters={filters} />
