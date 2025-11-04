@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo, useCallback, memo } from 'react';
-import { SpotlightColumn } from '@/../../src/components/Spotlight/SpotlightColumn';
+import SpotlightColumn from '@/../../src/components/Spotlight/SpotlightColumn';
 import { ImageWithFallback } from '@/../../src/components/ImageWithFallback';
 import { AlertCircle, Sparkles, Calendar } from 'lucide-react';
 
@@ -47,7 +47,7 @@ export const DashboardContent = memo(function DashboardContent({ user }: Dashboa
 
     const fetchSpotlight = async () => {
       try {
-        const res = await fetch('/api/feeds?limit=3', {
+        const res = await fetch('/api/feeds?limit=12', {
           signal: controller.signal,
         });
 
@@ -55,7 +55,7 @@ export const DashboardContent = memo(function DashboardContent({ user }: Dashboa
 
         const data = await res.json();
         if (mounted && data.data) {
-          setSpotlightFeeds(data.data.slice(0, 3));
+          setSpotlightFeeds(data.data.slice(0, 12));
         }
       } catch (error) {
         if (error instanceof Error && error.name !== 'AbortError') {
@@ -120,7 +120,7 @@ export const DashboardContent = memo(function DashboardContent({ user }: Dashboa
             </div>
             {loading ? (
               <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
                   <div key={i} className="h-32 bg-[#1a1a1a] rounded-lg animate-pulse" />
                 ))}
               </div>
