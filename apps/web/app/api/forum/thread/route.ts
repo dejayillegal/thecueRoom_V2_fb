@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getDbClient } from '@/lib/db-client';
-import { forumThreads, forumReplies } from '@thecueroom/db/schema';
+import { forumThreads, forumReplies, users, profiles, forumCategories } from '@thecueroom/db/schema';
 import { eq } from 'drizzle-orm';
 import { getSession } from '@/lib/auth';
 
@@ -74,20 +74,59 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const categoryId = searchParams.get('categoryId');
+    const sort = searchParams.get('sort') || 'newest';
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const offset = (page - 1) * limit;
 
-    let query = db.select().from(forumThreads);
+    const db = getDbClient();
+
+    // Build the query with joins
+    let query = db
+      .select({
+        thread: forumThreads,
+        user: {
+          username: users.username,
+          verified: users.verified,
+        },
+        profile: {
+          displayName: profiles.displayName,
+          avatar: profiles.avatar,
+        },
+        category: {
+          name: forumCategories.name,
+        },
+      })
+      .from(forumThreads)
+      .leftJoin(users, eq(forumThreads.userId, users.id))
+      .leftJoin(profiles, eq(users.id, profiles.userId))
+      .leftJoin(forumCategories, eq(forumThreads.categoryId, forumCategories.id))
+      .where(eq(forumThreads.isHidden, false));
 
     if (categoryId) {
       query = query.where(eq(forumThreads.categoryId, categoryId)) as any;
     }
 
-    const threads = await query
-      .limit(limit)
-      .offset(offset)
-      .orderBy(forumThreads.isPinned, forumThreads.updatedAt);
+    // Apply sorting
+    if (sort === 'trending') {
+      query = query.orderBy(forumThreads.likesCount, forumThreads.viewCount);
+    } else if (sort === 'unanswered') {
+      query = query.where(eq(forumThreads.replyCount, 0));
+      query = query.orderBy(forumThreads.createdAt);
+    } else {
+      // newest
+      query = query.orderBy(forumThreads.isPinned, forumThreads.createdAt);
+    }
+
+    const results = await query.limit(limit).offset(offset);
+
+    // Transform results
+    const threads = results.map((row) => ({
+      ...row.thread,
+      user: row.user,
+      profile: row.profile,
+      category: row.category,
+    }));
 
     return NextResponse.json({
       threads,
