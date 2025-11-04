@@ -1,0 +1,74 @@
+
+🌱 Seeding dashboard test data...
+
+✅ Database client initialized
+✅ Admin user already exists
+❌ Error seeding dashboard data: error: null value in column "username" of relation "users" violates not-null constraint
+    at /home/runner/workspace/node_modules/.pnpm/pg-pool@3.10.1_pg@8.16.3/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at <anonymous> (/home/runner/workspace/node_modules/.pnpm/drizzle-orm@0.36.4_@types+pg@8.15.6_@types+react@19.2.2_pg@8.16.3_postgres@3.4.7_react@19.2.0/node_modules/src/node-postgres/session.ts:104:19)
+    at seedDashboardData (/home/runner/workspace/scripts/seed-dashboard-data.ts:52:27) {
+  length: 425,
+  severity: 'ERROR',
+  code: '23502',
+  detail: 'Failing row contains (5a368ebb-2528-41b5-9c24-12f108cd39a6, dj.hollow@example.com, null, $2b$10$3mIP9039v4mLa8d/y0956.ZT5TqJvRt9v/bfwKfWJgyGumj5WMvM2, user, f, null, pending, null, null, null, null, 2025-11-04 11:59:55.809687, 2025-11-04 11:59:55.809687).',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'users',
+  column: 'username',
+  dataType: undefined,
+  constraint: undefined,
+  file: 'execMain.c',
+  line: '2012',
+  routine: 'ExecConstraints'
+}
+error: null value in column "username" of relation "users" violates not-null constraint
+    at /home/runner/workspace/node_modules/.pnpm/pg-pool@3.10.1_pg@8.16.3/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at <anonymous> (/home/runner/workspace/node_modules/.pnpm/drizzle-orm@0.36.4_@types+pg@8.15.6_@types+react@19.2.2_pg@8.16.3_postgres@3.4.7_react@19.2.0/node_modules/src/node-postgres/session.ts:104:19)
+    at seedDashboardData (/home/runner/workspace/scripts/seed-dashboard-data.ts:52:27) {
+  length: 425,
+  severity: 'ERROR',
+  code: '23502',
+  detail: 'Failing row contains (5a368ebb-2528-41b5-9c24-12f108cd39a6, dj.hollow@example.com, null, $2b$10$3mIP9039v4mLa8d/y0956.ZT5TqJvRt9v/bfwKfWJgyGumj5WMvM2, user, f, null, pending, null, null, null, null, 2025-11-04 11:59:55.809687, 2025-11-04 11:59:55.809687).',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'users',
+  column: 'username',
+  dataType: undefined,
+  constraint: undefined,
+  file: 'execMain.c',
+  line: '2012',
+  routine: 'ExecConstraints'
+}
+
+❌ Step 7/9: Seeding dashboard test data - Failed
+
+
+❌ Initialization failed: Error: Command failed: tsx scripts/seed-dashboard-data.ts
+    at __node_internal_genericNodeError (node:internal/errors:865:15)
+    at checkExecSyncError (node:child_process:890:11)
+    at execSync (node:child_process:962:15)
+    at runCommand (/home/runner/workspace/scripts/init-all.ts:11:5)
+    at main (/home/runner/workspace/scripts/init-all.ts:83:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  status: 1,
+  signal: null,
+  output: [ null, null, null ],
+  pid: 3436,
+  stdout: null,
+  stderr: null
+}
+
+💡 Troubleshooting:
+   1. Ensure DATABASE_URL is set in Secrets
+   2. Check database is accessible
+   3. Review error messages above
