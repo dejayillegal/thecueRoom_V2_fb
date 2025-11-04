@@ -137,8 +137,75 @@ export const playlists = pgTable('playlists', {
   thumbnail: text('thumbnail'),
   weekOf: timestamp('week_of').notNull(),
   featured: boolean('featured').notNull().default(false),
+  visibility: text('visibility').default('public'), // 'admin' | 'featured' | 'public'
+  autoCurated: boolean('auto_curated').default(false),
+  curatedAt: timestamp('curated_at'),
+  status: text('status').default('draft'), // 'draft' | 'queued' | 'live' | 'archived'
+  scheduledPublishAt: timestamp('scheduled_publish_at'),
+  aiConfidenceScore: integer('ai_confidence_score'),
+  metadata: jsonb('metadata').$type<any>().default(sql`'{}'::jsonb`),
   createdAt: timestamp('created_at').notNull().defaultNow(),
-});
+}, (table) => ({
+  statusIdx: index('playlists_status_idx').on(table.status),
+  visibilityIdx: index('playlists_visibility_idx').on(table.visibility),
+  curatedAtIdx: index('playlists_curated_at_idx').on(table.curatedAt),
+  autoCuratedIdx: index('playlists_auto_curated_idx').on(table.autoCurated),
+}));
+
+export const playlistItems = pgTable('playlist_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  playlistId: uuid('playlist_id').notNull().references(() => playlists.id, { onDelete: 'cascade' }),
+  trackPlatform: text('track_platform').notNull(),
+  trackId: text('track_id').notNull(),
+  trackTitle: text('track_title').notNull(),
+  artistName: text('artist_name').notNull(),
+  trackUrl: text('track_url'),
+  previewUrl: text('preview_url'),
+  coverImage: text('cover_image'),
+  metadata: jsonb('metadata').$type<any>().default(sql`'{}'::jsonb`),
+  position: integer('position').notNull(),
+  aiScore: integer('ai_score'),
+  aiRationale: text('ai_rationale'),
+  addedBy: uuid('added_by').references(() => users.id, { onDelete: 'set null' }),
+  addedAt: timestamp('added_at').notNull().defaultNow(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  playlistIdIdx: index('playlist_items_playlist_id_idx').on(table.playlistId),
+  positionIdx: index('playlist_items_position_idx').on(table.playlistId, table.position),
+}));
+
+export const playlistHistory = pgTable('playlist_history', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  playlistId: uuid('playlist_id').notNull().references(() => playlists.id, { onDelete: 'cascade' }),
+  snapshotData: jsonb('snapshot_data').$type<any>().notNull(),
+  changedBy: uuid('changed_by').references(() => users.id, { onDelete: 'set null' }),
+  changeType: text('change_type').notNull(), // 'created' | 'updated' | 'published' | 'archived'
+  changeNotes: text('change_notes'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  playlistIdIdx: index('playlist_history_playlist_id_idx').on(table.playlistId),
+  createdAtIdx: index('playlist_history_created_at_idx').on(table.createdAt),
+}));
+
+export const trackSuggestions = pgTable('track_suggestions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  artistId: uuid('artist_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  trackPlatform: text('track_platform').notNull(),
+  trackUrl: text('track_url').notNull(),
+  trackTitle: text('track_title'),
+  artistName: text('artist_name'),
+  notes: text('notes'),
+  metadata: jsonb('metadata').$type<any>().default(sql`'{}'::jsonb`),
+  status: text('status').notNull().default('pending'), // 'pending' | 'approved' | 'rejected'
+  reviewedBy: uuid('reviewed_by').references(() => users.id, { onDelete: 'set null' }),
+  reviewedAt: timestamp('reviewed_at'),
+  reviewNotes: text('review_notes'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  artistIdIdx: index('track_suggestions_artist_id_idx').on(table.artistId),
+  statusIdx: index('track_suggestions_status_idx').on(table.status),
+  createdAtIdx: index('track_suggestions_created_at_idx').on(table.createdAt),
+}));
 
 export const gigs = pgTable('gigs', {
   id: uuid('id').primaryKey().defaultRandom(),
