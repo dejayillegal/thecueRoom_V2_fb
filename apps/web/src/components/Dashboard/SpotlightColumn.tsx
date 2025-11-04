@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { useEventListener } from "@/hooks/use-event-listener";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import { Card } from "@/components/ui/card";
 
@@ -13,99 +12,76 @@ interface SpotlightItem {
 }
 
 interface SpotlightColumnProps {
-  items: SpotlightItem[];
+  children: React.ReactNode;
+  speed?: number;
+  className?: string;
 }
 
-/**
- * Auto-scrolling spotlight column using requestAnimationFrame
- * Respects prefers-reduced-motion and pauses on hover
- */
-export function SpotlightColumn({ items }: SpotlightColumnProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const rafRef = useRef<number>();
+export default function SpotlightColumn({
+  children,
+  speed = 30,
+  className = ""
+}: SpotlightColumnProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const animationRef = useRef<number>();
+  const scrollPositionRef = useRef(0);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(mediaQuery.matches);
+    const container = scrollRef.current;
+    const content = contentRef.current;
 
-    const handler = (e: MediaQueryListEvent) =>
-      setPrefersReducedMotion(e.matches);
-    mediaQuery.addEventListener("change", handler);
-    return () => mediaQuery.removeEventListener("change", handler);
-  }, []);
+    if (!container || !content) return;
 
-  useEffect(() => {
-    if (prefersReducedMotion || isPaused) {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
-      return;
-    }
+    // Clone content for seamless loop
+    const clone = content.cloneNode(true) as HTMLElement;
+    container.appendChild(clone);
 
-    const container = containerRef.current;
-    if (!container) return;
+    const scroll = () => {
+      if (!isPaused && container && content) {
+        scrollPositionRef.current += speed / 60; // 60fps
 
-    let lastTime = 0;
-    const speed = 0.5; // pixels per frame
-
-    const scroll = (time: number) => {
-      if (lastTime) {
-        const delta = time - lastTime;
-        const distance = (delta / 16) * speed;
-
-        if (container.scrollTop >= container.scrollHeight / 2) {
-          container.scrollTop = 0;
-        } else {
-          container.scrollTop += distance;
+        // Reset when first set is fully scrolled
+        if (scrollPositionRef.current >= content.scrollHeight) {
+          scrollPositionRef.current = 0;
         }
+
+        container.scrollTop = scrollPositionRef.current;
       }
-      lastTime = time;
-      rafRef.current = requestAnimationFrame(scroll);
+
+      animationRef.current = requestAnimationFrame(scroll);
     };
 
-    rafRef.current = requestAnimationFrame(scroll);
+    animationRef.current = requestAnimationFrame(scroll);
 
     return () => {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+      // Remove clone on cleanup
+      if (container.children.length > 1) {
+        container.removeChild(container.lastChild!);
       }
     };
-  }, [isPaused, prefersReducedMotion]);
+  }, [isPaused, speed]);
+
+  const handleMouseEnter = () => setIsPaused(true);
+  const handleMouseLeave = () => setIsPaused(false);
 
   return (
     <div
-      ref={containerRef}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      className="h-[600px] overflow-hidden"
-      style={{ scrollbarWidth: "none" }}
+      ref={scrollRef}
+      className={`overflow-y-auto scrollbar-hide ${className}`}
+      style={{
+        scrollBehavior: 'auto',
+        WebkitOverflowScrolling: 'touch'
+      }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
-      <div className="space-y-4">
-        {[...items, ...items].map((item, index) => (
-          <Card
-            key={`${item.id}-${index}`}
-            className="bg-[#111111] border-[#1a1a1a] overflow-hidden hover:border-[#333333] transition-colors"
-          >
-            <a href={item.url} target="_blank" rel="noopener noreferrer">
-              <div className="aspect-video relative">
-                <ImageWithFallback
-                  src={item.image}
-                  alt={item.title}
-                  fill
-                  sizes="300px"
-                  quality={75}
-                />
-              </div>
-              <div className="p-3">
-                <h3 className="text-white text-sm line-clamp-2">
-                  {item.title}
-                </h3>
-              </div>
-            </a>
-          </Card>
-        ))}
+      <div ref={contentRef}>
+        {children}
       </div>
     </div>
   );
