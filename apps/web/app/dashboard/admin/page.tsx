@@ -1,10 +1,10 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Users, AlertCircle, CheckCircle } from 'lucide-react';
+import { LatestPlaylistWidget } from '@/components/Dashboard/LatestPlaylistWidget';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -35,6 +35,11 @@ export default function AdminDashboard() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-white mb-2">Admin Dashboard</h1>
         <p className="text-gray-400 text-sm">System overview and moderation</p>
+      </div>
+
+      {/* Latest Playlist Widget */}
+      <div className="mb-6">
+        <LatestPlaylistWidget userRole="admin" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
