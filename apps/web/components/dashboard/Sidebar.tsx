@@ -15,7 +15,8 @@ import {
   ChevronRight,
   ChevronLeft,
   X,
-  Plus
+  Plus,
+  CheckCircle2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/Logo';
