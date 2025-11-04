@@ -113,8 +113,14 @@ export async function POST(request: NextRequest) {
     if (!emailLimit.allowed) {
       return NextResponse.json(
         { 
+          success: false,
           error: `Too many login attempts. Please try again in ${emailLimit.retryAfter} seconds.`,
           retryAfter: emailLimit.retryAfter,
+          toast: {
+            variant: 'destructive',
+            title: 'Too Many Attempts',
+            description: `Please wait ${emailLimit.retryAfter} seconds before trying again.`
+          }
         },
         { status: 429, headers: { 'Retry-After': String(emailLimit.retryAfter) } }
       );
@@ -123,8 +129,14 @@ export async function POST(request: NextRequest) {
     if (!ipLimit.allowed) {
       return NextResponse.json(
         { 
+          success: false,
           error: `Too many login attempts from this IP. Please try again in ${ipLimit.retryAfter} seconds.`,
           retryAfter: ipLimit.retryAfter,
+          toast: {
+            variant: 'destructive',
+            title: 'Too Many Attempts',
+            description: `Please wait ${ipLimit.retryAfter} seconds before trying again.`
+          }
         },
         { status: 429, headers: { 'Retry-After': String(ipLimit.retryAfter) } }
       );
@@ -134,7 +146,15 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { error: 'Invalid email or password' },
+        { 
+          success: false,
+          error: 'Invalid email or password',
+          toast: {
+            variant: 'destructive',
+            title: 'Sign In Failed',
+            description: 'Invalid email or password. Please try again.'
+          }
+        },
         { status: 401 }
       );
     }
@@ -146,6 +166,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Signed in successfully',
+      toast: {
+        title: 'Welcome back!',
+        description: `Signed in as ${user.email}`
+      },
       user: {
         uid: user.uid,
         email: user.email,

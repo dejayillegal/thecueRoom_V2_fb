@@ -24,6 +24,7 @@ import VerificationModal from "./VerificationModal";
 import InfoModal from "@/components/InfoModal";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
+import { useToast } from "@/src/hooks/use-toast";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -142,6 +143,7 @@ export function useAvailability(
 
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<ActiveTab>("signin");
 
   // Form state
@@ -266,7 +268,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
     try {
       if (!email || !password) {
-        setError("Please enter email and password");
+        toast({
+          variant: "destructive",
+          title: "Missing Information",
+          description: "Please enter both email and password",
+        });
+        setIsLoading(false);
         return;
       }
 
@@ -279,8 +286,28 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       const data = await response.json();
 
       if (!response.ok) {
+        if (data.toast) {
+          toast({
+            variant: data.toast.variant || "destructive",
+            title: data.toast.title,
+            description: data.toast.description,
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Sign In Failed",
+            description: data.error || "Invalid email or password",
+          });
+        }
         setError(data.error || "Invalid email or password");
         return;
+      }
+
+      if (data.toast) {
+        toast({
+          title: data.toast.title,
+          description: data.toast.description,
+        });
       }
 
       onClose();
@@ -288,6 +315,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       router.refresh();
     } catch (err) {
       console.error("Sign in error:", err);
+      toast({
+        variant: "destructive",
+        title: "Connection Error",
+        description: "Unable to connect to server. Please try again.",
+      });
       setError("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
@@ -302,14 +334,24 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     try {
       // Validation - base fields always required
       if (!email || !password || !firstName || !lastName) {
-        setError("Please fill in all required fields");
+        toast({
+          variant: "destructive",
+          title: "Missing Information",
+          description: "Please fill in all required fields",
+        });
+        setIsLoading(false);
         return;
       }
 
       // Artist-specific validation
       if (isArtist) {
         if (!artistName || !region || !genre || !publicProfileUrl) {
-          setError("Please fill in all required artist fields");
+          toast({
+            variant: "destructive",
+            title: "Missing Artist Information",
+            description: "Please fill in all required artist fields",
+          });
+          setIsLoading(false);
           return;
         }
 
@@ -318,9 +360,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           !publicProfileUrl.startsWith("http://") &&
           !publicProfileUrl.startsWith("https://")
         ) {
-          setError(
-            "Public profile URL must be a valid URL (starting with http:// or https://)",
-          );
+          toast({
+            variant: "destructive",
+            title: "Invalid URL",
+            description: "Public profile URL must start with http:// or https://",
+          });
+          setIsLoading(false);
           return;
         }
 
@@ -342,36 +387,64 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         );
 
         if (!isAllowedDomain) {
-          setError(
-            "Public profile URL must be from a recognized music platform (SoundCloud, Bandcamp, Spotify, etc.)",
-          );
+          toast({
+            variant: "destructive",
+            title: "Invalid Platform",
+            description: "Please use a recognized music platform URL",
+          });
+          setIsLoading(false);
           return;
         }
       }
 
       if (!agreeTerms) {
-        setError("You must agree to the Terms and Privacy Policy");
+        toast({
+          variant: "destructive",
+          title: "Terms Required",
+          description: "You must agree to the Terms and Privacy Policy",
+        });
+        setIsLoading(false);
         return;
       }
 
       const passwordError = validatePassword(password);
       if (passwordError) {
-        setError(passwordError);
+        toast({
+          variant: "destructive",
+          title: "Weak Password",
+          description: passwordError,
+        });
+        setIsLoading(false);
         return;
       }
 
       if (password !== confirmPassword) {
-        setError("Passwords do not match");
+        toast({
+          variant: "destructive",
+          title: "Password Mismatch",
+          description: "Passwords do not match",
+        });
+        setIsLoading(false);
         return;
       }
 
       if (!emailAvailability.available) {
-        setError("Email is not available");
+        toast({
+          variant: "destructive",
+          title: "Email Unavailable",
+          description: "This email is already registered",
+        });
+        setIsLoading(false);
         return;
       }
 
       if (isArtist && !artistAvailability.available) {
-        setError("Artist name is not available");
+        toast({
+          variant: "destructive",
+          title: "Artist Name Taken",
+          description: "This artist name is already in use",
+        });
+        setIsLoading(false);
         return;
       }
 
@@ -398,9 +471,21 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       const data = await response.json();
 
       if (!response.ok) {
+        toast({
+          variant: "destructive",
+          title: "Signup Failed",
+          description: data.error || "Failed to create account",
+        });
         setError(data.error || "Failed to create account");
         return;
       }
+
+      toast({
+        title: isArtist ? "Artist Account Created!" : "Account Created!",
+        description: isArtist 
+          ? "Your profile is being verified. This usually takes a few moments."
+          : "Welcome to thecueRoom!",
+      });
 
       // Show verification modal with AI verification progress
       setVerificationJobId(data.jobId);
@@ -408,6 +493,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       onClose();
     } catch (err) {
       console.error("Sign up error:", err);
+      toast({
+        variant: "destructive",
+        title: "Connection Error",
+        description: "Unable to connect to server. Please try again.",
+      });
       setError("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
@@ -422,7 +512,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
     try {
       if (!email) {
-        setError("Please enter your email address");
+        toast({
+          variant: "destructive",
+          title: "Email Required",
+          description: "Please enter your email address",
+        });
+        setIsLoading(false);
         return;
       }
 
@@ -435,14 +530,28 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       const data = await response.json();
 
       if (!response.ok) {
+        toast({
+          variant: "destructive",
+          title: "Reset Failed",
+          description: data.error || "Failed to send reset email",
+        });
         setError(data.error || "Failed to send reset email");
         return;
       }
 
+      toast({
+        title: "Email Sent!",
+        description: "Check your inbox for password reset instructions.",
+      });
       setSuccess("Password reset email sent! Check your inbox.");
       setEmail("");
     } catch (err) {
       console.error("Forgot password error:", err);
+      toast({
+        variant: "destructive",
+        title: "Connection Error",
+        description: "Unable to connect to server. Please try again.",
+      });
       setError("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);

@@ -1,9 +1,9 @@
-
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import '../src/styles/performance.css';
 import FooterLinks from '@/components/FooterLinks';
+import { Toaster } from '@/src/components/ui/toaster';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -30,6 +30,7 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased`} style={{ background: '#000000', minHeight: '100vh' }}>
         {children}
         <FooterLinks />
+        <Toaster />
       </body>
     </html>
   );
