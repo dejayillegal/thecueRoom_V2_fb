@@ -45,7 +45,6 @@ export default function EventSubmitPage() {
         throw new Error(data.error || 'Failed to submit event');
       }
 
-      // Redirect to dashboard or show success message
       router.push('/dashboard?event_submitted=true');
     } catch (err: any) {
       setError(err.message);
@@ -59,37 +58,40 @@ export default function EventSubmitPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-6">
+    <div className="max-w-[1400px] mx-auto p-6">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Submit Event</h1>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-white mb-2">Submit Event</h1>
+          <p className="text-gray-400 text-sm">Share your event with the community</p>
+        </div>
         
-        <Card className="bg-zinc-900 border-zinc-800 p-6">
+        <Card className="bg-[#111111] border-[#1a1a1a] p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="title">Event Title *</Label>
+              <Label htmlFor="title" className="text-white">Event Title *</Label>
               <Input
                 id="title"
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
                 required
-                className="bg-zinc-800 border-zinc-700"
+                className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
               />
             </div>
 
             <div>
-              <Label htmlFor="artist">Artist/Performer</Label>
+              <Label htmlFor="artist" className="text-white">Artist/Performer</Label>
               <Input
                 id="artist"
                 name="artist"
                 value={formData.artist}
                 onChange={handleChange}
-                className="bg-zinc-800 border-zinc-700"
+                className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
               />
             </div>
 
             <div>
-              <Label htmlFor="date">Date *</Label>
+              <Label htmlFor="date" className="text-white">Date *</Label>
               <Input
                 id="date"
                 name="date"
@@ -97,64 +99,64 @@ export default function EventSubmitPage() {
                 value={formData.date}
                 onChange={handleChange}
                 required
-                className="bg-zinc-800 border-zinc-700"
+                className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
               />
             </div>
 
             <div>
-              <Label htmlFor="venue">Venue *</Label>
+              <Label htmlFor="venue" className="text-white">Venue *</Label>
               <Input
                 id="venue"
                 name="venue"
                 value={formData.venue}
                 onChange={handleChange}
                 required
-                className="bg-zinc-800 border-zinc-700"
+                className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
               />
             </div>
 
             <div>
-              <Label htmlFor="address">Address</Label>
+              <Label htmlFor="address" className="text-white">Address</Label>
               <Input
                 id="address"
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
-                className="bg-zinc-800 border-zinc-700"
+                className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
               />
             </div>
 
             <div>
-              <Label htmlFor="region">Region/City</Label>
+              <Label htmlFor="region" className="text-white">Region/City</Label>
               <Input
                 id="region"
                 name="region"
                 value={formData.region}
                 onChange={handleChange}
-                className="bg-zinc-800 border-zinc-700"
+                className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
               />
             </div>
 
             <div>
-              <Label htmlFor="genre">Genre</Label>
+              <Label htmlFor="genre" className="text-white">Genre</Label>
               <Input
                 id="genre"
                 name="genre"
                 value={formData.genre}
                 onChange={handleChange}
                 placeholder="e.g., Techno, House, Drum & Bass"
-                className="bg-zinc-800 border-zinc-700"
+                className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
               />
             </div>
 
             <div>
-              <Label htmlFor="ticketType">Ticket Type</Label>
+              <Label htmlFor="ticketType" className="text-white">Ticket Type</Label>
               <select
                 id="ticketType"
                 name="ticketType"
                 value={formData.ticketType}
                 onChange={handleChange}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2"
+                className="w-full bg-[#0a0a0a] border border-[#1a1a1a] rounded-md px-3 py-2 text-white"
               >
                 <option value="rsvp">RSVP</option>
                 <option value="free">Free</option>
@@ -163,7 +165,7 @@ export default function EventSubmitPage() {
             </div>
 
             <div>
-              <Label htmlFor="ticketUrl">Ticket URL</Label>
+              <Label htmlFor="ticketUrl" className="text-white">Ticket URL</Label>
               <Input
                 id="ticketUrl"
                 name="ticketUrl"
@@ -171,12 +173,12 @@ export default function EventSubmitPage() {
                 value={formData.ticketUrl}
                 onChange={handleChange}
                 placeholder="https://..."
-                className="bg-zinc-800 border-zinc-700"
+                className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
               />
             </div>
 
             <div>
-              <Label htmlFor="imageUrl">Event Image URL</Label>
+              <Label htmlFor="imageUrl" className="text-white">Event Image URL</Label>
               <Input
                 id="imageUrl"
                 name="imageUrl"
@@ -184,19 +186,19 @@ export default function EventSubmitPage() {
                 value={formData.imageUrl}
                 onChange={handleChange}
                 placeholder="https://..."
-                className="bg-zinc-800 border-zinc-700"
+                className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
               />
             </div>
 
             <div>
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description" className="text-white">Description</Label>
               <Textarea
                 id="description"
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
                 rows={4}
-                className="bg-zinc-800 border-zinc-700"
+                className="bg-[#0a0a0a] border-[#1a1a1a] text-white"
               />
             </div>
 
@@ -210,7 +212,7 @@ export default function EventSubmitPage() {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1"
+                className="flex-1 bg-[#D1FF3D] text-black hover:bg-[#D1FF3D]/90"
               >
                 {isSubmitting ? 'Submitting...' : 'Submit Event'}
               </Button>
@@ -218,7 +220,7 @@ export default function EventSubmitPage() {
                 type="button"
                 variant="outline"
                 onClick={() => router.back()}
-                className="border-zinc-700"
+                className="border-[#1a1a1a]"
               >
                 Cancel
               </Button>
