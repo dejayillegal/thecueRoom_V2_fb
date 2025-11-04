@@ -39,13 +39,20 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { notificationId } = await request.json();
+    const { notificationId, markAll } = await request.json();
     const db = getDbClient();
 
-    await db
-      .update(notifications)
-      .set({ read: true })
-      .where(eq(notifications.id, notificationId));
+    if (markAll) {
+      await db
+        .update(notifications)
+        .set({ read: true })
+        .where(eq(notifications.userId, userId));
+    } else if (notificationId) {
+      await db
+        .update(notifications)
+        .set({ read: true })
+        .where(eq(notifications.id, notificationId));
+    }
 
     return NextResponse.json({ ok: true });
   } catch (error) {

@@ -1,5 +1,5 @@
 import { getDbClient } from '../db/client';
-import { verificationJobs, users } from '../db/schema';
+import { verificationJobs, users, notifications } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
@@ -179,18 +179,41 @@ async function processJob(jobId) {
       })
       .where(eq(verificationJobs.id, jobId));
 
-    // If approved, update user
+    // Create notification based on decision
+    let notificationType = 'verification_pending';
+    let notificationTitle = 'Verification Update';
+    let notificationMessage = 'Your verification is being reviewed.';
+
     if (decision === 'approved') {
+      notificationType = 'verification_approved';
+      notificationTitle = 'Profile Verified!';
+      notificationMessage = 'Your artist profile has been verified. Welcome to thecueRoom!';
+      
       await db.update(users)
         .set({
           verified: true,
           verificationJobId: jobId,
+          verificationStatus: 'verified',
           updatedAt: new Date(),
         })
         .where(eq(users.id, job.userId));
       
       console.log(`[Worker] User ${job.userId} verified`);
+    } else if (decision === 'rejected') {
+      notificationType = 'verification_denied';
+      notificationTitle = 'Verification Failed';
+      notificationMessage = 'We couldn\'t verify your profile. Please update your information and try again.';
     }
+
+    // Create notification
+    await db.insert(notifications).values({
+      userId: job.userId,
+      type: notificationType,
+      title: notificationTitle,
+      message: notificationMessage,
+      link: '/verification',
+      metadata: { jobId, decision, score },
+    });
 
     // Write result to file
     const resultFile = join(VERIFY_TEMP_DIR, `${jobId}.json`);

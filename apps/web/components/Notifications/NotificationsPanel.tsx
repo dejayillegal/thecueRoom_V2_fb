@@ -1,95 +1,39 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Bell, CheckCircle2, AlertCircle, Clock, X } from 'lucide-react';
+import { Bell, CheckCircle2, AlertCircle, Clock, X, Info } from 'lucide-react';
 import { useToast } from '@/../../src/hooks/use-toast';
+import { useNotifications } from '@/hooks/useNotifications';
 
-interface Notification {
-  id: string;
-  type: string;
-  title: string;
-  message: string;
-  link?: string;
-  read: boolean;
-  createdAt: string;
-}
-
-export function NotificationsPanel() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(true);
+export function NotificationsPanel({ userId }: { userId?: string }) {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
-
-  const fetchNotifications = useCallback(async () => {
-    try {
-      const response = await fetch('/api/notifications');
-      if (response.ok) {
-        const data = await response.json();
-        setNotifications(data.notifications || []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch notifications:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000); // Poll every 30s
-    return () => clearInterval(interval);
-  }, [fetchNotifications]);
-
-  const markAsRead = useCallback(async (notificationId: string) => {
-    try {
-      const response = await fetch('/api/notifications', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notificationId, read: true }),
-      });
-
-      if (response.ok) {
-        setNotifications(prev =>
-          prev.map(n => (n.id === notificationId ? { ...n, read: true } : n))
-        );
-      }
-    } catch (error) {
-      console.error('Failed to mark notification as read:', error);
-    }
-  }, []);
-
-  const markAllAsRead = useCallback(async () => {
-    try {
-      const response = await fetch('/api/notifications', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ markAll: true, read: true }),
-      });
-
-      if (response.ok) {
-        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-        toast({
-          title: 'All notifications marked as read',
-        });
-      }
-    } catch (error) {
-      console.error('Failed to mark all as read:', error);
-    }
-  }, [toast]);
+  const {
+    notifications,
+    unreadCount,
+    loading,
+    markAsRead,
+    markAllAsRead,
+  } = useNotifications(userId);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const getIcon = (type: string) => {
     switch (type) {
       case 'verification_approved':
+      case 'verification_success':
         return <CheckCircle2 className="w-5 h-5 text-green-500" />;
       case 'verification_pending':
+      case 'verification_started':
         return <Clock className="w-5 h-5 text-yellow-500" />;
       case 'verification_denied':
+      case 'verification_failed':
         return <AlertCircle className="w-5 h-5 text-red-500" />;
+      case 'info':
+        return <Info className="w-5 h-5 text-blue-500" />;
       default:
         return <Bell className="w-5 h-5 text-gray-400" />;
     }

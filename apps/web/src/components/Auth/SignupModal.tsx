@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { VerificationModal } from "../Auth/VerificationModal";
 import { useRouter } from "next/navigation";
+import { createVerificationJob } from "@/lib/services/artist-verification";
 
 interface SignupModalProps {
   isOpen: boolean;

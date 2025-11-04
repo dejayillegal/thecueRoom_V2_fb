@@ -524,18 +524,22 @@ export const signupVerifications = pgTable('signup_verifications', {
 export const notifications = pgTable('notifications', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  type: text('type').notNull(),
-  title: text('title').notNull(),
+  type: varchar('type', { length: 50 }).notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
   message: text('message').notNull(),
-  link: text('link'),
-  read: boolean('read').notNull().default(false),
-  data: jsonb('data').$type<any>(),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-}, (table) => ({
-  userIdIdx: index('notifications_user_id_idx').on(table.userId),
-  readIdx: index('notifications_read_idx').on(table.read),
-  createdAtIdx: index('notifications_created_at_idx').on(table.createdAt),
-}));
+  link: varchar('link', { length: 500 }),
+  read: boolean('read').default(false).notNull(),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const notificationSubscriptions = pgTable('notification_subscriptions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  endpoint: text('endpoint').notNull(),
+  keys: jsonb('keys').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
 
 export const auditLogs = pgTable('audit_logs', {
   id: uuid('id').primaryKey().defaultRandom(),
