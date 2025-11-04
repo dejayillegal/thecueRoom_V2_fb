@@ -58,9 +58,14 @@ export const Header = memo(function Header({ user, sidebarOpen, onToggleSidebar 
     >
       {/* Mobile menu button */}
       <button
-        onClick={onToggleSidebar}
-        className="lg:hidden p-2 text-white hover:bg-[#1a1a1a] rounded-md"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onToggleSidebar?.();
+        }}
+        className="lg:hidden p-2 text-white hover:bg-[#1a1a1a] rounded-md transition-colors"
         aria-label="Toggle menu"
+        type="button"
       >
         <Menu size={24} />
       </button>
