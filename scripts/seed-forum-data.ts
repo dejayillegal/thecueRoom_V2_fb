@@ -18,7 +18,7 @@ async function seedForumData() {
       await db.insert(users).values({
         id: userId,
         email: 'test@thecueroom.com',
-        username: 'testuser',
+        username: 'forum_testuser',
         role: 'user',
         verified: true,
         createdAt: new Date(),

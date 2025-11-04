@@ -1,5 +1,6 @@
-import { getDbClient } from '../packages/db/client';
+import { getDbClient, closeDbClient } from '../packages/db/client';
 import { users, profiles } from '@thecueroom/db/schema';
+import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 
 async function seedTestAccounts() {
@@ -7,146 +8,89 @@ async function seedTestAccounts() {
 
   const db = getDbClient();
 
-  const testArtists = [
+  const testAccounts = [
     {
-      email: 'artist1@test.com',
+      email: 'dj_phoenix@test.com',
       username: 'dj_phoenix',
-      password: 'Test123!',
-      role: 'artist',
       displayName: 'DJ Phoenix',
-      artistName: 'Phoenix',
-      bio: 'Techno DJ from Berlin',
-      genre: 'Techno',
-      region: 'Berlin, Germany',
+      role: 'artist',
+      bio: 'Techno producer from Bangalore',
     },
     {
-      email: 'artist2@test.com',
+      email: 'producer_nova@test.com',
       username: 'producer_nova',
-      password: 'Test123!',
-      role: 'artist',
       displayName: 'Producer Nova',
-      artistName: 'Nova',
-      bio: 'House producer from London',
-      genre: 'House',
-      region: 'London, UK',
-    },
-    {
-      email: 'artist3@test.com',
-      username: 'mixer_zen',
-      password: 'Test123!',
       role: 'artist',
+      bio: 'Electronic music producer',
+    },
+    {
+      email: 'mixer_zen@test.com',
+      username: 'mixer_zen',
       displayName: 'Mixer Zen',
-      artistName: 'Zen',
-      bio: 'Ambient artist from Tokyo',
-      genre: 'Ambient',
-      region: 'Tokyo, Japan',
+      role: 'artist',
+      bio: 'House music DJ',
+    },
+    {
+      email: 'techno.wizard@test.com',
+      username: 'techno_wizard',
+      displayName: 'Techno Wizard',
+      role: 'artist',
+      bio: 'Psytrance artist',
+    },
+    {
+      email: 'liquidbass@test.com',
+      username: 'liquidbass',
+      displayName: 'Liquid Bass',
+      role: 'artist',
+      bio: 'Drum & Bass producer',
+    },
+    {
+      email: 'underground.events@test.com',
+      username: 'underground_events',
+      displayName: 'Underground Events',
+      role: 'user',
+      bio: 'Event organizer',
     },
   ];
 
-  const testUsers = [
-    {
-      email: 'user1@test.com',
-      username: 'music_fan_1',
-      password: 'Test123!',
-      role: 'user',
-      displayName: 'Music Fan',
-    },
-    {
-      email: 'user2@test.com',
-      username: 'event_goer',
-      password: 'Test123!',
-      role: 'user',
-      displayName: 'Event Enthusiast',
-    },
-  ];
+  for (const account of testAccounts) {
+    try {
+      const existing = await db.select().from(users).where(eq(users.email, account.email));
 
-  try {
-    // Seed test artists
-    for (const artist of testArtists) {
-      const passwordHash = await bcrypt.hash(artist.password, 10);
+      if (existing.length === 0) {
+        const passwordHash = await bcrypt.hash('test123', 10);
 
-      const [user] = await db
-        .insert(users)
-        .values({
-          email: artist.email,
-          username: artist.username,
+        const [newUser] = await db.insert(users).values({
+          email: account.email,
+          username: account.username,
           passwordHash,
-          role: artist.role,
+          role: account.role,
           verified: true,
-        })
-        .onConflictDoNothing()
-        .returning();
+        }).returning();
 
-      if (user) {
-        await db
-          .insert(profiles)
-          .values({
-            userId: user.id,
-            displayName: artist.displayName,
-            artistName: artist.artistName,
-            bio: artist.bio,
-            genre: artist.genre,
-            region: artist.region,
-          })
-          .onConflictDoNothing();
+        await db.insert(profiles).values({
+          userId: newUser.id,
+          displayName: account.displayName,
+          bio: account.bio,
+          aiCredits: 100,
+        });
 
-        console.log(`✅ Created artist: ${artist.username} (${artist.email})`);
+        console.log(`✅ Created ${account.role}: ${account.displayName} (${account.username})`);
       } else {
-        console.log(`⏭️  Artist already exists: ${artist.username}`);
+        console.log(`⏭️  User exists: ${account.displayName}`);
       }
+    } catch (error) {
+      console.error(`❌ Error creating ${account.displayName}:`, error);
     }
-
-    // Seed test users
-    for (const testUser of testUsers) {
-      const passwordHash = await bcrypt.hash(testUser.password, 10);
-
-      const [user] = await db
-        .insert(users)
-        .values({
-          email: testUser.email,
-          username: testUser.username,
-          passwordHash,
-          role: testUser.role,
-          verified: true,
-        })
-        .onConflictDoNothing()
-        .returning();
-
-      if (user) {
-        await db
-          .insert(profiles)
-          .values({
-            userId: user.id,
-            displayName: testUser.displayName,
-          })
-          .onConflictDoNothing();
-
-        console.log(`✅ Created user: ${testUser.username} (${testUser.email})`);
-      } else {
-        console.log(`⏭️  User already exists: ${testUser.username}`);
-      }
-    }
-
-    console.log('\n✨ Test accounts seeded successfully!\n');
-    console.log('📋 Test Login Credentials:');
-    console.log('\nArtist Accounts:');
-    testArtists.forEach((a) => {
-      console.log(`  - ${a.username}: ${a.email} / ${a.password}`);
-    });
-    console.log('\nUser Accounts:');
-    testUsers.forEach((u) => {
-      console.log(`  - ${u.username}: ${u.email} / ${u.password}`);
-    });
-    console.log('');
-  } catch (error) {
-    console.error('❌ Error seeding test accounts:', error);
-    throw error;
   }
+
+  console.log('\n✨ Test accounts seeded successfully!');
+  await closeDbClient();
 }
 
 seedTestAccounts()
   .then(() => process.exit(0))
   .catch((error) => {
-    console.error('Fatal error:', error);
+    console.error('❌ Error:', error);
     process.exit(1);
   });

@@ -159,7 +159,7 @@ async function seedGigs() {
   console.log('\n✨ Gigs seeded successfully!');
   console.log('\n📋 Test Gigs Created:');
   gigs.forEach(gig => {
-    console.log(`  - ${gig.title} (${gig.city}) - ${gig.date.slice(0, 10)}`);
+    console.log(`  - ${gig.title} (${gig.city})`);
   });
 }
 

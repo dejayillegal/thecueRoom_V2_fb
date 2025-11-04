@@ -37,10 +37,10 @@ async function seedDashboardData() {
     }
 
     const testUsers = [
-      { email: 'dj.hollow@example.com', displayName: 'DJ Hollow' },
-      { email: 'mara.flux@example.com', displayName: 'Mara Flux' },
-      { email: 'basement22@example.com', displayName: 'Basement22' },
-      { email: 'linx.audio@example.com', displayName: 'Linx Audio' },
+      { email: 'dj.hollow@example.com', username: 'dj_hollow', displayName: 'DJ Hollow' },
+      { email: 'mara.flux@example.com', username: 'mara_flux', displayName: 'Mara Flux' },
+      { email: 'basement22@example.com', username: 'basement22', displayName: 'Basement22' },
+      { email: 'linx.audio@example.com', username: 'linx_audio', displayName: 'Linx Audio' },
     ];
 
     const createdUsers = [];
@@ -51,6 +51,7 @@ async function seedDashboardData() {
         const passwordHash = await bcrypt.hash('test123', 10);
         const [newUser] = await db.insert(users).values({
           email: testUser.email,
+          username: testUser.username,
           passwordHash,
           role: 'user',
         }).returning();
