@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Play, Plus } from 'lucide-react';
 import { ImageWithFallback } from '@/../../src/components/ImageWithFallback';
+import { LatestPlaylistWidget } from '@/components/Dashboard/LatestPlaylistWidget';
 
 interface Track {
   id: string;
@@ -99,6 +100,16 @@ export default function WeeklyMusicPage() {
       <div className="max-w-[1400px] mx-auto px-6 py-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-white mb-4">Weekly Curated Music</h1>
+        </div>
+
+        {/* Latest Playlist Widget */}
+        <div className="mb-8">
+          <LatestPlaylistWidget userRole="user" />
+        </div>
+
+        {/* Individual Tracks Section */}
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold text-white mb-4">Browse Tracks by Platform</h2>
           <div className="flex gap-2 flex-wrap">
             {platforms.map((platform) => (
               <Button
@@ -121,7 +132,7 @@ export default function WeeklyMusicPage() {
           {loading ? (
             <p className="text-gray-500 col-span-3">Loading tracks...</p>
           ) : tracks.length === 0 ? (
-            <p className="text-gray-500 col-span-3">No tracks found</p>
+            <p className="text-gray-500 col-span-3">No individual tracks available yet. Check out the curated playlist above!</p>
           ) : (
             tracks.map((track) => <TrackCard key={track.id} track={track} />)
           )}
