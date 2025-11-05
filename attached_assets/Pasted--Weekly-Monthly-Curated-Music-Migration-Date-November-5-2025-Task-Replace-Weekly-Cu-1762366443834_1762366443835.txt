@@ -1,0 +1,87 @@
+# Weekly → Monthly Curated Music Migration
+
+**Date**: November 5, 2025  
+**Task**: Replace Weekly Curated Music with comprehensive Monthly Curated Music system
+
+## Overview
+Complete migration from Weekly Curated Music to Monthly Curated Music with:
+- Robust embed player with external-open fallback
+- Admin configuration panel (validate, schedule, publish, rollback)
+- AI auto-curation fallback for missed publications
+- Full test coverage and Storybook stories
+
+## Weekly Curated Music References Found & Removal Plan
+
+### Files to Remove/Replace:
+1. **`apps/web/app/music/weekly/page.tsx`** → Replace with `/music/monthly`
+2. **`apps/web/app/music/weekly/page.tsx.new`** → Delete (backup file)
+3. **`apps/web/app/api/music/weekly/route.ts`** → Remove (replaced by monthly playlist API)
+
+### Files to Update:
+1. **`packages/db/schema.ts`**
+   - `weekOf` field in playlists table → Update to `monthOf`
+   - Already has needed fields: status, scheduledPublishAt, autoCurated, aiConfidenceScore ✅
+   
+2. **`apps/web/components/Dashboard/LatestPlaylistWidget.tsx`**
+   - Update to `MonthlyPlaylistWidget` component
+   
+3. **`apps/web/app/dashboard/admin/playlists/page.tsx`**
+   - Update text: "weekly playlists" → "monthly playlists"
+   
+4. **`scripts/seed-playlist.ts`**
+   - Change "Weekly Underground Techno" → "Monthly Underground Techno"
+
+5. **`apps/web/components/dashboard/Sidebar.tsx`**
+   - Update navigation: `/music/weekly` → `/music/monthly`
+
+### Database Schema Status:
+✅ **Existing playlists table has most needed fields**:
+- `status` (draft, queued, live, archived)
+- `scheduledPublishAt`
+- `autoCurated`
+- `aiConfidenceScore`
+- `platform`, `platformId`, `embedUrl`
+- `metadata` (JSONB)
+- `weekOf` → needs rename to `monthOf`
+
+### New Database Tables Required:
+1. **`monthly_playlist_history`** - Rollback snapshots
+2. **`monthly_playlist_auto_jobs`** - AI generation job tracking
+
+## Feature Flags
+```env
+FEATURE_MONTHLY_PLAYLISTS=true
+FEATURE_MONTHLY_AI_FALLBACK=true
+FEATURE_EMBED_FALLBACK=true
+```
+
+## Migration Strategy
+1. Rename `weekOf` → `monthOf` in playlists table
+2. Add new tables for history and auto jobs
+3. Update existing weekly playlist records to monthly model
+4. Keep all existing data intact
+5. Shadow old weekly routes with redirects
+
+## Implementation Checklist
+- [ ] Audit complete (documented above)
+- [ ] Database migrations created
+- [ ] Shared validation schemas (Zod)
+- [ ] UnifiedEmbedPlayer component
+- [ ] Admin API routes (list, validate, create, publish, schedule, rollback, toggle-auto)
+- [ ] Admin UI components (MonthlyPlaylistConfigPanel, PreviewCard, Scheduler, History, AIReview)
+- [ ] MonthlyPlaylistWidget for dashboard
+- [ ] monthlyPlaylistWorker with scheduling + AI fallback
+- [ ] AI auto-curation endpoints
+- [ ] ErrorBoundary wrapper
+- [ ] Unit tests
+- [ ] Integration tests
+- [ ] Playwright E2E tests
+- [ ] Storybook stories
+- [ ] Documentation (MONTHLY_PLAYLISTS.md)
+
+## Rollback Plan
+Migration includes DOWN script to revert:
+- Rename `monthOf` back to `weekOf`
+- Archive monthly-specific tables
+- Restore original weekly routes
+- All playlist data preserved
