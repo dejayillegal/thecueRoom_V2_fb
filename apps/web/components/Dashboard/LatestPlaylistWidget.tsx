@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Music, ExternalLink, Plus } from 'lucide-react';
 import { EmbedPlayer } from '@/components/NowPlaying/EmbedPlayer';
+import { UnifiedEmbedPlayer } from '@/components/Player/UnifiedEmbedPlayer'; // Import UnifiedEmbedPlayer
 
 interface Playlist {
   id: string;
@@ -32,7 +33,7 @@ export function LatestPlaylistWidget({ userRole, onSuggestTrack }: LatestPlaylis
       try {
         const res = await fetch('/api/playlists/latest');
         if (!res.ok) throw new Error('Failed to fetch playlist');
-        
+
         const data = await res.json();
         if (data.ok && data.playlist) {
           setPlaylist({
@@ -102,7 +103,8 @@ export function LatestPlaylistWidget({ userRole, onSuggestTrack }: LatestPlaylis
         <p className="text-neutral-300 mb-4 text-sm">{playlist.description}</p>
       )}
 
-      <EmbedPlayer
+      {/* Use UnifiedEmbedPlayer for multi-platform support */}
+      <UnifiedEmbedPlayer
         platform={playlist.platform}
         platformId={playlist.platformId}
         embedUrl={playlist.embedUrl}
