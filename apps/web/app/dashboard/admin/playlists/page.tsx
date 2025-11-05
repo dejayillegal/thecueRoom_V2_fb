@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -91,6 +90,7 @@ export default function AdminPlaylistsPage() {
         </Button>
       </div>
 
+      {/* Robust Admin Playlist Configuration UI will be implemented here */}
       {loading ? (
         <div className="text-neutral-400 text-center py-12">Loading playlists...</div>
       ) : playlists.length === 0 ? (
@@ -102,6 +102,7 @@ export default function AdminPlaylistsPage() {
         </Card>
       ) : (
         <div className="space-y-4">
+          {/* Existing playlist list rendering will be replaced with new UI components */}
           {playlists.map((playlist) => (
             <Card key={playlist.id} className="bg-neutral-900 border-neutral-800 p-6">
               <div className="flex items-start justify-between">

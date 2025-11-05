@@ -30,12 +30,23 @@ export function LatestPlaylistWidget({ userRole, onSuggestTrack }: LatestPlaylis
   useEffect(() => {
     async function fetchLatestPlaylist() {
       try {
-        const res = await fetch('/api/playlists/list?scope=latest&limit=1');
+        const res = await fetch('/api/playlists/latest');
         if (!res.ok) throw new Error('Failed to fetch playlist');
         
         const data = await res.json();
-        if (data.data && data.data.length > 0) {
-          setPlaylist(data.data[0]);
+        if (data.ok && data.playlist) {
+          setPlaylist({
+            id: data.playlist.id,
+            title: data.playlist.title,
+            description: data.playlist.description,
+            platform: data.playlist.platform,
+            platformId: data.playlist.platformId,
+            embedUrl: data.playlist.embedUrl,
+            thumbnail: data.playlist.coverImage,
+            curatedAt: data.playlist.publishedAt,
+            curatorName: data.playlist.curatorName,
+            status: data.playlist.status,
+          });
         }
       } catch (err) {
         console.error('Error fetching playlist:', err);

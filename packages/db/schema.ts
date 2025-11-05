@@ -760,3 +760,41 @@ export const socialPromos = pgTable('social_promos', {
   statusIdx: index('social_promos_status_idx').on(table.status),
   createdAtIdx: index('social_promos_created_at_idx').on(table.createdAt),
 }));
+
+// Added admin playlists tables
+export const adminPlaylists = pgTable('admin_playlists', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  title: text('title').notNull(),
+  description: text('description'),
+  platform: text('platform').notNull().default('spotify'),
+  platformId: text('platform_id').notNull(),
+  embedUrl: text('embed_url').notNull(),
+  coverImage: text('cover_image'),
+  curatorId: uuid('curator_id').references(() => users.id, { onDelete: 'set null' }),
+  status: text('status').notNull().default('draft'),
+  autoCurated: boolean('auto_curated').default(false),
+  scheduledAt: timestamp('scheduled_at'),
+  publishedAt: timestamp('published_at'),
+  trackCount: integer('track_count'),
+  metadata: jsonb('metadata').default(sql`'{}'::jsonb`),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => ({
+  statusIdx: index('admin_playlists_status_idx').on(table.status),
+  autoCuratedIdx: index('admin_playlists_auto_curated_idx').on(table.autoCurated),
+  scheduledAtIdx: index('admin_playlists_scheduled_at_idx').on(table.scheduledAt),
+  publishedAtIdx: index('admin_playlists_published_at_idx').on(table.publishedAt),
+}));
+
+export const adminPlaylistsHistory = pgTable('admin_playlists_history', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  adminPlaylistId: uuid('admin_playlist_id').notNull().references(() => adminPlaylists.id, { onDelete: 'cascade' }),
+  snapshotData: jsonb('snapshot_data').$type<any>().notNull(),
+  changeType: text('change_type').notNull(), // 'created' | 'updated' | 'published' | 'archived'
+  changedBy: uuid('changed_by').references(() => users.id, { onDelete: 'set null' }),
+  changeNotes: text('change_notes'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  adminPlaylistIdIdx: index('admin_playlists_history_admin_playlist_id_idx').on(table.adminPlaylistId),
+  createdAtIdx: index('admin_playlists_history_created_at_idx').on(table.createdAt),
+}));
