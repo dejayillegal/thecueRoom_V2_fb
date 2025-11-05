@@ -9,10 +9,24 @@ const generatedCache = new Map<string, { data: ArrayBuffer; timestamp: number }>
 const CACHE_DURATION = 3600000; // 1 hour
 const MAX_CACHE_SIZE = 200;
 
+/**
+ * Sanitize text for use in ImageResponse to avoid ByteString conversion errors
+ * Replaces common Unicode characters with ASCII equivalents
+ */
+function sanitizeForImageResponse(text: string): string {
+  return text
+    .replace(/[\u2018\u2019]/g, "'")  // Replace curly single quotes with straight quote
+    .replace(/[\u201C\u201D]/g, '"')  // Replace curly double quotes with straight quote
+    .replace(/[\u2013\u2014]/g, '-')  // Replace en-dash and em-dash with hyphen
+    .replace(/[\u2026]/g, '...')      // Replace ellipsis with three dots
+    .replace(/[^\x00-\x7F]/g, '');    // Remove any remaining non-ASCII characters
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const title = searchParams.get('title') || 'thecueRoom';
+    const rawTitle = searchParams.get('title') || 'thecueRoom';
+    const title = sanitizeForImageResponse(rawTitle);
     const cacheKey = title.slice(0, 120);
 
     // Check cache

@@ -1,0 +1,182 @@
+Title: Audit, Verify, and Fix — Toasts/Notifications, Artist Signup & AI Verification, Social-Promo Modal (Preview/Export), News Filters, Forum & Playlist Integrations — Full End-to-End QA + Fixes
+
+Goal
+----
+Perform a comprehensive verification of all previously implemented features and fix anything that fails. Produce a single PR that brings everything to green: UI parity, end-to-end functionality, tests, Storybook stories, and migrations. Provide a clear runbook so QA can reproduce results.
+
+Scope (verify & fix)
+- Toast system: ToastProvider, useToast API, pending→update flow, accessibility.
+- Notifications: server APIs, notifications panel, unread badge, realtime delivery.
+- Artist Signup: Sign Up tab, Artist checkbox, Artist-only fields, validation, duplicate detection.
+- AI verification: enqueue flow, worker (aiVerifier), verification updates via realtime, notification & toast update, admin manual-review fallback.
+- Social Promotion Modal: AI generation, PromoPreviewCanvas, animations, Export → PNG/MP4/GIF (PNG must work), DownloadDialog, ShareMenu.
+- News filters: filters UI, server filter endpoints, pagination, URL sync, caching.
+- Forum & Playlists (light smoke): ensure forum list/thread pages load and latest playlist widget embeds Spotify sample playlist.
+- Tests & Storybook: unit tests, E2E tests (Playwright), and Storybook stories render.
+
+Environment & prerequisites
+- Ensure local dev .env contains required secrets:
+  - OPENAI_API_KEY, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, STORAGE_BUCKET_URL, FEATURE flags as needed.
+- Apply DB migrations locally (note: use the project’s migration runner; if Drizzle, run `npm run migrate:dev` or equivalent).
+- Start necessary services: Next dev server, worker(s), and any local queue/redis if required.
+
+Commands to run (common)
+- Install / bootstrap:
+  - `pnpm install` (or `yarn` / `npm ci` per project)
+- Run DB migrations:
+  - `pnpm run migrate` (replace with repo migration command)
+- Start dev server:
+  - `pnpm dev` (Next)
+- Start worker(s) (aiVerifier, playlistWorker):
+  - `pnpm --filter packages/server start:aiVerifier` (or `node packages/server/aiVerifier.js`)
+  - `pnpm --filter packages/server start:promoWorker` (if available)
+- Run unit tests:
+  - `pnpm test` (or `pnpm -w test` / `pnpm vitest`)
+- Run E2E (Playwright):
+  - `pnpm playwright test`
+- Start Storybook:
+  - `pnpm storybook`
+
+Verification checklist — execute in order
+1. Smoke test server & worker
+   - Start Next dev and aiVerifier worker.
+   - Watch logs for errors on startup; fix missing env or import issues.
+
+2. Run unit tests
+   - Run the unit test suite.
+   - Fix any failing tests. Typical failures: missing mock for OpenAI, Zod schema mismatch, missing exports.
+
+3. Run Storybook
+   - Open Storybook; verify stories:
+     - Toast (pending/success/error)
+     - NotificationsPanel (with sample items)
+     - Signup verification dialogs (pending/success/failure)
+     - SocialPromoModal (input → loading → preview)
+   - Fix visual regressions or missing styles (missing CSS/tokens).
+
+4. Manual UI verification (developer)
+   - Sign-in & Sign-up modal:
+     - Open Sign Up tab: Artist checkbox visible and accessible.
+     - Check Artist: Artist Name, Region, Primary Genre, Public Profile URL, Music Platform Link, Social Links (≤5) appear and validate.
+     - Submit an artist signup (use test account).
+       - Confirm API `/api/signup` returns `{ verification:'queued' }`.
+       - Confirm a pending toast appears and pending verification dialog displays.
+   - AI verification worker:
+     - Ensure worker picks the queued job within expected poll interval.
+     - If worker is not running, run it locally.
+     - Simulate AI response using test stub if needed (mock OpenAI): approve one job and manual_review one job.
+     - Confirm when worker updates DB:
+       - Profile updated (`artist_verified` true for approved).
+       - `signup_verifications` row updated with result and ai_score.
+       - Notification row created and pushed via realtime to client.
+       - Pending toast updates to success and the verification dialog changes to success state with "Open Dashboard".
+     - For manual_review case: confirm moderation queue entry exists and admin UI shows it.
+   - Notifications:
+     - Check header unread badge increments with new notification.
+     - Open NotificationsPanel: list items, mark-read, mark-all-read.
+     - Confirm POST /api/notifications/mark-read works and badge updates in realtime.
+   - Toast system:
+     - Test pending→update: trigger a fake long-running task that shows a pending toast then updates to success and then auto-dismisses (or remains if configured).
+     - Accessibility: toast has `aria-live` and is focus-visible for keyboard users (non-intrusive).
+   - Social Promo Modal:
+     - Open modal and generate a promo using AI (use test mode/mock if OpenAI costs are a concern).
+     - Confirm modal shows loading state, then preview with brand styling and animations.
+     - Export PNG: select Export → PNG → confirm browser download dialog or that a download link is returned and clickable. If using server export, confirm returned `download_url` is reachable.
+     - Confirm DownloadDialog opens and shows Download / Copy Link / Share actions; clicking Copy Link places URL in clipboard and shows "Link copied!" toast.
+     - (Optional) Test MP4/GIF: if not implemented yet, ensure UI gracefully disables options and shows note "Server export required".
+   - News filters:
+     - Open News page.
+     - Apply multiple filters (tag, date range, platform, search).
+     - Confirm query updates URL and server returns filtered results.
+     - Test pagination & nextCursor; ensure no duplicates or missing items.
+   - Forum & Playlist:
+     - Open Forum list and thread view: ensure core elements render (thread rows, badges).
+     - Open Dashboard LatestPlaylistWidget: embed the provided Spotify playlist using the embed iframe and ensure it loads.
+     - If embed blocked by env (adblock), ensure fallback native track list displays.
+
+5. Test integrations & edge cases
+   - Duplicate detection:
+     - Attempt to sign up an artist with a public_profile_url or music_platform_link already used — API should return fieldErrors and UI shows inline error.
+   - Offline behavior:
+     - Simulate network offline during signup: ensure friendly message and retry available.
+   - Rate-limits:
+     - Attempt repeated signups rapidly; server should protect with rate-limit error (429) and UI should show friendly message.
+
+6. Test automated/CI flows
+   - Run Playwright E2E tests that cover:
+     - Artist signup → verification queued → worker approval simulation → toast + notification update → redirect.
+     - Social Promo generation → export PNG flow.
+     - News filters end-to-end.
+   - Fix any failing E2E tests (timeouts, flakiness, missing waits for realtime).
+
+Common failure points & fixes (developer guidance)
+- Missing env values
+  - Symptom: server or worker crash with missing API key.
+  - Fix: add required env keys to .env.local and re-run.
+
+- Worker not polling or not processing jobs
+  - Symptom: verification rows remain pending.
+  - Fix: start aiVerifier worker; check DB connection/queue; add logs; ensure process uses correct DB credentials and query filter.
+
+- OpenAI errors (quota/format)
+  - Symptom: worker fails after AI call.
+  - Fix: fall back to manual_review if OpenAI fails; add retry/backoff; add test mocks so CI doesn’t call OpenAI.
+
+- Realtime notifications not delivered
+  - Symptom: notifications written to DB but client not updated.
+  - Fix: verify Realtime subscription logic; confirm correct channel names; fall back to polling for critical flows (signup verification).
+
+- Toast update ID mismatches
+  - Symptom: pending toast does not update to success.
+  - Fix: keep toast id returned by toast() in client state and ensure worker uses that id via notification payload or realtime message referencing toast id. If impossible, use notification to trigger client-side lookup and update the toast using a stable correlation id (e.g., verification_id).
+
+- Export/download failures (PNG/MP4)
+  - Symptom: server returns 500 or download URL invalid.
+  - Fix: confirm export uses supported libraries; for PNG prefer client-side canvas->blob->download; for MP4/GIF offload to worker and return signed URL after render.
+
+- Styling mismatch
+  - Symptom: modal looks wrong or tokens missing.
+  - Fix: use project design tokens; if some tokens missing create temporary tokens and add TODO comment to migrate.
+
+Deliverables
+- One PR branch named: `chore/verify-fix/toasts-signup-promo-{your-initials}`
+- PR must include:
+  - Unit + E2E tests passing locally.
+  - Storybook stories updated and rendering.
+  - Migration SQL files (if changed).
+  - docs/IMPLEMENTATION_NOTES.md summarizing audit results and fixes made.
+  - A short recording (GIF or mp4) of the following flows:
+    - Artist signup → pending → success toast & notification → Open Dashboard.
+    - Social Promo: Generate → Preview → Export PNG → Download dialog.
+
+Acceptance criteria (must be green before merge)
+- [ ] All unit tests pass.
+- [ ] All E2E tests relevant to these features pass.
+- [ ] Toasts/pending→update flow works in manual tests.
+- [ ] NotificationsPanel shows new items and realtime updates work or polling fallback in place.
+- [ ] Artist signup flow: artist fields validate; signup returns queued; worker processes the job; client receives notification & toast updates; artist_verified flag updated in DB.
+- [ ] SocialPromoModal generates content (or mock), preview renders with project styling, Export PNG works and download link is produced.
+- [ ] News page filters function correctly with URL sync & pagination.
+- [ ] Forum & Playlist widgets render and do not crash app.
+- [ ] PR includes docs and a QA checklist.
+
+How to produce the final PR
+- Create and push branch.
+- Run all tests and Storybook locally and capture evidence (logs/screenshots/GIFs).
+- Open PR with title and PR body containing:
+  - Summary of fixes.
+  - List of tests run & their status.
+  - How to run locally (commands and env vars).
+  - Links to migration files and docs/IMPLEMENTATION_NOTES.md.
+  - Attach the recorded GIFs showing flows.
+- Request review from core maintainers and include “QA: run playwright e2e tests and check Storybook”.
+
+If you encounter blocked tasks or missing infra (for example: no worker host, missing openAI keys, or lack of permission to run migrations), note them in the PR and include mitigations (mocks, stubs, fallback behavior) so QA can still validate UI flows.
+
+Estimated time to complete verification & fixes
+- Audit + tests run: 2–4 hours
+- Fixes for small issues (missing env, toast ID bug, UI tweaks): 2–6 hours
+- Worker / AI reliability fixes and exports: 4–12 hours (may require infra)
+- Total: 8–22 hours depending on severity and infra availability
+
+End of task.
