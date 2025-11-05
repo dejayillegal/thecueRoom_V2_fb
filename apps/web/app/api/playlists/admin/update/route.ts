@@ -26,14 +26,14 @@ const playlistItemSchema = z.object({
 const updatePlaylistSchema = z.object({
   id: z.string().uuid().optional(),
   title: z.string().min(1).max(200),
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
   platform: z.enum(['spotify', 'soundcloud', 'beatport', 'mixcloud', 'bandcamp', 'youtube_music']),
-  platformId: z.string().optional(),
-  embedUrl: z.string().url().optional(),
-  thumbnail: z.string().url().optional(),
+  platformId: z.string().optional().nullable(),
+  embedUrl: z.string().url().optional().nullable(),
+  thumbnail: z.string().url().optional().nullable(),
   visibility: z.enum(['admin', 'featured', 'public']).default('public'),
   items: z.array(playlistItemSchema),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.any()).optional().nullable(),
 });
 
 export async function POST(request: NextRequest) {
