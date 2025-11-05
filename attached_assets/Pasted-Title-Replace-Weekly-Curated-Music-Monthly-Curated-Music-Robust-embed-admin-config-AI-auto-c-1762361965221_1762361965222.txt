@@ -1,0 +1,202 @@
+Title: Replace Weekly Curated Music → Monthly Curated Music (Robust embed + admin config + AI auto-curation fallback)
+
+Summary
+-------
+Completely replace and remove any existing Weekly Curated Music implementation and implement a new Monthly Curated Music system with the following guarantees:
+- Modern, robust, production-quality UI (dashboard style, tokens, animations).
+- No runtime errors; defensive input validation and clear error states.
+- Admin configuration panel to create, validate, preview, schedule, publish, rollback monthly playlists (Spotify / SoundCloud / Mixcloud).
+- Player is Embed + External-Open Fallback (stable, low-cost) for all users.
+- If admin forgets to publish a monthly playlist by the scheduled date, an AI-driven fallback runs automatically to generate the Monthly Curated Music using previously provided admin playlists and available metadata.
+- Full test coverage (unit + Playwright E2E), Storybook stories, migrations, docs and runbook.
+
+Important: Remove/shadow any old Weekly Curated Music code, config, UI references, routes, DB fields or migrations. Replace all names to Monthly Curated Music. Document removal in docs/IMPLEMENTATION_NOTES.md and commit changes in the same PR.
+
+Files & locations to update / create
+-----------------------------------
+UI:
+- apps/web/src/components/Playlist/UnifiedEmbedPlayer.tsx  (updated / robust)
+- apps/web/src/components/Dashboard/MonthlyPlaylistWidget.tsx  (replaces LatestPlaylistWidget)
+- apps/web/src/components/Admin/MonthlyPlaylistConfig/MonthlyPlaylistConfigPanel.tsx
+- apps/web/src/components/Admin/MonthlyPlaylistConfig/MonthlyPlaylistPreviewCard.tsx
+- apps/web/src/components/Admin/MonthlyPlaylistConfig/MonthlyPlaylistHistoryList.tsx
+- apps/web/src/components/Admin/MonthlyPlaylistConfig/MonthlyPlaylistScheduler.tsx
+- apps/web/src/components/Admin/MonthlyPlaylistConfig/MonthlyPlaylistAIReview.tsx (AI preview & suggested edits)
+- apps/web/src/components/UI/ErrorBoundary.tsx  (wrap heavy components)
+- apps/web/.storybook/stories/MonthlyPlaylistConfig.stories.tsx
+
+API routes:
+- apps/web/app/api/admin/monthly-playlists/list/route.ts
+- apps/web/app/api/admin/monthly-playlists/validate/route.ts
+- apps/web/app/api/admin/monthly-playlists/create/route.ts
+- apps/web/app/api/admin/monthly-playlists/publish/route.ts
+- apps/web/app/api/admin/monthly-playlists/schedule/route.ts
+- apps/web/app/api/admin/monthly-playlists/rollback/route.ts
+- apps/web/app/api/admin/monthly-playlists/toggle-auto/route.ts
+- apps/web/app/api/player/metadata/route.ts (unified metadata endpoint)
+- apps/web/app/api/ai/monthly-curate/run/route.ts (admin-trigger & scheduled trigger)
+- apps/web/app/api/ai/monthly-curate/status/route.ts (status of auto-curation job)
+
+Server workers:
+- packages/server/monthlyPlaylistWorker.ts  (scheduling + AI fallback runner)
+- packages/server/spotifyAuthHelper.ts (if metadata calls require client_credentials)
+
+DB migrations & schema:
+- migrations/20251110_monthly_playlists.sql
+  - Replace or remove any weekly_playlists table. Create `monthly_playlists` table:
+    - id, title, description, platform (spotify/soundcloud/mixcloud), platform_id, embed_url, cover_image, curator_id, status (draft|queued|scheduled|live|archived), auto_curated boolean, scheduled_for timestamptz nullable, published_at timestamptz nullable, created_at, updated_at
+  - `monthly_playlist_items`: id, monthly_playlist_id, track_platform, track_id, track_title, artist_name, track_url, metadata jsonb, position int, added_by uuid, added_at
+  - `monthly_playlists_history` (snapshots for rollback)
+  - `monthly_playlist_auto_jobs`: id, playlist_id (nullable), job_type ('fallback_generation'), input jsonb, status, result jsonb, started_at, finished_at
+  - Add indexes on status, scheduled_for, platform_id
+- Update Drizzle schemas if the repo uses Drizzle.
+
+Shared schemas & validation:
+- packages/shared/monthlyPlaylistSchemas.ts (Zod schemas for validate/create/publish/schedule)
+- packages/shared/playerSchemas.ts (Zod for metadata endpoint)
+
+Feature flags & env:
+- FEATURE_MONTHLY_PLAYLISTS=true
+- FEATURE_EMBED_FALLBACK=true  (default ON)
+- FEATURE_MONTHLY_AI_FALLBACK=true  (can be OFF for safety)
+- If performing server metadata calls: SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SOUNDCLOUD_CLIENT_ID (optional)
+- OPENAI_API_KEY (for AI fallback)
+- SCHEDULER_CRON_MONTHLY or worker scheduling configuration
+
+High-level behavior & requirements
+----------------------------------
+1. **Full removal of old Weekly references**
+   - Find any files, env keys, migrations, UI copy, API routes or DB fields referring to Weekly Curated Music and remove or rename them to Monthly. Leave a migration revert note for rollback. Add a short summary of removed references in docs/IMPLEMENTATION_NOTES.md.
+
+2. **Admin configuration panel (MonthlyPlaylistConfigPanel)**
+   - Admins/curators can:
+     - Paste one or more playlist URLs (Spotify/SoundCloud/Mixcloud) to evaluate for the month.
+     - Validate URLs server-side (extract ID, fetch metadata via client credentials).
+     - Preview embed(s) using UnifiedEmbedPlayer and a native small track list (metadata from server).
+     - Save as Draft or Schedule publish for a date/time.
+     - Publish Now (atomic publish: archive previous live playlist and mark this as live).
+     - View history and Rollback to previous live playlist (creates a history snapshot).
+     - Toggle Auto-Curation fallback policy and set thresholds (AI confidence threshold, run window).
+   - Use drag & drop to reorder playlist entries in the monthly bundle.
+
+3. **Monthly playlist lifecyle**
+   - Draft → Scheduled/Queued → Live → Archived.
+   - Dashboard (MonthlyPlaylistWidget) only surfaces the active live monthly playlist (status='live').
+   - Scheduler/worker publishes scheduled playlists at scheduled_for time (trusted server-side cron).
+   - If admin forgets to publish by the scheduled date/time and FEATURE_MONTHLY_AI_FALLBACK is true:
+     - Worker runs AI fallback:
+       - Gathers historical admin playlists and items (previous months).
+       - Uses AI (OpenAI) to score and assemble candidate tracks/playlists (prompt instructs: "Create a high-quality monthly curated playlist in the underground [preferred genres] style using these previous admin playlists and high-quality new finds. Return structured JSON with playlist title, description, items[] with platform & track info and confidence score for each item.").
+       - Worker creates a new `monthly_playlists` draft with `auto_curated=true` and status='queued' and sends an admin notification for quick approve OR auto-publishes if admin auto-approve setting enabled and average confidence ≥ threshold.
+   - Provide admin notification + email (optional) when auto-curation runs and when it publishes.
+
+4. **Embed + External-Open Fallback playback**
+   - Use UnifiedEmbedPlayer for all dashboard and profile placements.
+   - Iframe embeds for Spotify/SoundCloud/Mixcloud with lazy-loading and stable layout.
+   - Prominent "Open in App / Open in Web Player" button (deep-links for mobile).
+   - Fallback native metadata & tracklist if iframe blocked.
+   - Per-user playback: each user’s embed operates independently; no cross-user coordination needed.
+
+5. **AI fallback specifics**
+   - Worker must:
+     - Respect rate limits for metadata fetch & OpenAI calls.
+     - Use a structured, safe OpenAI prompt that returns JSON only.
+     - Produce `confidence` scores per item and overall playlist confidence.
+     - Persist results in `monthly_playlist_auto_jobs` and link to `monthly_playlists`.
+     - If auto-publish is enabled and confidence >= threshold, publish atomically and notify users.
+     - If confidence < threshold or admin review required, create admin review task and notify admins.
+
+6. **Robustness & error handling**
+   - Defensive validation in API routes (Zod).
+   - ErrorBoundary wraps heavy UI components to catch and show friendly message.
+   - Worker retries transient failures with exponential backoff; logs errors and creates admin alerts.
+   - Unit / integration tests for every route and worker behavior (mock OpenAI and metadata APIs in CI).
+   - Storybook stories for all UI states (draft, scheduled, queued, live, auto-curated suggestion, rollback).
+
+7. **Admin UX & confirmation**
+   - Publishing now: show confirmation modal with "Archive previous live playlist" and "Notify followers" checkboxes.
+   - Scheduling: preview card shows scheduled time and timezone conversion; allow editing before publish.
+   - Auto-curation: allow admin to configure:
+     - auto_publish_on_confidence: true/false
+     - confidence_threshold: number (0–1)
+     - run_window: number (hours after scheduled time to allow auto-run)
+
+8. **Telemetry & notifications**
+   - Emit events: monthly_playlist_scheduled, monthly_playlist_published, monthly_playlist_auto_generated, monthly_playlist_rolled_back.
+   - Create notifications for admins (in-app) when auto-curation runs, and for users on publish (if NOTIFICATION_ON_PUBLISH enabled).
+
+Testing & QA
+------------
+- Unit tests:
+  - Zod input validation for all admin routes.
+  - Worker logic with mocked OpenAI responses (approve/manual_review cases).
+  - DB transactional publish/rollback functions.
+- Integration tests:
+  - Simulate scheduling + worker run → publish.
+  - Simulate admin forgot to publish → worker auto-curates → job created; test auto-publish vs admin-review flows.
+- E2E (Playwright):
+  - Admin: validate playlist URL -> schedule -> confirm scheduled -> worker run (simulate) -> live playlist shows in dashboard.
+  - User: Dashboard shows live monthly playlist embed; clicking "Open in Spotify" opens correct URL.
+- Storybook:
+  - Draft, scheduled, queued, live, auto-curated suggestion states for MonthlyPlaylistConfigPanel & MonthlyPlaylistPreviewCard.
+
+Acceptance criteria (must pass)
+-------------------------------
+- [ ] All old Weekly Curated Music references removed or renamed; migration notes included.
+- [ ] Admin panel fully functional: validate -> create draft -> schedule -> publish -> rollback.
+- [ ] MonthlyPlaylistWidget shows the live playlist only and uses UnifiedEmbedPlayer with external-open CTA.
+- [ ] Scheduled publish is executed by worker at the scheduled time.
+- [ ] If admin forgets to publish and auto-fallback is enabled, AI fallback worker generates candidate playlist and either auto-publishes (if enabled & confidence OK) or queues admin review.
+- [ ] All endpoints validated with Zod and permission-guarded (admin-only where required).
+- [ ] Robust error handling: UI ErrorBoundaries, worker retry/backoff, clear admin alerts on failure.
+- [ ] Tests (unit + integration + E2E) and Storybook stories are present and passing locally.
+- [ ] Documentation: docs/IMPLEMENTATION_NOTES.md + docs/MONTHLY_PLAYLISTS.md includes API contract, env vars, OpenAI prompt templates, and runbook for worker/rollback.
+
+Security & privacy
+------------------
+- Do not store raw OpenAI API responses without sanitization.
+- Respect provider TOS for metadata and embed usage.
+- Protect admin-only API routes with server-side role checks.
+- Do not expose service secrets in client bundles.
+- Rate-limit auto-curation runs and admin-triggered generation to control cost.
+
+Feature flags & rollout plan
+----------------------------
+- FEATURE_MONTHLY_PLAYLISTS=true (enable new feature)
+- FEATURE_MONTHLY_AI_FALLBACK=true (default ON in staging, OFF in prod until QA)
+- FEATURE_EMBED_FALLBACK=true (always ON)
+- Rollout steps:
+  1. Deploy to staging with FEATURE_MONTHLY_PLAYLISTS & FEATURE_MONTHLY_AI_FALLBACK enabled.
+  2. Smoke test scheduling -> worker -> publish flows.
+  3. Enable in prod with AI_FALLBACK OFF; switch it on after manual validation.
+  4. Monitor logs & telemetry for two cycles before fully enabling auto-publish.
+
+Developer notes / common pitfalls
+--------------------------------
+- Carefully remove weekly tables/fields and migrate data into new monthly tables (if relevant).
+- Worker must be idempotent — a job must not publish the same playlist multiple times in race conditions.
+- OpenAI prompts MUST be strict JSON-only responses (use function calling or clear JSON schema).
+- Cache metadata responses (Spotify) to avoid rate limits.
+- Ensure timezone handling when scheduling publishes; store timestamps in UTC.
+- Always create history snapshot before making destructive changes (publish/rollback).
+- Add clear admin audit trail for compliance.
+
+Estimated effort
+----------------
+- Planning + migrations + schema updates: 4–6 hours
+- Admin UI + preview + Storybook: 8–12 hours
+- API routes & Zod validation: 4–6 hours
+- Worker + AI fallback logic (mocked OpenAI in tests): 8–12 hours
+- Tests & E2E: 6–10 hours
+- Total estimate: ~30–46 hours (single senior developer; can be split across two sprints)
+
+Deliverables
+------------
+- New monthly playlists feature replacing weekly implementation.
+- Admin panel with schedule/publish/rollback & AI fallback settings.
+- Worker for scheduled publish + AI fallback generator.
+- Migrations and Drizzle schema updates.
+- Unit + integration + E2E tests and Storybook stories.
+- docs/IMPLEMENTATION_NOTES.md and docs/MONTHLY_PLAYLISTS.md with runbook and AI prompt templates.
+
+End of task.

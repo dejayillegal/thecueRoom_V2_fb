@@ -135,7 +135,7 @@ export const playlists = pgTable('playlists', {
   soundcloudUrl: text('soundcloud_url'),
   embedHtml: text('embed_html'),
   thumbnail: text('thumbnail'),
-  weekOf: timestamp('week_of').notNull(),
+  monthOf: timestamp('month_of').notNull(), // Changed from weekOf to monthOf
   featured: boolean('featured').notNull().default(false),
   visibility: text('visibility').default('public'), // 'admin' | 'featured' | 'public'
   autoCurated: boolean('auto_curated').default(false),
@@ -150,6 +150,7 @@ export const playlists = pgTable('playlists', {
   visibilityIdx: index('playlists_visibility_idx').on(table.visibility),
   curatedAtIdx: index('playlists_curated_at_idx').on(table.curatedAt),
   autoCuratedIdx: index('playlists_auto_curated_idx').on(table.autoCurated),
+  monthOfIdx: index('playlists_month_of_idx').on(table.monthOf), // Added index for monthOf
 }));
 
 export const playlistItems = pgTable('playlist_items', {
@@ -766,22 +767,26 @@ export const adminPlaylists = pgTable('admin_playlists', {
   id: uuid('id').primaryKey().defaultRandom(),
   title: text('title').notNull(),
   description: text('description'),
-  platform: text('platform').notNull().default('spotify'),
+  platform: text('platform').notNull().default('spotify'), // 'spotify' | 'soundcloud' | 'mixcloud'
   platformId: text('platform_id').notNull(),
   embedUrl: text('embed_url').notNull(),
   coverImage: text('cover_image'),
   curatorId: uuid('curator_id').references(() => users.id, { onDelete: 'set null' }),
-  status: text('status').notNull().default('draft'),
+  status: text('status').notNull().default('draft'), // 'draft' | 'queued' | 'scheduled' | 'live' | 'archived'
   autoCurated: boolean('auto_curated').default(false),
-  scheduledAt: timestamp('scheduled_at'),
-  publishedAt: timestamp('published_at'),
+  monthOf: timestamp('month_of').notNull().defaultNow(), // Month this playlist represents
+  scheduledAt: timestamp('scheduled_at'), // When to auto-publish
+  publishedAt: timestamp('published_at'), // When actually published
+  publishedBy: uuid('published_by').references(() => users.id, { onDelete: 'set null' }), // Who published it
   trackCount: integer('track_count'),
+  aiConfidenceScore: numeric('ai_confidence_score', { precision: 5, scale: 2 }), // AI confidence (0-100)
   metadata: jsonb('metadata').default(sql`'{}'::jsonb`),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 }, (table) => ({
   statusIdx: index('admin_playlists_status_idx').on(table.status),
   autoCuratedIdx: index('admin_playlists_auto_curated_idx').on(table.autoCurated),
+  monthOfIdx: index('admin_playlists_month_of_idx').on(table.monthOf),
   scheduledAtIdx: index('admin_playlists_scheduled_at_idx').on(table.scheduledAt),
   publishedAtIdx: index('admin_playlists_published_at_idx').on(table.publishedAt),
 }));
@@ -790,11 +795,32 @@ export const adminPlaylistsHistory = pgTable('admin_playlists_history', {
   id: uuid('id').primaryKey().defaultRandom(),
   adminPlaylistId: uuid('admin_playlist_id').notNull().references(() => adminPlaylists.id, { onDelete: 'cascade' }),
   snapshotData: jsonb('snapshot_data').$type<any>().notNull(),
-  changeType: text('change_type').notNull(), // 'created' | 'updated' | 'published' | 'archived'
+  changeType: text('change_type').notNull(), // 'created' | 'updated' | 'published' | 'archived' | 'rolled_back'
   changedBy: uuid('changed_by').references(() => users.id, { onDelete: 'set null' }),
   changeNotes: text('change_notes'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 }, (table) => ({
   adminPlaylistIdIdx: index('admin_playlists_history_admin_playlist_id_idx').on(table.adminPlaylistId),
   createdAtIdx: index('admin_playlists_history_created_at_idx').on(table.createdAt),
+}));
+
+// AI Auto-curation jobs for monthly playlists
+export const playlistAutoJobs = pgTable('playlist_auto_jobs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  playlistId: uuid('playlist_id').references(() => adminPlaylists.id, { onDelete: 'cascade' }),
+  jobType: text('job_type').notNull().default('fallback_generation'), // 'fallback_generation' | 'manual_trigger' | 'scheduled_curation'
+  status: text('status').notNull().default('pending'), // 'pending' | 'processing' | 'completed' | 'failed'
+  inputData: jsonb('input_data').$type<any>().notNull().default(sql`'{}'::jsonb`),
+  resultData: jsonb('result_data').$type<any>(),
+  confidenceScore: numeric('confidence_score', { precision: 5, scale: 2 }), // AI confidence (0-100)
+  errorMessage: text('error_message'),
+  startedAt: timestamp('started_at'),
+  finishedAt: timestamp('finished_at'),
+  createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  playlistIdIdx: index('playlist_auto_jobs_playlist_id_idx').on(table.playlistId),
+  statusIdx: index('playlist_auto_jobs_status_idx').on(table.status),
+  jobTypeIdx: index('playlist_auto_jobs_job_type_idx').on(table.jobType),
+  createdAtIdx: index('playlist_auto_jobs_created_at_idx').on(table.createdAt),
 }));
