@@ -11,14 +11,20 @@ export function getDbClient() {
     const connectionString = process.env.DATABASE_URL;
     
     if (!connectionString) {
-      throw new Error('DATABASE_URL environment variable is not set');
+      throw new Error('DATABASE_URL environment variable is not set. Please add it in Replit Secrets.');
     }
 
+    // Use connection pooling URL for Neon (Replit PostgreSQL)
+    const poolUrl = connectionString.includes('.us-east-2.aws.neon.tech')
+      ? connectionString.replace('.us-east-2', '-pooler.us-east-2')
+      : connectionString;
+
     pool = new Pool({
-      connectionString,
-      max: 20,
+      connectionString: poolUrl,
+      max: 10,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
+      ssl: poolUrl.includes('neon.tech') ? { rejectUnauthorized: false } : undefined,
     });
 
     db = drizzle(pool, { schema });
