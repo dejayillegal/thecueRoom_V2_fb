@@ -1,0 +1,235 @@
+Title: Dashboard polish & data: real values, autoscrolling Spotlight, AI tools flows (Cover Art / EPK / Meme) — Replit-ready
+
+Goal
+----
+Fix and upgrade the Dashboard so it shows real/demo data, a professional product UX, and working entry points to AI Cover Art, AI EPK Generator, and AI Meme tools. Spotlight should autoscroll (accessible + pause on hover), gigs/trending threads must show live values with skeletons while loading, and all flows must be demoable inside a Free Basic Replit (MOCK data mode available).
+
+High-level requirements
+- Dashboard widgets show real values (DB-driven or seeded demo data if DB empty).
+- Spotlight = autoscrolling carousel of spotlight cards with smooth animation, accessible controls, pause on hover, swipe support on mobile.
+- Gigs widget shows upcoming gigs with search/filter and "View all" link.
+- Trending Threads widget shows threads with replies/likes counts and deep links to forum.
+- Latest playlist / Monthly playlist (if enabled) shows embed or fallback link.
+- AI Cards: Cover Art, EPK Generator, Meme Generator show live counters (usage, new templates) and clicking opens the respective tool page with query params for the selected item (deep link from dashboard).
+- Dashboard must use skeleton loaders and ErrorBoundary; must look clean & professional (match theme tokens).
+- Add seed/demo data generator and Replit-friendly MOCK mode.
+- Tests: unit + Playwright E2E smoke for dashboard flows.
+- Storybook stories for Spotlight carousel and AI Cards.
+
+Files to update / create
+------------------------
+UI components (update or create):
+- apps/web/src/pages/dashboard/page.tsx (or apps/web/src/pages/Dashboard/index.tsx)
+- apps/web/src/components/Dashboard/DashboardLayout.tsx
+- apps/web/src/components/Dashboard/SpotlightCarousel.tsx
+- apps/web/src/components/Dashboard/GigRadarWidget.tsx
+- apps/web/src/components/Dashboard/TrendingThreadsWidget.tsx
+- apps/web/src/components/Dashboard/MonthlyPlaylistWidget.tsx
+- apps/web/src/components/Dashboard/AIToolsBoard.tsx
+- apps/web/src/components/UI/SkeletonCard.tsx
+- apps/web/src/components/UI/ErrorBoundary.tsx (if not present)
+- apps/web/src/components/UI/CarouselControls.tsx
+- apps/web/.storybook/stories/SpotlightCarousel.stories.tsx
+- apps/web/.storybook/stories/AIToolsBoard.stories.tsx
+
+API routes / server (update/create):
+- apps/web/app/api/dashboard/overview/route.ts  // returns aggregated counts + snapshot for dashboard
+- apps/web/app/api/gigs/list/route.ts
+- apps/web/app/api/forum/trending/route.ts
+- apps/web/app/api/player/current-playlist/route.ts (for monthly playlist)
+- apps/web/app/api/ai/tools/usage/route.ts  // return usage counters and templates for AI tools
+- apps/web/app/api/demo/seed/route.ts        // endpoint to seed Replit demo data (protected by DEMO_ADMIN_KEY)
+
+Server-side helpers & seeding:
+- packages/server/dashboardAggregators.ts
+- packages/server/demoSeeder.ts
+- migrations/20251113_dashboard_seed.sql (optional sample SQL)
+- packages/db/monthlyPlaylistSchema.ts (if playlist changes needed)
+
+Shared schemas & validation:
+- packages/shared/dashboardSchemas.ts (Zod for overview response)
+- packages/shared/gigSchemas.ts
+
+Feature flags & env
+- FEATURE_DASHBOARD_DEMO=true  (default ON in Replit)
+- DEMO_ADMIN_KEY=demo_dashboard_key
+- FEATURE_MONTHLY_PLAYLISTS=true/false (unchanged)
+- MOCK_AI=true (so AI tools page can demo without real API calls)
+
+UX / Behavior details (must implement)
+-------------------------------------
+1) Dashboard Overview API
+   - Implement GET /api/dashboard/overview that returns an aggregated JSON:
+     ```
+     {
+       stats: { users: number, artists: number, gigsUpcoming: number, threadsCount: number, likes: number },
+       spotlight: [{ id, title, subtitle, imageUrl, link, tag }],
+       gigs: [{ id, title, venue, city, date, isTicketed, ticketUrl }],
+       trendingThreads: [{ id, title, replies, likes, category, author }],
+       monthlyPlaylist: { id, title, embedUrl, externalUrl } | null,
+       aiTools: { coverArt: { usage, newTemplates }, epk: {...}, meme: {...} }
+     }
+     ```
+   - The API should source real DB values if present, otherwise return seeded demo data when FEATURE_DASHBOARD_DEMO=true.
+
+2) SpotlightCarousel component
+   - Smooth auto-advance every 6 seconds (configurable).
+   - Pause on hover and focus; resume on mouse leave.
+   - Keyboard accessible: left/right arrow to navigate; focusable controls (prev/next).
+   - Touch swipe support on mobile (use a small dependency or manual pointer handling).
+   - Announce slide changes to screen readers (aria-live) and include accessible labels.
+   - Controls: Prev/Next buttons, indicators (dots) with aria-current for active slide.
+   - Each card is clickable linking to `link` (internal route or external).
+   - Add optional gradient overlay and subtle parallax for professional aesthetics.
+
+3) GigRadarWidget
+   - Show next 3 upcoming gigs with date, venue, city; "View All Gigs" link to gigs page.
+   - Support a filter dropdown (city) and search box inside widget (opens modal for full list).
+   - If ticketUrl present, show "Book" CTA which opens in new tab; if not, CTA says "Details".
+   - Skeleton loading state while fetching.
+
+4) TrendingThreadsWidget
+   - Show top 3-5 threads with replies and likes badges, category tags and time ago.
+   - Include quick action buttons: Follow thread, Open thread, Share.
+   - On click, navigate to forum thread (deep link).
+   - If user is not allowed to view, show a locked state with CTA to sign in.
+
+5) MonthlyPlaylistWidget
+   - Show embed if embedUrl present; `iframe` lazy-loaded.
+   - If embed blocked or not available, show cover image + ExternalOpenButton linking to externalUrl.
+   - Add small metadata (track count, curator, published_at).
+
+6) AIToolsBoard
+   - Show three cards: AI Cover Art, AI EPK Generator, AI Meme Generator.
+   - Each card shows:
+     - Usage metric (e.g., "12 uses this week") from /api/ai/tools/usage.
+     - New templates count and a CTA "Open" that routes to `/ai/cover-art?from=dashboard&spotlightId=...` or similar.
+   - Clicking "Open" navigates to tool page and passes context (selected spotlight card or selected track) via query params or state.
+   - Show quick actions: "Create now" (opens modal), "Recent creations" (opens gallery).
+
+7) Skeletons & ErrorBoundary
+   - All widgets must show skeletons while loading and friendly error cards on failure with "Retry" action.
+   - Wrap dashboard with ErrorBoundary that logs to console and shows a fallback UI.
+
+8) Clean, professional design
+   - Use project tokens (spacing, colors) and 2xl rounded corners for cards, soft shadows.
+   - Subtle micro-interactions: hover scale 1.02 on cards, glow on primary CTA, fade-in skeleton -> content.
+   - Use `prefers-reduced-motion` respect.
+
+9) Demo seeding & Replit mode
+   - Implement POST /api/demo/seed which seeds DB with 50 users, 12 artists, 30 gigs (future dates), 50 forum threads with varying replies/likes, 5 spotlight items, and one monthly playlist. Protect endpoint with DEMO_ADMIN_KEY header.
+   - With FEATURE_DASHBOARD_DEMO=true the dashboard overview endpoint must return seed data if DB empty.
+   - Provide a quick admin button in the Replit demo to run the seeder.
+
+10) Tests & Storybook
+   - Storybook stories:
+     - SpotlightCarousel (with 3-5 slides and controls)
+     - AIToolsBoard (cards with metrics)
+     - GigRadarWidget and TrendingThreadsWidget skeleton + content states
+   - Unit tests (vitest) for:
+     - dashboardAggregators functions, seeder
+     - Spotlight auto-scroll logic (timer pause/resume)
+   - Playwright E2E smoke:
+     - Seed demo data -> open dashboard -> validate counts shown -> spotlight auto-advances -> click Spotlight card opens correct page -> open Cover Art via AIToolsBoard and assert query param present.
+
+11) Performance & accessibility
+   - Lazy-load images & iframes; use `loading="lazy"`.
+   - Minimize re-renders: memoize list items (React.memo).
+   - Ensure color contrast passes WCAG AA.
+   - ARIA attributes for carousel and CTAs.
+
+12) Telemetry (optional)
+   - Emit dashboard metrics: `event: dashboard_view`, `spotlight_click`, `ai_tool_opened` to analytics endpoint (no PII).
+
+Acceptance criteria — what "done" looks like
+--------------------------------------------
+- [ ] DashboardOverview API implemented and returns DB-driven or seeded demo data.
+- [ ] SpotlightCarousel autoscrolls (6s default), pauses on hover/focus, supports keyboard & swipe, accessible announcements.
+- [ ] GigRadarWidget shows upcoming gigs (3 items) and links to full gigs page; search & filter modal works.
+- [ ] TrendingThreadsWidget shows top threads with replies/likes and deep links to forum.
+- [ ] MonthlyPlaylistWidget displays an embed or fallback link; works in Replit demo.
+- [ ] AIToolsBoard cards show usage & templates; clicking "Open" navigates to the tool page with context (query param/state).
+- [ ] All widgets have skeletons and error fallback UIs.
+- [ ] Demo seeding endpoint works in Replit and is protected by DEMO_ADMIN_KEY; a sample "Seed demo data" admin button exists.
+- [ ] Storybook stories for Spotlight + AIToolsBoard present and look polished.
+- [ ] Playwright E2E smoke test passes in demo mode (using MOCK_AI=true).
+- [ ] All new code follows tokenized styles and matches project theme (neon accent, dark glass).
+- [ ] README/docs updated: docs/IMPLEMENTATION_NOTES.md with how to seed demo data and run dashboard locally in Replit.
+
+Replit run & test steps (exact commands to include in README)
+-------------------------------------------------------------
+1. Copy env:
+cp .env.example .env
+
+set DEMO_ADMIN_KEY=demo_dashboard_key
+ensure FEATURE_DASHBOARD_DEMO=true
+ensure MOCK_AI=true
+markdown
+Copy code
+2. Install:
+pnpm install
+
+arduino
+Copy code
+3. Run migrations (or run demo seeder if no migrations available in Replit):
+pnpm migrate
+
+OR
+curl -X POST "http://localhost:3000/api/demo/seed" -H "x-demo-admin: demo_dashboard_key"
+
+markdown
+Copy code
+4. Start dev server:
+pnpm dev
+
+markdown
+Copy code
+5. Visit the app in Replit preview: open `/dashboard` and visually verify:
+- Overview stats populated
+- Spotlight autoscrolls and resume/pauses
+- AI Cards show usage; clicking Open opens the AI pages with query param
+6. Run Storybook:
+pnpm storybook
+
+markdown
+Copy code
+7. Run tests:
+pnpm test
+pnpm test:e2e
+
+markdown
+Copy code
+
+Developer notes & common pitfalls
+--------------------------------
+- Carousel timer: do not use setInterval alone; prefer requestAnimationFrame or a managed timer with cleanup to avoid leaks.
+- Accessibility: ensure `aria-live` and proper roles so screen readers announce slide changes; avoid auto-opening links for screen-reader users.
+- Replit demo: be strict about MOCK flags to avoid external API calls (OpenAI/Spotify).
+- Data seeds must be idempotent — repeated runs should not create duplicate records.
+- For mobile swipe: test on real mobile or Playwright mobile emulation.
+- Keep the spotlight images optimized (max width 1200px) and use placeholders while loading.
+
+Estimated effort
+----------------
+- Backend API + seeder: 6–8 hours
+- Spotlight carousel + widgets UI: 8–12 hours
+- AI tools linking + query-param flows: 2–4 hours
+- Storybook + tests: 4–6 hours
+- Docs & polish: 2–3 hours
+- Total: ~22–33 hours (one senior dev) — can be done across 2 sprints.
+
+Deliverables (PR checklist)
+---------------------------
+- [ ] PR branch with all files added/modified as listed
+- [ ] Migrations/seed SQL included
+- [ ] Storybook stories and screenshots
+- [ ] Playwright tests & green build locally
+- [ ] docs/IMPLEMENTATION_NOTES.md updated with Replit demo steps
+- [ ] Demo GIF showing Spotlight autoplay + AI tool open flow attached in PR
+
+Notes to reviewer
+-----------------
+- While reviewing, run the demo seeder in Replit to populate realistic data.
+- If production playback/Spotify calls are required later, ensure server-side credentials are added and flagged behind FEATURE_MONTHLY_PLAYLISTS.
+
+End of task.
