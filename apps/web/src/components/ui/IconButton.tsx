@@ -8,7 +8,7 @@ import React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 
 const iconButtonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -25,10 +25,10 @@ const iconButtonVariants = cva(
           "bg-[var(--tcr-accent)] text-black hover:bg-[var(--tcr-accent)]/90",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3 text-sm",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        default: "h-10 px-4 py-2 text-sm [&_svg]:h-4 [&_svg]:w-4",
+        sm: "h-9 px-3 text-xs [&_svg]:h-3.5 [&_svg]:w-3.5",
+        lg: "h-11 px-8 text-base [&_svg]:h-5 [&_svg]:w-5",
+        icon: "h-10 w-10 [&_svg]:h-5 [&_svg]:w-5",
       },
     },
     defaultVariants: {

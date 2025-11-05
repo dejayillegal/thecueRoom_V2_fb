@@ -23,11 +23,11 @@ export function CarouselControls({
   return (
     <div className={`flex items-center justify-between gap-4 ${className}`}>
       <Button
-        variant="ghost"
+        variant="outline"
         size="icon"
         onClick={onPrevious}
         aria-label="Previous slide"
-        className="h-8 w-8 rounded-full bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white border border-[#333]"
+        className="h-8 w-8 rounded-none bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white border border-[#333]"
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>
@@ -45,7 +45,7 @@ export function CarouselControls({
             aria-current={index === currentIndex ? "true" : undefined}
             aria-label={`Go to slide ${index + 1}`}
             onClick={() => onIndicatorClick(index)}
-            className={`h-2 rounded-full transition-all duration-300 ${
+            className={`h-2 rounded-none transition-all duration-300 ${
               index === currentIndex
                 ? "w-8 bg-[#D7FF3C]"
                 : "w-2 bg-[#444] hover:bg-[#666]"
@@ -55,11 +55,11 @@ export function CarouselControls({
       </div>
 
       <Button
-        variant="ghost"
+        variant="outline"
         size="icon"
         onClick={onNext}
         aria-label="Next slide"
-        className="h-8 w-8 rounded-full bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white border border-[#333]"
+        className="h-8 w-8 rounded-none bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white border border-[#333]"
       >
         <ChevronRight className="h-4 w-4" />
       </Button>

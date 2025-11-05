@@ -28,7 +28,7 @@ export function IconLabelButton({
   iconPosition = "left",
 }: IconLabelButtonProps) {
   const baseStyles =
-    "inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
+    "inline-flex items-center justify-center gap-2 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
 
   const variantStyles = {
     primary: "bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500",
@@ -44,9 +44,9 @@ export function IconLabelButton({
   };
 
   const iconSizeStyles = {
-    sm: "w-4 h-4",
-    md: "w-5 h-5",
-    lg: "w-6 h-6",
+    sm: "[&_svg]:w-3.5 [&_svg]:h-3.5",
+    md: "[&_svg]:w-4 [&_svg]:h-4",
+    lg: "[&_svg]:w-5 [&_svg]:h-5",
   };
 
   return (
@@ -58,13 +58,13 @@ export function IconLabelButton({
       aria-label={label}
     >
       {iconPosition === "left" && (
-        <span className={iconSizeStyles[size]} aria-hidden="true">
+        <span className={`inline-flex items-center justify-center shrink-0 ${iconSizeStyles[size]}`} aria-hidden="true">
           {icon}
         </span>
       )}
-      <span>{label}</span>
+      <span className="font-medium">{label}</span>
       {iconPosition === "right" && (
-        <span className={iconSizeStyles[size]} aria-hidden="true">
+        <span className={`inline-flex items-center justify-center shrink-0 ${iconSizeStyles[size]}`} aria-hidden="true">
           {icon}
         </span>
       )}

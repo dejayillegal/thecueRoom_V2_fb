@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const iconLabelButtonVariants = cva(
-  "inline-flex items-center gap-2 justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center gap-2 justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -19,10 +19,10 @@ const iconLabelButtonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 px-3",
-        lg: "h-11 px-8",
-        icon: "h-10 w-10",
+        default: "h-10 px-4 py-2 text-sm [&_svg]:h-4 [&_svg]:w-4",
+        sm: "h-9 px-3 text-xs [&_svg]:h-3.5 [&_svg]:w-3.5",
+        lg: "h-11 px-8 text-base [&_svg]:h-5 [&_svg]:w-5",
+        icon: "h-10 w-10 [&_svg]:h-5 [&_svg]:w-5",
       },
     },
     defaultVariants: {
@@ -70,14 +70,14 @@ const IconLabelButton = React.forwardRef<
         {...props}
       >
         {icon && iconPosition === "left" && (
-          <span className="icon-container" aria-hidden="true">
+          <span className="inline-flex items-center justify-center shrink-0" aria-hidden="true">
             {icon}
           </span>
         )}
-        {showLabel && <span className="label-text">{label}</span>}
+        {showLabel && <span className="label-text font-medium">{label}</span>}
         {!showLabel && <span className="sr-only">{label}</span>}
         {icon && iconPosition === "right" && (
-          <span className="icon-container" aria-hidden="true">
+          <span className="inline-flex items-center justify-center shrink-0" aria-hidden="true">
             {icon}
           </span>
         )}
