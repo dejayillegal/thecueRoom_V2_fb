@@ -47,7 +47,8 @@ const getNavItemsForRole = (role: string) => {
   if (role === 'admin') {
     return [...commonItems, ...artistItems, 
       { href: '/admin/events', label: 'Review Events', icon: CheckCircle2 },
-      { href: '/admin/sources', label: 'Manage Sources', icon: Settings }
+      { href: '/admin/sources', label: 'Manage Sources', icon: Settings },
+      { href: '/dashboard/admin/playlists', label: 'Playlist Config', icon: Music }
     ];
   }
 
