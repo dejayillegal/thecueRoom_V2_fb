@@ -11,7 +11,17 @@ export function getDbClient() {
     const connectionString = process.env.DATABASE_URL;
     
     if (!connectionString) {
+      console.error('❌ DATABASE_URL environment variable is not set.');
+      console.error('📝 Please set up PostgreSQL:');
+      console.error('   1. Open Tools → Database');
+      console.error('   2. Click "Create a database"');
+      console.error('   3. Copy DATABASE_URL from Database panel to Secrets');
       throw new Error('DATABASE_URL environment variable is not set. Please add it in Replit Secrets.');
+    }
+
+    // Validate the connection string format
+    if (!connectionString.startsWith('postgres://') && !connectionString.startsWith('postgresql://')) {
+      throw new Error('DATABASE_URL must be a valid PostgreSQL connection string');
     }
 
     // Use connection pooling URL for Neon (Replit PostgreSQL)
