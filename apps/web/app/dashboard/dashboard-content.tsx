@@ -41,10 +41,14 @@ export function DashboardContent() {
   const [scrollPosition, setScrollPosition] = useState(0);
   const [threads, setThreads] = useState<Thread[]>([]);
   const [playlist, setPlaylist] = useState<Playlist | null>(null);
+  const [isLoadingGigs, setIsLoadingGigs] = useState(true);
+  const [isLoadingThreads, setIsLoadingThreads] = useState(true);
+  const [isLoadingPlaylist, setIsLoadingPlaylist] = useState(true);
 
   // Fetch real gigs
   useEffect(() => {
     const fetchGigs = async () => {
+      setIsLoadingGigs(true);
       try {
         const res = await fetch('/api/gigs/india?limit=10');
         const data = await res.json();
@@ -60,6 +64,9 @@ export function DashboardContent() {
         }
       } catch (error) {
         console.error('Failed to fetch gigs:', error);
+        // Keep default gigs on error
+      } finally {
+        setIsLoadingGigs(false);
       }
     };
 
@@ -80,6 +87,7 @@ export function DashboardContent() {
   // Fetch trending threads
   useEffect(() => {
     const fetchThreads = async () => {
+      setIsLoadingThreads(true);
       try {
         const res = await fetch('/api/forum/thread?sort=trending&limit=5');
         const data = await res.json();
@@ -88,6 +96,8 @@ export function DashboardContent() {
         }
       } catch (error) {
         console.error('Failed to fetch threads:', error);
+      } finally {
+        setIsLoadingThreads(false);
       }
     };
 
@@ -97,6 +107,7 @@ export function DashboardContent() {
   // Fetch latest monthly playlist
   useEffect(() => {
     const fetchPlaylist = async () => {
+      setIsLoadingPlaylist(true);
       try {
         const res = await fetch('/api/playlists/monthly/latest');
         const data = await res.json();
@@ -105,6 +116,8 @@ export function DashboardContent() {
         }
       } catch (error) {
         console.error('Failed to fetch playlist:', error);
+      } finally {
+        setIsLoadingPlaylist(false);
       }
     };
 
@@ -176,7 +189,16 @@ export function DashboardContent() {
           <MessageSquare className="text-blue-400 flex-shrink-0" size={18} />
           <h3 className="text-[15px] font-semibold">Trending Threads</h3>
         </div>
-        {threads.length > 0 ? (
+        {isLoadingThreads ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="animate-pulse">
+                <div className="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-800 rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        ) : threads.length > 0 ? (
           <ul className="space-y-3">
             {threads.map((thread) => (
               <li key={thread.id}>
@@ -219,7 +241,11 @@ export function DashboardContent() {
           </h3>
         </div>
         <div className="rounded-lg overflow-hidden bg-[#1a1a1a]">
-          {embedUrl ? (
+          {isLoadingPlaylist ? (
+            <div className="h-[166px] flex items-center justify-center">
+              <div className="animate-pulse text-gray-500 text-sm">Loading playlist...</div>
+            </div>
+          ) : embedUrl ? (
             <iframe
               width="100%"
               height="166"
@@ -232,7 +258,7 @@ export function DashboardContent() {
             />
           ) : (
             <div className="h-[166px] flex items-center justify-center text-gray-500 text-sm">
-              Loading playlist...
+              No playlist available
             </div>
           )}
         </div>
