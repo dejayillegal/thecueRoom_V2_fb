@@ -30,13 +30,13 @@ export const ValidatePlaylistResponseSchema = z.object({
 
 export const CreateMonthlyPlaylistInputSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
-  description: z.string().max(1000, 'Description too long').optional(),
+  description: z.string().max(1000, 'Description too long').nullable().optional(),
   platform: PlatformSchema,
   platformId: z.string().min(1, 'Platform ID is required'),
   embedUrl: z.string().url('Invalid embed URL'),
-  coverImage: z.string().url('Invalid cover image URL').optional(),
+  coverImage: z.string().url('Invalid cover image URL').nullable().optional(),
   monthOf: z.string().datetime('Invalid date format').or(z.date()),
-  trackCount: z.number().int().positive().optional(),
+  trackCount: z.number().int().positive().nullable().optional(),
   metadata: z.record(z.any()).optional(),
   status: PlaylistStatusSchema.optional().default('draft'),
 });
