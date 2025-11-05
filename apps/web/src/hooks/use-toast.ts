@@ -3,14 +3,19 @@ import * as React from "react"
 
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast"
 
-const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+const TOAST_LIMIT = 5
+const TOAST_REMOVE_DELAY = 5000
+
+export type ToastVariant = 'default' | 'destructive' | 'success' | 'error' | 'warning' | 'info' | 'pending'
 
 type ToasterToast = ToastProps & {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
+  variant?: ToastVariant
+  duration?: number
+  status?: 'pending' | 'updated' | 'dismissed' | 'completed'
 }
 
 const actionTypes = {
@@ -53,18 +58,20 @@ interface State {
 
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
 
-const addToRemoveQueue = (toastId: string) => {
+const addToRemoveQueue = (toastId: string, duration?: number) => {
   if (toastTimeouts.has(toastId)) {
-    return
+    clearTimeout(toastTimeouts.get(toastId))
   }
 
+  const delay = duration ?? TOAST_REMOVE_DELAY
+  
   const timeout = setTimeout(() => {
     toastTimeouts.delete(toastId)
     dispatch({
       type: "REMOVE_TOAST",
       toastId: toastId,
     })
-  }, TOAST_REMOVE_DELAY)
+  }, delay)
 
   toastTimeouts.set(toastId, timeout)
 }
@@ -89,10 +96,11 @@ export const reducer = (state: State, action: Action): State => {
       const { toastId } = action
 
       if (toastId) {
-        addToRemoveQueue(toastId)
+        const toast = state.toasts.find(t => t.id === toastId)
+        addToRemoveQueue(toastId, toast?.duration)
       } else {
         state.toasts.forEach((toast) => {
-          addToRemoveQueue(toast.id)
+          addToRemoveQueue(toast.id, toast.duration)
         })
       }
 
@@ -103,6 +111,7 @@ export const reducer = (state: State, action: Action): State => {
             ? {
                 ...t,
                 open: false,
+                status: 'dismissed' as const,
               }
             : t
         ),
@@ -135,14 +144,15 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, "id">
 
-function toast({ ...props }: Toast) {
+function toast({ duration = 5000, ...props }: Toast) {
   const id = genId()
 
-  const update = (props: ToasterToast) =>
+  const update = (updatedProps: Partial<ToasterToast>) =>
     dispatch({
       type: "UPDATE_TOAST",
-      toast: { ...props, id },
+      toast: { ...updatedProps, id, status: 'updated' },
     })
+  
   const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
 
   dispatch({
@@ -150,18 +160,65 @@ function toast({ ...props }: Toast) {
     toast: {
       ...props,
       id,
+      duration,
       open: true,
+      status: props.variant === 'pending' ? 'pending' : undefined,
       onOpenChange: (open) => {
         if (!open) dismiss()
       },
     },
   })
 
+  if (props.variant !== 'pending' && duration > 0) {
+    addToRemoveQueue(id, duration)
+  }
+
   return {
     id: id,
     dismiss,
     update,
   }
+}
+
+function success(options: { title?: string; description: string } | string) {
+  const props = typeof options === 'string' ? { description: options } : options
+  return toast({
+    variant: 'success',
+    ...props,
+  })
+}
+
+function error(options: { title?: string; description: string } | string) {
+  const props = typeof options === 'string' ? { description: options } : options
+  return toast({
+    variant: 'error',
+    ...props,
+  })
+}
+
+function warning(options: { title?: string; description: string } | string) {
+  const props = typeof options === 'string' ? { description: options } : options
+  return toast({
+    variant: 'warning',
+    ...props,
+  })
+}
+
+function info(options: { title?: string; description: string } | string) {
+  const props = typeof options === 'string' ? { description: options } : options
+  return toast({
+    variant: 'info',
+    ...props,
+  })
+}
+
+function pending(options: { title?: string; description: string } | string) {
+  const props = typeof options === 'string' ? { description: options } : options
+  return toast({
+    variant: 'pending',
+    ...props,
+    duration: 0,
+  })
 }
 
 function useToast() {
@@ -180,6 +237,11 @@ function useToast() {
   return {
     ...state,
     toast,
+    success,
+    error,
+    warning,
+    info,
+    pending,
     dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
   }
 }
