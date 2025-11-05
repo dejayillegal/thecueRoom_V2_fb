@@ -253,7 +253,8 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-black border-lime-400/20">
           <DialogHeader>
-            <DialogTitle className="text-2xl text-lime-400">Join thecueRoom</DialogTitle>
+            <DialogTitle className="text-lime-400 text-xl leading-tight mb-0">Join thecueRoom</DialogTitle>
+            <p className="text-base text-white mt-0 pt-0">Create your artist account</p>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -359,8 +360,8 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
                 className="bg-gray-900 border-gray-700 text-white"
                 required
               />
-              <p className="text-xs text-gray-400 mt-1">
-                Min 10 characters, must include a number or symbol
+              <p className="text-xs text-purple-400 mt-1">
+                Min 10 chars, must include letter + number + symbol
               </p>
             </div>
 
