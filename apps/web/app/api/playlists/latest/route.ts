@@ -28,6 +28,7 @@ export async function GET() {
       .from(adminPlaylists)
       .leftJoin(users, eq(adminPlaylists.curatorId, users.id))
       .where(eq(adminPlaylists.status, 'live'))
+      .orderBy(desc(adminPlaylists.publishedAt))
       .limit(1);
 
     if (!playlist) {
@@ -37,9 +38,24 @@ export async function GET() {
       );
     }
 
+    // Ensure null values are handled properly
+    const safePlaylist = {
+      id: playlist.id,
+      title: playlist.title,
+      description: playlist.description || undefined,
+      platform: playlist.platform,
+      platformId: playlist.platformId || undefined,
+      embedUrl: playlist.embedUrl || undefined,
+      coverImage: playlist.coverImage || undefined,
+      status: playlist.status,
+      publishedAt: playlist.publishedAt || undefined,
+      trackCount: playlist.trackCount || 0,
+      curatorName: playlist.curatorName || undefined,
+    };
+
     return NextResponse.json({
       ok: true,
-      playlist,
+      playlist: safePlaylist,
     });
   } catch (error) {
     console.error('Fetch latest playlist error:', error);
