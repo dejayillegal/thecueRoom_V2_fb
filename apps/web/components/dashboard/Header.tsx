@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { NotificationsButton } from '@/components/notifications';
-import { useNotifications } from '@/hooks/useNotifications';
+import { useNotifications } from '../../hooks/useNotifications';
 
 interface HeaderProps {
   user?: {
