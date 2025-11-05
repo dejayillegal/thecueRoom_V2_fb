@@ -4,39 +4,18 @@ import { notifications } from '@thecueroom/db/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { notificationListQuerySchema, notificationSendSchema } from '@/../../packages/shared/notificationSchemas';
 import { z } from 'zod';
-import { cookies } from 'next/headers';
-
-async function getUserIdFromSession(): Promise<string | null> {
-  try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('session');
-    
-    if (!sessionCookie?.value) {
-      return null;
-    }
-    
-    const sessionData = JSON.parse(sessionCookie.value);
-    return sessionData.userId || null;
-  } catch {
-    return null;
-  }
-}
-
-async function isAdmin(request: NextRequest): Promise<boolean> {
-  return request.headers.get('x-admin') === 'true';
-}
+import { getSession } from '@/lib/auth';
+import { isAdmin as checkIsAdmin } from '@/lib/rbac';
 
 export async function GET(request: NextRequest) {
   try {
-    let userId = request.headers.get('x-user-id');
+    const session = await getSession();
     
-    if (!userId) {
-      userId = await getUserIdFromSession();
-    }
-    
-    if (!userId) {
+    if (!session?.uid) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    const userId = session.uid;
 
     const { searchParams } = new URL(request.url);
     const params = {
@@ -103,7 +82,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    if (!await isAdmin(request)) {
+    const session = await getSession();
+    
+    if (!session || !checkIsAdmin(session.role)) {
       return NextResponse.json(
         { error: 'Unauthorized - Admin access required' },
         { status: 403 }
@@ -165,15 +146,13 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    let userId = request.headers.get('x-user-id');
+    const session = await getSession();
     
-    if (!userId) {
-      userId = await getUserIdFromSession();
-    }
-    
-    if (!userId) {
+    if (!session?.uid) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    const userId = session.uid;
 
     const { notificationId, markAll } = await request.json();
     const db = getDbClient();
@@ -199,15 +178,13 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    let userId = request.headers.get('x-user-id');
+    const session = await getSession();
     
-    if (!userId) {
-      userId = await getUserIdFromSession();
-    }
-    
-    if (!userId) {
+    if (!session?.uid) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    const userId = session.uid;
 
     const { searchParams } = new URL(request.url);
     const notificationId = searchParams.get('id');

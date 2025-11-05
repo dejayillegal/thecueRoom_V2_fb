@@ -4,35 +4,17 @@ import { notificationPreferences } from '@thecueroom/db/schema';
 import { eq } from 'drizzle-orm';
 import { notificationPreferencesSchema } from '@/../../packages/shared/notificationSchemas';
 import { z } from 'zod';
-import { cookies } from 'next/headers';
-
-async function getUserIdFromSession(): Promise<string | null> {
-  try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('session');
-    
-    if (!sessionCookie?.value) {
-      return null;
-    }
-    
-    const sessionData = JSON.parse(sessionCookie.value);
-    return sessionData.userId || null;
-  } catch {
-    return null;
-  }
-}
+import { getSession } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    let userId = request.headers.get('x-user-id');
+    const session = await getSession();
     
-    if (!userId) {
-      userId = await getUserIdFromSession();
-    }
-    
-    if (!userId) {
+    if (!session?.uid) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    const userId = session.uid;
 
     const db = getDbClient();
     
@@ -67,15 +49,13 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    let userId = request.headers.get('x-user-id');
+    const session = await getSession();
     
-    if (!userId) {
-      userId = await getUserIdFromSession();
-    }
-    
-    if (!userId) {
+    if (!session?.uid) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    const userId = session.uid;
 
     const body = await request.json();
     const data = notificationPreferencesSchema.parse(body);
