@@ -83,22 +83,16 @@ async function main() {
       'Step 6/9: Seeding gigs and events'
     );
 
-    // Step 8: Seed playlist data (before dashboard to ensure it exists)
-    await runCommand(
-      `${testEnv}pnpm tsx scripts/seed-playlist.ts`,
-      'Step 7/9: Seeding weekly playlist'
-    );
-
-    // Step 9: Seed dashboard data
+    // Step 8: Seed dashboard data
     await runCommand(
       `${testEnv}pnpm tsx scripts/seed-dashboard-data.ts`,
-      'Step 8/9: Seeding dashboard test data'
+      'Step 7/9: Seeding dashboard test data'
     );
 
-    // Step 10: Run initial ingestion
+    // Step 9: Run initial ingestion
     await runCommand(
       `${testEnv}pnpm tsx scripts/enhanced-ingest.ts`,
-      'Step 9/9: Running initial feed ingestion'
+      'Step 8/9: Running initial feed ingestion'
     );
 
     console.log('\n' + '='.repeat(60));
@@ -112,7 +106,6 @@ async function main() {
     console.log('  ✓ Forum data seeded (categories, threads, replies)');
     console.log('  ✓ Gigs and events seeded');
     console.log('  ✓ Dashboard data seeded');
-    console.log('  ✓ Weekly playlist seeded');
     console.log('  ✓ Initial feeds ingested');
     console.log('\n🎉 Your thecueRoom instance is ready!\n');
     console.log('🔐 Admin Login:');
@@ -128,7 +121,7 @@ async function main() {
     console.log('   1. The server is already running');
     console.log('   2. Visit the app in the webview');
     console.log('   3. Sign in with admin credentials');
-    console.log('   4. Check /music/weekly for the seeded playlist\n');
+    console.log('   4. Access admin panel to manage monthly playlists\n');
 
     process.exit(0);
   } catch (error) {
