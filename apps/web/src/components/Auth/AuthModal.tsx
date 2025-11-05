@@ -732,17 +732,17 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     <Button
                       type="submit"
                       disabled={isLoading}
-                      className="bg-[#D7FF3C] text-black hover:bg-[#c5ed2a] font-semibold h-11 px-8 rounded-full text-sm"
+                      className="bg-[#D7FF3C] text-black hover:bg-[#c5ed2a] font-semibold h-11 px-6 min-w-[120px] text-sm flex items-center justify-center gap-2"
                     >
                       {isLoading ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Signing in...
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Signing in...</span>
                         </>
                       ) : (
                         <>
-                          <ArrowRight className="mr-2 h-4 w-4" />
-                          Sign In
+                          <ArrowRight className="h-4 w-4" />
+                          <span>Sign In</span>
                         </>
                       )}
                     </Button>
@@ -750,7 +750,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       type="button"
                       onClick={onClose}
                       variant="outline"
-                      className="border-[#2a2a2a] bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] h-11 px-8 rounded-full text-sm"
+                      className="border-[#2a2a2a] bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] h-11 px-6 min-w-[100px] text-sm"
                       disabled={isLoading}
                     >
                       Back
@@ -1064,17 +1064,17 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                         (isArtist && !artistAvailability.available) ||
                         (isArtist && !publicProfileUrl)
                       }
-                      className="bg-[#D7FF3C] text-black hover:bg-[#c5ed2a] font-semibold h-11 px-8 rounded-full disabled:opacity-50 text-sm"
+                      className="bg-[#D7FF3C] text-black hover:bg-[#c5ed2a] font-semibold h-11 px-6 min-w-[180px] disabled:opacity-50 text-sm flex items-center justify-center gap-2"
                     >
                       {isLoading ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Saving...
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Saving...</span>
                         </>
                       ) : (
                         <>
-                          <ArrowRight className="mr-2 h-4 w-4" />
-                          {isArtist ? "Create Artist Account" : "Create Account"}
+                          <ArrowRight className="h-4 w-4" />
+                          <span>{isArtist ? "Create Artist Account" : "Create Account"}</span>
                         </>
                       )}
                     </Button>
@@ -1082,7 +1082,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       type="button"
                       onClick={onClose}
                       variant="outline"
-                      className="border-[#2a2a2a] bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] h-11 px-8 rounded-full text-sm"
+                      className="border-[#2a2a2a] bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] h-11 px-6 min-w-[100px] text-sm"
                       disabled={isLoading}
                     >
                       Back
@@ -1161,17 +1161,17 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     <Button
                       type="submit"
                       disabled={isLoading}
-                      className="bg-[#D7FF3C] text-black hover:bg-[#c5ed2a] font-semibold h-11 px-8 rounded-full text-sm"
+                      className="bg-[#D7FF3C] text-black hover:bg-[#c5ed2a] font-semibold h-11 px-6 min-w-[160px] text-sm flex items-center justify-center gap-2"
                     >
                       {isLoading ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Sending...
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Sending...</span>
                         </>
                       ) : (
                         <>
-                          <Mail className="mr-2 h-4 w-4" />
-                          Send Reset Link
+                          <Mail className="h-4 w-4" />
+                          <span>Send Reset Link</span>
                         </>
                       )}
                     </Button>
@@ -1179,7 +1179,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       type="button"
                       onClick={onClose}
                       variant="outline"
-                      className="border-[#2a2a2a] bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] h-11 px-8 rounded-full text-sm"
+                      className="border-[#2a2a2a] bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] h-11 px-6 min-w-[100px] text-sm"
                       disabled={isLoading}
                     >
                       Back
