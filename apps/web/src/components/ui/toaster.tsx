@@ -16,6 +16,7 @@ export function Toaster() {
 
   return (
     <ToastProvider>
+      <ToastViewport />
       {toasts.map(function ({ id, title, description, action, variant, status, ...props }: any) {
         const isPending = variant === 'pending' || status === 'pending'
         
@@ -35,7 +36,6 @@ export function Toaster() {
           </Toast>
         )
       })}
-      <ToastViewport />
     </ToastProvider>
   )
 }

@@ -15,7 +15,7 @@ export function Toaster() {
 
   return (
     <ToastProvider>
-      <ToastViewport className="fixed top-0 right-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-auto sm:right-0 sm:top-0 sm:flex-col md:max-w-[420px]" />
+      <ToastViewport className="fixed top-4 right-4 z-[100] flex max-h-screen w-full max-w-[420px] flex-col gap-2 p-4" />
       {toasts.map(function ({ id, title, description, action, ...props }) {
         return (
           <Toast key={id} {...props} className="bg-[#0f0f0f] border-[#1a1a1a] text-white">
