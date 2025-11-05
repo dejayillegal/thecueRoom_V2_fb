@@ -1,4 +1,4 @@
-modules = ["nodejs-18", "web", "bash", "postgresql-16"]
+modules = ["nodejs-18", "web", "bash"]
 [agent]
 expertMode = true
 integrations = ["javascript_openai:1.0.0"]
@@ -112,6 +112,10 @@ externalPort = 3002
 [[ports]]
 localPort = 42433
 externalPort = 3001
+
+[[ports]]
+localPort = 42579
+externalPort = 5173
 
 [[ports]]
 localPort = 43373
