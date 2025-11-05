@@ -48,8 +48,6 @@ export async function GET(request: NextRequest) {
         emailDigest: true,
         inApp: true,
         push: false,
-        emailImmediate: false,
-        preferences: {},
       };
       
       const [created] = await db

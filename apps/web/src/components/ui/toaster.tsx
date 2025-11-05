@@ -8,7 +8,7 @@ import {
   ToastTitle,
   ToastViewport,
 } from "@/components/ui/toast"
-import { useToast } from "@/../../src/hooks/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import { Loader2 } from "lucide-react"
 
 export function Toaster() {
