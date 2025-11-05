@@ -38,6 +38,10 @@ export function NotificationItem({
     if (!notification.read && onMarkAsRead) {
       onMarkAsRead(notification.id)
     }
+    // Navigate to link if available
+    if (notification.link) {
+      window.location.href = notification.link
+    }
   }
 
   return (

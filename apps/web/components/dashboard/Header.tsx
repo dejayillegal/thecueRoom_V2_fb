@@ -4,10 +4,13 @@ import { Search } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Logo } from '@/components/Logo';
 import Link from 'next/link';
-import { memo, useCallback } from 'react';
-import { Bell, Settings, LogOut, Menu } from 'lucide-react';
+import { memo, useCallback, useEffect, useState } from 'react';
+import { Bell, Menu, Settings, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { NotificationsButton } from '@/components/notifications';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface HeaderProps {
   user?: {
@@ -21,7 +24,44 @@ interface HeaderProps {
 
 export const Header = memo(function Header({ user, sidebarOpen, onToggleSidebar }: HeaderProps) {
   const router = useRouter();
-  
+  const [userId, setUserId] = useState<string | undefined>();
+
+  useEffect(() => {
+    // Fetch current user session
+    fetch('/api/auth/session')
+      .then(res => res.json())
+      .then(data => {
+        if (data.uid) {
+          setUserId(data.uid);
+        }
+      })
+      .catch(err => console.error('Failed to fetch session:', err));
+  }, []);
+
+  const {
+    notifications,
+    unreadCount,
+    loading,
+    markAsRead,
+    markAllAsRead,
+  } = useNotifications(userId);
+
+  const handleDelete = async (id: string) => {
+    try {
+      await fetch(`/api/notifications?id=${id}`, { method: 'DELETE' });
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+    }
+  };
+
+  const handleClearAll = async () => {
+    try {
+      await fetch('/api/notifications?all=true', { method: 'DELETE' });
+    } catch (error) {
+      console.error('Failed to clear notifications:', error);
+    }
+  };
+
   const initials = user?.name
     ?.split(' ')
     .map(n => n[0])
@@ -32,13 +72,13 @@ export const Header = memo(function Header({ user, sidebarOpen, onToggleSidebar 
     try {
       // Clear session cookie
       await fetch('/api/auth/signout', { method: 'POST' });
-      
+
       // Clear any local storage
       if (typeof window !== 'undefined') {
         localStorage.clear();
         sessionStorage.clear();
       }
-      
+
       // Redirect to landing page and replace history to prevent back button
       router.replace('/');
     } catch (error) {
@@ -49,7 +89,7 @@ export const Header = memo(function Header({ user, sidebarOpen, onToggleSidebar 
   }, [router]);
 
   return (
-    <header 
+    <header
       className={cn(
         "fixed top-0 right-0 h-[72px] bg-black border-b border-[#1a1a1a] flex items-center justify-between px-6 z-30 transition-all duration-200 ease-out",
         "left-0 lg:left-[60px]",
@@ -82,15 +122,21 @@ export const Header = memo(function Header({ user, sidebarOpen, onToggleSidebar 
       </div>
 
       <div className="flex items-center gap-4">
-        <button className="p-2 text-white hover:bg-[#1a1a1a] rounded-md" aria-label="Notifications">
-          <Bell size={20} />
-        </button>
+        <NotificationsButton
+          notifications={notifications}
+          unreadCount={unreadCount}
+          onMarkAsRead={markAsRead}
+          onMarkAllAsRead={markAllAsRead}
+          onDelete={handleDelete}
+          onClearAll={handleClearAll}
+          isLoading={loading}
+        />
         <button className="p-2 text-white hover:bg-[#1a1a1a] rounded-md" aria-label="Settings">
           <Settings size={20} />
         </button>
-        <button 
+        <button
           onClick={handleLogout}
-          className="p-2 text-white hover:bg-[#1a1a1a] rounded-md" 
+          className="p-2 text-white hover:bg-[#1a1a1a] rounded-md"
           aria-label="Logout"
         >
           <LogOut size={20} />

@@ -1,10 +1,11 @@
 import * as React from "react"
-import { Bell, Check, Trash2, Settings } from "lucide-react"
+import { Bell, Check, Trash2, Settings, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Badge } from "@/components/ui/badge"
 import { NotificationItem } from "./NotificationItem"
 import type { Notification } from "@/../../packages/shared/notificationSchemas"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface NotificationsPanelProps {
   notifications: Notification[]
@@ -75,18 +76,22 @@ export function NotificationsPanel({
           </div>
         </div>
 
-        <div className="max-h-[400px] overflow-y-auto">
+        <ScrollArea className="h-[400px]">
           {isLoading ? (
-            <div className="p-8 text-center text-muted-foreground">
+            <div className="flex items-center justify-center p-8 text-muted-foreground">
+              <Loader2 className="h-6 w-6 animate-spin mr-2" />
               Loading notifications...
             </div>
           ) : notifications.length === 0 ? (
             <div className="p-8 text-center">
               <Bell className="h-12 w-12 mx-auto text-muted-foreground/50 mb-2" />
-              <p className="text-muted-foreground">No notifications yet</p>
+              <p className="text-sm text-muted-foreground">No notifications yet</p>
+              <p className="text-xs text-muted-foreground/70 mt-1">
+                We'll notify you when something important happens
+              </p>
             </div>
           ) : (
-            <div className="divide-y">
+            <div className="divide-y divide-border">
               {notifications.map((notification) => (
                 <NotificationItem
                   key={notification.id}
@@ -97,7 +102,7 @@ export function NotificationsPanel({
               ))}
             </div>
           )}
-        </div>
+        </ScrollArea>
 
         {notifications.length > 0 && onClearAll && (
           <div className="p-2 border-t">

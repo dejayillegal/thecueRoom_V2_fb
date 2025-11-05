@@ -5,7 +5,7 @@ export interface Notification {
   id: string;
   type: string;
   title: string;
-  message: string;
+  body: string;
   link?: string;
   read: boolean;
   metadata?: Record<string, any>;
@@ -24,10 +24,10 @@ export function useNotifications(userId?: string, filter: string = 'all') {
     }
 
     try {
-      const response = await fetch(`/api/notifications/list?filter=${filter}`);
+      const response = await fetch(`/api/notifications?filter=${filter}&limit=50`);
       if (response.ok) {
         const data = await response.json();
-        setNotifications(data.notifications || []);
+        setNotifications(data.notifications || data.items || []);
         setUnreadCount(data.unreadCount || 0);
       }
     } catch (error) {
@@ -58,8 +58,10 @@ export function useNotifications(userId?: string, filter: string = 'all') {
 
   const markAllAsRead = useCallback(async () => {
     try {
-      const response = await fetch('/api/notifications/mark-all', {
-        method: 'POST',
+      const response = await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ markAll: true }),
       });
 
       if (response.ok) {
@@ -71,10 +73,28 @@ export function useNotifications(userId?: string, filter: string = 'all') {
     }
   }, []);
 
+  const deleteNotification = useCallback(async (notificationId: string) => {
+    try {
+      const response = await fetch(`/api/notifications?id=${notificationId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setNotifications(prev => prev.filter(n => n.id !== notificationId));
+        const deletedNotif = notifications.find(n => n.id === notificationId);
+        if (deletedNotif && !deletedNotif.read) {
+          setUnreadCount(prev => Math.max(0, prev - 1));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+    }
+  }, [notifications]);
+
   useEffect(() => {
     fetchNotifications();
     
-    // Poll every 30 seconds
+    // Poll every 30 seconds for new notifications
     const interval = setInterval(fetchNotifications, 30000);
     
     return () => clearInterval(interval);
@@ -86,6 +106,7 @@ export function useNotifications(userId?: string, filter: string = 'all') {
     loading,
     markAsRead,
     markAllAsRead,
+    deleteNotification,
     refresh: fetchNotifications,
   };
 }
