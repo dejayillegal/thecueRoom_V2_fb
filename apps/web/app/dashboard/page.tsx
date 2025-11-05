@@ -2,7 +2,7 @@
 
 import { lazy, Suspense, useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { SpotlightColumn } from "@/components/Dashboard/SpotlightColumn";
+import SpotlightColumn from "@/components/Dashboard/SpotlightColumn";
 import { RecentActivity } from "@/components/Dashboard/RecentActivity";
 import { GigRadar } from "@/components/Dashboard/GigRadar";
 import { markStart, markEnd } from "@/lib/analytics/perf-marks";
