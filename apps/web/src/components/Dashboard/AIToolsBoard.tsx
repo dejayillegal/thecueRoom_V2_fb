@@ -82,7 +82,7 @@ export function AIToolsBoard({ className = "" }: AIToolsBoardProps) {
     const fetchAITools = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/dashboard/overview`);
+        const response = await fetch(`/api/dashboard/overview`, { cache: "no-store" });
         const data = await response.json();
         
         if (data.aiTools) {
@@ -97,6 +97,11 @@ export function AIToolsBoard({ className = "" }: AIToolsBoardProps) {
     };
 
     fetchAITools();
+    
+    // Refresh AI tools data every 2 minutes
+    const interval = setInterval(fetchAITools, 2 * 60 * 1000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   if (isLoading) {
@@ -126,7 +131,7 @@ export function AIToolsBoard({ className = "" }: AIToolsBoardProps) {
           description="Create stunning album covers and track artwork with AI"
           icon={<ImageIcon className="h-6 w-6 text-white" />}
           usage={aiToolsData.coverArt}
-          link="/ai/cover-art?from=dashboard"
+          link="/ai/cover-art"
           accentColor="from-purple-500 to-pink-500"
         />
         
@@ -135,16 +140,16 @@ export function AIToolsBoard({ className = "" }: AIToolsBoardProps) {
           description="Generate professional Electronic Press Kits instantly"
           icon={<FileText className="h-6 w-6 text-white" />}
           usage={aiToolsData.epk}
-          link="/epk?from=dashboard"
+          link="/ai/epk-generator"
           accentColor="from-blue-500 to-cyan-500"
         />
         
         <AIToolCard
-          title="Meme Generator"
+          title="Meme Studio"
           description="Create viral music memes for social media"
           icon={<Laugh className="h-6 w-6 text-white" />}
           usage={aiToolsData.meme}
-          link="/meme?from=dashboard"
+          link="/ai/meme-studio"
           accentColor="from-orange-500 to-yellow-500"
         />
       </div>

@@ -30,7 +30,7 @@ export function MonthlyPlaylistWidget({ className = "" }: MonthlyPlaylistWidgetP
     const fetchPlaylist = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/dashboard/overview`);
+        const response = await fetch(`/api/dashboard/overview`, { cache: "no-store" });
         const data = await response.json();
         
         if (data.monthlyPlaylist) {
@@ -45,6 +45,11 @@ export function MonthlyPlaylistWidget({ className = "" }: MonthlyPlaylistWidgetP
     };
 
     fetchPlaylist();
+    
+    // Refresh playlist every 10 minutes
+    const interval = setInterval(fetchPlaylist, 10 * 60 * 1000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const formatDate = (dateString: string) => {
@@ -61,7 +66,7 @@ export function MonthlyPlaylistWidget({ className = "" }: MonthlyPlaylistWidgetP
   }
 
   return (
-    <Card className={`bg-[#111111] border-[#1a1a1a] p-6 ${className}`}>
+    <Card className={`bg-[#111111] border-[#1a1a1a] p-6 h-full flex flex-col ${className}`}>
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-white text-xl font-semibold">Monthly Playlist</h2>
@@ -82,7 +87,7 @@ export function MonthlyPlaylistWidget({ className = "" }: MonthlyPlaylistWidgetP
       </div>
 
       {playlist.embedUrl ? (
-        <div className="relative">
+        <div className="relative flex-1">
           {!embedLoaded && (
             <div className="absolute inset-0 bg-[#0a0a0a] rounded-lg flex items-center justify-center">
               <div className="text-center">

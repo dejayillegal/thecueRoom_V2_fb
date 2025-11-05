@@ -32,28 +32,33 @@ export function TrendingThreadsWidget({ limit = 5, className = "" }: TrendingThr
     const fetchThreads = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/dashboard/overview`);
+        const response = await fetch(`/api/dashboard/overview`, { cache: "no-store" });
         const data = await response.json();
-        
+
         if (data.trendingThreads) {
           setThreads(data.trendingThreads.slice(0, limit));
         }
       } catch (err) {
         console.error("Failed to fetch threads:", err);
-        setError("Failed to load trending threads");
+        setError("Failed to load threads");
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchThreads();
+
+    // Refresh threads every 2 minutes
+    const interval = setInterval(fetchThreads, 2 * 60 * 1000);
+
+    return () => clearInterval(interval);
   }, [limit]);
 
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 1) return "Just now";
     if (diffInHours < 24) return `${diffInHours}h ago`;
     const diffInDays = Math.floor(diffInHours / 24);

@@ -1,55 +1,20 @@
 "use client";
 
-import { lazy, Suspense, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { SpotlightColumn } from "@/components/Dashboard/SpotlightColumn";
-import { RecentActivity } from "@/components/Dashboard/RecentActivity";
-import { GigRadar } from "@/components/Dashboard/GigRadar";
+import { useEffect, useState } from "react";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { SpotlightCarousel } from "@/components/Dashboard/SpotlightCarousel";
+import { GigRadarWidget } from "@/components/Dashboard/GigRadarWidget";
+import { TrendingThreadsWidget } from "@/components/Dashboard/TrendingThreadsWidget";
+import { MonthlyPlaylistWidget } from "@/components/Dashboard/MonthlyPlaylistWidget";
+import { AIToolsBoard } from "@/components/Dashboard/AIToolsBoard";
+import { SkeletonCard } from "@/components/ui/SkeletonCard";
 import { markStart, markEnd } from "@/lib/analytics/perf-marks";
-
-const TopBanner = lazy(() =>
-  import("@/components/Dashboard/TopBanner").then((mod) => ({
-    default: mod.TopBanner,
-  })),
-);
-
-// Mock data
-const spotlightItems = [
-  {
-    id: "1",
-    title: "New Techno Release",
-    image: "/api/og-fallback?title=Techno",
-    url: "#",
-  },
-  {
-    id: "2",
-    title: "House Music Festival",
-    image: "/api/og-fallback?title=House",
-    url: "#",
-  },
-  {
-    id: "3",
-    title: "Underground Interview",
-    image: "/api/og-fallback?title=Interview",
-    url: "#",
-  },
-];
-
-const activities = Array.from({ length: 50 }, (_, i) => ({
-  id: `activity-${i}`,
-  type: "release",
-  title: `Activity ${i + 1}`,
-  timestamp: new Date(Date.now() - i * 3600000).toISOString(),
-}));
-
-const gigs = Array.from({ length: 15 }, (_, i) => ({
-  id: `gig-${i}`,
-  title: `Gig ${i + 1}`,
-  venue: `Venue ${i + 1}`,
-  date: new Date(Date.now() + i * 86400000).toLocaleDateString(),
-}));
+import type { SpotlightItemProps } from "@/components/Dashboard/SpotlightCarousel";
 
 export default function DashboardPage() {
+  const [spotlightItems, setSpotlightItems] = useState<SpotlightItemProps[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     markStart("dashboard-mount");
     markStart("dashboard-render");
@@ -63,51 +28,78 @@ export default function DashboardPage() {
     markEnd("dashboard-render");
   });
 
-  return (
-    <div className="max-w-[1400px] mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white mb-2">Dashboard</h1>
-        <p className="text-gray-400 text-sm">Your music industry hub</p>
-      </div>
-
-      {/* Top Banner */}
-      <Suspense
-        fallback={
-          <div className="h-24 bg-[#111111] rounded-lg animate-pulse mb-6" />
+  useEffect(() => {
+    const fetchSpotlight = async () => {
+      try {
+        const response = await fetch("/api/admin/spotlight", { cache: "no-store" });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.items && Array.isArray(data.items)) {
+            setSpotlightItems(data.items);
+          }
         }
-      >
+      } catch (error) {
+        console.error("Failed to fetch spotlight items:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSpotlight();
+
+    // Refresh data every 5 minutes for real-time updates
+    const interval = setInterval(fetchSpotlight, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <ErrorBoundary>
+      <div className="max-w-[1400px] mx-auto p-6">
         <div className="mb-6">
-          <TopBanner />
-        </div>
-      </Suspense>
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Recent Activity */}
-          <Card className="bg-[#111111] border-[#1a1a1a] p-6">
-            <h2 className="text-white text-xl font-semibold mb-4">
-              Recent Activity
-            </h2>
-            <RecentActivity activities={activities} />
-          </Card>
-
-          {/* Gig Radar */}
-          <Card className="bg-[#111111] border-[#1a1a1a] p-6">
-            <h2 className="text-white text-xl font-semibold mb-4">Gig Radar</h2>
-            <GigRadar gigs={gigs} />
-          </Card>
+          <h1 className="text-2xl font-bold text-white mb-2">Dashboard</h1>
+          <p className="text-gray-400 text-sm">Your music industry hub</p>
         </div>
 
-        {/* Right Column - Spotlight */}
-        <div>
-          <Card className="bg-[#111111] border-[#1a1a1a] p-6 sticky top-6">
-            <h2 className="text-white text-xl font-semibold mb-4">Spotlight</h2>
-            <SpotlightColumn items={spotlightItems} />
-          </Card>
+        {/* Spotlight Carousel */}
+        <div className="mb-8">
+          <ErrorBoundary>
+            {isLoading ? (
+              <SkeletonCard variant="wide" />
+            ) : (
+              <SpotlightCarousel items={spotlightItems} />
+            )}
+          </ErrorBoundary>
+        </div>
+
+        {/* AI Tools Board */}
+        <div className="mb-8">
+          <ErrorBoundary>
+            <AIToolsBoard />
+          </ErrorBoundary>
+        </div>
+
+        {/* Three Column Widgets Grid - Fixed alignment */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 items-start">
+          <div className="h-full">
+            <ErrorBoundary>
+              <GigRadarWidget />
+            </ErrorBoundary>
+          </div>
+
+          <div className="h-full">
+            <ErrorBoundary>
+              <TrendingThreadsWidget />
+            </ErrorBoundary>
+          </div>
+
+          <div className="h-full">
+            <ErrorBoundary>
+              <MonthlyPlaylistWidget />
+            </ErrorBoundary>
+          </div>
         </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 }

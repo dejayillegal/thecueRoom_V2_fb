@@ -31,7 +31,7 @@ export function GigRadarWidget({ limit = 3, className = "" }: GigRadarWidgetProp
     const fetchGigs = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/dashboard/overview`);
+        const response = await fetch(`/api/dashboard/overview`, { cache: "no-store" });
         const data = await response.json();
         
         if (data.gigs) {
@@ -46,6 +46,11 @@ export function GigRadarWidget({ limit = 3, className = "" }: GigRadarWidgetProp
     };
 
     fetchGigs();
+    
+    // Refresh gigs every 3 minutes
+    const interval = setInterval(fetchGigs, 3 * 60 * 1000);
+    
+    return () => clearInterval(interval);
   }, [limit]);
 
   const formatDate = (dateString: string) => {
@@ -72,7 +77,7 @@ export function GigRadarWidget({ limit = 3, className = "" }: GigRadarWidgetProp
   }
 
   return (
-    <Card className={`bg-[#111111] border-[#1a1a1a] p-6 ${className}`}>
+    <Card className={`bg-[#111111] border-[#1a1a1a] p-6 h-full flex flex-col ${className}`}>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-white text-xl font-semibold">Gig Radar</h2>
         <Link href="/gigs">
@@ -85,7 +90,7 @@ export function GigRadarWidget({ limit = 3, className = "" }: GigRadarWidgetProp
       {gigs.length === 0 ? (
         <p className="text-gray-400 text-sm">No upcoming gigs found</p>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 flex-1">
           {gigs.map((gig) => (
             <div
               key={gig.id}
