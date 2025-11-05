@@ -524,15 +524,66 @@ export const signupVerifications = pgTable('signup_verifications', {
 
 export const notifications = pgTable('notifications', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
   type: varchar('type', { length: 50 }).notNull(),
   title: varchar('title', { length: 255 }).notNull(),
-  message: text('message').notNull(),
-  link: varchar('link', { length: 500 }),
+  body: text('body').notNull(),
+  payload: jsonb('payload').$type<any>(),
   read: boolean('read').default(false).notNull(),
-  metadata: jsonb('metadata'),
+  delivered: boolean('delivered').default(false).notNull(),
+  link: varchar('link', { length: 500 }),
+  metadata: jsonb('metadata').$type<any>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  userIdReadCreatedIdx: index('notifications_user_id_read_created_idx').on(table.userId, table.read, table.createdAt),
+  userIdIdx: index('notifications_user_id_idx').on(table.userId),
+  typeIdx: index('notifications_type_idx').on(table.type),
+}));
+
+export const notificationPreferences = pgTable('notification_preferences', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
+  emailDigest: boolean('email_digest').default(true).notNull(),
+  inApp: boolean('in_app').default(true).notNull(),
+  push: boolean('push').default(false).notNull(),
+  dndStart: text('dnd_start'),
+  dndEnd: text('dnd_end'),
+  mutedTypes: jsonb('muted_types').$type<string[]>().default(sql`'[]'::jsonb`),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: uniqueIndex('notification_preferences_user_id_idx').on(table.userId),
+}));
+
+export const notificationAuditLog = pgTable('notification_audit_log', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  action: text('action').notNull(),
+  payload: jsonb('payload').$type<any>().notNull(),
+  performedBy: uuid('performed_by').references(() => users.id, { onDelete: 'set null' }),
+  targetUserIds: jsonb('target_user_ids').$type<string[]>(),
+  notificationIds: jsonb('notification_ids').$type<string[]>(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  performedByIdx: index('notification_audit_log_performed_by_idx').on(table.performedBy),
+  createdAtIdx: index('notification_audit_log_created_at_idx').on(table.createdAt),
+  actionIdx: index('notification_audit_log_action_idx').on(table.action),
+}));
+
+export const toasts = pgTable('toasts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  type: varchar('type', { length: 50 }).notNull(),
+  title: varchar('title', { length: 255 }),
+  body: text('body').notNull(),
+  status: varchar('status', { length: 50 }).notNull().default('pending'),
+  action: jsonb('action').$type<any>(),
+  metadata: jsonb('metadata').$type<any>(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  userIdStatusIdx: index('toasts_user_id_status_idx').on(table.userId, table.status),
+  createdAtIdx: index('toasts_created_at_idx').on(table.createdAt),
+}));
 
 export const notificationSubscriptions = pgTable('notification_subscriptions', {
   id: uuid('id').primaryKey().defaultRandom(),
