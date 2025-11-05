@@ -166,7 +166,10 @@ export async function PATCH(request: NextRequest) {
       await db
         .update(notifications)
         .set({ read: true })
-        .where(eq(notifications.id, notificationId));
+        .where(and(
+          eq(notifications.id, notificationId),
+          eq(notifications.userId, userId)
+        ));
     }
 
     return NextResponse.json({ ok: true });
