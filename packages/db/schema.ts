@@ -735,3 +735,28 @@ export const moderationQueue = pgTable('moderation_queue', {
   createdAtIdx: index('moderation_queue_created_at_idx').on(table.createdAt),
   userIdIdx: index('moderation_queue_user_id_idx').on(table.userId),
 }));
+
+export const socialPromos = pgTable('social_promos', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(), // 'release' | 'gig' | 'announcement' | 'general'
+  title: text('title').notNull(),
+  caption: text('caption').notNull(),
+  tags: jsonb('tags').$type<string[]>().default(sql`'[]'::jsonb`),
+  imageUrl: text('image_url'),
+  animationUrl: text('animation_url'),
+  aiPrompt: text('ai_prompt'),
+  aiImagePrompt: text('ai_image_prompt'),
+  themeColor: text('theme_color'),
+  platforms: jsonb('platforms').$type<string[]>().default(sql`'[]'::jsonb`), // ['instagram', 'soundcloud', 'bandcamp', etc]
+  generatedAt: timestamp('generated_at').notNull().defaultNow(),
+  status: text('status').notNull().default('draft'), // 'draft' | 'ready' | 'exported' | 'shared'
+  downloadUrl: text('download_url'),
+  metadata: jsonb('metadata').$type<any>(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index('social_promos_user_id_idx').on(table.userId),
+  statusIdx: index('social_promos_status_idx').on(table.status),
+  createdAtIdx: index('social_promos_created_at_idx').on(table.createdAt),
+}));
