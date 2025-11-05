@@ -522,6 +522,28 @@ importers:
         specifier: ^5.7.2
         version: 5.9.3
 
+  packages/server:
+    dependencies:
+      '@thecueroom/db':
+        specifier: workspace:*
+        version: link:../db
+      '@thecueroom/shared':
+        specifier: workspace:*
+        version: link:../shared
+      drizzle-orm:
+        specifier: ^0.36.4
+        version: 0.36.4(@types/pg@8.15.6)(@types/react@19.2.2)(pg@8.16.3)(postgres@3.4.7)(react@19.2.0)
+      lru-cache:
+        specifier: ^10.4.3
+        version: 10.4.3
+    devDependencies:
+      '@types/node':
+        specifier: ^20.19.23
+        version: 20.19.23
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+
   packages/shared:
     dependencies:
       zod:
