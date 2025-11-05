@@ -64,7 +64,8 @@ export function useThread(threadId: string): UseThreadResult {
       `/api/forum/thread/${threadId}`,
       {
         signal: abortControllerRef.current.signal,
-        timeout: 8000,
+        timeout: 15000,
+        attempts: 2,
       },
     );
 
