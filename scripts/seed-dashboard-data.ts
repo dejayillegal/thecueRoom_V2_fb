@@ -1,5 +1,5 @@
 import { getDbClient } from '../packages/db';
-import { users, profiles, gigs, forumThreads } from '../packages/db/schema';
+import { users, profiles, gigs, forumThreads, memes } from '../packages/db/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 

@@ -79,19 +79,19 @@ async function main() {
       'Step 6/9: Seeding gigs and events'
     );
 
+    // Step 7: Seed playlist data (before dashboard to ensure it exists)
+    await runCommand(
+      'tsx scripts/seed-playlist.ts',
+      'Step 7/9: Seeding weekly playlist'
+    );
+
     // Step 8: Seed dashboard data
     await runCommand(
       'tsx scripts/seed-dashboard-data.ts',
-      'Step 7/9: Seeding dashboard test data'
+      'Step 8/9: Seeding dashboard test data'
     );
 
-    // Step 9: Seed playlist data
-    await runCommand(
-      'tsx scripts/seed-playlist.ts',
-      'Step 8/9: Seeding weekly playlist'
-    );
-
-    // Step 10: Run initial ingestion
+    // Step 9: Run initial ingestion
     await runCommand(
       'tsx scripts/enhanced-ingest.ts',
       'Step 9/9: Running initial feed ingestion'
