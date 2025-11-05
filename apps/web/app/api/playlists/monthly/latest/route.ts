@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
 import { adminPlaylists, users } from '@thecueroom/db/schema';
@@ -11,7 +10,7 @@ export async function GET() {
   try {
     const db = getDbClient();
 
-    const livePlaylists = await db
+    const playlists = await db
       .select({
         id: adminPlaylists.id,
         title: adminPlaylists.title,
@@ -24,6 +23,7 @@ export async function GET() {
         publishedAt: adminPlaylists.publishedAt,
         monthOf: adminPlaylists.monthOf,
         trackCount: adminPlaylists.trackCount,
+        metadata: adminPlaylists.metadata,
         curatorId: adminPlaylists.curatorId,
         displayName: users.displayName,
         username: users.username,
@@ -33,7 +33,7 @@ export async function GET() {
       .where(eq(adminPlaylists.status, 'live'))
       .orderBy(desc(adminPlaylists.publishedAt));
 
-    if (!livePlaylists || livePlaylists.length === 0) {
+    if (!playlists || playlists.length === 0) {
       console.log('No live playlists found in database');
       return NextResponse.json(
         { ok: false, error: 'No live playlists found' },
@@ -41,8 +41,8 @@ export async function GET() {
       );
     }
 
-    // Transform playlists
-    const transformedPlaylists = livePlaylists.map((playlist) => {
+    const safePlaylists = playlists.map((playlist) => {
+      // Determine curator name safely
       let curatorName = 'thecueRoom';
       if (playlist.displayName) {
         curatorName = playlist.displayName;
@@ -50,9 +50,22 @@ export async function GET() {
         curatorName = playlist.username;
       }
 
+      // Extract track count from metadata if not directly available
+      let trackCount = playlist.trackCount || 0;
+      if (!trackCount && playlist.metadata) {
+        try {
+          const metadata = typeof playlist.metadata === 'string'
+            ? JSON.parse(playlist.metadata)
+            : playlist.metadata;
+          trackCount = metadata?.trackCount || metadata?.tracks?.length || 0;
+        } catch (e) {
+          console.error('Error parsing metadata for playlist', playlist.id, e);
+        }
+      }
+
       return {
         id: playlist.id,
-        title: playlist.title,
+        title: playlist.title || 'Untitled Playlist',
         description: playlist.description || undefined,
         platform: playlist.platform,
         platformId: playlist.platformId || undefined,
@@ -61,14 +74,14 @@ export async function GET() {
         status: playlist.status,
         publishedAt: playlist.publishedAt || undefined,
         monthOf: playlist.monthOf || undefined,
-        trackCount: playlist.trackCount || 0,
+        trackCount,
         curatorName,
       };
     });
 
     return NextResponse.json({
       ok: true,
-      playlists: transformedPlaylists,
+      playlists: safePlaylists,
     });
   } catch (error) {
     console.error('Fetch latest playlists error:', error);

@@ -37,7 +37,9 @@ export async function POST(request: NextRequest) {
         platformId = match[1];
         embedUrl = `https://open.spotify.com/embed/playlist/${platformId}`;
 
-        // Fetch metadata using Spotify oEmbed API (no auth required)
+        // Fetch metadata using Spotify API (requires authentication for full details)
+        // For public playlists, oEmbed might be sufficient but API gives more control.
+        // Using oEmbed here for simplicity as per original intent.
         try {
           const oEmbedUrl = `https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`;
           const oEmbedRes = await fetch(oEmbedUrl);
@@ -49,7 +51,7 @@ export async function POST(request: NextRequest) {
               platformId,
               embedUrl,
               title: oEmbedData.title || 'Spotify Playlist',
-              trackCount: null, // oEmbed doesn't provide this
+              trackCount: null, // oEmbed doesn't provide this directly, will fetch total from API if needed later
               coverImage: oEmbedData.thumbnail_url || null,
             };
           } else {
@@ -80,42 +82,54 @@ export async function POST(request: NextRequest) {
       if (match) {
         platformId = match[1];
         embedUrl = `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`;
-        
-        // Fetch SoundCloud metadata via oEmbed API
-        try {
-          const oEmbedUrl = `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url)}`;
-          const oEmbedRes = await fetch(oEmbedUrl);
-          if (oEmbedRes.ok) {
-            const oEmbedData = await oEmbedRes.json();
-            metadata = {
-              platform: 'soundcloud',
-              platformId,
-              embedUrl,
-              title: oEmbedData.title || 'SoundCloud Playlist',
-              trackCount: null,
-              coverImage: oEmbedData.thumbnail_url || null,
-            };
-          } else {
-            metadata = {
-              platform: 'soundcloud',
-              platformId,
-              embedUrl,
-              title: 'SoundCloud Playlist',
-              trackCount: null,
-              coverImage: null,
-            };
-          }
-        } catch (error) {
-          console.error('Error fetching SoundCloud oEmbed:', error);
-          metadata = {
-            platform: 'soundcloud',
-            platformId,
-            embedUrl,
-            title: 'SoundCloud Playlist',
-            trackCount: null,
-            coverImage: null,
-          };
+
+        // Fetch SoundCloud metadata using oEmbed API
+        const oEmbedUrl = `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url)}`;
+        const oEmbedRes = await fetch(oEmbedUrl);
+
+        if (!oEmbedRes.ok) {
+          return NextResponse.json({
+            ok: true,
+            valid: false,
+            error: 'Could not fetch SoundCloud playlist metadata',
+          });
         }
+
+        const oEmbedData = await oEmbedRes.json();
+
+        // Extract title - remove "by <author>" suffix if present
+        let title = oEmbedData.title || 'Untitled Playlist';
+        if (oEmbedData.author_name && title.includes(`by ${oEmbedData.author_name}`)) {
+          title = title.replace(new RegExp(`\\s*by\\s*${oEmbedData.author_name}\\s*$`, 'i'), '').trim();
+        }
+
+        // Try to extract track count from HTML if available
+        let trackCount = 0;
+        try {
+          const htmlRes = await fetch(url);
+          const html = await htmlRes.text();
+          const trackMatch = html.match(/(\d+)\s*tracks?/i);
+          if (trackMatch) {
+            trackCount = parseInt(trackMatch[1], 10);
+          }
+        } catch (e) {
+          console.error('Error fetching SoundCloud HTML for track count:', e);
+        }
+
+        metadata = {
+          platform: 'soundcloud',
+          platformId,
+          embedUrl,
+          title,
+          description: oEmbedData.description || undefined,
+          coverImage: oEmbedData.thumbnail_url || undefined,
+          trackCount,
+          metadata: {
+            trackCount,
+            author: oEmbedData.author_name,
+            authorUrl: oEmbedData.author_url,
+          },
+        };
       }
     } else if (url.includes('mixcloud.com')) {
       platform = 'mixcloud';
@@ -123,7 +137,7 @@ export async function POST(request: NextRequest) {
       if (match) {
         platformId = match[1];
         embedUrl = `https://www.mixcloud.com/widget/iframe/?hide_cover=1&feed=${encodeURIComponent(`/${match[1]}/`)}`;
-        
+
         // Fetch Mixcloud metadata via oEmbed API
         try {
           const oEmbedUrl = `https://www.mixcloud.com/oembed/?url=${encodeURIComponent(url)}&format=json`;
@@ -135,7 +149,7 @@ export async function POST(request: NextRequest) {
               platformId,
               embedUrl,
               title: oEmbedData.title || 'Mixcloud Mix',
-              trackCount: null,
+              trackCount: null, // Mixcloud oEmbed doesn't provide track count
               coverImage: oEmbedData.thumbnail_url || oEmbedData.image || null,
             };
           } else {
@@ -178,6 +192,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Return the consolidated metadata
     return NextResponse.json({
       ok: true,
       valid: true,
