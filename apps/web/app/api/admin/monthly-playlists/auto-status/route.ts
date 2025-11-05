@@ -26,3 +26,30 @@ export async function GET() {
     );
   }
 }
+import { NextRequest, NextResponse } from 'next/server';
+import { getSession } from '@/lib/auth';
+import { isAdmin } from '@/lib/rbac';
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getSession();
+    if (!session || !isAdmin(session.role)) {
+      return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // For now, return a default status
+    // This can be enhanced to read from a config table
+    return NextResponse.json({
+      ok: true,
+      enabled: false,
+      confidenceThreshold: 70,
+      autoPublish: false,
+    });
+  } catch (error) {
+    console.error('Error fetching auto-curation status:', error);
+    return NextResponse.json({
+      ok: false,
+      error: 'Failed to fetch status',
+    }, { status: 500 });
+  }
+}

@@ -74,13 +74,20 @@ export function MonthlyPlaylistConfigPanel() {
 
       const data = await res.json();
 
-      if (data.ok) {
+      if (data.ok && data.valid) {
         toast({
           title: 'Playlist validated',
-          description: `${data.metadata.platform} playlist ready to add`,
+          description: `${data.platform} playlist ready to add`,
         });
         // Auto-create draft
-        await createPlaylist(data.metadata);
+        await createPlaylist({
+          platform: data.platform,
+          platformId: data.platformId,
+          embedUrl: data.embedUrl,
+          title: data.metadata.title,
+          coverImage: data.metadata.coverImage,
+          trackCount: data.metadata.trackCount,
+        });
       } else {
         toast({
           title: 'Validation failed',
@@ -89,9 +96,10 @@ export function MonthlyPlaylistConfigPanel() {
         });
       }
     } catch (error) {
+      console.error('Validation error:', error);
       toast({
         title: 'Error',
-        description: 'Failed to validate playlist',
+        description: error instanceof Error ? error.message : 'Failed to validate playlist',
         variant: 'destructive',
       });
     } finally {
@@ -102,12 +110,21 @@ export function MonthlyPlaylistConfigPanel() {
 
   const createPlaylist = async (metadata: any) => {
     try {
+      const now = new Date();
+      const monthOf = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      
       const res = await fetch('/api/admin/monthly-playlists/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...metadata,
-          monthOf: new Date().toISOString(),
+          title: metadata.title || 'Untitled Playlist',
+          description: null,
+          platform: metadata.platform,
+          platformId: metadata.platformId,
+          embedUrl: metadata.embedUrl,
+          coverImage: metadata.coverImage || null,
+          trackCount: metadata.trackCount || null,
+          monthOf,
           status: 'draft',
         }),
       });
@@ -120,11 +137,18 @@ export function MonthlyPlaylistConfigPanel() {
           description: 'Draft saved successfully',
         });
         loadPlaylists();
+      } else {
+        toast({
+          title: 'Error',
+          description: data.error || 'Failed to create playlist',
+          variant: 'destructive',
+        });
       }
     } catch (error) {
+      console.error('Create playlist error:', error);
       toast({
         title: 'Error',
-        description: 'Failed to create playlist',
+        description: error instanceof Error ? error.message : 'Failed to create playlist',
         variant: 'destructive',
       });
     }

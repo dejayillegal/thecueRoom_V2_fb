@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
 import { getSession } from '@/lib/auth';
 import { isAdmin } from '@/lib/rbac';
-import { CreateMonthlyPlaylistInputSchema } from '@thecueroom/shared/monthlyPlaylistSchemas';
+import { CreatePlaylistInputSchema } from '@thecueroom/shared/monthlyPlaylistSchemas'; // Assuming this is the correct schema name based on changes
 import { adminPlaylists } from '@thecueroom/db/schema';
 
 export async function POST(request: NextRequest) {
@@ -13,9 +13,19 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const validatedInput = CreateMonthlyPlaylistInputSchema.safeParse(body);
-    
+
+    // Validate required fields
+    if (!body.platform || !body.platformId || !body.embedUrl) {
+      return NextResponse.json({
+        ok: false,
+        error: 'Missing required fields: platform, platformId, embedUrl',
+      }, { status: 400 });
+    }
+
+    const validatedInput = CreatePlaylistInputSchema.safeParse(body);
+
     if (!validatedInput.success) {
+      console.error('Validation errors:', validatedInput.error.issues);
       return NextResponse.json({
         ok: false,
         error: 'Invalid input',
@@ -30,13 +40,13 @@ export async function POST(request: NextRequest) {
       platformId,
       embedUrl,
       coverImage,
-      monthOf,
       trackCount,
+      monthOf,
+      status,
       metadata,
-      status = 'draft',
     } = validatedInput.data;
 
-    const db = await getDbClient();
+    const db = getDbClient();
 
     const [playlist] = await db
       .insert(adminPlaylists)

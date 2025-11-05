@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const validatedInput = ValidatePlaylistInputSchema.safeParse(body);
-    
+
     if (!validatedInput.success) {
       return NextResponse.json({
         ok: false,
@@ -29,46 +29,49 @@ export async function POST(request: NextRequest) {
     let embedUrl: string | null = null;
     let metadata: any = {};
 
-    if (url.includes('spotify.com')) {
+    // Spotify
+    if (url.includes('spotify.com/playlist/')) {
       platform = 'spotify';
-      const playlistMatch = url.match(/playlist\/([a-zA-Z0-9]+)/);
-      if (playlistMatch) {
-        platformId = playlistMatch[1];
+      const match = url.match(/playlist\/([a-zA-Z0-9]+)/);
+      if (match) {
+        platformId = match[1];
         embedUrl = `https://open.spotify.com/embed/playlist/${platformId}`;
-        
-        if (process.env.SPOTIFY_CLIENT_ID && process.env.SPOTIFY_CLIENT_SECRET) {
-          try {
-            const authResponse = await fetch('https://accounts.spotify.com/api/token', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Authorization': `Basic ${Buffer.from(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`).toString('base64')}`,
-              },
-              body: 'grant_type=client_credentials',
-            });
 
-            if (authResponse.ok) {
-              const authData = await authResponse.json();
-              const playlistResponse = await fetch(`https://api.spotify.com/v1/playlists/${platformId}`, {
-                headers: {
-                  'Authorization': `Bearer ${authData.access_token}`,
-                },
-              });
+        // Fetch metadata using Spotify oEmbed API (no auth required)
+        try {
+          const oEmbedUrl = `https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`;
+          const oEmbedRes = await fetch(oEmbedUrl);
 
-              if (playlistResponse.ok) {
-                const playlistData = await playlistResponse.json();
-                metadata = {
-                  title: playlistData.name,
-                  description: playlistData.description,
-                  coverImage: playlistData.images?.[0]?.url,
-                  trackCount: playlistData.tracks?.total || 0,
-                  owner: playlistData.owner?.display_name,
-                };
-              }
-            }
-          } catch (error) {
-            console.error('Error fetching Spotify metadata:', error);
+          if (oEmbedRes.ok) {
+            const oEmbedData = await oEmbedRes.json();
+            metadata = {
+              platform: 'spotify',
+              platformId,
+              embedUrl,
+              title: oEmbedData.title || 'Spotify Playlist',
+              trackCount: null, // oEmbed doesn't provide this
+              coverImage: oEmbedData.thumbnail_url || null,
+            };
+          } else {
+            metadata = {
+              platform: 'spotify',
+              platformId,
+              embedUrl,
+              title: 'Spotify Playlist',
+              trackCount: null,
+              coverImage: null,
+            };
           }
+        } catch (error) {
+          console.error('Error fetching Spotify oEmbed:', error);
+          metadata = {
+            platform: 'spotify',
+            platformId,
+            embedUrl,
+            title: 'Spotify Playlist',
+            trackCount: null,
+            coverImage: null,
+          };
         }
       }
     } else if (url.includes('soundcloud.com')) {
@@ -89,10 +92,10 @@ export async function POST(request: NextRequest) {
 
     if (!platform || !platformId || !embedUrl) {
       return NextResponse.json({
-        ok: true,
+        ok: false,
         valid: false,
-        error: 'Unable to extract playlist information from URL',
-      });
+        error: 'Could not parse playlist URL. Please provide a valid Spotify, SoundCloud, or Mixcloud playlist URL.',
+      }, { status: 400 });
     }
 
     if (providedPlatform && providedPlatform !== platform) {
@@ -109,14 +112,14 @@ export async function POST(request: NextRequest) {
       platform,
       platformId,
       embedUrl,
-      ...metadata,
+      metadata,
     });
   } catch (error) {
-    console.error('Error validating playlist URL:', error);
+    console.error('Error validating playlist:', error);
     return NextResponse.json({
       ok: false,
       valid: false,
-      error: 'Failed to validate playlist URL',
+      error: error instanceof Error ? error.message : 'Failed to validate playlist',
     }, { status: 500 });
   }
 }
