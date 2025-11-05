@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
 import { adminPlaylists, users } from '@thecueroom/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 
 export async function GET() {
   try {
@@ -25,7 +25,7 @@ export async function GET() {
       })
       .from(adminPlaylists)
       .where(eq(adminPlaylists.status, 'live'))
-      .orderBy(adminPlaylists.publishedAt)
+      .orderBy(desc(adminPlaylists.publishedAt))
       .limit(1);
 
     if (!latestPlaylist) {
