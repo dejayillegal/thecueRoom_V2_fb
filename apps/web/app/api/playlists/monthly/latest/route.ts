@@ -1,13 +1,17 @@
+
 import { NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
 import { adminPlaylists, users } from '@thecueroom/db/schema';
 import { eq, desc } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET() {
   try {
-    const db = await getDbClient();
+    const db = getDbClient();
 
-    const [latestPlaylist] = await db
+    const livePlaylists = await db
       .select({
         id: adminPlaylists.id,
         title: adminPlaylists.title,
@@ -16,51 +20,61 @@ export async function GET() {
         platformId: adminPlaylists.platformId,
         embedUrl: adminPlaylists.embedUrl,
         coverImage: adminPlaylists.coverImage,
-        monthOf: adminPlaylists.monthOf,
-        publishedAt: adminPlaylists.publishedAt,
-        trackCount: adminPlaylists.trackCount,
         status: adminPlaylists.status,
-        autoCurated: adminPlaylists.autoCurated,
+        publishedAt: adminPlaylists.publishedAt,
+        monthOf: adminPlaylists.monthOf,
+        trackCount: adminPlaylists.trackCount,
         curatorId: adminPlaylists.curatorId,
+        displayName: users.displayName,
+        username: users.username,
       })
       .from(adminPlaylists)
+      .leftJoin(users, eq(adminPlaylists.curatorId, users.id))
       .where(eq(adminPlaylists.status, 'live'))
-      .orderBy(desc(adminPlaylists.monthOf || adminPlaylists.publishedAt))
-      .limit(1);
+      .orderBy(desc(adminPlaylists.publishedAt));
 
-    if (!latestPlaylist) {
-      return NextResponse.json({
-        ok: true,
-        playlist: null,
-        message: 'No live monthly playlist available',
-      });
+    if (!livePlaylists || livePlaylists.length === 0) {
+      console.log('No live playlists found in database');
+      return NextResponse.json(
+        { ok: false, error: 'No live playlists found' },
+        { status: 404 }
+      );
     }
 
-    let curatorName = 'thecueRoom';
-    if (latestPlaylist.curatorId) {
-      const [curator] = await db
-        .select({ username: users.username, email: users.email })
-        .from(users)
-        .where(eq(users.id, latestPlaylist.curatorId))
-        .limit(1);
-
-      if (curator) {
-        curatorName = curator.username || curator.email.split('@')[0];
+    // Transform playlists
+    const transformedPlaylists = livePlaylists.map((playlist) => {
+      let curatorName = 'thecueRoom';
+      if (playlist.displayName) {
+        curatorName = playlist.displayName;
+      } else if (playlist.username) {
+        curatorName = playlist.username;
       }
-    }
+
+      return {
+        id: playlist.id,
+        title: playlist.title,
+        description: playlist.description || undefined,
+        platform: playlist.platform,
+        platformId: playlist.platformId || undefined,
+        embedUrl: playlist.embedUrl || undefined,
+        coverImage: playlist.coverImage || undefined,
+        status: playlist.status,
+        publishedAt: playlist.publishedAt || undefined,
+        monthOf: playlist.monthOf || undefined,
+        trackCount: playlist.trackCount || 0,
+        curatorName,
+      };
+    });
 
     return NextResponse.json({
       ok: true,
-      playlist: {
-        ...latestPlaylist,
-        curatorName,
-      },
+      playlists: transformedPlaylists,
     });
   } catch (error) {
-    console.error('Error fetching latest monthly playlist:', error);
-    return NextResponse.json({
-      ok: false,
-      error: 'Failed to fetch latest monthly playlist',
-    }, { status: 500 });
+    console.error('Fetch latest playlists error:', error);
+    return NextResponse.json(
+      { ok: false, error: 'Failed to fetch playlists' },
+      { status: 500 }
+    );
   }
 }

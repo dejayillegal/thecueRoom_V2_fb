@@ -80,6 +80,42 @@ export async function POST(request: NextRequest) {
       if (match) {
         platformId = match[1];
         embedUrl = `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`;
+        
+        // Fetch SoundCloud metadata via oEmbed API
+        try {
+          const oEmbedUrl = `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url)}`;
+          const oEmbedRes = await fetch(oEmbedUrl);
+          if (oEmbedRes.ok) {
+            const oEmbedData = await oEmbedRes.json();
+            metadata = {
+              platform: 'soundcloud',
+              platformId,
+              embedUrl,
+              title: oEmbedData.title || 'SoundCloud Playlist',
+              trackCount: null,
+              coverImage: oEmbedData.thumbnail_url || null,
+            };
+          } else {
+            metadata = {
+              platform: 'soundcloud',
+              platformId,
+              embedUrl,
+              title: 'SoundCloud Playlist',
+              trackCount: null,
+              coverImage: null,
+            };
+          }
+        } catch (error) {
+          console.error('Error fetching SoundCloud oEmbed:', error);
+          metadata = {
+            platform: 'soundcloud',
+            platformId,
+            embedUrl,
+            title: 'SoundCloud Playlist',
+            trackCount: null,
+            coverImage: null,
+          };
+        }
       }
     } else if (url.includes('mixcloud.com')) {
       platform = 'mixcloud';
@@ -87,6 +123,42 @@ export async function POST(request: NextRequest) {
       if (match) {
         platformId = match[1];
         embedUrl = `https://www.mixcloud.com/widget/iframe/?hide_cover=1&feed=${encodeURIComponent(`/${match[1]}/`)}`;
+        
+        // Fetch Mixcloud metadata via oEmbed API
+        try {
+          const oEmbedUrl = `https://www.mixcloud.com/oembed/?url=${encodeURIComponent(url)}&format=json`;
+          const oEmbedRes = await fetch(oEmbedUrl);
+          if (oEmbedRes.ok) {
+            const oEmbedData = await oEmbedRes.json();
+            metadata = {
+              platform: 'mixcloud',
+              platformId,
+              embedUrl,
+              title: oEmbedData.title || 'Mixcloud Mix',
+              trackCount: null,
+              coverImage: oEmbedData.thumbnail_url || oEmbedData.image || null,
+            };
+          } else {
+            metadata = {
+              platform: 'mixcloud',
+              platformId,
+              embedUrl,
+              title: 'Mixcloud Mix',
+              trackCount: null,
+              coverImage: null,
+            };
+          }
+        } catch (error) {
+          console.error('Error fetching Mixcloud oEmbed:', error);
+          metadata = {
+            platform: 'mixcloud',
+            platformId,
+            embedUrl,
+            title: 'Mixcloud Mix',
+            trackCount: null,
+            coverImage: null,
+          };
+        }
       }
     }
 

@@ -4,7 +4,7 @@ import { getSession } from '@/lib/auth';
 import { isAdmin } from '@/lib/rbac';
 import { PublishPlaylistInputSchema } from '@thecueroom/shared/monthlyPlaylistSchemas';
 import { adminPlaylists, adminPlaylistsHistory } from '@thecueroom/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and, ne, gte, lt } from 'drizzle-orm';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const validatedInput = PublishPlaylistInputSchema.safeParse(body);
-    
+
     if (!validatedInput.success) {
       return NextResponse.json({
         ok: false,
@@ -48,27 +48,35 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Archive previous live playlists for the SAME PLATFORM and SAME MONTH if requested
     if (archivePrevious) {
-      const currentLive = await db
+      const currentPlaylist = await db
         .select()
         .from(adminPlaylists)
-        .where(eq(adminPlaylists.status, 'live'));
+        .where(eq(adminPlaylists.id, id))
+        .limit(1);
 
-      for (const livePlaylist of currentLive) {
-        await db
-          .insert(adminPlaylistsHistory)
-          .values({
-            adminPlaylistId: livePlaylist.id,
-            snapshotData: livePlaylist,
-            changeType: 'archived',
-            changedBy: session.uid,
-            changeNotes: `Archived to make room for new monthly playlist: ${playlistToPublish.title}`,
-          });
+      if (currentPlaylist.length > 0) {
+        const { platform, monthOf } = currentPlaylist[0];
+        const monthStart = new Date(monthOf);
+        const monthEnd = new Date(monthStart);
+        monthEnd.setMonth(monthEnd.getMonth() + 1);
 
         await db
           .update(adminPlaylists)
-          .set({ status: 'archived', updatedAt: new Date() })
-          .where(eq(adminPlaylists.id, livePlaylist.id));
+          .set({ 
+            status: 'archived',
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(adminPlaylists.status, 'live'),
+              eq(adminPlaylists.platform, platform),
+              gte(adminPlaylists.monthOf, monthStart),
+              lt(adminPlaylists.monthOf, monthEnd),
+              ne(adminPlaylists.id, id)
+            )
+          );
       }
     }
 
