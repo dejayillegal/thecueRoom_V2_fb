@@ -1,230 +1,242 @@
+
 'use client';
 
-import { useEffect, useState, useMemo, useCallback, memo } from 'react';
-import { SpotlightColumn } from '@/../../src/components/Spotlight/SpotlightColumn';
-import { ImageWithFallback } from '@/../../src/components/ImageWithFallback';
-import { AlertCircle, Sparkles, Calendar } from 'lucide-react';
-
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
+import { Calendar, MessageSquare, Music } from 'lucide-react';
 import Link from 'next/link';
 
-interface DashboardContentProps {
-  user?: {
-    email?: string | null;
-  } | null;
+interface Gig {
+  id: string;
+  title: string;
+  venue: string;
+  date: string;
+  ticketUrl?: string;
 }
 
-interface FeedItem {
+interface Thread {
+  id: string;
   title: string;
-  url: string;
-  summary: string;
-  image: string;
-  publishedAt: string;
-  source: string;
-  tags: string[];
+  replyCount: number;
+  likesCount: number;
+}
+
+interface Playlist {
+  id: string;
+  title: string;
+  embedUrl?: string;
+  platform: string;
+  platformId?: string;
 }
 
 const gigRadarItems = [
-  { title: 'Fabric London - Techno Night', date: 'Dec 28' },
-  { title: 'Printworks Finale', date: 'Jan 5' },
-  { title: 'Berghain Showcase', date: 'Jan 12' },
+  { id: '1', title: 'Fabric London - Techno Night', venue: 'Fabric', date: 'Dec 28', ticketUrl: '#' },
+  { id: '2', title: 'Printworks Finale', venue: 'Printworks', date: 'Jan 5', ticketUrl: '#' },
+  { id: '3', title: 'Berghain Showcase', venue: 'Berghain', date: 'Jan 12', ticketUrl: '#' },
+  { id: '4', title: 'Warehouse Project Manchester', venue: 'Depot Mayfield', date: 'Jan 19', ticketUrl: '#' },
+  { id: '5', title: 'Output Brooklyn', venue: 'Output', date: 'Jan 26', ticketUrl: '#' },
 ];
 
-export const DashboardContent = memo(function DashboardContent({ user }: DashboardContentProps) {
-  const [spotlightFeeds, setSpotlightFeeds] = useState<FeedItem[]>([]);
-  const [loading, setLoading] = useState(true);
+export function DashboardContent() {
+  const [gigs, setGigs] = useState<Gig[]>(gigRadarItems);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [threads, setThreads] = useState<Thread[]>([]);
+  const [playlist, setPlaylist] = useState<Playlist | null>(null);
 
-  const formatDate = useCallback((dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric'
-    });
-  }, []);
-
+  // Fetch real gigs
   useEffect(() => {
-    let mounted = true;
-    const controller = new AbortController();
-
-    const fetchSpotlight = async () => {
+    const fetchGigs = async () => {
       try {
-        const res = await fetch('/api/feeds?limit=12', {
-          signal: controller.signal,
-        });
-
-        if (!res.ok) throw new Error('Failed to fetch');
-
+        const res = await fetch('/api/gigs/india?limit=10');
         const data = await res.json();
-        if (mounted && data.data) {
-          setSpotlightFeeds(data.data.slice(0, 12));
+        if (data.ok && data.events?.length > 0) {
+          const formattedGigs = data.events.slice(0, 5).map((event: any) => ({
+            id: event.id,
+            title: event.title,
+            venue: event.venue || event.city,
+            date: new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            ticketUrl: event.ticketUrl || event.url,
+          }));
+          setGigs(formattedGigs);
         }
       } catch (error) {
-        if (error instanceof Error && error.name !== 'AbortError') {
-          console.error('Failed to fetch spotlight feeds:', error);
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+        console.error('Failed to fetch gigs:', error);
       }
     };
 
-    fetchSpotlight();
-
-    return () => {
-      mounted = false;
-      controller.abort();
-    };
+    fetchGigs();
   }, []);
 
+  // Auto-scroll gigs
+  useEffect(() => {
+    if (gigs.length <= 3) return;
+
+    const interval = setInterval(() => {
+      setScrollPosition((prev) => (prev + 1) % gigs.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [gigs.length]);
+
+  // Fetch trending threads
+  useEffect(() => {
+    const fetchThreads = async () => {
+      try {
+        const res = await fetch('/api/forum/thread?sort=trending&limit=5');
+        const data = await res.json();
+        if (data.threads?.length > 0) {
+          setThreads(data.threads.slice(0, 3));
+        }
+      } catch (error) {
+        console.error('Failed to fetch threads:', error);
+      }
+    };
+
+    fetchThreads();
+  }, []);
+
+  // Fetch latest monthly playlist
+  useEffect(() => {
+    const fetchPlaylist = async () => {
+      try {
+        const res = await fetch('/api/playlists/monthly/latest');
+        const data = await res.json();
+        if (data.ok && data.playlists?.length > 0) {
+          setPlaylist(data.playlists[0]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch playlist:', error);
+      }
+    };
+
+    fetchPlaylist();
+  }, []);
+
+  const getVisibleGigs = () => {
+    if (gigs.length <= 3) return gigs;
+    const visible = [];
+    for (let i = 0; i < 3; i++) {
+      visible.push(gigs[(scrollPosition + i) % gigs.length]);
+    }
+    return visible;
+  };
+
+  const getEmbedUrl = () => {
+    if (!playlist) return null;
+    if (playlist.embedUrl) return playlist.embedUrl;
+    
+    if (playlist.platform === 'spotify' && playlist.platformId) {
+      return `https://open.spotify.com/embed/playlist/${playlist.platformId}`;
+    }
+    if (playlist.platform === 'soundcloud' && playlist.platformId) {
+      return `https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/${playlist.platformId}&color=%23D1FF3D&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false`;
+    }
+    return null;
+  };
+
+  const embedUrl = getEmbedUrl();
+
   return (
-    <div className="min-h-screen bg-[#0b0b0b]">
-      <div className="max-w-[1400px] mx-auto p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
-          {/* Verification Pending Banner */}
-          <div className="lg:col-span-3 bg-[#0f0f0f] rounded-lg p-6 relative overflow-hidden hero-glow">
-            <div className="relative z-10">
-              <div className="flex items-start gap-3 mb-4">
-                <AlertCircle className="text-[var(--tcr-accent)] mt-1 flex-shrink-0" size={20} />
-                <div>
-                  <h2 className="text-[18px] font-semibold text-white mb-2">Verification Pending</h2>
-                  <p className="text-[13px] text-[#999999] leading-relaxed max-w-xl">
-                    Your artist profile is currently under review. We typically verify accounts within 24-48 hours. 
-                    You'll receive an email at <span className="text-white">{user?.email || 'your email'}</span> once approved.
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-3 mt-6">
-                <Button variant="outline" size="sm" className="border-[#1a1a1a] hover:bg-[#1a1a1a]">
-                  Sign Out
-                </Button>
-                <Button 
-                  size="sm" 
-                  className="bg-[var(--tcr-accent)] text-black hover:bg-[var(--tcr-accent)]/90 font-semibold"
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-6">
+      {/* Gig Radar */}
+      <div className="bg-[#0f0f0f] rounded-lg p-5 border border-[#1a1a1a]">
+        <div className="flex items-center gap-2 mb-4">
+          <Calendar className="text-purple-400 flex-shrink-0" size={18} />
+          <h3 className="text-[15px] font-semibold">Gig Radar</h3>
+        </div>
+        <ul className="space-y-3">
+          {getVisibleGigs().map((item) => (
+            <li key={item.id} className="flex justify-between items-start">
+              {item.ticketUrl ? (
+                <a
+                  href={item.ticketUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[13px] text-gray-300 hover:text-[#D1FF3D] transition-colors flex-1"
                 >
-                  Contact Support
-                </Button>
-              </div>
-            </div>
-          </div>
+                  {item.title}
+                </a>
+              ) : (
+                <span className="text-[13px] text-gray-300 flex-1">{item.title}</span>
+              )}
+              <span className="text-[11px] text-gray-500 whitespace-nowrap ml-2">{item.date}</span>
+            </li>
+          ))}
+        </ul>
+        <Link
+          href="/gigs/india"
+          className="mt-4 block text-center text-xs text-[#D1FF3D] hover:text-[#e7ff6f] transition-colors"
+        >
+          View All Gigs →
+        </Link>
+      </div>
+
+      {/* Community Threads */}
+      <div className="bg-[#0f0f0f] rounded-lg p-5 border border-[#1a1a1a]">
+        <div className="flex items-center gap-2 mb-4">
+          <MessageSquare className="text-blue-400 flex-shrink-0" size={18} />
+          <h3 className="text-[15px] font-semibold">Trending Threads</h3>
         </div>
+        {threads.length > 0 ? (
+          <ul className="space-y-3">
+            {threads.map((thread) => (
+              <li key={thread.id}>
+                <Link
+                  href={`/community/thread/${thread.id}`}
+                  className="block group"
+                >
+                  <div className="text-[13px] text-gray-300 group-hover:text-[#D1FF3D] transition-colors line-clamp-2">
+                    {thread.title}
+                  </div>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="text-[11px] text-gray-500">
+                      {thread.replyCount} replies
+                    </span>
+                    <span className="text-[11px] text-gray-500">
+                      {thread.likesCount} likes
+                    </span>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-[13px] text-gray-500">No threads yet</p>
+        )}
+        <Link
+          href="/community/forum"
+          className="mt-4 block text-center text-xs text-[#D1FF3D] hover:text-[#e7ff6f] transition-colors"
+        >
+          View Forum →
+        </Link>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
-          {/* Spotlight Card - Wide with Vertical Autoscroll */}
-          <div className="lg:col-span-2 bg-[#0f0f0f] rounded-lg p-5 border border-[#1a1a1a]">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Sparkles className="text-[var(--tcr-accent)] flex-shrink-0" size={18} />
-                <h3 className="text-[15px] font-semibold">Spotlight</h3>
-              </div>
-              <div className="w-2 h-2 rounded-full bg-[var(--tcr-accent)] animate-pulse"></div>
-            </div>
-            {loading ? (
-              <div className="space-y-3">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
-                  <div key={i} className="h-32 bg-[#1a1a1a] rounded-lg animate-pulse" />
-                ))}
-              </div>
-            ) : spotlightFeeds.length > 0 ? (
-              <SpotlightColumn className="h-[400px]">
-                <div className="space-y-3 p-1">
-                  {spotlightFeeds.map((feed, i) => (
-                    <Link
-                      key={`${feed.url}-${i}`}
-                      href={feed.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block group bg-gradient-to-br from-[#1a1a1a] to-[#151515] rounded-lg overflow-hidden hover:from-[#222222] hover:to-[#1a1a1a] transition-colors duration-200 border border-[#2a2a2a] hover:border-[var(--tcr-accent)]/30"
-                    >
-                      <div className="flex gap-4 p-4">
-                        {feed.image && (
-                          <div className="relative w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden bg-[#2a2a2a] ring-1 ring-white/5">
-                            <ImageWithFallback
-                              src={feed.image}
-                              alt={feed.title}
-                              fill
-                              sizes="112px"
-                              className="object-cover group-hover:scale-105 transition-transform duration-200"
-                              quality={75}
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0 flex flex-col justify-between">
-                          <div>
-                            <div className="text-[14px] font-semibold text-white line-clamp-2 group-hover:text-[var(--tcr-accent)] transition-colors duration-200 leading-snug mb-2">
-                              {feed.title}
-                            </div>
-                            <div className="flex items-center gap-2 text-[11px] text-gray-500">
-                              <span className="px-2 py-0.5 bg-[var(--tcr-accent)]/10 text-[var(--tcr-accent)] rounded-full font-medium">
-                                {feed.source}
-                              </span>
-                              {feed.publishedAt && (
-                                <span className="text-gray-600">
-                                  {formatDate(feed.publishedAt)}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          {feed.tags && feed.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 mt-2">
-                              {feed.tags.slice(0, 3).map((tag, idx) => (
-                                <span key={idx} className="px-2 py-0.5 text-[10px] bg-[#2a2a2a] text-gray-400 rounded">
-                                  #{tag}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </SpotlightColumn>
-            ) : (
-              <p className="text-[13px] text-gray-400 leading-relaxed">
-                Featured artists and trending tracks will appear here.
-              </p>
-            )}
-          </div>
-
-          {/* Gig Radar */}
-          <div className="bg-[#0f0f0f] rounded-lg p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <Calendar className="text-purple-400 flex-shrink-0" size={18} />
-              <h3 className="text-[15px] font-semibold">Gig Radar</h3>
-            </div>
-            <ul className="space-y-3">
-              {gigRadarItems.map((item, i) => (
-                <li key={i} className="flex justify-between items-start">
-                  <span className="text-[13px] text-gray-300">{item.title}</span>
-                  <span className="text-[11px] text-gray-500 whitespace-nowrap ml-2">{item.date}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+      {/* Latest Mix - Monthly Playlist */}
+      <div className="bg-[#0f0f0f] rounded-lg p-5 border border-[#1a1a1a]">
+        <div className="flex items-center gap-2 mb-4">
+          <Music className="text-green-400 flex-shrink-0" size={18} />
+          <h3 className="text-[15px] font-semibold">
+            {playlist ? playlist.title : 'Latest Mix'}
+          </h3>
         </div>
-
-        {/* SoundCloud Player - Full Width */}
-        <div className="bg-[#0f0f0f] rounded-lg p-5 border border-[#1a1a1a]">
-          <h3 className="text-[15px] font-semibold mb-4">Latest Mix</h3>
-          <div className="rounded-lg overflow-hidden bg-[#1a1a1a]">
+        <div className="rounded-lg overflow-hidden bg-[#1a1a1a]">
+          {embedUrl ? (
             <iframe
               width="100%"
               height="166"
               scrolling="no"
               frameBorder="no"
               allow="autoplay"
-              src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1677969130&color=%23D1FF3D&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false"
-              title="SoundCloud player"
+              src={embedUrl}
+              title="Monthly Playlist"
               className="w-full"
             />
-          </div>
-        </div>
-
-        <div className="mt-6 text-right">
-          <p className="text-[11px] text-gray-600">Private beta</p>
+          ) : (
+            <div className="h-[166px] flex items-center justify-center text-gray-500 text-sm">
+              Loading playlist...
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
-});
+}
