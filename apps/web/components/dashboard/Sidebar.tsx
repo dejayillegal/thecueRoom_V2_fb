@@ -2,7 +2,7 @@
 
 import { memo, useEffect, useState, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
-import { 
+import {
   Home,
   Image,
   MessageSquare,
@@ -41,11 +41,11 @@ const getNavItemsForRole = (role: string) => {
     { href: '/ai/meme-studio', label: 'AI Meme', icon: MessageSquare },
     { href: '/ai/epk-generator', label: 'AI EPK', icon: FileText },
     { href: '/community/forum', label: 'Community Forum', icon: Users },
-    { href: '/music/weekly', label: 'Weekly Curated Music', icon: Music },
+    { href: '/music/weekly', label: 'Monthly Music', icon: Music },
   ];
 
   if (role === 'admin') {
-    return [...commonItems, ...artistItems, 
+    return [...commonItems, ...artistItems,
       { href: '/admin/events', label: 'Review Events', icon: CheckCircle2 },
       { href: '/admin/sources', label: 'Manage Sources', icon: Settings },
       { href: '/dashboard/admin/playlists', label: 'Playlist Config', icon: Music }
@@ -87,7 +87,7 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile, { passive: true });
     return () => window.removeEventListener('resize', checkMobile);
@@ -175,7 +175,7 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
               <Logo className="h-8 w-8" />
             </div>
           )}
-          
+
           {isMobile && isOpen && (
             <button
               onClick={onToggle}
@@ -213,7 +213,7 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
                 </li>
               );
             })}
-            
+
             {canSubmit && (
               <li className="pt-2 border-t border-[#1a1a1a]">
                 <button
@@ -244,7 +244,7 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
             expanded={expanded && !isMobile}
             onClick={handleNavClick}
           />
-          
+
           {/* Expand/Collapse Toggle */}
           <button
             onClick={handleExpandToggle}

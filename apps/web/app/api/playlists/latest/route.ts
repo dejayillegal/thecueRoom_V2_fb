@@ -23,12 +23,14 @@ export async function GET() {
         status: adminPlaylists.status,
         publishedAt: adminPlaylists.publishedAt,
         trackCount: adminPlaylists.trackCount,
-        curatorName: users.displayName,
+        curatorId: adminPlaylists.curatorId,
+        displayName: users.displayName,
+        username: users.username,
       })
       .from(adminPlaylists)
       .leftJoin(users, eq(adminPlaylists.curatorId, users.id))
       .where(eq(adminPlaylists.status, 'live'))
-      .orderBy(desc(adminPlaylists.updatedAt))
+      .orderBy(desc(adminPlaylists.publishedAt))
       .limit(1);
 
     if (!playlist) {
@@ -37,6 +39,14 @@ export async function GET() {
         { ok: false, error: 'No live playlist found' },
         { status: 404 }
       );
+    }
+
+    // Determine curator name safely
+    let curatorName = 'thecueRoom';
+    if (playlist.displayName) {
+      curatorName = playlist.displayName;
+    } else if (playlist.username) {
+      curatorName = playlist.username;
     }
 
     // Ensure null values are handled properly
@@ -51,7 +61,7 @@ export async function GET() {
       status: playlist.status,
       publishedAt: playlist.publishedAt || undefined,
       trackCount: playlist.trackCount || 0,
-      curatorName: playlist.curatorName || undefined,
+      curatorName,
     };
 
     return NextResponse.json({
