@@ -252,9 +252,9 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-black border-lime-400/20">
-          <DialogHeader>
-            <DialogTitle className="text-lime-400 text-xl leading-tight mb-0">Join thecueRoom</DialogTitle>
-            <p className="text-base text-white mt-0 pt-0">Create your artist account</p>
+          <DialogHeader className="space-y-0">
+            <p className="text-base text-white leading-tight">Create your artist account</p>
+            <DialogTitle className="text-xl leading-tight" style={{ color: '#D1E231' }}>Join thecueRoom community</DialogTitle>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4">
