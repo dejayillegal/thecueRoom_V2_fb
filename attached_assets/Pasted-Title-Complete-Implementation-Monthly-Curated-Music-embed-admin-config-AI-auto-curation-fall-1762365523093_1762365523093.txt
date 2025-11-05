@@ -1,0 +1,196 @@
+Title: Complete Implementation — Monthly Curated Music (embed + admin config + AI auto-curation fallback) — Workable in Free Basic Replit (no pending tasks)
+
+Context / Goal
+--------------
+Implement the full Monthly Curated Music system described in spec (replace Weekly Curated Music). The final result must be a complete, working feature that can be run, tested and validated entirely inside a Free Basic Replit workspace (no paid external schedulers or always-on workers required). Where long-running background work is needed (AI fallback / scheduled publish), provide a safe, deterministic, and fully working **server-triggered** implementation plus a lightweight in-Replit scheduler alternative and clear instructions to run it manually.
+
+Important constraints for this task (must follow)
+- Final code must run inside a Free Basic Replit environment and be fully verifiable there — NO outstanding background infra required to show the feature working.
+- Do not require paid/always-on workers to demonstrate the AI fallback or scheduled publish. Instead:
+  - Implement the real worker logic as `packages/server/monthlyPlaylistWorker.ts` (or similar) that can be invoked directly by a CLI command (e.g., `node packages/server/monthlyPlaylistWorker.js`) or via an HTTP endpoint `POST /api/ai/monthly-curate/run`. This allows manual runs in Replit.
+  - Add a simple “Run auto-curate now” admin button that triggers the same endpoint for testing in Replit.
+  - Add an optional Replit "OnBoot" script in README that explains how to run the worker in the Replit console if the user wants a long-running process (optional; keep as manual instruction).
+- All external API calls that could cost money (OpenAI image/text generation, Spotify heavy metadata) must be:
+  - Encapsulated behind server adapters and feature flags (FEATURE_MONTHLY_AI_FALLBACK).
+  - Mockable via `NODE_ENV=development` and a `MOCK_AI=true` env which returns deterministic sample responses for CI/dev.
+  - Tests must use mocks, not real paid API calls.
+- Provide a complete test suite (unit, integration, Playwright E2E), Storybook stories, migrations, and docs. Tests must pass in Replit.
+
+Deliverables (exact files to add / update)
+------------------------------------------
+Implement and include the following files (create any missing directories):
+
+UI
+- apps/web/src/components/Playlist/UnifiedEmbedPlayer.tsx
+- apps/web/src/components/Dashboard/MonthlyPlaylistWidget.tsx
+- apps/web/src/components/Admin/MonthlyPlaylistConfig/MonthlyPlaylistConfigPanel.tsx
+- apps/web/src/components/Admin/MonthlyPlaylistConfig/MonthlyPlaylistPreviewCard.tsx
+- apps/web/src/components/Admin/MonthlyPlaylistConfig/MonthlyPlaylistHistoryList.tsx
+- apps/web/src/components/Admin/MonthlyPlaylistConfig/MonthlyPlaylistScheduler.tsx
+- apps/web/src/components/Admin/MonthlyPlaylistConfig/MonthlyPlaylistAIReview.tsx
+- apps/web/src/components/UI/ErrorBoundary.tsx
+- apps/web/.storybook/stories/MonthlyPlaylistConfig.stories.tsx
+
+API routes (Next App Router)
+- apps/web/app/api/admin/monthly-playlists/list/route.ts
+- apps/web/app/api/admin/monthly-playlists/validate/route.ts
+- apps/web/app/api/admin/monthly-playlists/create/route.ts
+- apps/web/app/api/admin/monthly-playlists/publish/route.ts
+- apps/web/app/api/admin/monthly-playlists/schedule/route.ts
+- apps/web/app/api/admin/monthly-playlists/rollback/route.ts
+- apps/web/app/api/admin/monthly-playlists/toggle-auto/route.ts
+- apps/web/app/api/player/metadata/route.ts
+- apps/web/app/api/ai/monthly-curate/run/route.ts     <-- manual trigger endpoint
+- apps/web/app/api/ai/monthly-curate/status/route.ts
+
+Server / worker code (runnable)
+- packages/server/monthlyPlaylistWorker.ts   <-- idempotent script; can be run manually in Replit
+- packages/server/spotifyAuthHelper.ts       <-- metadata helper (client_credentials), cacheable
+- packages/server/mockAiAdapter.ts           <-- deterministic mock AI responses (used when MOCK_AI=true)
+
+DB migrations & schema
+- migrations/20251110_monthly_playlists.sql
+- packages/db/monthlyPlaylistSchema.ts (Drizzle schemas if used)
+
+Shared schemas & validation
+- packages/shared/monthlyPlaylistSchemas.ts
+- packages/shared/playerSchemas.ts
+
+Feature flags / env / defaults
+- .env.example (include keys below with placeholders and note MOCK_AI default)
+  - FEATURE_MONTHLY_PLAYLISTS=true
+  - FEATURE_EMBED_FALLBACK=true
+  - FEATURE_MONTHLY_AI_FALLBACK=true
+  - MOCK_AI=true                     <-- **default for Replit demos** so no paid API calls
+  - SPOTIFY_CLIENT_ID=
+  - SPOTIFY_CLIENT_SECRET=
+  - OPENAI_API_KEY=
+  - SCHEDULER_CRON_MONTHLY=0 0 1 * *   (optional; used only if user runs worker externally)
+  - NOTIFICATION_ON_PUBLISH=true
+
+Docs & runbook
+- docs/IMPLEMENTATION_NOTES.md  (list files removed/renamed from Weekly → Monthly and Replit-specific run instructions)
+- docs/MONTHLY_PLAYLISTS.md     (API contracts, admin runbook, how to trigger worker manually in Replit and test flows)
+
+Implementation details & constraints (how to make it robust in Free Replit)
+---------------------------------------------------------------------------
+1) Replace weekly references
+   - Remove or rename previous weekly routes/DB columns/labels in codebase; commit migration that does either DROP or RENAME (explicit) and include a revert note in docs.
+   - Keep a migration rollback script in migrations/ for safety.
+
+2) UnifiedEmbedPlayer & embeds
+   - Implement a responsive iframe-based embed for Spotify, SoundCloud, Mixcloud.
+   - Use IntersectionObserver to lazy-load iframes.
+   - Provide `ExternalOpenButton` that constructs platform-specific web and deep-links.
+   - Build fallback native metadata view: call server `/api/player/metadata?url=...` which extracts platform id and returns cached metadata (mockable for Replit).
+
+3) Admin panel & schedule UI
+   - Admin panel must support:
+     - Paste multiple playlist URLs
+     - Validate via `/api/admin/monthly-playlists/validate` (server can use client_credentials if SPOTIFY_* set; else if not set, return deterministic mock metadata for Replit)
+     - Preview embeds using UnifiedEmbedPlayer
+     - Save as Draft, Schedule (stores scheduled_for)
+     - Publish Now (atomic publish; use DB transaction)
+     - View history and rollback
+     - Toggle Auto-Curation (with UI controls for thresholds)
+   - Add confirmation modals for destructive operations and audit logging.
+
+4) Worker & AI fallback (Replit-safe)
+   - Worker file must:
+     - Be idempotent and safe to run multiple times.
+     - Support two modes: real (uses OPENAI API) and mock (MOCK_AI=true).
+     - When MOCK_AI=true, return deterministic structured JSON (title, items[], confidence) enabling full UI to render and admin to approve/publish in Replit without any external API cost.
+     - Expose `monthlyPlaylistWorker.run()` and a CLI entry `node packages/server/monthlyPlaylistWorker.js` so Replit console can run it manually.
+     - Expose an HTTP endpoint `/api/ai/monthly-curate/run` that triggers the same worker logic for easy in-browser testing by admins.
+   - Worker must log detailed actions and create rows in `monthly_playlist_auto_jobs`.
+
+5) Scheduling in Replit
+   - Because free Replit may not support cron workers, provide:
+     - Manual trigger endpoint and admin “Run auto-curate now” button.
+     - Optional README instructions to run `node packages/server/monthlyPlaylistWorker.js` in the Replit console or background via Replit’s always-on (if available) — but the feature must not depend on that.
+   - In production, ensure worker can be wired to cron / platform scheduler — document steps in docs.
+
+6) Metadata & caching
+   - Implement server-side metadata fetch with caching (in-memory cache for Replit demo, TTL controlled by env).
+   - If SPOTIFY credentials missing, return mock metadata but still behave identically in UI.
+
+7) Permissions & guard rails
+   - Admin API routes must check server session / role. For Replit demo use an environment variable `DEMO_ADMIN_KEY` fallback for simplicity with clear warning in docs.
+   - All routes must validate request bodies with Zod and return structured errors.
+
+8) Tests, Storybook & CI
+   - Unit tests (vitest) for Zod schemas, worker logic, and utility functions using mocks.
+   - Integration tests for publish workflow (using in-memory sqlite or test Postgres in Replit if available).
+   - Playwright E2E tests (headless) that:
+     - Admin: validate URL → schedule → trigger worker via endpoint → live playlist shows in dashboard.
+     - User: dashboard shows embed and ExternalOpenButton link opens correct URL (assert link href).
+   - Storybook stories illustrating all admin UI states.
+   - Make sure test suite defaults to MOCK_AI=true and uses local DB or in-memory DB so it can run in Replit.
+
+9) Error handling & robustness
+   - Wrap heavy UI blocks with ErrorBoundary.
+   - API routes return helpful messages and consistent HTTP status codes.
+   - Worker uses retry/backoff for transient failures; in MOCK_AI mode skip external calls.
+   - Add logging to console with structured JSON for easy debugging in Replit.
+
+Acceptance criteria (what "done" looks like in Replit)
+-------------------------------------------------------
+The following must be demonstrable inside a Free Basic Replit after `git pull` and running the commands below:
+
+1. Run steps (must work in Replit)
+   - `cp .env.example .env` and set minimal values (MOCK_AI=true, DEMO_ADMIN_KEY=yourkey)
+   - `pnpm install` (or `npm install`)
+   - Run DB migrations: `pnpm migrate` (or `node ./scripts/run-migrations.js` per repo)
+   - Start dev server: `pnpm dev`
+   - Open web app in Replit browser
+
+2. Admin flow (visible & functional)
+   - Login as admin (DEMO_ADMIN_KEY or normal auth)
+   - Open Admin → Monthly Playlist Config panel
+   - Paste Spotify/SoundCloud/Mixcloud playlist URLs (or sample links)
+   - Click Validate → preview shows metadata (real when creds set; mock otherwise)
+   - Save Draft → Schedule for a near-future time or click Publish Now
+   - If scheduled, click "Run auto-curate now" in Admin to simulate the scheduled worker run
+   - Worker creates candidate auto-curated playlist (MOCK_AI output when MOCK_AI=true)
+   - Admin can approve & publish the auto-curated playlist
+
+3. User flow
+   - Dashboard shows MonthlyPlaylistWidget with live playlist embed (UnifiedEmbedPlayer)
+   - Clicking ExternalOpenButton opens provider web URL (assert displayed href)
+   - If embed blocked, fallback native metadata + ExternalOpenButton shown
+
+4. Tests & Storybook
+   - `pnpm test` runs unit tests and they pass
+   - `pnpm test:e2e` (Playwright) runs E2E scenarios in headless mode and pass (using MOCK_AI)
+   - `pnpm storybook` runs and stories render for MonthlyPlaylistConfig
+
+5. No pending tasks
+   - All feature flags default to safe demo mode (MOCK_AI=true) so no external paid calls required
+   - All endpoints return deterministic responses for Replit demo
+   - README contains explicit Replit run instructions and exact commands to reproduce every flow
+
+Acceptance checklist (to include in PR)
+---------------------------------------
+- [ ] All listed files created/updated and committed
+- [ ] migrations/20251110_monthly_playlists.sql added and migration ran successfully in demo
+- [ ] MOCK_AI mode implemented and used by default for Replit demo
+- [ ] Manual worker trigger endpoint `/api/ai/monthly-curate/run` functional
+- [ ] Admin UI supports validate -> draft -> schedule -> publish -> rollback flows
+- [ ] MonthlyPlaylistWidget uses UnifiedEmbedPlayer with ExternalOpen fallback
+- [ ] Unit tests passing; Playwright E2E passing in demo mode
+- [ ] Storybook stories for Monthly Playlist admin panel present
+- [ ] docs/IMPLEMENTATION_NOTES.md updated with removal notes and Replit runbook
+- [ ] Final PR includes GIFs/screenshots demonstrating admin run & publish flows and a short demo video or step list for reviewer
+
+Notes for reviewer / maintainer
+-------------------------------
+- Replit demo mode uses MOCK_AI=true — to enable real AI in staging/prod set MOCK_AI=false and provide OPENAI_API_KEY; ensure billing & quotas are configured.
+- Replit free cannot reliably run scheduled always-on workers — rely on the manual HTTP trigger for reproducible runs. Document how to point a real scheduler (cron) to `/api/ai/monthly-curate/run` in production.
+- The worker code must be idempotent and safe to run repeatedly; tests must verify idempotency.
+- If you need me to also produce:
+  - a) the exact Zod schemas, or
+  - b) the monthlyPlaylistWorker.js runnable CLI script, or
+  - c) the Playwright E2E skeleton for Replit demo mode,
+  say which one and I will generate it next.
+
+End of task.
