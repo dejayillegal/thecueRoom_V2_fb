@@ -67,10 +67,12 @@ export async function POST(request: NextRequest) {
         }
 
         const now = new Date();
+        // Update playlist status to live and set publishedAt
         await tx
           .update(playlists)
           .set({
             status: 'live',
+            publishedAt: new Date(),
             curatedAt: now,
           })
           .where(eq(playlists.id, data.id));
@@ -86,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      message: data.publish 
+      message: data.publish
         ? (data.scheduleAt ? 'Playlist scheduled for publishing' : 'Playlist published successfully')
         : 'Playlist archived',
     });

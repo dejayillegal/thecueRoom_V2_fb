@@ -27,16 +27,12 @@ export async function GET() {
       })
       .from(adminPlaylists)
       .leftJoin(users, eq(adminPlaylists.curatorId, users.id))
-      .where(
-        and(
-          eq(adminPlaylists.status, 'live'),
-          isNotNull(adminPlaylists.publishedAt)
-        )
-      )
-      .orderBy(desc(adminPlaylists.publishedAt))
+      .where(eq(adminPlaylists.status, 'live'))
+      .orderBy(desc(adminPlaylists.updatedAt))
       .limit(1);
 
     if (!playlist) {
+      console.log('No live playlist found in database');
       return NextResponse.json(
         { ok: false, error: 'No live playlist found' },
         { status: 404 }
