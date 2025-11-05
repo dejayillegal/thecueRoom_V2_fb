@@ -45,21 +45,21 @@ export function NotificationsPanel({
       </PopoverTrigger>
       
       <PopoverContent 
-        className="w-96 p-0" 
+        className="w-80 p-0 backdrop-blur-xl bg-black/80 border-white/10" 
         align="end"
         sideOffset={8}
       >
-        <div className="flex items-center justify-between p-4 border-b">
-          <h3 className="font-semibold text-lg">Notifications</h3>
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between p-3 border-b border-white/10">
+          <h3 className="font-semibold text-sm">Notifications</h3>
+          <div className="flex items-center gap-1">
             {onMarkAllAsRead && unreadCount > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onMarkAllAsRead}
-                className="h-8 px-2"
+                className="h-7 px-2 text-xs"
               >
-                <Check className="h-4 w-4 mr-1" />
+                <Check className="h-3 w-3 mr-1" />
                 Mark all read
               </Button>
             )}
@@ -68,25 +68,25 @@ export function NotificationsPanel({
                 variant="ghost"
                 size="icon"
                 onClick={onOpenSettings}
-                className="h-8 w-8"
+                className="h-7 w-7"
               >
-                <Settings className="h-4 w-4" />
+                <Settings className="h-3 w-3" />
               </Button>
             )}
           </div>
         </div>
 
-        <ScrollArea className="h-[400px]">
+        <ScrollArea className="h-[320px]">
           {isLoading ? (
             <div className="flex items-center justify-center p-8 text-muted-foreground">
               <Loader2 className="h-6 w-6 animate-spin mr-2" />
               Loading notifications...
             </div>
           ) : notifications.length === 0 ? (
-            <div className="p-8 text-center">
-              <Bell className="h-12 w-12 mx-auto text-muted-foreground/50 mb-2" />
-              <p className="text-sm text-muted-foreground">No notifications yet</p>
-              <p className="text-xs text-muted-foreground/70 mt-1">
+            <div className="p-6 text-center">
+              <Bell className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+              <p className="text-xs text-muted-foreground">No notifications yet</p>
+              <p className="text-[10px] text-muted-foreground/70 mt-1">
                 We'll notify you when something important happens
               </p>
             </div>
@@ -105,14 +105,14 @@ export function NotificationsPanel({
         </ScrollArea>
 
         {notifications.length > 0 && onClearAll && (
-          <div className="p-2 border-t">
+          <div className="p-2 border-t border-white/10">
             <Button
               variant="ghost"
               size="sm"
               onClick={onClearAll}
-              className="w-full"
+              className="w-full text-xs h-7"
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Trash2 className="h-3 w-3 mr-2" />
               Clear all notifications
             </Button>
           </div>

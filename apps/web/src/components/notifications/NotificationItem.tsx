@@ -48,24 +48,24 @@ export function NotificationItem({
     <div
       onClick={handleClick}
       className={`
-        group relative flex gap-3 p-4 hover:bg-accent/50 cursor-pointer transition-colors
-        ${!notification.read ? 'bg-blue-50/50 dark:bg-blue-950/20' : ''}
+        group relative flex gap-2 p-3 hover:bg-white/5 cursor-pointer transition-colors
+        ${!notification.read ? 'bg-blue-500/10' : ''}
       `}
     >
       <div className={`flex-shrink-0 ${iconColor}`}>
-        <Icon className="h-5 w-5" />
+        <Icon className="h-4 w-4" />
       </div>
       
       <div className="flex-1 min-w-0">
         {notification.title && (
-          <h4 className={`text-sm font-semibold ${!notification.read ? 'font-bold' : ''}`}>
+          <h4 className={`text-xs font-semibold ${!notification.read ? 'font-bold' : ''}`}>
             {notification.title}
           </h4>
         )}
-        <p className="text-sm text-muted-foreground line-clamp-2">
+        <p className="text-xs text-muted-foreground line-clamp-2">
           {notification.body}
         </p>
-        <p className="text-xs text-muted-foreground mt-1">
+        <p className="text-[10px] text-muted-foreground mt-0.5">
           {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
         </p>
       </div>
@@ -74,18 +74,18 @@ export function NotificationItem({
         <Button
           variant="ghost"
           size="icon"
-          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
           onClick={(e) => {
             e.stopPropagation()
             onDelete(notification.id)
           }}
         >
-          <X className="h-3 w-3" />
+          <X className="h-2.5 w-2.5" />
         </Button>
       )}
       
       {!notification.read && (
-        <div className="absolute top-4 left-1 h-2 w-2 rounded-full bg-blue-500" />
+        <div className="absolute top-3 left-1 h-1.5 w-1.5 rounded-full bg-blue-500" />
       )}
     </div>
   )
