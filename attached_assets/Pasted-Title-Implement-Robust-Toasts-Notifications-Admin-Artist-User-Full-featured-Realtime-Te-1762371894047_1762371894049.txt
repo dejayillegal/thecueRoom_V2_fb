@@ -1,0 +1,210 @@
+Title: Implement Robust Toasts & Notifications (Admin / Artist / User) — Full-featured, Realtime, Testable in Replit
+
+Summary
+-------
+Deliver a complete, production-quality Toast + Notifications system usable by Admins, Artists and Users. Features must include:
+
+- Global Toast Provider with `useToast()` API (create/update/dismiss, pending→update, action buttons, undo).
+- Notifications backend & UI (in-app panel + unread badge), realtime delivery, mark-read/unread, deep links.
+- Notification preferences per user (email digest, in-app types, do-not-disturb window).
+- Admin tools to send system broadcasts, targeted notifications and view notification audit logs.
+- Batching & rate-limiting to avoid spam.
+- Safe Replit demo mode (no external push required; mock email & push).
+- Full tests, Storybook stories, migrations, docs and runbook.
+
+Files & locations to create/update
+---------------------------------
+UI components
+- apps/web/src/components/UI/Toast.tsx
+- apps/web/src/components/UI/ToastProvider.tsx
+- apps/web/src/hooks/useToast.ts
+- apps/web/src/components/Notifications/NotificationsPanel.tsx
+- apps/web/src/components/Notifications/NotificationItem.tsx
+- apps/web/src/components/Header/NotificationsButton.tsx
+- apps/web/src/components/Profile/NotificationPreferences.tsx
+- apps/web/src/components/Admin/NotificationComposer.tsx
+- apps/web/src/components/Admin/NotificationAuditLog.tsx
+- apps/web/src/components/UI/ToastStories.stories.tsx
+- apps/web/.storybook/stories/Notifications.stories.tsx
+- apps/web/src/components/UI/ErrorBoundary.tsx (wrap notification heavy components)
+
+API Routes (Next App Router)
+- apps/web/app/api/notifications/list/route.ts
+- apps/web/app/api/notifications/send/route.ts           // admin/system
+- apps/web/app/api/notifications/mark-read/route.ts
+- apps/web/app/api/notifications/delete/route.ts
+- apps/web/app/api/notifications/preferences/route.ts
+- apps/web/app/api/notifications/subscribe/route.ts      // return connection info for realtime
+- apps/web/app/api/toasts/track/route.ts                 // optional analytics sink
+
+Server / Worker
+- packages/server/notificationsWorker.ts     // batching, delivery, resend retry, digest builder
+- packages/server/mockPushAdapter.ts         // Replit-safe mock push/email adapter
+- packages/server/realtimeAdapter.ts        // Supabase or WebSocket abstraction
+
+DB migrations & schema
+- migrations/20251112_notifications.sql
+  - `notifications` table:
+    - id uuid pk, user_id uuid nullable (null = broadcast), type text, title text, body text, payload jsonb, read boolean default false, delivered boolean default false, created_at timestamptz default now()
+  - `notification_preferences`:
+    - id uuid pk, user_id uuid unique, email_digest boolean, in_app boolean, push boolean, dnd_start time, dnd_end time, muted_types text[]
+  - `notification_audit_log`:
+    - id, action text, payload jsonb, performed_by uuid, created_at
+  - `toasts` table (optional persistent toasts):
+    - id, user_id, type, title, body, status (pending|updated|dismissed), created_at, updated_at
+  - Add indexes: notifications(user_id, read, created_at)
+
+Shared Schemas & Validation (Zod)
+- packages/shared/notificationSchemas.ts
+  - `NotificationCreateSchema`, `NotificationSendSchema`, `NotificationListQuerySchema`, `PreferencesSchema`
+
+Feature flags & env variables
+- FEATURE_NOTIFICATIONS=true
+- FEATURE_TOASTS=true
+- FEATURE_PUSH=false            // default OFF in Replit demo
+- MOCK_PUSH=true                // use mock push/email in Replit demo
+- NOTIFICATION_DIGEST_HOUR=08   // when automated digest runs in worker
+- NOTIFICATION_RATE_LIMIT=5     // per user per minute
+- DEMO_ADMIN_KEY (for Replit demo admin APIs)
+
+High-level requirements & behaviors
+----------------------------------
+1) Toast Provider & UX
+   - `useToast()` returns `{ toast(opts) -> id, updateToast(id, opts), dismissToast(id) }`.
+   - Toast types: success, error, info, pending.
+   - Support pending toasts that are updatable (e.g., "Verifying…", then updated to "Verified!").
+   - Toasts can include action buttons (e.g., Undo), custom durations, and priority.
+   - Toast stacking with visible max (e.g., 5) and queueing.
+   - Accessible: `role="status"` / `aria-live` usage; keyboard focusable actions.
+   - Storybook stories for each toast variant and pending→update flow.
+
+2) Notifications Backend & Delivery
+   - `POST /api/notifications/send` (admin/system):
+     - Body: `{ target: { userIds?:[], role?:'admin'|'artist'|'user', all?:boolean }, type:'system'|'verification'|'comment'|'follow'|'promo', title, body, payload }`
+     - Validated by Zod and permission-guarded for admins.
+     - Creates DB records and enqueues delivery job.
+   - `GET /api/notifications/list?cursor=&limit=&filter=` returns paginated notifications for authenticated user (Zod validated).
+   - `POST /api/notifications/mark-read` accepts `ids[]` or `all=true`.
+   - Realtime: use Supabase Realtime or WebSocket to push new notifications to connected clients. If not available, provide a fallback SSE or poll endpoint.
+   - Delivery adapters:
+     - In-app push: write to DB and broadcast via realtime channel.
+     - Push notifications (optional): adapter interface; in Replit demo it uses mockPushAdapter to log and create audit entries.
+     - Email digest: worker aggregates and sends digest using mock/email adapter in demo.
+
+3) Notification preferences & DND
+   - Users can set preferences in UI: enable/disable in-app, push, email digest; mute types; set DND window (start/end).
+   - Preferences respected by delivery worker: do not push during DND; queue for digest.
+
+4) Batching, rate-limits & de-duplication
+   - Worker batches multiple similar notifications (e.g., many likes) into a single summary notification within a short window.
+   - Rate-limit per user configured by `NOTIFICATION_RATE_LIMIT`.
+   - De-duplication: identical payloads within a time window are merged.
+
+5) Admin features
+   - NotificationComposer (admin UI) to craft targeted messages, schedule broadcasts, and preview.
+   - Audit log for all send actions, visible in NotificationAuditLog component.
+   - Admin may force-send or cancel scheduled notifications.
+
+6) Toast analytics
+   - Optional endpoint `/api/toasts/track` to record user interactions with toasts (used for telemetry).
+   - Respect privacy: no PII in telemetry.
+
+7) Realtime & fallback modes
+   - Primary realtime via Supabase Realtime (if project uses Supabase), else WebSocket fallback.
+   - Provide an SSE/poll fallback for environments without realtime.
+   - Replit demo mode: realtimeAdapter uses an in-memory pubsub and mockPushAdapter; logged to console.
+
+8) Security & permission checks
+   - Admin routes require admin role or DEMO_ADMIN_KEY in Replit.
+   - All API payloads validated with Zod; return structured errors.
+   - Ensure DB RLS policies (if using Supabase) enforce users only see their notifications.
+
+9) Persistence & cleanup
+   - Notifications older than 90 days archived; scheduled background job (worker) to cleanup (configurable).
+   - Optionally, persistent toasts stored in DB for cross-device consistency.
+
+10) Internationalization & templating
+   - Notification templates support i18n keys and must accept `locale` and templated payload data.
+   - Admin composer allows preview in different locales.
+
+Testing, Storybook & CI
+-----------------------
+- Unit tests (Vitest): `tests/unit/notifications/*` for Zod schemas, worker batching logic, toast hook.
+- Integration tests: `tests/integration/notifications/*` for API routes (Supertest).
+- E2E Playwright: `tests/e2e/notifications.spec.ts` covering:
+  - In-app notification delivery & realtime update.
+  - Mark-read/unread flows.
+  - Admin send -> user receives flow (using DEMO_ADMIN_KEY in Replit).
+  - Toast pending→update with action button (Undo).
+- Storybook stories:
+  - Toast variants and pending update
+  - NotificationsPanel with unread badge, grouped notifications, preferences panel
+  - Admin composer modal
+- CI:
+  - Add job `test:notifications` running unit + integration + e2e relevant tests.
+  - Add lint and security checks for new server code.
+
+Run & Demo instructions (Replit-safe)
+-------------------------------------
+1. .env.example additions (defaults for demo)
+   - FEATURE_NOTIFICATIONS=true
+   - FEATURE_TOASTS=true
+   - FEATURE_PUSH=false
+   - MOCK_PUSH=true
+   - DEMO_ADMIN_KEY=demo_admin_key
+
+2. Local / Replit demo steps:
+   - `cp .env.example .env` and set DEMO_ADMIN_KEY
+   - `pnpm install`
+   - Run DB migrations: `pnpm migrate` (or `node scripts/run-migrations.js`)
+   - Start dev server: `pnpm dev`
+   - Open app, sign in as normal user (or use DEMO_ADMIN_KEY to call admin routes)
+   - Admin: open Admin → Notifications; send a test broadcast
+   - User: see realtime notification appear and toast; open NotificationsPanel; mark-read; check preferences
+
+Acceptance criteria (must pass)
+-------------------------------
+- [ ] `useToast()` supports create/update/dismiss and pending→update flows; Storybook demonstrates it.
+- [ ] Notifications API routes implemented and Zod-validated.
+- [ ] Realtime delivery works (Supabase or WebSocket); SSE/poll fallback exists.
+- [ ] Notification preferences (in-app/push/email/dnd/muted types) saved and respected by worker.
+- [ ] Admin composer can target users/roles/all and schedule or send immediately; audit entries recorded.
+- [ ] Batching & rate-limiting prevents spam for high-frequency events (likes/comments).
+- [ ] Tests (unit + integration + e2e) for core flows pass in CI and Replit demo mode (MOCK_PUSH=true).
+- [ ] Storybook stories exist for all UI states.
+- [ ] Docs updated: docs/IMPLEMENTATION_NOTES.md includes API examples and how to run demo.
+- [ ] No secrets are leaked; admin routes guarded.
+
+Acceptance checklist for PR
+---------------------------
+- [ ] Files added/updated as listed above
+- [ ] migrations/20251112_notifications.sql present
+- [ ] packages/shared/notificationSchemas.ts added and Zod used in routes
+- [ ] Worker + mockPushAdapter implemented and used in MOCK_PUSH mode
+- [ ] Unit, integration, and E2E tests added & passing locally
+- [ ] Storybook stories for Toasts & Notifications present
+- [ ] docs/IMPLEMENTATION_NOTES.md updated with Replit demo instructions
+- [ ] Short demo GIFs attached showing:
+   - Admin sending a broadcast and user receiving realtime notification
+   - Toast pending→update flow with Undo action
+
+Developer notes & common pitfalls
+--------------------------------
+- Respect RLS policies if using Supabase: users should not be able to read others’ notifications.
+- Keep the in-memory pubsub only for demo/testing; do not use in production.
+- Rate-limiting must be enforced server-side to avoid notification storms.
+- For production push notifications, integration with a push provider (Firebase / OneSignal) requires careful opt-in & privacy handling. Keep FEATURE_PUSH behind a flag.
+- When batching, ensure important notifications (security, account changes) bypass batching and are immediate.
+- Ensure worker idempotency for retries (e.g., use job IDs).
+- Avoid sending toast telemetry that contains PII.
+
+Estimated effort
+----------------
+- UI & hook + Storybook: 6–8 hours
+- API routes + Zod validation: 4–6 hours
+- Worker + batching + mock adapters: 6–8 hours
+- Tests & E2E: 6–8 hours
+- Docs & demo work: 2–3 hours
+- Total: ~24–33 hours (single senior dev)
+
+End of task.
