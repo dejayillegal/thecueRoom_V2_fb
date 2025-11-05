@@ -10,30 +10,13 @@ export async function GET() {
   try {
     const db = getDbClient();
 
-    const playlists = await db
-      .select({
-        id: adminPlaylists.id,
-        title: adminPlaylists.title,
-        description: adminPlaylists.description,
-        platform: adminPlaylists.platform,
-        platformId: adminPlaylists.platformId,
-        embedUrl: adminPlaylists.embedUrl,
-        coverImage: adminPlaylists.coverImage,
-        status: adminPlaylists.status,
-        publishedAt: adminPlaylists.publishedAt,
-        monthOf: adminPlaylists.monthOf,
-        trackCount: adminPlaylists.trackCount,
-        metadata: adminPlaylists.metadata,
-        curatorId: adminPlaylists.curatorId,
-        displayName: users.displayName,
-        username: users.username,
-      })
+    const liveEntries = await db
+      .select()
       .from(adminPlaylists)
-      .leftJoin(users, eq(adminPlaylists.curatorId, users.id))
       .where(eq(adminPlaylists.status, 'live'))
       .orderBy(desc(adminPlaylists.publishedAt));
 
-    if (!playlists || playlists.length === 0) {
+    if (!liveEntries || liveEntries.length === 0) {
       console.log('No live playlists found in database');
       return NextResponse.json(
         { ok: false, error: 'No live playlists found' },
@@ -41,27 +24,28 @@ export async function GET() {
       );
     }
 
-    const safePlaylists = playlists.map((playlist) => {
-      // Determine curator name safely
-      let curatorName = 'thecueRoom';
-      if (playlist.displayName) {
-        curatorName = playlist.displayName;
-      } else if (playlist.username) {
-        curatorName = playlist.username;
+    // Group by platform - ensure platformGroups is always an object
+    const platformGroups: Record<string, any> = {};
+    for (const entry of liveEntries) {
+      const platform = entry.platform || 'unknown';
+      if (!platformGroups[platform] || new Date(entry.publishedAt || 0) > new Date(platformGroups[platform].publishedAt || 0)) {
+        platformGroups[platform] = entry;
       }
+    }
 
-      // Extract track count from metadata if not directly available
-      let trackCount = playlist.trackCount || 0;
-      if (!trackCount && playlist.metadata) {
-        try {
-          const metadata = typeof playlist.metadata === 'string'
-            ? JSON.parse(playlist.metadata)
-            : playlist.metadata;
-          trackCount = metadata?.trackCount || metadata?.tracks?.length || 0;
-        } catch (e) {
-          console.error('Error parsing metadata for playlist', playlist.id, e);
-        }
-      }
+    // Safety check before Object.entries
+    if (!platformGroups || typeof platformGroups !== 'object') {
+      console.error('platformGroups is not a valid object:', platformGroups);
+      return NextResponse.json(
+        { ok: false, error: 'Failed to process playlists' },
+        { status: 500 }
+      );
+    }
+
+    const playlists = Object.entries(platformGroups).map(([platform, playlist]) => {
+      // Get curator information
+      let curatorName = 'thecueRoom';
+      const curatorId = playlist.curatorId;
 
       return {
         id: playlist.id,
@@ -74,14 +58,14 @@ export async function GET() {
         status: playlist.status,
         publishedAt: playlist.publishedAt || undefined,
         monthOf: playlist.monthOf || undefined,
-        trackCount,
+        trackCount: playlist.trackCount || 0,
         curatorName,
       };
     });
 
     return NextResponse.json({
       ok: true,
-      playlists: safePlaylists,
+      playlists,
     });
   } catch (error) {
     console.error('Fetch latest playlists error:', error);

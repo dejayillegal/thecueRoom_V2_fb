@@ -192,6 +192,37 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Fetch metadata based on platform
+    let title = metadata.title || 'Untitled Playlist';
+    let trackCount = metadata.trackCount || 0;
+    let coverImage = metadata.coverImage;
+
+    if (platform === 'spotify' && platformId) {
+      try {
+        const metadataRes = await fetch(`/api/player/spotify/metadata?id=${platformId}`);
+        if (metadataRes.ok) {
+          const metadata = await metadataRes.json();
+          title = metadata.title || title;
+          trackCount = metadata.trackCount || trackCount;
+          coverImage = metadata.coverImage || coverImage;
+        }
+      } catch (err) {
+        console.warn('Failed to fetch Spotify metadata:', err);
+      }
+    } else if (platform === 'soundcloud' && embedUrl) {
+      try {
+        const metadataRes = await fetch(`/api/player/metadata?url=${encodeURIComponent(embedUrl)}&platform=soundcloud`);
+        if (metadataRes.ok) {
+          const metadata = await metadataRes.json();
+          title = metadata.title || title;
+          trackCount = metadata.trackCount || trackCount;
+          coverImage = metadata.artwork_url || coverImage;
+        }
+      } catch (err) {
+        console.warn('Failed to fetch SoundCloud metadata:', err);
+      }
+    }
+
     // Return the consolidated metadata
     return NextResponse.json({
       ok: true,
@@ -199,7 +230,12 @@ export async function POST(request: NextRequest) {
       platform,
       platformId,
       embedUrl,
-      metadata,
+      metadata: {
+        ...metadata, // Include existing metadata
+        title,
+        trackCount,
+        coverImage,
+      },
     });
   } catch (error) {
     console.error('Error validating playlist:', error);
