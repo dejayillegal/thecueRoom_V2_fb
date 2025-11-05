@@ -1,0 +1,64 @@
+✓ Compiled /api/admin/monthly-playlists/[id] in 769ms (1324 modules)
+Error: Route "/api/admin/monthly-playlists/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at DELETE (app/api/admin/monthly-playlists/[id]/route.ts:60:13)
+  58 |     }
+  59 |
+> 60 |     const { id } = params;
+     |             ^
+  61 |     const db = getDbClient();
+  62 |
+  63 |     await db.delete(adminPlaylists).where(eq(adminPlaylists.id, id));
+✅ Database client initialized
+ DELETE /api/admin/monthly-playlists/0e52750e-3c95-4fdf-bb70-0bbe4666944f 200 in 2150ms
+ GET /api/admin/monthly-playlists/list? 200 in 106ms
+Error: Route "/api/admin/monthly-playlists/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at DELETE (app/api/admin/monthly-playlists/[id]/route.ts:60:13)
+  58 |     }
+  59 |
+> 60 |     const { id } = params;
+     |             ^
+  61 |     const db = getDbClient();
+  62 |
+  63 |     await db.delete(adminPlaylists).where(eq(adminPlaylists.id, id));
+ DELETE /api/admin/monthly-playlists/e21eb80c-d481-4016-aae0-10f20ec2f02b 200 in 514ms
+ GET /api/admin/monthly-playlists/list? 200 in 195ms
+Error: Route "/api/admin/monthly-playlists/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PATCH (app/api/admin/monthly-playlists/[id]/route.ts:19:13)
+  17 |     }
+  18 |
+> 19 |     const { id } = params;
+     |             ^
+  20 |     const body = await request.json();
+  21 |     const { title, description, monthOf } = body;
+  22 |
+ PATCH /api/admin/monthly-playlists/5d0e6880-dfc8-40a3-b041-41ce2a407d04 200 in 409ms
+ GET /api/admin/monthly-playlists/list? 200 in 183ms
+Error: Route "/api/admin/monthly-playlists/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at DELETE (app/api/admin/monthly-playlists/[id]/route.ts:60:13)
+  58 |     }
+  59 |
+> 60 |     const { id } = params;
+     |             ^
+  61 |     const db = getDbClient();
+  62 |
+  63 |     await db.delete(adminPlaylists).where(eq(adminPlaylists.id, id));
+ DELETE /api/admin/monthly-playlists/5d0e6880-dfc8-40a3-b041-41ce2a407d04 200 in 459ms
+ GET /api/admin/monthly-playlists/list? 200 in 150ms
+ ○ Compiling /api/admin/monthly-playlists/validate ...
+ ✓ Compiled /api/admin/monthly-playlists/validate in 659ms (1326 modules)
+ POST /api/admin/monthly-playlists/validate 200 in 1076ms
+ ○ Compiling /api/admin/monthly-playlists/create ...
+ ✓ Compiled /api/admin/monthly-playlists/create in 815ms (1328 modules)
+✅ Database client initialized
+ POST /api/admin/monthly-playlists/create 200 in 1056ms
+ GET /api/admin/monthly-playlists/list? 200 in 72ms
+ GET /api/admin/monthly-playlists/list?status=draft 200 in 157ms
+ GET /api/admin/monthly-playlists/auto-status 401 in 156ms
+ GET /api/admin/monthly-playlists/list?status=queued 200 in 138ms
+ GET /api/admin/monthly-playlists/auto-status 401 in 102ms
+ GET /api/admin/monthly-playlists/auto-status 401 in 129ms
+ GET /api/admin/monthly-playlists/list?status=scheduled 200 in 137ms
+ GET /api/admin/monthly-playlists/auto-status 401 in 137ms
+ GET /api/admin/monthly-playlists/list?status=live 200 in 148ms
+ GET /api/admin/monthly-playlists/auto-status 401 in 85ms
+ GET /api/admin/monthly-playlists/list?status=archived 200 in 181ms
