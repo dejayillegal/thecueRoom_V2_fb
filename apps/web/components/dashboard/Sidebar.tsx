@@ -41,14 +41,14 @@ const getNavItemsForRole = (role: string) => {
     { href: '/ai/meme-studio', label: 'AI Meme', icon: MessageSquare },
     { href: '/ai/epk-generator', label: 'AI EPK', icon: FileText },
     { href: '/community/forum', label: 'Community Forum', icon: Users },
-    { href: '/music/weekly', label: 'Monthly Music', icon: Music },
+    { href: '/music/weekly', label: 'Curated Music', icon: Music },
   ];
 
   if (role === 'admin') {
     return [...commonItems, ...artistItems,
       { href: '/admin/events', label: 'Review Events', icon: CheckCircle2 },
       { href: '/admin/sources', label: 'Manage Sources', icon: Settings },
-      { href: '/dashboard/admin/playlists', label: 'Playlist Config', icon: Music }
+      { href: '/admin/monthly-playlists', label: 'Playlist Config', icon: Music }
     ];
   }
 

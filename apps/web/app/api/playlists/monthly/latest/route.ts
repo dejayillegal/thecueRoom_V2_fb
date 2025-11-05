@@ -6,7 +6,7 @@ import { eq, desc } from 'drizzle-orm';
 export async function GET() {
   try {
     const db = await getDbClient();
-    
+
     const [latestPlaylist] = await db
       .select({
         id: adminPlaylists.id,
@@ -25,7 +25,7 @@ export async function GET() {
       })
       .from(adminPlaylists)
       .where(eq(adminPlaylists.status, 'live'))
-      .orderBy(desc(adminPlaylists.publishedAt))
+      .orderBy(desc(adminPlaylists.monthOf || adminPlaylists.publishedAt))
       .limit(1);
 
     if (!latestPlaylist) {
@@ -43,7 +43,7 @@ export async function GET() {
         .from(users)
         .where(eq(users.id, latestPlaylist.curatorId))
         .limit(1);
-      
+
       if (curator) {
         curatorName = curator.username || curator.email.split('@')[0];
       }

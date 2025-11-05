@@ -1,7 +1,15 @@
+
 'use client';
 
-import { redirect } from 'next/navigation';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AdminPlaylistsPage() {
-  redirect('/admin/monthly-playlists');
+  const router = useRouter();
+  
+  useEffect(() => {
+    router.replace('/admin/monthly-playlists');
+  }, [router]);
+
+  return null;
 }

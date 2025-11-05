@@ -250,8 +250,8 @@ export function MonthlyPlaylistConfigPanel() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      <div>
+    <div className="max-w-[1400px] mx-auto px-6 py-6 space-y-6">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-white mb-2">Monthly Playlist Management</h1>
         <p className="text-neutral-400">Configure and manage monthly curated music playlists</p>
       </div>

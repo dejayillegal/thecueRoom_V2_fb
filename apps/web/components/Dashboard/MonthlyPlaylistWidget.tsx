@@ -84,7 +84,12 @@ export function MonthlyPlaylistWidget({ userRole, onSuggestTrack }: MonthlyPlayl
         month: 'long',
         year: 'numeric',
       })
-    : null;
+    : playlist.publishedAt 
+    ? new Date(playlist.publishedAt).toLocaleDateString('en-US', {
+        month: 'long',
+        year: 'numeric',
+      })
+    : 'Current Month';
 
   return (
     <div className="bg-neutral-900 rounded-lg p-6">
