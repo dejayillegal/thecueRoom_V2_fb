@@ -1,0 +1,17 @@
+{
+  "name": "@thecueroom/server",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "main": "index.ts",
+  "dependencies": {
+    "@thecueroom/db": "workspace:*",
+    "@thecueroom/shared": "workspace:*",
+    "drizzle-orm": "^0.36.4",
+    "lru-cache": "^10.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.23",
+    "typescript": "^5.7.3"
+  }
+}
