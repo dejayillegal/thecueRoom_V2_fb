@@ -1,0 +1,174 @@
+Title: Admin Playlist Config UI — configure Spotify playlist links & manage Weekly Curated Music
+
+Summary
+-------
+Add an Admin configuration interface that allows administrators (or curators) to:
+- Provide and update one or more Spotify playlist links used as the authoritative "Weekly Curated Music".
+- Preview and validate submitted playlist links (existence, platform, metadata).
+- Optionally schedule a playlist to become the live Weekly Curated Music at a chosen publish time.
+- Trigger an immediate update (publish now) that replaces the live playlist shown in dashboards.
+- See audit history and previous playlists, and rollback to a previous playlist.
+- Optionally toggle automatic AI curation on/off for the next cycle (with manual override).
+
+This task covers UI, API routes, DB changes, validation, and tests. Keep UI consistent with dashboard styling, tokens, and components.
+
+Files / locations to update or add
+---------------------------------
+UI:
+- apps/web/src/components/Admin/PlaylistConfig/PlaylistConfigPanel.tsx
+- apps/web/src/components/Admin/PlaylistConfig/PlaylistPreviewCard.tsx
+- apps/web/src/components/Admin/PlaylistConfig/PlaylistHistoryList.tsx
+- apps/web/src/components/Admin/PlaylistConfig/PlaylistScheduler.tsx
+- apps/web/.storybook/stories/AdminPlaylistConfig.stories.tsx
+
+API routes (Next App Router):
+- apps/web/app/api/admin/playlists/list/route.ts           // list admin playlists & history
+- apps/web/app/api/admin/playlists/create/route.ts         // create new playlist entry (draft)
+- apps/web/app/api/admin/playlists/validate/route.ts       // validate a Spotify link and fetch metadata
+- apps/web/app/api/admin/playlists/publish/route.ts        // publish now or schedule publish
+- apps/web/app/api/admin/playlists/rollback/route.ts       // rollback to previous playlist
+- apps/web/app/api/admin/playlists/toggle-auto/route.ts    // enable/disable AI auto-curation
+
+DB & migrations:
+- migrations/20251108_admin_playlists.sql
+  - `admin_playlists` table:
+    - id (pk), title, description, platform (spotify), platform_id (playlist id), embed_url, cover_image, curator_id, status (draft|queued|live|archived), auto_curated boolean, scheduled_at timestamptz nullable, published_at timestamptz nullable, created_at, updated_at
+  - `admin_playlists_history` table (versioning / rollback): id, admin_playlist_id, snapshot jsonb, created_at, created_by
+  - Indexes: platform_id, status, scheduled_at
+
+Shared Zod schemas & types:
+- packages/shared/adminPlaylistSchemas.ts
+  - validateCreatePlaylistSchema
+  - validatePublishSchema
+  - playlistPreviewSchema
+
+Worker / Scheduler considerations:
+- If scheduling is supported, use the existing worker/scheduler infrastructure or document the required scheduler cron/queue job that publishes scheduled playlists (packages/server/playlistScheduler.ts).
+
+Env & feature flags:
+- FEATURE_ADMIN_PLAYLISTS=true
+- If validating via Spotify API server-side for metadata, require:
+  - SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET (for client_credentials flow used by validate route)
+- Optional: NOTIFICATION_ON_PUBLISH=true to notify users/admins on publish
+
+High-level UX & behavior
+------------------------
+1. Admin access
+   - Only users with admin/curator role may access this panel (server-side guard required).
+   - Add route /admin/playlists or link the panel into existing Admin Dashboard.
+
+2. Create/Provide Playlist link
+   - Admin enters a Spotify playlist URL (or paste multiple links).
+   - On submit, client calls POST /api/admin/playlists/validate with the URL.
+     - Server validates format, extracts playlist id, calls Spotify API (Client Credentials) to fetch metadata (title, description, cover image, track_count).
+     - Returns metadata or an error (invalid link, rate-limited, not found).
+   - Client shows PlaylistPreviewCard with metadata and an option:
+     - Save as Draft OR Save & Publish Now OR Schedule Publish.
+
+3. Publish & scheduling
+   - Publish Now:
+     - POST /api/admin/playlists/publish with { playlist_id, publish: true }.
+     - Server sets previous live playlist status -> archived and sets selected playlist status -> live and published_at = now.
+     - Update the dashboard "Latest Playlist" widget to reference the new live playlist.
+     - If NOTIFICATION_ON_PUBLISH true, send notifications to Admins (and optionally followers) and create a system toast for the admin: "Playlist published — Weekly Curated Music updated".
+   - Schedule Publish:
+     - Admin can set scheduled_at. Scheduler worker will pick up and publish when time arrives. The entry status = queued and scheduled_at set.
+   - Rollback:
+     - Admin can view PlaylistHistoryList, select previous snapshot, and call rollback route to restore that snapshot as live (creates a new history snapshot for current live before rollback).
+
+4. Auto-curation toggle
+   - Admin may enable/disable auto AI curation for the next cycle using POST /api/admin/playlists/toggle-auto.
+     - If toggled off, the system must not overwrite the manual playlist on the next automation run.
+     - If toggled on, AI curation worker will proceed to generate a draft weekly playlist (as earlier spec).
+
+5. Audit & history
+   - Every change (create, publish, rollback) should store a snapshot in admin_playlists_history including who did the action and timestamp for audit.
+   - PlaylistHistoryList UI shows recent published playlists and allows Preview/Restore.
+
+Validation & server-side checks
+-------------------------------
+- Validate Spotify URL pattern: `https://open.spotify.com/playlist/{playlistId}` and accept common variants (with query params).
+- On validate route:
+  - Extract playlistId reliably.
+  - Fetch metadata with Spotify Web API (client credentials).
+  - Confirm track_count > 0 and playlist is not private/unavailable.
+  - Return clear errors (invalid URL, playlist not found, API rate-limited).
+- Guard publish/rollback/publish-scheduled routes with admin permission checks.
+- Ensure DB operations are transactional when switching live playlist (archive previous -> mark new live -> insert history snapshot).
+
+API contracts (examples)
+------------------------
+- POST /api/admin/playlists/validate
+  - body: { url: string }
+  - response: { ok: true, metadata: { title, description, cover_image, track_count, platform_id, embed_url } } or { ok:false, error: '...' }
+
+- POST /api/admin/playlists/create
+  - body: { metadata, auto_curated?: boolean, scheduled_at?: timestamp }
+  - response: { ok:true, playlist: {...} }
+
+- POST /api/admin/playlists/publish
+  - body: { admin_playlist_id, publish_now: boolean } (if publish_now true -> perform immediate publish)
+  - response: { ok:true, live_playlist: {...} }
+
+- POST /api/admin/playlists/rollback
+  - body: { history_id }
+  - response: { ok:true, live_playlist: {...} }
+
+Acceptance criteria
+-------------------
+- [ ] Admin panel accessible only by admin/curator role.
+- [ ] Admin can paste a Spotify playlist URL and the server validates the link and fetches metadata.
+- [ ] Admin can Save as Draft, Publish Now, or Schedule for future publish.
+- [ ] Publishing replaces previous live playlist atomically and updates Dashboard LatestPlaylistWidget to display the new embed.
+- [ ] Scheduled playlists are published by the scheduler worker at scheduled time.
+- [ ] Audit history exists with snapshots and rollback works to restore a prior playlist as live.
+- [ ] Auto-curation toggle prevents automatic worker overwrite when disabled.
+- [ ] All routes validate inputs with Zod and enforce permission checks.
+- [ ] Unit tests cover validation logic and publish/rollback flows.
+- [ ] E2E tests simulate admin validation -> publish -> dashboard update.
+- [ ] Storybook story(s) for PlaylistConfigPanel and PlaylistPreviewCard.
+
+Testing checklist (manual)
+--------------------------
+1. As Admin:
+   - Open Admin Playlist Config.
+   - Paste `https://open.spotify.com/playlist/33TpZTRBetxMqTWC7UQEHy`.
+   - Click Validate — metadata populates preview.
+   - Click Publish Now — confirm success toast and Dashboard LatestPlaylistWidget shows new embed.
+2. Schedule:
+   - Create playlist and schedule publish 2 minutes ahead — ensure scheduler publishes at correct time.
+3. Rollback:
+   - Publish 2 playlists; choose the older one in history and click Rollback — confirm Dashboard updates to older playlist.
+4. Auto-curation toggle:
+   - Disable auto-curation and run the AI curation worker manually — confirm it does not overwrite live playlist.
+5. Error cases:
+   - Provide invalid URL — API returns friendly validation error and UI shows inline message.
+   - Provide private or non-existing playlist — API returns clear error.
+
+Developer notes & common pitfalls
+-------------------------------
+- Spotify API rate-limits: cache metadata results for short period (e.g., 5–15 minutes) and handle 429 with exponential backoff.
+- Client Credentials tokens expire—implement a refresh/token request helper on server-side validate endpoint.
+- When publishing, ensure DB transactionality to avoid state where no playlist is live.
+- Make sure dashboards that read live playlist use a single source-of-truth (admin_playlists table where status='live') to avoid cache inconsistency.
+- If embedding fails (user blocks iframes), ensure the Dashboard widget renders a native fallback track list (based on playlist items stored previously).
+- Use existing design tokens/components for buttons, modals, cards and match admin dashboard look.
+
+Estimated effort
+----------------
+- API + DB migration + server validation: 4–6 hours
+- Admin UI + preview + Storybook: 4–6 hours
+- Scheduler worker hookup + tests: 3–6 hours
+- Tests & QA (unit + E2E): 3–5 hours
+- Total: ~14–23 hours (1 senior dev)
+
+Deliverables
+------------
+- Implemented Admin Playlist Config feature at `/admin/playlists` or integrated Admin Dashboard.
+- Migration SQL file and Drizzle schema updates.
+- API routes (validate/create/publish/rollback/toggle-auto).
+- Scheduler/worker hookup for scheduled publishes.
+- Tests (unit + E2E) and Storybook stories.
+- Documentation update in docs/IMPLEMENTATION_NOTES.md (how to configure Spotify client credentials, how to test publish/schedule flows).
+
+End of task.
