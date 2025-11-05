@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
 import { getSession } from '@/lib/auth';
 import { isAdmin } from '@/lib/rbac';
-import { CreatePlaylistInputSchema } from '@thecueroom/shared/monthlyPlaylistSchemas'; // Assuming this is the correct schema name based on changes
+import { CreateMonthlyPlaylistInputSchema } from '@thecueroom/shared/monthlyPlaylistSchemas';
 import { adminPlaylists } from '@thecueroom/db/schema';
 
 export async function POST(request: NextRequest) {
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const validatedInput = CreatePlaylistInputSchema.safeParse(body);
+    const validatedInput = CreateMonthlyPlaylistInputSchema.safeParse(body);
 
     if (!validatedInput.success) {
       console.error('Validation errors:', validatedInput.error.issues);
