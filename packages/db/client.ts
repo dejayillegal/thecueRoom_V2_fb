@@ -25,16 +25,21 @@ export function getDbClient() {
     }
 
     // Use connection pooling URL for Neon (Replit PostgreSQL)
+    // Neon format: postgresql://user:pass@ep-name-123456.us-east-2.aws.neon.tech/dbname
+    // Pooler format: postgresql://user:pass@ep-name-123456-pooler.us-east-2.aws.neon.tech/dbname
     const poolUrl = connectionString.includes('.us-east-2.aws.neon.tech')
-      ? connectionString.replace('.us-east-2', '-pooler.us-east-2')
+      ? connectionString.replace(/\.us-east-2\.aws\.neon\.tech/g, '-pooler.us-east-2.aws.neon.tech')
       : connectionString;
 
+    // Neon requires SSL
+    const isNeon = poolUrl.includes('neon.tech');
+    
     pool = new Pool({
       connectionString: poolUrl,
       max: 10,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
-      ssl: poolUrl.includes('neon.tech') ? { rejectUnauthorized: false } : undefined,
+      ssl: isNeon ? { rejectUnauthorized: false } : false,
     });
 
     db = drizzle(pool, { schema });
