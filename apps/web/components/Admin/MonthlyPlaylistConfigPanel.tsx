@@ -19,6 +19,9 @@ export function MonthlyPlaylistConfigPanel() {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedPlatform, setSelectedPlatform] = useState<string>('all');
   const [autoCurationEnabled, setAutoCurationEnabled] = useState(false);
+  const [editingPlaylist, setEditingPlaylist] = useState<MonthlyPlaylist | null>(null);
+  const [schedulingPlaylist, setSchedulingPlaylist] = useState<MonthlyPlaylist | null>(null);
+  const [scheduleDate, setScheduleDate] = useState<string>('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -133,7 +136,7 @@ export function MonthlyPlaylistConfigPanel() {
       const res = await fetch('/api/admin/monthly-playlists/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ id, archivePrevious: true }),
       });
 
       const data = await res.json();
@@ -159,6 +162,64 @@ export function MonthlyPlaylistConfigPanel() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const schedulePlaylist = async (id: string, scheduledAt: Date) => {
+    try {
+      const res = await fetch('/api/admin/monthly-playlists/schedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, scheduledAt: scheduledAt.toISOString() }),
+      });
+
+      const data = await res.json();
+
+      if (data.ok) {
+        toast({
+          title: 'Playlist scheduled',
+          description: `Will publish on ${scheduledAt.toLocaleDateString()}`,
+        });
+        loadPlaylists();
+      } else {
+        toast({
+          title: 'Schedule failed',
+          description: data.error,
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to schedule playlist',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const deletePlaylist = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this playlist?')) return;
+
+    try {
+      const res = await fetch(`/api/admin/monthly-playlists/${id}`, {
+        method: 'DELETE',
+      });
+
+      const data = await res.json();
+
+      if (data.ok) {
+        toast({
+          title: 'Playlist deleted',
+          description: 'Successfully removed',
+        });
+        loadPlaylists();
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete playlist',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -324,19 +385,48 @@ export function MonthlyPlaylistConfigPanel() {
 
                 <div className="flex items-center gap-2">
                   {playlist.status === 'draft' && (
-                    <Button
-                      size="sm"
-                      onClick={() => publishPlaylist(playlist.id)}
-                      className="bg-lime-500 hover:bg-lime-600 text-black"
-                    >
-                      Publish
-                    </Button>
+                    <>
+                      <Button
+                        size="sm"
+                        onClick={() => publishPlaylist(playlist.id)}
+                        className="bg-lime-500 hover:bg-lime-600 text-black"
+                      >
+                        Publish
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setSchedulingPlaylist(playlist);
+                          setScheduleDate('');
+                        }}
+                        className="border-neutral-700"
+                      >
+                        <Calendar size={14} className="mr-1" />
+                        Schedule
+                      </Button>
+                    </>
                   )}
-                  <Button size="sm" variant="outline" className="border-neutral-700">
-                    <Eye size={14} />
-                  </Button>
-                  <Button size="sm" variant="outline" className="border-neutral-700">
+                  {playlist.status === 'scheduled' && (
+                    <span className="text-xs text-neutral-400">
+                      {new Date(playlist.scheduledAt!).toLocaleString()}
+                    </span>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setEditingPlaylist(playlist)}
+                    className="border-neutral-700"
+                  >
                     <Edit size={14} />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => deletePlaylist(playlist.id)}
+                    className="border-neutral-700 text-red-500"
+                  >
+                    <Trash2 size={14} />
                   </Button>
                 </div>
               </div>
@@ -344,6 +434,138 @@ export function MonthlyPlaylistConfigPanel() {
           </div>
         )}
       </Card>
+
+      {/* Schedule Modal */}
+      {schedulingPlaylist && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="bg-neutral-900 border-neutral-800 p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-semibold text-white mb-4">Schedule Playlist</h3>
+            <p className="text-neutral-400 mb-4">
+              Choose when to automatically publish "{schedulingPlaylist.title}"
+            </p>
+            <div className="space-y-4">
+              <div>
+                <Label className="text-neutral-300 mb-2">Publish Date & Time</Label>
+                <Input
+                  type="datetime-local"
+                  value={scheduleDate}
+                  onChange={(e) => setScheduleDate(e.target.value)}
+                  className="bg-neutral-800 border-neutral-700 text-white"
+                  min={new Date().toISOString().slice(0, 16)}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => {
+                    if (scheduleDate) {
+                      schedulePlaylist(schedulingPlaylist.id, new Date(scheduleDate));
+                      setSchedulingPlaylist(null);
+                    }
+                  }}
+                  disabled={!scheduleDate}
+                  className="bg-lime-500 hover:bg-lime-600 text-black flex-1"
+                >
+                  Schedule
+                </Button>
+                <Button
+                  onClick={() => setSchedulingPlaylist(null)}
+                  variant="outline"
+                  className="border-neutral-700 flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editingPlaylist && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
+          <Card className="bg-neutral-900 border-neutral-800 p-6 max-w-2xl w-full mx-4 my-8">
+            <h3 className="text-xl font-semibold text-white mb-4">Edit Playlist</h3>
+            <div className="space-y-4">
+              <div>
+                <Label className="text-neutral-300 mb-2">Title</Label>
+                <Input
+                  value={editingPlaylist.title}
+                  onChange={(e) =>
+                    setEditingPlaylist({ ...editingPlaylist, title: e.target.value })
+                  }
+                  className="bg-neutral-800 border-neutral-700 text-white"
+                />
+              </div>
+              <div>
+                <Label className="text-neutral-300 mb-2">Description</Label>
+                <Input
+                  value={editingPlaylist.description || ''}
+                  onChange={(e) =>
+                    setEditingPlaylist({ ...editingPlaylist, description: e.target.value })
+                  }
+                  className="bg-neutral-800 border-neutral-700 text-white"
+                />
+              </div>
+              <div>
+                <Label className="text-neutral-300 mb-2">Month</Label>
+                <Input
+                  type="month"
+                  value={new Date(editingPlaylist.monthOf).toISOString().slice(0, 7)}
+                  onChange={(e) =>
+                    setEditingPlaylist({
+                      ...editingPlaylist,
+                      monthOf: new Date(e.target.value + '-01').toISOString(),
+                    })
+                  }
+                  className="bg-neutral-800 border-neutral-700 text-white"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={async () => {
+                    try {
+                      const res = await fetch(`/api/admin/monthly-playlists/${editingPlaylist.id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          title: editingPlaylist.title,
+                          description: editingPlaylist.description,
+                          monthOf: editingPlaylist.monthOf,
+                        }),
+                      });
+
+                      if (res.ok) {
+                        toast({
+                          title: 'Playlist updated',
+                          description: 'Changes saved successfully',
+                        });
+                        setEditingPlaylist(null);
+                        loadPlaylists();
+                      }
+                    } catch (error) {
+                      toast({
+                        title: 'Error',
+                        description: 'Failed to update playlist',
+                        variant: 'destructive',
+                      });
+                    }
+                  }}
+                  className="bg-lime-500 hover:bg-lime-600 text-black flex-1"
+                >
+                  Save Changes
+                </Button>
+                <Button
+                  onClick={() => setEditingPlaylist(null)}
+                  variant="outline"
+                  className="border-neutral-700 flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
