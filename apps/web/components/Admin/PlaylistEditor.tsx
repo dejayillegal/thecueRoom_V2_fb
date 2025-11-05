@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -165,20 +164,17 @@ export function PlaylistEditor({ playlistId, onSave, onCancel }: PlaylistEditorP
 
     setSaving(true);
     try {
-      const res = await fetch('/api/playlists/admin/approve', {
+      const response = await fetch('/api/playlists/admin/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: playlist.id,
-          publish: true,
-        }),
+        body: JSON.stringify({ id: playlist.id, table: 'adminPlaylists' }),
       });
 
-      if (res.ok) {
+      if (response.ok) {
         alert('Playlist published successfully!');
         loadPlaylist(playlist.id);
       } else {
-        const error = await res.json();
+        const error = await response.json();
         alert(`Failed to publish: ${error.error}`);
       }
     } catch (error) {

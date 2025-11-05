@@ -66,9 +66,13 @@ export async function POST(request: NextRequest) {
           updateData.status = 'queued';
         }
 
+        const now = new Date();
         await tx
           .update(playlists)
-          .set(updateData)
+          .set({
+            status: 'live',
+            curatedAt: now,
+          })
           .where(eq(playlists.id, data.id));
       } else {
         await tx

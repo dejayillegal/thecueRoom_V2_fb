@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
 import { adminPlaylists, users } from '@thecueroom/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, desc, and, isNotNull } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -27,7 +27,12 @@ export async function GET() {
       })
       .from(adminPlaylists)
       .leftJoin(users, eq(adminPlaylists.curatorId, users.id))
-      .where(eq(adminPlaylists.status, 'live'))
+      .where(
+        and(
+          eq(adminPlaylists.status, 'live'),
+          isNotNull(adminPlaylists.publishedAt)
+        )
+      )
       .orderBy(desc(adminPlaylists.publishedAt))
       .limit(1);
 
