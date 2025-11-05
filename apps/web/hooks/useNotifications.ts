@@ -12,7 +12,7 @@ export interface Notification {
   createdAt: string;
 }
 
-export function useNotifications(userId?: string) {
+export function useNotifications(userId?: string, filter: string = 'all') {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -24,7 +24,7 @@ export function useNotifications(userId?: string) {
     }
 
     try {
-      const response = await fetch('/api/notifications');
+      const response = await fetch(`/api/notifications/list?filter=${filter}`);
       if (response.ok) {
         const data = await response.json();
         setNotifications(data.notifications || []);
@@ -35,7 +35,7 @@ export function useNotifications(userId?: string) {
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, filter]);
 
   const markAsRead = useCallback(async (notificationId: string) => {
     try {

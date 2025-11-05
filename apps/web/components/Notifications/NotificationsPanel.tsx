@@ -4,12 +4,13 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Bell, CheckCircle2, AlertCircle, Clock, X, Info } from 'lucide-react';
+import { Bell, CheckCircle2, AlertCircle, Clock, X, Info, Filter } from 'lucide-react';
 import { useToast } from '@/../../src/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
 
 export function NotificationsPanel({ userId }: { userId?: string }) {
   const [open, setOpen] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'unread' | 'verification' | 'promo'>('all');
   const { toast } = useToast();
   const {
     notifications,
@@ -17,9 +18,7 @@ export function NotificationsPanel({ userId }: { userId?: string }) {
     loading,
     markAsRead,
     markAllAsRead,
-  } = useNotifications(userId);
-
-  const unreadCount = notifications.filter(n => !n.read).length;
+  } = useNotifications(userId, filter);
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -57,25 +56,42 @@ export function NotificationsPanel({ userId }: { userId?: string }) {
       {/* Dropdown Panel */}
       {open && (
         <Card className="absolute right-0 top-12 w-96 max-h-[500px] overflow-y-auto bg-[#0f0f0f] border-[#1a1a1a] shadow-xl z-50">
-          <div className="p-4 border-b border-[#1a1a1a] flex items-center justify-between">
-            <h3 className="text-white font-semibold">Notifications</h3>
-            <div className="flex items-center gap-2">
-              {unreadCount > 0 && (
-                <Button
-                  onClick={markAllAsRead}
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs text-gray-400 hover:text-white"
+          <div className="p-4 border-b border-[#1a1a1a]">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-white font-semibold">Notifications</h3>
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <Button
+                    onClick={markAllAsRead}
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-gray-400 hover:text-white"
+                  >
+                    Mark all read
+                  </Button>
+                )}
+                <button
+                  onClick={() => setOpen(false)}
+                  className="text-gray-400 hover:text-white"
                 >
-                  Mark all read
-                </Button>
-              )}
-              <button
-                onClick={() => setOpen(false)}
-                className="text-gray-400 hover:text-white"
-              >
-                <X className="w-4 h-4" />
-              </button>
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              {(['all', 'unread', 'verification', 'promo'] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                    filter === f
+                      ? 'bg-[#D1FF3D] text-black'
+                      : 'bg-[#1a1a1a] text-gray-400 hover:bg-[#2a2a2a]'
+                  }`}
+                >
+                  {f.charAt(0).toUpperCase() + f.slice(1)}
+                </button>
+              ))}
             </div>
           </div>
 

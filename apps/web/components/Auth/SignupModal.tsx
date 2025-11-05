@@ -30,11 +30,11 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
   const [region, setRegion] = useState('');
   const [genre, setGenre] = useState('');
   const [socialLinks, setSocialLinks] = useState<string[]>(['']);
-  
+
   // Auto-generated username
   const [generatedUsernames, setGeneratedUsernames] = useState<string[]>([]);
   const [selectedUsername, setSelectedUsername] = useState('');
-  
+
   // Availability checks
   const [emailStatus, setEmailStatus] = useState<AvailabilityStatus>({
     checking: false,
@@ -44,11 +44,11 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
     checking: false,
     available: null,
   });
-  
+
   // Form state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  
+
   // Verification modal
   const [verificationJobId, setVerificationJobId] = useState<string | null>(null);
   const [showVerification, setShowVerification] = useState(false);
@@ -59,7 +59,7 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
       setEmailStatus({ checking: false, available: null });
       return;
     }
-    
+
     const timer = setTimeout(async () => {
       setEmailStatus({ checking: true, available: null });
       try {
@@ -78,7 +78,7 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
         setEmailStatus({ checking: false, available: null });
       }
     }, 500);
-    
+
     return () => clearTimeout(timer);
   }, [email]);
 
@@ -87,7 +87,7 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
       setArtistNameStatus({ checking: false, available: null });
       return;
     }
-    
+
     const timer = setTimeout(async () => {
       setArtistNameStatus({ checking: true, available: null });
       try {
@@ -106,28 +106,28 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
         setArtistNameStatus({ checking: false, available: null });
       }
     }, 500);
-    
+
     return () => clearTimeout(timer);
   }, [artistName]);
 
   // Generate usernames when artist name changes
   const generateUsernames = useCallback(async () => {
     if (!artistName) return;
-    
+
     const suffixes = ['sub', 'grid', 'void', 'flux', 'prime', 'edge', 'freq', 'rave', 'drift'];
     const normalized = artistName
       .toLowerCase()
       .replace(/[^a-z0-9\s]/g, '')
       .trim()
       .replace(/\s+/g, '.');
-    
+
     const suggestions: string[] = [];
     for (let i = 0; i < 3; i++) {
       const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
       const random = Math.random().toString(36).substring(2, 5);
       suggestions.push(`${normalized}.${suffix}${random}`);
     }
-    
+
     setGeneratedUsernames(suggestions);
     setSelectedUsername(suggestions[0]);
   }, [artistName]);
@@ -159,48 +159,46 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
       setError('All fields marked with * are required');
       return false;
     }
-    
+
     if (password.length < 10) {
       setError('Password must be at least 10 characters');
       return false;
     }
-    
+
     if (!/[0-9!@#$%^&*]/.test(password)) {
       setError('Password must include a number or symbol');
       return false;
     }
-    
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return false;
     }
-    
+
     if (!emailStatus.available) {
       setError('Email is not available');
       return false;
     }
-    
+
     if (!artistNameStatus.available) {
       setError('Artist name is not available');
       return false;
     }
-    
+
     return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
+
     if (!validateForm()) return;
-    
+
     setIsSubmitting(true);
-    
+
     try {
       const validSocialLinks = socialLinks.filter(link => link.trim() !== '');
-      
-      const validSocialLinks = socialLinks.filter(link => link.trim() !== '');
-      
+
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -218,15 +216,15 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
           socialLinks: validSocialLinks,
         }),
       });
-      
+
       const data = await res.json();
-      
+
       if (!data.ok) {
         setError(data.error || 'Signup failed');
         setIsSubmitting(false);
         return;
       }
-      
+
       // Show verification modal
       setVerificationJobId(data.jobId);
       setShowVerification(true);
@@ -257,7 +255,7 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
           <DialogHeader>
             <DialogTitle className="text-2xl text-lime-400">Join thecueRoom</DialogTitle>
           </DialogHeader>
-          
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -270,7 +268,7 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
                   required
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="lastName" className="text-lime-400">Last Name *</Label>
                 <Input
@@ -282,7 +280,7 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
                 />
               </div>
             </div>
-            
+
             <div>
               <Label htmlFor="artistName" className="text-lime-400">Artist Name *</Label>
               <div className="relative">
@@ -301,7 +299,7 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
                 <p className="text-sm text-red-400 mt-1">{artistNameStatus.reason}</p>
               )}
             </div>
-            
+
             {generatedUsernames.length > 0 && (
               <div>
                 <Label className="text-lime-400">Auto-Generated Username</Label>
@@ -330,7 +328,7 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
                 </div>
               </div>
             )}
-            
+
             <div>
               <Label htmlFor="email" className="text-lime-400">Email *</Label>
               <div className="relative">
@@ -350,7 +348,7 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
                 <p className="text-sm text-red-400 mt-1">{emailStatus.reason}</p>
               )}
             </div>
-            
+
             <div>
               <Label htmlFor="password" className="text-lime-400">Password *</Label>
               <Input
@@ -365,7 +363,7 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
                 Min 10 characters, must include a number or symbol
               </p>
             </div>
-            
+
             <div>
               <Label htmlFor="confirmPassword" className="text-lime-400">Confirm Password *</Label>
               <Input
@@ -377,7 +375,7 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
                 required
               />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="region" className="text-lime-400">Region *</Label>
@@ -389,9 +387,14 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
                   className="bg-gray-900 border-gray-700 text-white"
                   placeholder="e.g., London, UK"
                   required
+                  aria-required="true"
+                  aria-describedby="region-hint"
                 />
+                <p id="region-hint" className="text-xs text-gray-400 mt-1">
+                  City and country where you're based
+                </p>
               </div>
-              
+
               <div>
                 <Label htmlFor="genre" className="text-lime-400">Genre *</Label>
                 <Input
@@ -405,7 +408,7 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
                 />
               </div>
             </div>
-            
+
             <div>
               <Label className="text-lime-400">Social Links (Optional, max 5)</Label>
               {socialLinks.map((link, idx) => (
@@ -439,13 +442,13 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
                 </Button>
               )}
             </div>
-            
+
             {error && (
               <div className="bg-red-500/10 border border-red-500/20 rounded p-3 text-red-400 text-sm">
                 {error}
               </div>
             )}
-            
+
             <Button
               type="submit"
               disabled={isSubmitting || !emailStatus.available || !artistNameStatus.available}
@@ -463,7 +466,7 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
           </form>
         </DialogContent>
       </Dialog>
-      
+
       {verificationJobId && (
         <VerificationModal
           open={showVerification}
