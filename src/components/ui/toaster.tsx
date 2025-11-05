@@ -15,10 +15,10 @@ export function Toaster() {
 
   return (
     <ToastProvider>
-      <ToastViewport className="fixed top-4 right-4 z-[100] flex max-h-screen w-full max-w-[420px] flex-col gap-2 p-4" />
+      <ToastViewport className="fixed bottom-4 right-4 z-[100] flex max-h-screen w-auto max-w-[420px] flex-col gap-2" />
       {toasts.map(function ({ id, title, description, action, ...props }) {
         return (
-          <Toast key={id} {...props} className="bg-[#0f0f0f] border-[#1a1a1a] text-white">
+          <Toast key={id} {...props} className="bg-[#0f0f0f] border-[#1a1a1a] text-white min-w-[300px]">
             <div className="grid gap-1">
               {title && <ToastTitle className="text-white">{title}</ToastTitle>}
               {description && (
