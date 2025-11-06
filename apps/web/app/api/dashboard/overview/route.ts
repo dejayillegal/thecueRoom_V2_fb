@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const db = getDbClient();
     const now = new Date();
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    
+
     const [
       usersResult,
       artistsResult,
@@ -86,10 +86,10 @@ export async function GET(request: NextRequest) {
       trendingThreads: trendingThreadsResult.map((thread: any) => ({
         id: thread.id,
         title: thread.title,
-        replies: thread.replyCount,
-        likes: thread.likesCount,
-        category: thread.categoryId || undefined,
-        author: thread.userId || 'anonymous',
+        replies: thread.replies,
+        likes: thread.likes,
+        category: thread.category || undefined,
+        author: thread.author || 'anonymous',
         createdAt: thread.createdAt?.toISOString() || new Date().toISOString(),
       })),
       monthlyPlaylist: currentPlaylistResult[0] ? {
@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(response);
   } catch (error) {
     console.error('[Dashboard API] Error:', error);
-    
+
     if (process.env.FEATURE_DASHBOARD_DEMO === 'true' || process.env.NODE_ENV === 'development') {
       console.log('[Dashboard API] Error occurred, falling back to demo data');
       return NextResponse.json(getDemoData());
