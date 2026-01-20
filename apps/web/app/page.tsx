@@ -1,18 +1,15 @@
 import { Suspense } from 'react';
 import { Logo } from '@/components/Logo';
 import Link from 'next/link';
-<<<<<<< HEAD
 import { AuthButton } from '@/components/auth/AuthButton';
 import SpotlightSection from '@/components/SpotlightSection';
 import NewsSection from '@/components/NewsSection';
-=======
 import Image from 'next/image';
 import { Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AuthModal } from '@/components/auth/SignInModal';
 import { getDbClient } from '@/lib/db-client';
 import { feeds, sources } from '@thecueroom/db/schema';
 import { eq, desc } from 'drizzle-orm';
->>>>>>> 1a0b02e (Fix application build error by correcting module imports)
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 60;
