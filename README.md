@@ -52,14 +52,25 @@ The app will be available at http://localhost:5000
 
 ## 🗄️ Database Providers
 
-### Supabase → Neon (Optional)
+See [docs/PROVIDERS.md](docs/PROVIDERS.md) for details on switching between Supabase and Neon.
 
-thecueRoom V2 supports multiple database providers. By default, it uses Supabase.
+## 🚀 Deployment Matrix (Free Tiers Only)
 
-To switch to Neon:
-1. Set `DB_PROVIDER=neon` in your `.env`.
-2. Provide your Neon `DATABASE_URL`.
-3. The application will automatically switch to the Neon serverless driver.
+| Platform | Database | Cron Service | Notes |
+| :--- | :--- | :--- | :--- |
+| **Local** | Supabase / Neon | System Cron | [Guide](docs/LOCAL_SETUP.md) |
+| **Vercel** | Supabase / Neon | cron-job.org | [Guide](docs/VERCEL_DEPLOY.md) |
+| **Railway** | Supabase / Neon | Built-in | [Guide](docs/RAILWAY_DEPLOY.md) |
+| **Fly.io** | Supabase / Neon | Fly Cron | [Guide](docs/FLY_DEPLOY.md) |
+| **VPS** | Supabase / Neon | Systemd / PM2 | [Guide](docs/VPS_DEPLOY.md) |
+
+## 🛡️ Production Security Checklist
+
+- [ ] Change `ADMIN_PASSWORD` from default.
+- [ ] Set a strong `CRON_SECRET` (32+ chars).
+- [ ] Use `NODE_ENV=production`.
+- [ ] Ensure `DATABASE_URL` is using a private/internal network where possible.
+- [ ] Disable `TEST_MODE`.
 
 ## 📁 Project Structure
 
