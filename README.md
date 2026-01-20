@@ -42,6 +42,17 @@
 
 The app will be available at http://localhost:5000
 
+## 🗄️ Database Providers
+
+### Supabase → Neon (Optional)
+
+thecueRoom V2 supports multiple database providers. By default, it uses Supabase.
+
+To switch to Neon:
+1. Set `DB_PROVIDER=neon` in your `.env`.
+2. Provide your Neon `DATABASE_URL`.
+3. The application will automatically switch to the Neon serverless driver.
+
 ## 📁 Project Structure
 
 ```
