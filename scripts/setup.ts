@@ -2,11 +2,16 @@
 
 /**
  * Setup script for thecueRoom V2
- * Runs migrations and seeds the database with admin user and sources
+ * Validates environment, runs migrations, and seeds the database
  */
 
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+import * as fs from 'fs';
+
+dotenv.config();
 
 const execAsync = promisify(exec);
 
@@ -28,7 +33,35 @@ async function setup() {
   console.log('🚀 Starting thecueRoom V2 setup...\n');
   console.log('═'.repeat(60));
 
-  // Step 1: Run database migrations
+  // Step 1: Validate Environment Variables
+  const requiredEnvVars = [
+    'DATABASE_URL',
+    'NEXT_PUBLIC_SUPABASE_URL',
+    'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+  ];
+
+  const missingEnvVars = requiredEnvVars.filter((varName) => !process.env[varName]);
+
+  if (missingEnvVars.length > 0) {
+    console.error('❌ Missing required environment variables:', missingEnvVars.join(', '));
+    console.error('📝 Please check your .env file.');
+    process.exit(1);
+  }
+
+  // Step 2: Check Database Connectivity
+  console.log('\n🔌 Checking database connectivity...');
+  try {
+    const { getDbClient } = await import('../packages/db/client');
+    const db = getDbClient();
+    if (!db) throw new Error('Failed to get database client');
+    console.log('✅ Database connected');
+  } catch (error: any) {
+    console.error('❌ Database connectivity test failed:', error.message);
+    console.error('📝 Please check your DATABASE_URL.');
+    process.exit(1);
+  }
+
+  // Step 3: Run database migrations
   const migrateSuccess = await runCommand(
     'pnpm migrate',
     'Running database migrations'
@@ -38,35 +71,15 @@ async function setup() {
     console.log('\n⚠️  Migration failed. Continuing with setup...');
   }
 
-  // Step 2: Seed admin user
+  // Step 4: Seed admin user
   const adminSuccess = await runCommand(
     'pnpm seed:admin',
     'Seeding admin user'
   );
 
   if (!adminSuccess) {
-    console.error('\n❌ Admin seeding failed. Please check your DATABASE_URL');
+    console.error('\n❌ Admin seeding failed.');
     process.exit(1);
-  }
-
-  // Step 3: Seed forum categories
-  const forumCategoriesSuccess = await runCommand(
-    'tsx scripts/seed-forum-data.ts',
-    'Seeding forum categories and initial content'
-  );
-
-  if (!forumCategoriesSuccess) {
-    console.log('\n⚠️  Forum categories seeding failed. You can run it manually later with: tsx scripts/seed-forum-data.ts');
-  }
-
-  // Step 4: Seed test users and forum content
-  const testUsersSuccess = await runCommand(
-    'tsx scripts/seed-test-users.ts',
-    'Seeding test users and community posts'
-  );
-
-  if (!testUsersSuccess) {
-    console.log('\n⚠️  Test users seeding failed. You can run it manually later with: tsx scripts/seed-test-users.ts');
   }
 
   // Step 5: Seed news sources
@@ -76,7 +89,7 @@ async function setup() {
   );
 
   if (!sourcesSuccess) {
-    console.log('\n⚠️  Sources seeding failed. You can run it manually later with: pnpm seed:sources');
+    console.log('\n⚠️  Sources seeding failed.');
   }
 
   // Step 6: Run initial feed ingestion
@@ -87,42 +100,15 @@ async function setup() {
   );
 
   if (!ingestSuccess) {
-    console.log('\n⚠️  Feed ingestion failed. You can run it manually later with: pnpm ingest');
-    console.log('   Note: Make sure your news sources are properly configured in data/sources.json');
+    console.log('\n⚠️  Feed ingestion failed.');
   }
 
-  // Step 7: Verify verification worker setup
-  console.log('\n🔍 Verifying artist verification worker setup...');
-  const verifyDirSuccess = await runCommand(
-    'mkdir -p /tmp/thecueroom/verify',
-    'Creating verification temp directory'
-  );
-
-  if (!verifyDirSuccess) {
-    console.log('\n⚠️  Could not create verification temp directory');
-  }
-
-  // Step 8: Test database connectivity
-  console.log('\n🔌 Testing database connectivity...');
-  const dbTestSuccess = await runCommand(
-    'tsx -e "import { getDbClient } from \'./packages/db/client\'; getDbClient(); console.log(\'✅ Database connected\')"',
-    'Testing database connection'
-  );
-
-  if (!dbTestSuccess) {
-    console.log('\n⚠️  Database connectivity test failed. Please check your DATABASE_URL');
-  }
-
+  // Final success message
   console.log('\n═'.repeat(60));
   console.log('✨ Setup complete!\n');
   console.log('Next steps:');
   console.log('  1. Run "pnpm dev" to start the development server');
-  console.log('  2. Visit /dashboard and sign in with admin credentials');
-  console.log('  3. Check /community/forum to see test users and discussions');
-  console.log('  4. Check the news feeds and admin panel\n');
-  console.log('💡 Tips:');
-  console.log('   • Run "pnpm ingest" periodically to fetch new feeds');
-  console.log('   • Test user password: Test123!');
+  console.log('  2. Visit /dashboard and sign in with admin credentials\n');
   console.log('═'.repeat(60));
 }
 
