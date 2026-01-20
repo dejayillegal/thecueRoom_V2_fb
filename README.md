@@ -56,21 +56,21 @@ See [docs/PROVIDERS.md](docs/PROVIDERS.md) for details on switching between Supa
 
 ## 🚀 Deployment Matrix (Free Tiers Only)
 
-| Platform | Database | Cron Service | Notes |
+| Platform | Database | Ingestion | Notes |
 | :--- | :--- | :--- | :--- |
-| **Local** | Supabase / Neon | System Cron | [Guide](docs/LOCAL_SETUP.md) |
-| **Vercel** | Supabase / Neon | cron-job.org | [Guide](docs/VERCEL_DEPLOY.md) |
-| **Railway** | Supabase / Neon | Built-in | [Guide](docs/RAILWAY_DEPLOY.md) |
-| **Fly.io** | Supabase / Neon | Fly Cron | [Guide](docs/FLY_DEPLOY.md) |
-| **VPS** | Supabase / Neon | Systemd / PM2 | [Guide](docs/VPS_DEPLOY.md) |
+| **Local** | Supabase / Neon | Internal Scheduler | [Guide](docs/INGESTION_SCHEDULER.md) |
+| **Vercel** | Supabase / Neon | Internal Scheduler | [Guide](docs/INGESTION_SCHEDULER.md) |
+| **Railway** | Supabase / Neon | Internal Scheduler | [Guide](docs/INGESTION_SCHEDULER.md) |
+| **Fly.io** | Supabase / Neon | Internal Scheduler | [Guide](docs/INGESTION_SCHEDULER.md) |
+| **VPS** | Supabase / Neon | Internal Scheduler | [Guide](docs/INGESTION_SCHEDULER.md) |
 
 ## 🛡️ Production Security Checklist
 
 - [ ] Change `ADMIN_PASSWORD` from default.
-- [ ] Set a strong `CRON_SECRET` (32+ chars).
 - [ ] Use `NODE_ENV=production`.
 - [ ] Ensure `DATABASE_URL` is using a private/internal network where possible.
 - [ ] Disable `TEST_MODE`.
+- [ ] Monitor Ingestion Status in Admin Console.
 
 ## 📁 Project Structure
 
@@ -79,7 +79,7 @@ thecueroom-v2/
 ├── apps/
 │   └── web/              # Next.js 15 application
 ├── packages/
-│   ├── db/               # Drizzle ORM schema & migrations
+│   ├── db/               # Drizzle ORM schema, migrations & scheduler
 │   ├── ai-adapters/      # OpenAI & local fallback adapters
 │   └── shared/           # Shared utilities and types
 ├── data/
@@ -135,23 +135,20 @@ Edit `data/sources.json` to add/remove news sources. Supports:
 
 All rights reserved © theCueRoom
 
-## Automated Feed Ingestion
+## 🔄 Automated Feed Ingestion
 
-### External Cron Service
+thecueRoom V2 features an **Internal Background Scheduler** that automatically manages news feed ingestion within the application process.
 
-For automatic feed ingestion, you can use any external cron service (like cron-job.org or GitHub Actions) to trigger the ingest endpoint.
+### Features
+- **No External Cron Required**: Runs entirely inside the Node process.
+- **Admin Configurable**: Toggle status and adjust intervals (5 min - 24 hours) via the Admin Dashboard.
+- **Fail-Safe**: Uses database-level locking to prevent duplicate runs across server restarts or multiple instances.
+- **Diagnostics**: Real-time monitoring of last run, next scheduled run, and error logs in the Admin Console.
 
-1. **Set up CRON_SECRET**:
-   Add a strong `CRON_SECRET` to your environment variables.
+For more details on how the scheduler works and how to configure it, see [docs/INGESTION_SCHEDULER.md](docs/INGESTION_SCHEDULER.md).
 
-2. **Configure Cron Job**:
-   Point your cron service to: `https://[your-domain]/api/cron/ingest`
-   Include the header: `Authorization: Bearer YOUR_CRON_SECRET`
-   Recommended schedule: Every hour (`0 * * * *`).
-
-### CLI Fallback
-
-You can also run ingestion manually or via system cron using the CLI:
+### Manual Trigger
+You can still run ingestion manually via the CLI if needed:
 ```bash
 pnpm ingest
 ```

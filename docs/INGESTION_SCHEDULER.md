@@ -12,7 +12,7 @@ The scheduler runs as a persistent background loop within the Node.js process (i
 4.  **Automatic Rescheduling**: Upon successful completion, the system automatically calculates and sets the `next_run_at` timestamp based on the configured `interval_minutes`.
 
 ## Admin Configuration
-Admins can manage the scheduler via the Admin Console or the following API endpoints:
+Admins can manage the scheduler via the Admin Console (`/admin/cron`) or the following API endpoints:
 - **GET `/api/admin/ingestion-config`**: View current status and settings.
 - **PUT `/api/admin/ingestion-config`**:
     - `enabled` (boolean): Toggle the entire automated system.
@@ -24,11 +24,12 @@ Admins can manage the scheduler via the Admin Console or the following API endpo
 - **Failover**: If a run fails, the `last_error` is recorded, and the lock is released. The scheduler will attempt to run again at the next interval or when forced.
 - **Non-Blocking**: The scheduler runs asynchronously and does not block the server's main thread or startup sequence.
 
-## Production Warnings
+## Production Notes
 - **Database Availability**: The scheduler requires a stable connection to the PostgreSQL database. If the DB is unreachable, the scheduler will log errors and pause.
-- **Instance Concurrency**: In environments with multiple replicas, the database-level lock prevents race conditions, ensuring only one instance performs the ingestion work.
+- **Instance Concurrency**: In environments with multiple replicas, the database-level lock prevents race conditions, ensuring only one instance performs the ingestion work at a time.
+- **Server Persistence**: The scheduler depends on the application process being active. On platforms with aggressive "scale to zero" (like free-tier Heroku or Vercel standard functions), the scheduler only runs when the app is warm.
 
 ## Debugging Tips
-1.  Check the `feed_ingestion_config` table for the `last_error` column.
-2.  Monitor server logs for the `🕒 Scheduled ingestion trigger started...` message.
-3.  Use the `forceNextRun` flag via the API to test the ingestion logic without waiting for the interval.
+1.  **Admin Console**: Visit `/admin/cron` to view the `Last Error` message and `Process State`.
+2.  **Server Logs**: Monitor logs for `🕒 Scheduled ingestion trigger started...` and `✅ Scheduled ingestion completed successfully.`
+3.  **Manual Reset**: If the system appears stuck, use the "Trigger Next Tick" button in the Admin Console to reset the state and force an immediate run.
