@@ -6,7 +6,9 @@
   "exports": {
     ".": "./index.ts",
     "./schema": "./schema.ts",
-    "./client": "./client.ts"
+    "./client": "./client.ts",
+    "./ingestion": "./ingestion.ts",
+    "./scheduler": "./scheduler.ts"
   },
   "scripts": {
     "migrate": "drizzle-kit push",
