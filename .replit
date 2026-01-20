@@ -97,26 +97,6 @@ args = "tsx scripts/seed-forum-data.ts"
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 33777
-externalPort = 4200
-
-[[ports]]
-localPort = 41663
-externalPort = 3000
-
-[[ports]]
-localPort = 42093
-externalPort = 3002
-
-[[ports]]
-localPort = 42433
-externalPort = 3001
-
-[[ports]]
-localPort = 43373
-externalPort = 3003
-
 [userenv]
 
 [userenv.development]
