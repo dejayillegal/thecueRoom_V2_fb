@@ -4,6 +4,14 @@ import './globals.css';
 import '../src/styles/performance.css';
 import FooterLinks from '@/components/FooterLinks';
 import { Toaster } from '@/components/ui/toaster';
+import { startIngestionScheduler } from '@thecueroom/db/scheduler';
+
+// Start the feed ingestion scheduler once during server startup
+if (process.env.NODE_ENV === 'production' || process.env.NEXT_PHASE !== 'phase-production-build') {
+  startIngestionScheduler().catch(err => {
+    console.error('Failed to start ingestion scheduler:', err);
+  });
+}
 
 const inter = Inter({ 
   subsets: ['latin'],
