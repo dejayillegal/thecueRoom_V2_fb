@@ -36,8 +36,6 @@ async function setup() {
   // Step 1: Validate Environment Variables
   const requiredEnvVars = [
     'DATABASE_URL',
-    'NEXT_PUBLIC_SUPABASE_URL',
-    'NEXT_PUBLIC_SUPABASE_ANON_KEY',
   ];
 
   const missingEnvVars = requiredEnvVars.filter((varName) => !process.env[varName]);
