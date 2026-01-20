@@ -35,6 +35,14 @@
    pnpm setup
    ```
 
+   The `pnpm setup` command is a one-step initialization that:
+   - Validates your environment variables
+   - Checks database connectivity
+   - Runs all migrations
+   - Seeds the admin user
+   - Seeds news sources
+   - Performs initial feed ingestion
+
 4. **Development**:
    ```bash
    pnpm dev
