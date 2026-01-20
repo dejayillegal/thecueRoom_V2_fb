@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { MetadataRequestSchema } from '@thecueroom/shared/playerSchemas';
 import { spotifyHelper } from '@thecueroom/server/spotifyAuthHelper';
 import { z } from 'zod';
 
 const QuerySchema = z.object({
   url: z.string().url('Invalid URL'),
+  platform: z.string().optional()
 });
 
 export async function GET(request: NextRequest) {
@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const validatedQuery = QuerySchema.safeParse({
       url: searchParams.get('url'),
+      platform: searchParams.get('platform') || undefined
     });
 
     if (!validatedQuery.success) {
@@ -23,8 +24,8 @@ export async function GET(request: NextRequest) {
     }
 
     const { url } = validatedQuery.data;
+    const platform = validatedQuery.data.platform || detectPlatform(url);
 
-    const platform = detectPlatform(url);
     if (!platform) {
       return NextResponse.json({
         ok: false,
@@ -42,9 +43,38 @@ export async function GET(request: NextRequest) {
           error: 'Invalid Spotify URL',
         }, { status: 400 });
       }
-      
       metadata = await spotifyHelper.getPlaylistMetadata(playlistId);
-    } else {
+    } else if (platform === 'soundcloud') {
+      const oembedUrl = `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url)}`;
+      const response = await fetch(oembedUrl);
+      if (response.ok) {
+        const data = await response.json();
+        metadata = {
+          title: data.title || 'Untitled Playlist',
+          trackCount: data.track_count || 0,
+          artwork_url: data.thumbnail_url,
+          author_name: data.author_name,
+        };
+      }
+    } else if (platform === 'mixcloud') {
+      const embedMatch = url.match(/mixcloud\.com\/widget\/iframe\/\?hide_cover=1&feed=([^&]+)/);
+      if (embedMatch) {
+        const feedPath = decodeURIComponent(embedMatch[1]);
+        const apiUrl = `https://api.mixcloud.com${feedPath}`;
+        const response = await fetch(apiUrl);
+        if (response.ok) {
+          const data = await response.json();
+          metadata = {
+            title: data.name || 'Untitled Mix',
+            trackCount: data.sections?.length || 0,
+            artwork_url: data.pictures?.large,
+            author_name: data.user?.name,
+          };
+        }
+      }
+    }
+
+    if (!metadata) {
       metadata = getMockMetadata(url, platform);
     }
 
@@ -52,6 +82,7 @@ export async function GET(request: NextRequest) {
       ok: true,
       data: metadata,
       cached: metadata.cached || false,
+      ...metadata // For compatibility with secondary version
     });
   } catch (error: any) {
     console.error('[Player Metadata API] Error:', error);
@@ -87,70 +118,4 @@ function getMockMetadata(url: string, platform: string) {
     cached: false,
     mock: true,
   };
-}
-import { NextRequest, NextResponse } from 'next/server';
-
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const url = searchParams.get('url');
-    const platform = searchParams.get('platform');
-
-    if (!url || !platform) {
-      return NextResponse.json(
-        { error: 'Missing url or platform parameter' },
-        { status: 400 }
-      );
-    }
-
-    if (platform === 'soundcloud') {
-      // Extract playlist info from SoundCloud oEmbed API
-      const oembedUrl = `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url)}`;
-      const response = await fetch(oembedUrl);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch SoundCloud metadata');
-      }
-
-      const data = await response.json();
-      
-      return NextResponse.json({
-        title: data.title || 'Untitled Playlist',
-        trackCount: data.track_count || 0,
-        artwork_url: data.thumbnail_url,
-        author_name: data.author_name,
-      });
-    }
-
-    if (platform === 'mixcloud') {
-      // Extract from embed URL or use Mixcloud API if available
-      const embedMatch = url.match(/mixcloud\.com\/widget\/iframe\/\?hide_cover=1&feed=([^&]+)/);
-      if (embedMatch) {
-        const feedPath = decodeURIComponent(embedMatch[1]);
-        const apiUrl = `https://api.mixcloud.com${feedPath}`;
-        
-        const response = await fetch(apiUrl);
-        if (response.ok) {
-          const data = await response.json();
-          return NextResponse.json({
-            title: data.name || 'Untitled Mix',
-            trackCount: data.sections?.length || 0,
-            artwork_url: data.pictures?.large,
-            author_name: data.user?.name,
-          });
-        }
-      }
-    }
-
-    return NextResponse.json({
-      title: 'Untitled Playlist',
-      trackCount: 0,
-    });
-  } catch (error) {
-    console.error('Metadata fetch error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch metadata' },
-      { status: 500 }
-    );
-  }
 }

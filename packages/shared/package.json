@@ -2,7 +2,19 @@
   "name": "@thecueroom/shared",
   "version": "2.0.0",
   "main": "./index.ts",
-  "types": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./monthlyPlaylistWorker": "./monthlyPlaylistWorker.ts",
+    "./monthlyPlaylistSchemas": "./monthlyPlaylistSchemas.ts",
+    "./adminPlaylistSchemas": "./adminPlaylistSchemas.ts",
+    "./playerSchemas": "./playerSchemas.ts",
+    "./forumSchemas": "./forumSchemas.ts",
+    "./newsSchemas": "./newsSchemas.ts",
+    "./signupSchemas": "./signupSchemas.ts",
+    "./dashboardSchemas": "./dashboardSchemas.ts",
+    "./notificationSchemas": "./notificationSchemas.ts",
+    "./socialPromoSchemas": "./socialPromoSchemas.ts"
+  },
   "dependencies": {
     "zod": "^3.24.2"
   },

@@ -54,7 +54,7 @@ The app will be available at http://localhost:5000
 
 See [docs/PROVIDERS.md](docs/PROVIDERS.md) for details on switching between Supabase and Neon.
 
-## 🚀 Deployment Matrix (Free Tiers Only)
+## 🚀 Deployment Matrix
 
 | Platform | Database | Ingestion | Notes |
 | :--- | :--- | :--- | :--- |
@@ -68,9 +68,21 @@ See [docs/PROVIDERS.md](docs/PROVIDERS.md) for details on switching between Supa
 
 - [ ] Change `ADMIN_PASSWORD` from default.
 - [ ] Use `NODE_ENV=production`.
-- [ ] Ensure `DATABASE_URL` is using a private/internal network where possible.
+- [ ] Ensure `DATABASE_URL` is using a private/internal network.
 - [ ] Disable `TEST_MODE`.
 - [ ] Monitor Ingestion Status in Admin Console.
+
+## 🔄 Automated Feed Ingestion
+
+thecueRoom V2 features an **Internal Background Scheduler** that manages news feed ingestion within the application process.
+
+### Features
+- **Autonomous**: Runs entirely inside the Node process.
+- **Admin Configurable**: Toggle status and adjust intervals (5 min - 24 hours) via the Admin Dashboard.
+- **Safe**: Uses database-level locking to prevent duplicate runs.
+- **Traceable**: Real-time status and error logs available in the Admin Console.
+
+For technical details, see [docs/INGESTION_SCHEDULER.md](docs/INGESTION_SCHEDULER.md).
 
 ## 📁 Project Structure
 
@@ -79,7 +91,7 @@ thecueroom-v2/
 ├── apps/
 │   └── web/              # Next.js 15 application
 ├── packages/
-│   ├── db/               # Drizzle ORM schema, migrations & scheduler
+│   ├── db/               # Drizzle ORM schema, migrations & internal scheduler
 │   ├── ai-adapters/      # OpenAI & local fallback adapters
 │   └── shared/           # Shared utilities and types
 ├── data/
@@ -87,70 +99,6 @@ thecueroom-v2/
 └── scripts/              # Build and ingestion scripts
 ```
 
-## 🛠️ Development
-
-```bash
-# Development
-pnpm dev                 # Start dev server
-
-# Building
-pnpm build              # Build all packages
-pnpm start              # Production server
-
-# Database
-pnpm migrate            # Run migrations
-pnpm migrate:generate   # Generate new migration
-
-# Testing & Quality
-pnpm lint               # Lint all packages
-pnpm typecheck          # Type check
-pnpm test               # Run tests
-```
-
-## 🔧 Configuration
-
-### Environment Variables
-
-See `.env.example` for all required variables:
-
-- **Supabase**: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY
-- **AI Services** (Optional): OPENAI_API_KEY, REPLICATE_API_KEY
-- **Admin**: ADMIN_EMAIL, ADMIN_PASSWORD_HASH
-
-### News Sources
-
-Edit `data/sources.json` to add/remove news sources. Supports:
-- RSS feeds (most common)
-- Web scraping (for sites without RSS)
-
-## 🎨 Branding
-
-- **Background**: #0B0B0B
-- **Surface**: #111111
-- **Primary (Lime)**: #D7FF3C
-- **Secondary (Purple)**: #9B5CFF
-- **Fonts**: Inter (UI), Source Code Pro (mono)
-
 ## 📄 License
 
 All rights reserved © theCueRoom
-
-## 🔄 Automated Feed Ingestion
-
-thecueRoom V2 features an **Internal Background Scheduler** that automatically manages news feed ingestion within the application process.
-
-### Features
-- **No External Cron Required**: Runs entirely inside the Node process.
-- **Admin Configurable**: Toggle status and adjust intervals (5 min - 24 hours) via the Admin Dashboard.
-- **Fail-Safe**: Uses database-level locking to prevent duplicate runs across server restarts or multiple instances.
-- **Diagnostics**: Real-time monitoring of last run, next scheduled run, and error logs in the Admin Console.
-
-For more details on how the scheduler works and how to configure it, see [docs/INGESTION_SCHEDULER.md](docs/INGESTION_SCHEDULER.md).
-
-### Manual Trigger
-You can still run ingestion manually via the CLI if needed:
-```bash
-pnpm ingest
-```
-
-## Setup
