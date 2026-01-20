@@ -17,36 +17,30 @@
 - Node.js 18+ and pnpm 8+
 - Supabase account (for database and auth)
 
-### Installation
+### Platform-Agnostic Setup
 
-```bash
-# Install dependencies
-pnpm install
+1. **Environment Variables**:
+   Copy `.env.example` to `.env` and fill in your credentials.
+   ```bash
+   cp .env.example .env
+   ```
 
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your database credentials
+2. **Installation**:
+   ```bash
+   pnpm install
+   ```
 
-# Run complete setup (migrations + admin seeding + feed ingestion)
-pnpm setup
+3. **Initialize Database**:
+   ```bash
+   pnpm setup
+   ```
 
-# Or run individually:
-pnpm migrate          # Run database migrations
-pnpm seed:admin       # Create admin user
-pnpm seed:sources     # Seed news sources
-pnpm ingest           # Fetch latest feeds (run periodically)
-
-# Start development server
-pnpm dev
-```
+4. **Development**:
+   ```bash
+   pnpm dev
+   ```
 
 The app will be available at http://localhost:5000
-
-**Default Admin Credentials:**
-- Email: `dejayillegal@gmail.com`
-- Password: `Closer@82`
-
-> **Security Note:** Change these credentials in production by setting `ADMIN_EMAIL` and `ADMIN_PASSWORD` environment variables before running setup.
 
 ## 📁 Project Structure
 
@@ -113,27 +107,23 @@ All rights reserved © theCueRoom
 
 ## Automated Feed Ingestion
 
-### Free Option: External Cron Service
+### External Cron Service
 
-For automatic feed ingestion without paying for Replit Scheduled Deployments:
+For automatic feed ingestion, you can use any external cron service (like cron-job.org or GitHub Actions) to trigger the ingest endpoint.
 
 1. **Set up CRON_SECRET**:
-   ```bash
-   # Add to Replit Secrets
-   CRON_SECRET=your-super-secret-random-string-min-32-chars
-   ```
+   Add a strong `CRON_SECRET` to your environment variables.
 
-2. **Test your endpoint**:
-   ```bash
-   CRON_SECRET=your-secret tsx scripts/test-cron-endpoint.ts
-   ```
+2. **Configure Cron Job**:
+   Point your cron service to: `https://[your-domain]/api/cron/ingest`
+   Include the header: `Authorization: Bearer YOUR_CRON_SECRET`
+   Recommended schedule: Every hour (`0 * * * *`).
 
-3. **Configure cron-job.org** (free):
-   - Sign up at https://cron-job.org
-   - Create job pointing to: `https://[your-repl].repl.co/api/cron/ingest`
-   - Add header: `Authorization: Bearer YOUR_CRON_SECRET`
-   - Set schedule: `0 * * * *` (every hour)
+### CLI Fallback
 
-See [docs/EXTERNAL_CRON_SETUP.md](docs/EXTERNAL_CRON_SETUP.md) for detailed instructions.
+You can also run ingestion manually or via system cron using the CLI:
+```bash
+pnpm ingest
+```
 
 ## Setup
