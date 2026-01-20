@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
-import { getAuthSession } from '@/lib/auth';
+import { getSession } from '@/lib/auth';
 import { getIngestionConfig } from '@thecueroom/db/ingestion';
+import { db } from '@thecueroom/db';
+import { feedIngestionConfig } from '@thecueroom/db/schema';
+import { eq } from 'drizzle-orm';
 
 export async function GET() {
   try {
-    const session = await getAuthSession();
-    if (!session || session.user.role !== 'admin') {
+    const session = await getSession();
+    if (!session || session.role !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -16,14 +19,10 @@ export async function GET() {
   }
 }
 
-import { db } from '@thecueroom/db';
-import { feedIngestionConfig } from '@thecueroom/db/schema';
-import { eq } from 'drizzle-orm';
-
 export async function PUT(request: Request) {
   try {
-    const session = await getAuthSession();
-    if (!session || session.user.role !== 'admin') {
+    const session = await getSession();
+    if (!session || session.role !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -38,7 +37,7 @@ export async function PUT(request: Request) {
     
     const updateData: any = {
       updatedAt: new Date(),
-      updatedByAdminId: session.user.id,
+      updatedByAdminId: session.uid,
     };
 
     if (enabled !== undefined) updateData.enabled = enabled;
