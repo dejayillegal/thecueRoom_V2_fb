@@ -210,7 +210,7 @@ export default memo(function SpotlightSection({
         </motion.div>
 
         {/* INDICATORS */}
-        <div className="absolute bottom-12 right-10 flex flex-col gap-4 z-10 items-end">
+        <div className="absolute bottom-12 right-6 sm:right-10 flex flex-col gap-4 z-10 items-end">
           <div className="flex flex-col gap-4">
             {currentFeeds.slice(0, 5).map((_, index) => (
               <SlideIndicator

@@ -82,7 +82,7 @@ export default async function HomePage() {
         </div>
       </header>
 
-      <section className="min-h-[70vh] md:min-h-[85vh] flex flex-col justify-end">
+      <section className="min-h-[70vh] md:min-h-[85vh] flex flex-col justify-end overflow-hidden">
         <Suspense fallback={<SectionSkeleton />}>
           <SpotlightSection 
             initialFeeds={spotlightFeeds} 
@@ -91,7 +91,7 @@ export default async function HomePage() {
         </Suspense>
       </section>
 
-      <div className="max-w-screen-2xl mx-auto px-6 sm:px-10">
+      <div className="max-w-screen-2xl mx-auto px-6 sm:px-10 overflow-hidden">
         <LandingClientLayout>
           <div className="py-12 md:py-32">
             <Suspense fallback={
