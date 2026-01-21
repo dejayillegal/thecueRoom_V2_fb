@@ -24,7 +24,8 @@ interface FeedItem {
 }
 
 const FeedCard = memo(({ feed, formatDate, index }: { feed: FeedItem; formatDate: (date: string | Date) => string; index: number }) => {
-  const [imgSrc, setImgSrc] = useState(feed.image || `/api/fallback-thumb/${encodeURIComponent(feed.id || 'default')}`);
+  const initialImg = feed.image || `/api/fallback-thumb/${encodeURIComponent(feed.id || 'default')}`;
+  const [imgSrc, setImgSrc] = useState<string | null>(initialImg);
   
   return (
     <motion.article 
@@ -73,15 +74,22 @@ const FeedCard = memo(({ feed, formatDate, index }: { feed: FeedItem; formatDate
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="relative aspect-[16/9] overflow-hidden bg-[#111111] order-1 xl:order-2 grayscale transition-all duration-1000 opacity-20 group-hover:opacity-60 group-hover:grayscale-0"
         >
-          <img
-            src={imgSrc}
-            alt={feed.title}
-            className="w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-105"
-            onError={() => {
-              setImgSrc(`/api/fallback-thumb/${encodeURIComponent(feed.id || 'default')}`);
-            }}
-            loading="lazy"
-          />
+          {imgSrc && (
+            <img
+              src={imgSrc}
+              alt={feed.title}
+              className="w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-105"
+              onError={() => {
+                const fallback = `/api/fallback-thumb/${encodeURIComponent(feed.id || 'default')}`;
+                if (imgSrc !== fallback) {
+                  setImgSrc(fallback);
+                } else {
+                  setImgSrc(null);
+                }
+              }}
+              loading="lazy"
+            />
+          )}
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-[#0B0B0B]/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="absolute top-8 right-8 p-3 bg-white/5 backdrop-blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700">
             <ArrowUpRight className="w-4 h-4 text-[#D1FF3D]" />

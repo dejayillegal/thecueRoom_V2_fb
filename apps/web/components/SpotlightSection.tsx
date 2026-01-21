@@ -10,13 +10,15 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
  * CINEMATIC VECTOR LAYER
  */
 const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
-  const [imgSrc, setImgSrc] = useState(feed.image);
+  const [imgSrc, setImgSrc] = useState<string | null>(feed.image || null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setImgSrc(feed.image);
+    setImgSrc(feed.image || null);
     setIsLoading(true);
   }, [feed.image]);
+
+  const resolvedSrc = imgSrc || `/api/og-fallback?title=${encodeURIComponent(feed.title)}`;
 
   return (
     <motion.div 
@@ -30,13 +32,14 @@ const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
         <div className="absolute inset-0 bg-[#111111] animate-pulse" />
       )}
       <motion.img
-        src={imgSrc || `/api/og-fallback?title=${encodeURIComponent(feed.title)}`}
+        src={resolvedSrc}
         alt={feed.title}
         className="absolute inset-0 w-full h-full object-cover opacity-[0.25] filter grayscale contrast-150 brightness-110"
         onLoad={() => setIsLoading(false)}
         onError={() => {
-          if (imgSrc !== `/api/og-fallback?title=${encodeURIComponent(feed.title)}`) {
-            setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title)}`);
+          const fallback = `/api/og-fallback?title=${encodeURIComponent(feed.title)}`;
+          if (imgSrc !== fallback) {
+            setImgSrc(fallback);
           }
           setIsLoading(false);
         }}
