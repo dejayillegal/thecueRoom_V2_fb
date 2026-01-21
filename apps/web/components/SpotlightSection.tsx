@@ -3,18 +3,17 @@
 import { useEffect, useState, useCallback, useRef, memo, useMemo } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import TrendingCarousel, { FeedItem } from './TrendingCarousel';
+import { FeedItem } from './TrendingCarousel';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 
 /**
  * CINEMATIC VECTOR LAYER
  */
 const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
-  const [imgSrc, setImgSrc] = useState<string | null>(feed.image || null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [resolvedSrcState, setResolvedSrcState] = useState<string | null>(null);
 
   useEffect(() => {
-    setImgSrc(feed.image || null);
+    setResolvedSrcState(feed.image || null);
     setIsLoading(true);
   }, [feed.image]);
 
@@ -86,13 +85,11 @@ SlideIndicator.displayName = 'SlideIndicator';
 
 export default memo(function SpotlightSection({
   initialFeeds,
-  initialTrending
 }: {
   initialFeeds: FeedItem[];
   initialTrending: FeedItem[];
 }) {
   const [currentFeeds] = useState<FeedItem[]>(initialFeeds);
-  const [currentTrending] = useState<FeedItem[]>(initialTrending);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const autoPlayRef = useRef<NodeJS.Timeout | undefined>(undefined);
