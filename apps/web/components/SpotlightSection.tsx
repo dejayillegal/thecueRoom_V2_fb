@@ -6,6 +6,10 @@ import Link from 'next/link';
 import { Users, ChevronLeft, ChevronRight, Pause, Play, ExternalLink } from 'lucide-react';
 import TrendingCarousel, { FeedItem } from './TrendingCarousel';
 
+/**
+ * CINEMATIC IMAGE LAYER
+ * Enforces grayscale-to-color transition and depth.
+ */
 const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
   const [imgSrc, setImgSrc] = useState(feed.image);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,68 +32,54 @@ const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
   return (
     <div className="absolute inset-0 bg-background overflow-hidden">
       {isLoading && (
-        <div className="absolute inset-0 bg-muted animate-pulse" />
+        <div className="absolute inset-0 bg-muted/5 animate-pulse" />
       )}
       <img
         key={feedKey}
         src={imgSrc}
         alt={feed.title}
-        className={`absolute inset-0 w-full h-full object-cover transition-all duration-1000 ease-out ${isLoading ? 'opacity-0 scale-110' : 'opacity-60 grayscale group-hover/spotlight:grayscale-0 group-hover/spotlight:opacity-80 scale-100'}`}
+        className={`absolute inset-0 w-full h-full object-cover transition-all duration-[2000ms] ease-out ${isLoading ? 'opacity-0 scale-110' : 'opacity-20 grayscale group-hover/spotlight:grayscale-0 group-hover/spotlight:opacity-40 scale-100'}`}
         onError={handleError}
         onLoad={handleLoad}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+      {/* GRADIENT DEPTH: Ensures typography legibility */}
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-background/40 via-transparent to-transparent" />
     </div>
   );
 });
 
 SpotlightImage.displayName = 'SpotlightImage';
 
-const NavigationButton = memo(({ 
-  direction, 
-  onClick, 
-  label 
-}: { 
-  direction: 'left' | 'right';
-  onClick: () => void;
-  label: string;
-}) => (
-  <button
-    onClick={onClick}
-    className={`absolute ${direction}-8 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center border border-border/40 bg-background/20 backdrop-blur-sm opacity-0 group-hover/spotlight:opacity-100 transition-all hover:bg-background/80 hover:border-border z-10`}
-    aria-label={label}
-  >
-    {direction === 'left' ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-  </button>
-));
-
-NavigationButton.displayName = 'NavigationButton';
-
 const SlideIndicator = memo(({ 
   index, 
   currentIndex, 
   onClick 
 }: { 
-  index: number;
-  currentIndex: number;
+  index: number; 
+  currentIndex: number; 
   onClick: () => void;
 }) => (
   <button
     onClick={onClick}
-    className="h-1 transition-all duration-500 ease-in-out bg-border/40 hover:bg-border relative group/indicator"
+    className="h-[2px] transition-all duration-700 ease-in-out bg-border/20 relative overflow-hidden"
     style={{
-      width: index === currentIndex ? '3rem' : '1.5rem',
+      width: index === currentIndex ? '4rem' : '1rem',
     }}
-    aria-label={`Go to slide ${index + 1}`}
+    aria-label={`Entry ${index + 1}`}
   >
     {index === currentIndex && (
-      <div className="absolute inset-0 bg-primary origin-left animate-progress-fast" />
+      <div className="absolute inset-0 bg-primary/40 origin-left animate-progress-fast" />
     )}
   </button>
 ));
 
 SlideIndicator.displayName = 'SlideIndicator';
 
+/**
+ * PRIMARY SIGNAL SURFACE
+ * The entry point of the landing page hierarchy.
+ */
 export default memo(function SpotlightSection({
   initialFeeds,
   initialTrending
@@ -103,8 +93,6 @@ export default memo(function SpotlightSection({
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
   const autoPlayRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const refreshRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const abortControllerRef = useRef<AbortController | null>(null);
 
   const goToNext = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % (currentFeeds.length || 1));
@@ -118,115 +106,14 @@ export default memo(function SpotlightSection({
     setCurrentIndex(index);
     setIsPaused(true);
     setIsAutoPlaying(false);
-    if (autoPlayRef.current) {
-      clearInterval(autoPlayRef.current);
-    }
   }, []);
-
-  const toggleAutoPlay = useCallback(() => {
-    setIsAutoPlaying((prev) => !prev);
-    setIsPaused((prev) => !prev);
-  }, []);
-
-  const refreshFeeds = useCallback(async () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    abortControllerRef.current = new AbortController();
-
-    try {
-      const [spotlightRes, trendingRes] = await Promise.all([
-        fetch('/api/feeds?limit=8', {
-          signal: abortControllerRef.current.signal,
-          headers: { 'Accept': 'application/json' }
-        }),
-        fetch('/api/feeds?limit=32&offset=0', {
-          signal: abortControllerRef.current.signal,
-          headers: { 'Accept': 'application/json' }
-        })
-      ]);
-
-      if (!spotlightRes.ok || !trendingRes.ok) return;
-
-      const [spotlightData, trendingData] = await Promise.all([
-        spotlightRes.json(),
-        trendingRes.json()
-      ]);
-
-      if (spotlightData.data && spotlightData.data.length > 0) {
-        const formattedFeeds = spotlightData.data.map((item: any) => ({
-          title: item.title,
-          url: item.url,
-          summary: item.summary || '',
-          image: item.image,
-          publishedAt: item.publishedAt,
-          source: item.source || 'Unknown',
-          tags: item.tags || [],
-        }));
-        setCurrentFeeds(formattedFeeds);
-      }
-
-      if (trendingData.data && trendingData.data.length > 0) {
-        const scoredItems = trendingData.data.map((item: any, index: number) => {
-          const now = Date.now();
-          const publishedTime = new Date(item.publishedAt).getTime();
-          const ageInHours = (now - publishedTime) / (1000 * 60 * 60);
-
-          const recencyScore = Math.max(0, 100 - (ageInHours / 48) * 100);
-          const diversityBonus = index % 3 === 0 ? 20 : 0;
-          const tagScore = Math.min(30, (item.tags?.length || 0) * 5);
-
-          return {
-            ...item,
-            trendingScore: recencyScore + diversityBonus + tagScore
-          };
-        });
-
-        const topTrending = scoredItems
-          .sort((a: any, b: any) => b.trendingScore - a.trendingScore)
-          .slice(0, 16)
-          .map((item: any) => ({
-            title: item.title,
-            url: item.url,
-            summary: item.summary || '',
-            image: item.image,
-            publishedAt: item.publishedAt,
-            source: item.source || 'Unknown',
-            tags: item.tags || [],
-          }));
-
-        setCurrentTrending(topTrending);
-      }
-    } catch (error: any) {
-      if (error.name !== 'AbortError') {
-        console.error('Failed to refresh feeds:', error);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    refreshRef.current = setInterval(refreshFeeds, 3600000);
-
-    return () => {
-      if (refreshRef.current) {
-        clearInterval(refreshRef.current);
-      }
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, [refreshFeeds]);
 
   useEffect(() => {
     if (isAutoPlaying && currentFeeds.length > 1 && !isPaused) {
-      autoPlayRef.current = setInterval(goToNext, 8000);
+      autoPlayRef.current = setInterval(goToNext, 10000); // Slower pacing for cinematic feel
     }
-
     return () => {
-      if (autoPlayRef.current) {
-        clearInterval(autoPlayRef.current);
-      }
+      if (autoPlayRef.current) clearInterval(autoPlayRef.current);
     };
   }, [isAutoPlaying, isPaused, goToNext, currentFeeds.length]);
 
@@ -235,76 +122,76 @@ export default memo(function SpotlightSection({
     [currentFeeds, currentIndex]
   );
 
-  const visibleIndicators = useMemo(
-    () => currentFeeds.slice(0, 8),
-    [currentFeeds]
-  );
-
   if (!currentFeeds || currentFeeds.length === 0) {
     return (
-      <div className="relative h-[60vh] flex items-center justify-center border border-border border-dashed">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">Standing by for signal...</p>
+      <div className="relative h-[80vh] flex items-center justify-center border border-border/10">
+        <span className="text-[10px] uppercase tracking-[0.5em] text-muted-foreground animate-pulse">Awaiting Signal...</span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-16">
-      <div className="relative h-[65vh] md:h-[75vh] group/spotlight bg-background border border-border/40 overflow-hidden">
+    <div className="space-y-0">
+      <div className="relative h-[85vh] md:h-[90vh] group/spotlight bg-background border-b border-border/5 overflow-hidden">
         <SpotlightImage feed={currentFeed} />
 
-        <NavigationButton direction="left" onClick={goToPrevious} label="Previous Signal" />
-        <NavigationButton direction="right" onClick={goToNext} label="Next Signal" />
-
-        <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16">
-          <div className="max-w-4xl space-y-6">
-            <div className="flex items-center gap-4 text-[10px] uppercase tracking-[0.3em] text-primary font-medium">
-              <span className="px-2 py-0.5 border border-primary/30 bg-primary/5">{currentFeed.source}</span>
-              <span className="text-muted-foreground/60" suppressHydrationWarning>
-                {currentFeed.publishedAt && new Date(currentFeed.publishedAt).toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric'
-                })}
-              </span>
-            </div>
-            
-            <h2 className="text-3xl md:text-6xl font-light tracking-tight leading-[1.1] text-balance">
-              {currentFeed.title}
-            </h2>
-            
-            <p className="text-sm md:text-lg text-muted-foreground font-light leading-relaxed max-w-2xl line-clamp-3">
-              {currentFeed.summary}
-            </p>
-
-            <div className="pt-4 flex items-center gap-8">
-              {currentFeed.url && (
-                <Link
-                  href={currentFeed.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group/link flex items-center gap-3 text-xs uppercase tracking-[0.2em] font-medium"
-                >
-                  <span className="border-b border-foreground/20 group-hover/link:border-primary transition-colors pb-1">Read Full Entry</span>
-                  <ExternalLink className="w-3 h-3 text-muted-foreground group-hover/link:text-primary transition-colors" />
-                </Link>
-              )}
+        <div className="absolute inset-0 flex items-center">
+          <div className="max-w-screen-2xl mx-auto px-8 w-full">
+            <div className="max-w-4xl space-y-12">
+              <div className="space-y-4">
+                <span className="text-[10px] uppercase tracking-[0.6em] text-primary/60 font-semibold block">
+                  01 / Top Signal
+                </span>
+                <div className="flex items-center gap-6 text-[10px] uppercase tracking-[0.4em] text-muted-foreground/40 font-medium">
+                  <span>{currentFeed.source}</span>
+                  <span className="w-1 h-1 rounded-full bg-border" />
+                  <span suppressHydrationWarning>
+                    {currentFeed.publishedAt && new Date(currentFeed.publishedAt).toLocaleDateString('en-US', {
+                      month: 'short', day: 'numeric', year: 'numeric'
+                    }).toUpperCase()}
+                  </span>
+                </div>
+              </div>
               
-              <button
-                onClick={toggleAutoPlay}
-                className="flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {isPaused ? <Play className="w-3 h-3" /> : <Pause className="w-3 h-3" />}
-                <span>{isPaused ? 'Resume Stream' : 'Pause Stream'}</span>
-              </button>
+              <h1 className="text-5xl md:text-8xl font-light tracking-tighter leading-[1] text-balance">
+                {currentFeed.title}
+              </h1>
+              
+              <p className="text-lg md:text-xl text-muted-foreground/60 font-light leading-relaxed max-w-2xl line-clamp-2">
+                {currentFeed.summary}
+              </p>
+
+              <div className="pt-8 flex items-center gap-12">
+                {currentFeed.url && (
+                  <Link
+                    href={currentFeed.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group/link flex items-center gap-4 text-[10px] uppercase tracking-[0.4em] font-semibold"
+                  >
+                    <span className="border-b border-foreground/10 group-hover/link:border-primary transition-all pb-2">Full Signal</span>
+                    <ExternalLink className="w-3 h-3 opacity-20 group-hover/link:opacity-100 transition-opacity" />
+                  </Link>
+                )}
+                
+                <div className="flex gap-4">
+                  <button onClick={goToPrevious} className="p-4 border border-border/5 hover:border-border/20 transition-colors">
+                    <ChevronLeft className="w-4 h-4 opacity-20" />
+                  </button>
+                  <button onClick={goToNext} className="p-4 border border-border/5 hover:border-border/20 transition-colors">
+                    <ChevronRight className="w-4 h-4 opacity-20" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="absolute bottom-8 right-8 md:bottom-16 md:right-16 flex gap-4">
-          {visibleIndicators.map((feed, index) => (
+        {/* PROGRESSIVE NAVIGATION */}
+        <div className="absolute bottom-12 left-8 md:bottom-20 md:left-8 flex gap-6 z-10">
+          {currentFeeds.slice(0, 5).map((_, index) => (
             <SlideIndicator
-              key={`${feed.url}-${index}`}
+              key={index}
               index={index}
               currentIndex={currentIndex}
               onClick={() => goToSlide(index)}
@@ -313,14 +200,17 @@ export default memo(function SpotlightSection({
         </div>
       </div>
 
-      <section className="space-y-8">
-        <header className="flex items-center justify-between">
-          <h3 className="text-[10px] uppercase tracking-[0.3em] font-semibold text-muted-foreground">
-            Current Vectors
-          </h3>
-        </header>
-        <TrendingCarousel feeds={currentTrending} />
-      </section>
+      {/* TRANSITIONAL LAYER: Trending Carousel */}
+      <div className="max-w-screen-2xl mx-auto px-8 -translate-y-12 relative z-20">
+        <div className="bg-background/40 backdrop-blur-3xl border border-border/5 p-12 space-y-8">
+          <header className="flex items-center justify-between">
+            <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-muted-foreground/40">
+              Vector Pulses
+            </span>
+          </header>
+          <TrendingCarousel feeds={currentTrending} />
+        </div>
+      </div>
     </div>
   );
 });
