@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface FeedItem {
   id: string;
@@ -15,11 +16,17 @@ interface FeedItem {
   source: string;
 }
 
-const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date: string | Date) => string }) => {
+const FeedCard = memo(({ feed, formatDate, index }: { feed: FeedItem; formatDate: (date: string | Date) => string; index: number }) => {
   const [imgSrc, setImgSrc] = useState(feed.image || `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
-
+  
   return (
-    <article className="group relative border-b border-[#D1FF3D]/5 pb-20 last:border-0 transition-all hover:bg-[#111111]/40 p-10 -mx-10">
+    <motion.article 
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.8, delay: (index % 3) * 0.1, ease: [0.22, 1, 0.36, 1] }}
+      className="group relative border-b border-[#D1FF3D]/5 pb-20 last:border-0 transition-all hover:bg-[#111111]/40 p-10 -mx-10"
+    >
       <Link href={feed.url} target="_blank" rel="noopener noreferrer" className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-24 items-start">
         <div className="space-y-10 order-2 xl:order-1">
           <div className="flex items-center gap-8 text-[9px] font-mono uppercase tracking-[0.5em] text-muted-foreground/30 font-bold">
@@ -28,9 +35,13 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
             <span>{formatDate(feed.publishedAt)}</span>
           </div>
 
-          <h3 className="text-3xl md:text-5xl font-extralight tracking-tighter leading-[1.1] group-hover:text-[#D1FF3D] transition-colors duration-700">
+          <motion.h3 
+            initial={{ opacity: 0.8 }}
+            whileHover={{ opacity: 1, x: 5 }}
+            className="text-3xl md:text-5xl font-extralight tracking-tighter leading-[1.1] group-hover:text-[#D1FF3D] transition-all duration-700"
+          >
             {feed.title}
-          </h3>
+          </motion.h3>
 
           {feed.summary && (
             <p className="text-sm leading-relaxed text-muted-foreground/60 font-light line-clamp-3 max-w-2xl">
@@ -50,11 +61,15 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
           </div>
         </div>
 
-        <div className="relative aspect-[16/9] overflow-hidden bg-[#111111] order-1 xl:order-2 grayscale transition-all duration-1000 opacity-20 group-hover:opacity-60 group-hover:grayscale-0">
+        <motion.div 
+          whileHover={{ scale: 1.02 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="relative aspect-[16/9] overflow-hidden bg-[#111111] order-1 xl:order-2 grayscale transition-all duration-1000 opacity-20 group-hover:opacity-60 group-hover:grayscale-0"
+        >
           <img
             src={imgSrc}
             alt={feed.title}
-            className="w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-110"
+            className="w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-105"
             onError={() => {
               setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
             }}
@@ -64,9 +79,9 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
           <div className="absolute top-8 right-8 p-3 bg-white/5 backdrop-blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700">
             <ArrowUpRight className="w-4 h-4 text-[#D1FF3D]" />
           </div>
-        </div>
+        </motion.div>
       </Link>
-    </article>
+    </motion.article>
   );
 });
 
@@ -183,7 +198,11 @@ export default function NewsSection() {
   return (
     <div className="space-y-12">
       {allTags.length > 0 && (
-        <div className="sticky top-24 z-30 bg-[#0B0B0B]/40 backdrop-blur-2xl py-8 border-b border-[#D1FF3D]/5">
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="sticky top-24 z-30 bg-[#0B0B0B]/40 backdrop-blur-2xl py-8 border-b border-[#D1FF3D]/5"
+        >
           <div className="flex flex-wrap gap-8 items-center">
              <span className="text-[8px] font-mono uppercase tracking-[1em] text-[#D1FF3D]/20 mr-4">Filter</span>
             <button
@@ -202,12 +221,12 @@ export default function NewsSection() {
               </button>
             ))}
           </div>
-        </div>
+        </motion.div>
       )}
 
       <div className="space-y-0">
-        {filteredFeeds.map((feed) => (
-          <FeedCard key={feed.id} feed={feed} formatDate={formatDate} />
+        {filteredFeeds.map((feed, index) => (
+          <FeedCard key={feed.id} feed={feed} formatDate={formatDate} index={index} />
         ))}
       </div>
 
