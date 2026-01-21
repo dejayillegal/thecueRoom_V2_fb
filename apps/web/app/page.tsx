@@ -19,31 +19,54 @@ function SectionSkeleton() {
 
 async function fetchLandingData() {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://0.0.0.0:5000';
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+
   try {
     const [spotlightRes, trendingRes] = await Promise.all([
-      fetch(`${baseUrl}/api/feeds?limit=8`, { cache: 'no-store' }),
-      fetch(`${baseUrl}/api/feeds?limit=32&offset=0`, { cache: 'no-store' })
+      fetch(`${baseUrl}/api/feeds?limit=8`, { 
+        cache: 'no-store',
+        signal: controller.signal 
+      }),
+      fetch(`${baseUrl}/api/feeds?limit=32&offset=0`, { 
+        cache: 'no-store',
+        signal: controller.signal
+      })
     ]);
 
+    clearTimeout(timeoutId);
+
     if (!spotlightRes.ok || !trendingRes.ok) {
-      throw new Error('API Response Error');
+      return { spotlightFeeds: [], trendingFeeds: [], error: true, status: spotlightRes.status || trendingRes.status };
     }
 
     const spotlightData = await spotlightRes.json();
     const trendingData = await trendingRes.json();
 
+    const spotlightFeeds = spotlightData.data?.slice(0, 8) || [];
+    const trendingFeeds = trendingData.data?.slice(0, 16) || [];
+
+    if (spotlightFeeds.length === 0 && trendingFeeds.length === 0) {
+      return { spotlightFeeds: [], trendingFeeds: [], empty: true };
+    }
+
     return { 
-      spotlightFeeds: spotlightData.data?.slice(0, 8) || [], 
-      trendingFeeds: trendingData.data?.slice(0, 16) || [] 
+      spotlightFeeds, 
+      trendingFeeds 
     };
-  } catch (error) {
+  } catch (error: any) {
+    clearTimeout(timeoutId);
     console.error('Landing data fetch failed:', error);
-    return { spotlightFeeds: [], trendingFeeds: [] };
+    if (error.name === 'AbortError') {
+      return { spotlightFeeds: [], trendingFeeds: [], timeout: true };
+    }
+    return { spotlightFeeds: [], trendingFeeds: [], error: true };
   }
 }
 
 export default async function HomePage() {
-  const { spotlightFeeds, trendingFeeds } = await fetchLandingData();
+  const data = await fetchLandingData();
+  const { spotlightFeeds, trendingFeeds } = data;
 
   return (
     <main className="min-h-screen bg-[#0B0B0B] text-foreground selection:bg-[#D1FF3D] selection:text-[#0B0B0B] font-inter antialiased overflow-x-hidden">
@@ -69,12 +92,29 @@ export default async function HomePage() {
 
       {/* I. PRIMARY SIGNAL SURFACE */}
       <section className="pt-24 min-h-[90vh] flex flex-col justify-end">
-        <Suspense fallback={<SectionSkeleton />}>
-          <SpotlightSection 
-            initialFeeds={spotlightFeeds} 
-            initialTrending={trendingFeeds} 
-          />
-        </Suspense>
+        {data.timeout || data.error ? (
+          <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-8 opacity-40">
+            <span className="text-[9px] font-mono uppercase tracking-[1em] font-bold text-red-500/50">
+              {data.timeout ? 'Signal Timeout' : 'Signal Lost'}
+            </span>
+          </div>
+        ) : data.empty ? (
+          <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-8 opacity-20">
+            <span className="text-[9px] font-mono uppercase tracking-[1em] font-bold">Establishing Signal</span>
+          </div>
+        ) : spotlightFeeds.length === 0 ? (
+          <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-8 opacity-20">
+             <div className="w-16 h-px bg-[#D1FF3D] animate-[pulse_3s_ease-in-out_infinite]" />
+             <span className="text-[9px] font-mono uppercase tracking-[1em] font-bold">Establishing Signal</span>
+          </div>
+        ) : (
+          <Suspense fallback={<SectionSkeleton />}>
+            <SpotlightSection 
+              initialFeeds={spotlightFeeds} 
+              initialTrending={trendingFeeds} 
+            />
+          </Suspense>
+        )}
       </section>
 
       {/* II. INFORMATION AS ARCHITECTURE */}
