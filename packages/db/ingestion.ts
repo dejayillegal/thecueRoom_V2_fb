@@ -29,6 +29,19 @@ export class IngestionService {
   private static LEASE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 
   /**
+   * Opportunistic trigger.
+   * Runs in the background (fire-and-forget) to avoid blocking the request.
+   * This replaces cron by ensuring that any system activity (API calls, page loads)
+   * can potentially trigger an ingestion cycle if the lease is available.
+   */
+  static trigger() {
+    // Fire and forget - do not await
+    this.run().catch(err => {
+      console.error('[IngestionService] Background run failed:', err);
+    });
+  }
+
+  /**
    * Main entry point to be called by a trigger (API or worker)
    */
   static async run() {

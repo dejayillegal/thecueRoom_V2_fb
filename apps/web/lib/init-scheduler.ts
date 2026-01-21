@@ -1,4 +1,4 @@
-import { startIngestionScheduler } from '@thecueroom/db/scheduler';
+import { IngestionService } from '@thecueroom/db/ingestion';
 
 let initialized = false;
 
@@ -7,9 +7,7 @@ export function initScheduler() {
   
   // Ensure this only runs on the server
   if (typeof window === 'undefined') {
-    startIngestionScheduler().catch(err => {
-      console.error('Failed to start ingestion scheduler:', err);
-    });
+    IngestionService.trigger();
     initialized = true;
   }
 }
