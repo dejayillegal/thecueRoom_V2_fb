@@ -67,16 +67,16 @@ export default async function HomePage() {
       <div className="fixed inset-0 pointer-events-none z-50 mix-blend-overlay opacity-[0.03] grain-overlay" />
       
       <header className="fixed top-0 w-full z-50 bg-[#0B0B0B]/40 backdrop-blur-2xl border-b border-[#D1FF3D]/5">
-        <div className="max-w-screen-2xl mx-auto px-10 h-24 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-6 group">
-            <Logo className="w-8 h-8 grayscale opacity-40 group-hover:opacity-100 transition-all duration-1000" />
-            <div className="h-8 w-[1px] bg-[#D1FF3D]/10 group-hover:bg-[#D1FF3D]/40 transition-all duration-1000" />
-            <span className="text-sm font-bold tracking-[0.6em] uppercase opacity-40 group-hover:opacity-100 transition-all duration-1000 font-mono text-[#D1FF3D] leading-none">
+        <div className="max-w-screen-2xl mx-auto px-6 sm:px-10 h-16 sm:h-20 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-4 sm:gap-6 group">
+            <Logo className="w-6 h-6 sm:w-8 sm:h-8 grayscale opacity-40 group-hover:opacity-100 transition-all duration-1000" />
+            <div className="h-6 sm:h-8 w-[1px] bg-[#D1FF3D]/10 group-hover:bg-[#D1FF3D]/40 transition-all duration-1000" />
+            <span className="text-[10px] sm:text-sm font-bold tracking-[0.4em] sm:tracking-[0.6em] uppercase opacity-40 group-hover:opacity-100 transition-all duration-1000 font-mono text-[#D1FF3D] leading-none">
               thecueRoom
             </span>
           </Link>
 
-          <nav className="flex items-center gap-12">
+          <nav className="flex items-center gap-6 sm:gap-12">
             <AuthButton />
           </nav>
         </div>
