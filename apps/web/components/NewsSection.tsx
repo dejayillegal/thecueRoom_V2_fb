@@ -98,8 +98,13 @@ export default function NewsSection() {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const formatDate = useCallback((date: string | Date) => {
-    const d = date instanceof Date ? date : new Date(date);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
+    try {
+      const d = date instanceof Date ? date : new Date(date);
+      if (isNaN(d.getTime())) return 'SIGNAL';
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
+    } catch {
+      return 'SIGNAL';
+    }
   }, []);
 
   const loadNewsFeeds = useCallback(async (isInitial = false) => {
@@ -119,10 +124,14 @@ export default function NewsSection() {
         headers: { 'Accept': 'application/json' }
       });
 
-      if (!response.ok) throw new Error(`Status: ${response.status}`);
+      if (!response.ok) {
+        setHasMore(false);
+        return;
+      }
+
       const data = await response.json();
 
-      if (data.data && Array.isArray(data.data)) {
+      if (data && data.data && Array.isArray(data.data)) {
         setNewsFeeds(prev => isInitial ? data.data : [...prev, ...data.data]);
         setCursor(data.nextCursor || null);
         setHasMore(data.hasMore ?? false);
@@ -131,7 +140,6 @@ export default function NewsSection() {
       }
     } catch (error: any) {
       if (error.name !== 'AbortError') {
-        console.error('Failed to load news feeds:', error);
         setHasMore(false);
       }
     } finally {

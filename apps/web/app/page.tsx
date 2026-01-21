@@ -1,19 +1,13 @@
-'use client';
-
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { AuthButton } from '@/components/auth/AuthButton';
 import SpotlightSection from '@/components/SpotlightSection';
 import NewsSection from '@/components/NewsSection';
 import { Logo } from '@/components/Logo';
-import { motion } from 'framer-motion';
+import LandingClientLayout from '@/components/LandingClientLayout';
 
 export const dynamic = 'force-dynamic';
 
-/**
- * EDITORIAL HOLDING PATTERN
- * Quiet acknowledgement of latency.
- */
 function SectionSkeleton() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-8 opacity-20">
@@ -27,20 +21,23 @@ async function fetchLandingData() {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://0.0.0.0:5000';
   try {
     const [spotlightRes, trendingRes] = await Promise.all([
-      fetch(`${baseUrl}/api/feeds?limit=8`, { next: { revalidate: 60 } }),
-      fetch(`${baseUrl}/api/feeds?limit=32&offset=0`, { next: { revalidate: 60 } })
+      fetch(`${baseUrl}/api/feeds?limit=8`, { cache: 'no-store' }),
+      fetch(`${baseUrl}/api/feeds?limit=32&offset=0`, { cache: 'no-store' })
     ]);
 
-    const [spotlightData, trendingData] = await Promise.all([
-      spotlightRes.json(),
-      trendingRes.json()
-    ]);
+    if (!spotlightRes.ok || !trendingRes.ok) {
+      throw new Error('API Response Error');
+    }
+
+    const spotlightData = await spotlightRes.json();
+    const trendingData = await trendingRes.json();
 
     return { 
       spotlightFeeds: spotlightData.data?.slice(0, 8) || [], 
       trendingFeeds: trendingData.data?.slice(0, 16) || [] 
     };
   } catch (error) {
+    console.error('Landing data fetch failed:', error);
     return { spotlightFeeds: [], trendingFeeds: [] };
   }
 }
@@ -82,26 +79,12 @@ export default async function HomePage() {
 
       {/* II. INFORMATION AS ARCHITECTURE */}
       <div className="max-w-screen-2xl mx-auto px-10">
-        <motion.section 
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-          className="py-48 md:py-64 relative"
-        >
-          {/* ASYMMETRIC ACCENT ELEMENT */}
-          <div className="absolute -left-20 top-48 w-40 h-[1px] bg-[#D1FF3D]/20 hidden md:block" />
-          
+        <LandingClientLayout>
           <header className="mb-32 flex flex-col md:flex-row items-baseline gap-12 md:gap-32">
             <div className="space-y-6">
-              <motion.span 
-                initial={{ opacity: 0, x: -10 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 1, delay: 0.2 }}
-                className="text-[10px] uppercase tracking-[0.8em] text-[#D1FF3D] font-bold font-mono"
-              >
+              <span className="text-[10px] uppercase tracking-[0.8em] text-[#D1FF3D] font-bold font-mono">
                 02 / ARCHIVE
-              </motion.span>
+              </span>
               <h2 className="text-5xl md:text-8xl font-extralight tracking-tighter leading-[0.9] max-w-4xl italic">
                 Signals. <br />
                 <span className="font-normal not-italic opacity-40">Not Stories.</span>
@@ -124,31 +107,20 @@ export default async function HomePage() {
             
             <aside className="hidden xl:block w-px bg-gradient-to-b from-[#D1FF3D]/20 via-transparent to-transparent h-[800px] sticky top-48" />
           </div>
-        </motion.section>
+        </LandingClientLayout>
 
         {/* III. SPATIAL TENSION: STUDIO & COMMUNITY */}
-        <motion.section 
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 1.5 }}
-          viewport={{ once: true }}
-          className="py-48 md:py-64 border-t border-[#D1FF3D]/10"
-        >
+        <section className="py-48 md:py-64 border-t border-[#D1FF3D]/10">
           <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-48 items-start">
             <div className="space-y-24">
               <header className="space-y-8">
                 <span className="text-[10px] uppercase tracking-[0.8em] text-muted-foreground font-mono">
                   03 / NETWORK
                 </span>
-                <motion.h3 
-                  initial={{ filter: "blur(10px)", opacity: 0 }}
-                  whileInView={{ filter: "blur(0px)", opacity: 1 }}
-                  transition={{ duration: 1.2 }}
-                  className="text-4xl md:text-6xl font-extralight tracking-tight leading-tight"
-                >
+                <h3 className="text-4xl md:text-6xl font-extralight tracking-tight leading-tight">
                   Discourse is the <br /> 
                   <span className="font-normal text-[#873BBF]">Primary Output.</span>
-                </motion.h3>
+                </h3>
               </header>
               
               <div className="flex flex-col md:flex-row gap-24">
@@ -168,11 +140,7 @@ export default async function HomePage() {
               </div>
             </div>
 
-            <motion.div 
-              whileHover={{ scale: 1.01 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-              className="relative p-16 bg-[#111111] border border-[#D1FF3D]/5 group overflow-hidden"
-            >
+            <div className="relative p-16 bg-[#111111] border border-[#D1FF3D]/5 group overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-[#D1FF3D]/5 blur-[80px] group-hover:bg-[#873BBF]/10 transition-colors duration-1000" />
               <div className="relative space-y-12">
                 <span className="text-[10px] uppercase tracking-[0.8em] text-muted-foreground font-mono">LABS</span>
@@ -184,9 +152,9 @@ export default async function HomePage() {
                   Begin &rarr;
                 </Link>
               </div>
-            </motion.div>
+            </div>
           </div>
-        </motion.section>
+        </section>
       </div>
 
       <footer className="bg-[#111111]/50 py-48 border-t border-[#D1FF3D]/5">
