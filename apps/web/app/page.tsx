@@ -16,8 +16,7 @@ export const dynamic = 'force-dynamic';
 function SectionSkeleton() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-8 opacity-20">
-      <div className="w-16 h-px bg-[#D1FF3D] animate-[pulse_3s_ease-in-out_infinite]" />
-      <span className="text-[9px] font-mono uppercase tracking-[1em] font-bold">Establishing Signal</span>
+      <div className="w-16 h-px bg-[#D1FF3D]" />
     </div>
   );
 }
@@ -97,8 +96,7 @@ export default async function HomePage() {
           <div className="py-32">
             <Suspense fallback={
               <div className="py-48 flex flex-col items-center gap-8 opacity-10">
-                <div className="w-12 h-px bg-[#D1FF3D] animate-pulse" />
-                <span className="text-[10px] tracking-[0.8em] font-mono uppercase">Syncing Archive</span>
+                <div className="w-12 h-px bg-[#D1FF3D]" />
               </div>
             }>
               <NewsSection />
@@ -117,9 +115,8 @@ export default async function HomePage() {
                 thecueRoom / V2 / {new Date().getFullYear()}
               </p>
             </div>
-            <div className="flex items-center gap-8">
-              <div className="w-2 h-2 rounded-full bg-[#D1FF3D]/10 animate-pulse" />
-              <p className="text-[10px] text-muted-foreground/10 uppercase tracking-[0.4em] font-mono">
+            <div className="flex items-center gap-6 sm:gap-8">
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground/10 uppercase tracking-[0.3em] sm:tracking-[0.4em] font-mono">
                 All Vectors Reserved.
               </p>
             </div>

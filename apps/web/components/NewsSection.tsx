@@ -210,17 +210,6 @@ export default function NewsSection() {
 
   return (
     <div className="space-y-12">
-      {/* INGESTION STATUS BAR */}
-      <div className="flex items-center gap-8 py-4 border-b border-[#D1FF3D]/5">
-        <div className={`w-2 h-2 rounded-full ${ingestionStatus?.isRunning ? 'bg-[#D1FF3D] animate-pulse' : 'bg-muted-foreground/20'}`} />
-        <span className="text-[8px] font-mono uppercase tracking-[0.4em] text-muted-foreground/60">
-          {ingestionStatus?.isRunning ? 'Signal: Synchronizing' : 'Signal: Static'}
-        </span>
-        {ingestionStatus?.hasFailed && (
-          <span className="text-[8px] font-mono uppercase tracking-[0.4em] text-red-500/60 ml-auto">Warning: Disruption Detected</span>
-        )}
-      </div>
-
       {allTags.length > 0 && (
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
@@ -264,14 +253,11 @@ export default function NewsSection() {
       )}
 
       <div ref={observerTarget} className="h-64 flex flex-col items-center justify-center gap-6">
-        {isLoadingMore ? (
+        {isLoadingMore && (
           <div className="flex flex-col items-center gap-4">
-            <div className="w-16 h-px bg-gradient-to-r from-transparent via-[#D1FF3D] to-transparent animate-pulse" />
-            <span className="text-[8px] font-mono uppercase tracking-[1em] text-muted-foreground animate-pulse">Syncing Vector</span>
+            <div className="w-16 h-px bg-[#D1FF3D]" />
           </div>
-        ) : !hasMore && filteredFeeds.length > 0 ? (
-          <span className="text-[8px] font-mono uppercase tracking-[1em] text-muted-foreground/10">End of Transmission</span>
-        ) : null}
+        )}
       </div>
     </div>
   );
