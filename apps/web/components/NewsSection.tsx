@@ -24,6 +24,8 @@ interface FeedItem {
 }
 
 const FeedCard = memo(({ feed, formatDate, index }: { feed: FeedItem; formatDate: (date: string | Date) => string; index: number }) => {
+  if (!feed || !feed.title || !feed.url) return null;
+  
   const initialImg = feed.image || `/api/fallback-thumb/${encodeURIComponent(feed.id || 'default')}`;
   const [imgSrc, setImgSrc] = useState<string | null>(initialImg);
   

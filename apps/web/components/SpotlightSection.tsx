@@ -123,7 +123,7 @@ export default memo(function SpotlightSection({
   const titleY = useTransform(scrollY, [0, 500], [0, 50]);
   const contentOpacity = useTransform(scrollY, [0, 300], [1, 0]);
 
-  if (!currentFeeds || currentFeeds.length === 0) return null;
+  if (!currentFeeds || currentFeeds.length === 0 || !currentFeed) return null;
 
   return (
     <div className="relative">
