@@ -135,7 +135,7 @@ export default memo(function SpotlightSection({
 
   return (
     <div className="relative">
-      <section className="relative h-[70vh] md:h-[85vh] group/spotlight bg-[#0B0B0B] overflow-hidden" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)}>
+      <section className="relative h-[60vh] md:h-[85vh] group/spotlight bg-[#0B0B0B] overflow-hidden" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)}>
         <AnimatePresence mode="wait">
           <SpotlightImage key={currentFeed.url} feed={currentFeed} />
         </AnimatePresence>

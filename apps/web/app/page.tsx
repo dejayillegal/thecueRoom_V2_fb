@@ -82,15 +82,15 @@ export default async function HomePage() {
         </div>
       </header>
 
-      <section className="min-h-[70vh] md:min-h-[85vh] flex flex-col justify-end overflow-hidden">
-        <Suspense fallback={<SectionSkeleton />}>
+      <Suspense fallback={<SectionSkeleton />}>
+        <div className="pt-14 sm:pt-16">
           <SpotlightSection 
             initialFeeds={spotlightFeeds} 
           />
-        </Suspense>
-      </section>
+        </div>
+      </Suspense>
 
-      <div className="max-w-screen-2xl mx-auto px-6 sm:px-10 overflow-hidden py-12 md:py-32">
+      <div className="max-w-screen-2xl mx-auto px-6 sm:px-10 overflow-hidden py-8 md:py-32">
         <NewsSection />
       </div>
 
