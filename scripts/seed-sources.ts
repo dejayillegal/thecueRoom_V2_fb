@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { sources } from '../packages/db/schema';
+import { feedsSources, feedsState } from '../packages/db/schema';
 import { eq } from 'drizzle-orm';
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -13,7 +13,7 @@ if (!connectionString) {
 }
 
 const client = postgres(connectionString);
-const db = drizzle(client, { schema: { sources } });
+const db = drizzle(client, { schema: { feedsSources, feedsState } });
 
 async function seedSources() {
   console.log('Starting sources seed...\n');
@@ -35,34 +35,54 @@ async function seedSources() {
     try {
       const existing = await db
         .select()
-        .from(sources)
-        .where(eq(sources.url, source.url))
+        .from(feedsSources)
+        .where(eq(feedsSources.url, source.url))
         .limit(1);
 
+      let sourceId: string;
+
       if (existing.length > 0) {
+        sourceId = existing[0].id;
         await db
-          .update(sources)
+          .update(feedsSources)
           .set({
             name: source.name,
             kind: source.kind || 'rss',
             tags: source.tags || [],
             enabled: source.enabled !== false,
+            updatedAt: new Date(),
           })
-          .where(eq(sources.url, source.url));
+          .where(eq(feedsSources.url, source.url));
 
-        console.log(`✓ Updated: ${source.name}`);
+        console.log(`✓ Updated source: ${source.name}`);
         updated++;
       } else {
-        await db.insert(sources).values({
+        const [inserted] = await db.insert(feedsSources).values({
           name: source.name,
           url: source.url,
           kind: source.kind || 'rss',
           tags: source.tags || [],
           enabled: source.enabled !== false,
-        });
-
-        console.log(`✓ Added: ${source.name}`);
+        }).returning({ id: feedsSources.id });
+        
+        sourceId = inserted.id;
+        console.log(`✓ Added source: ${source.name}`);
         added++;
+      }
+
+      // Ensure state exists for the source
+      const stateExists = await db
+        .select()
+        .from(feedsState)
+        .where(eq(feedsState.sourceId, sourceId))
+        .limit(1);
+
+      if (stateExists.length === 0) {
+        await db.insert(feedsState).values({
+          sourceId: sourceId,
+          nextFetchAt: new Date(), // Immediate fetch
+        });
+        console.log(`  + Initialized state for: ${source.name}`);
       }
     } catch (error: any) {
       console.error(`✗ Failed to process ${source.name}: ${error.message}`);
