@@ -12,9 +12,9 @@ export function AuthButton() {
   return (
     <>
       <Button
-        variant="default"
+        variant="ghost"
         onClick={() => setOpen(true)}
-        className="bg-[#D1FF3D] hover:bg-[#D1FF3D]/90 text-black text-[10px] sm:text-xs font-bold uppercase tracking-[0.1em] sm:tracking-[0.2em] px-4 sm:px-6 h-8 sm:h-10 rounded-none transition-all duration-300"
+        className="bg-white/5 hover:bg-[#D1FF3D]/10 text-[#D1FF3D] border border-[#D1FF3D]/10 hover:border-[#D1FF3D]/30 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.3em] sm:tracking-[0.5em] px-3 sm:px-5 h-7 sm:h-8 rounded-none transition-all duration-500 font-mono"
       >
         Entrance
       </Button>
