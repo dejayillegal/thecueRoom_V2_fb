@@ -12,6 +12,7 @@ import {
   Share2, 
   ExternalLink 
 } from 'lucide-react';
+import { SignalLost, SilenceInTheWire, PartialSync, AccessRestricted } from '@/src/components/News/NewsFailureModes';
 
 // --- Types ---
 interface NewsItem {
@@ -26,70 +27,6 @@ interface NewsItem {
   source: string;
   link: string;
 }
-
-// --- Mock Data ---
-const MOCK_NEWS: NewsItem[] = [
-  {
-    id: '1',
-    title: 'The Future of Underground Synthesis',
-    excerpt: 'How modular patches are redefining the sonic landscape of modern techno in 2026. A deep dive into the evolving hardware culture that powers the dance floors of tomorrow.',
-    imageUrl: '/api/og-fallback?title=Synthesis',
-    category: 'TECH INTELLIGENCE',
-    author: 'Elena Vance',
-    publishedAt: '2026-01-21',
-    readTime: '12 min',
-    source: 'TCR Exclusive',
-    link: '#',
-  },
-  {
-    id: '2',
-    title: 'Post-Genre Movements in Bengaluru',
-    excerpt: 'Bengaluru\'s electronic scene is transcending borders, blending local folk instruments with heavy bass textures. We explore the pioneers of this sub-bass revolution.',
-    imageUrl: '/api/og-fallback?title=BangaloreScene',
-    category: 'CULTURE',
-    author: 'Karan Singh',
-    publishedAt: '2026-01-20',
-    readTime: '8 min',
-    source: 'Regional Spotlight',
-    link: '#',
-  },
-  {
-    id: '3',
-    title: 'The AI Ethics of Raving',
-    excerpt: 'As facial recognition enters clubs, who really owns your dance floor identity? Analyzing the friction between privacy and security in the modern nightclub ecosystem.',
-    imageUrl: '/api/og-fallback?title=ClubAI',
-    category: 'POLICY',
-    author: 'Sarah Jenkins',
-    publishedAt: '2026-01-19',
-    readTime: '15 min',
-    source: 'Longform',
-    link: '#',
-  },
-  {
-    id: '4',
-    title: 'Vinyl Sales Reach Decadal High',
-    excerpt: 'In a digital-first world, the physical medium strikes back with record numbers.',
-    imageUrl: '/api/og-fallback?title=Vinyl',
-    category: 'MARKET',
-    author: 'Marcus Cole',
-    publishedAt: '2026-01-21',
-    readTime: '4 min',
-    source: 'Industry Rail',
-    link: '#',
-  },
-  {
-    id: '5',
-    title: 'New Hardware: The Analog 8-Voice',
-    excerpt: 'Is this the synth that finally bridges the gap between digital precision and analog warmth?',
-    imageUrl: '/api/og-fallback?title=Synth',
-    category: 'GEAR',
-    author: 'Tech Desk',
-    publishedAt: '2026-01-21',
-    readTime: '6 min',
-    source: 'Industry Rail',
-    link: '#',
-  }
-];
 
 // --- Components ---
 
@@ -318,43 +255,73 @@ const DeepDive = ({ items }: { items: NewsItem[] }) => (
   </section>
 );
 
-import { SignalLost, SilenceInTheWire, PartialSync, AccessRestricted } from '@/src/components/News/NewsFailureModes';
-
-// --- Types ---
-interface NewsItem {
-  id: string;
-  title: string;
-  excerpt: string;
-  imageUrl: string;
-  category: string;
-  author: string;
-  publishedAt: string;
-  readTime: string;
-  source: string;
-  link: string;
-}
-
-// ... existing MOCK_NEWS ...
-
 export default function NewsPage() {
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<'none' | 'offline' | 'partial' | 'empty'>('none');
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // Demo state
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
 
   useEffect(() => {
-    // Simulate loading and potential state
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-      // For demo: randomly show a failure mode 10% of the time if needed, 
-      // but default to 'none' for normal operation
-    }, 800);
-    return () => clearTimeout(timer);
+    const fetchData = async () => {
+      try {
+        const response = await fetch("/api/dashboard/overview", { cache: 'no-store' });
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        
+        // Map data from dashboard/spotlight to NewsItem format
+        const combinedItems: NewsItem[] = [];
+        
+        // Priority 1: Spotlight items (Signal Lead + Curated Rail)
+        if (data.spotlight && data.spotlight.length > 0) {
+          combinedItems.push(...data.spotlight.map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            excerpt: item.subtitle || '',
+            imageUrl: item.imageUrl,
+            category: item.tag || 'FEATURED',
+            author: 'TCR Editorial',
+            publishedAt: new Date().toISOString().split('T')[0],
+            readTime: '10 min',
+            source: 'Editorial',
+            link: item.link || '#'
+          })));
+        }
+        
+        // Priority 2: Trending Threads (Underground)
+        if (data.trendingThreads && data.trendingThreads.length > 0) {
+          combinedItems.push(...data.trendingThreads.map((thread: any) => ({
+            id: thread.id,
+            title: thread.title,
+            excerpt: `Community discussion with ${thread.replies} replies and ${thread.likes} likes. Author: ${thread.author}`,
+            imageUrl: "/api/og-fallback?title=" + encodeURIComponent(thread.title),
+            category: thread.category || 'COMMUNITY',
+            author: thread.author,
+            publishedAt: thread.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+            readTime: '5 min',
+            source: 'Community',
+            link: `/forum/thread/${thread.id}`
+          })));
+        }
+
+        if (combinedItems.length === 0) {
+          setError('empty');
+        } else {
+          setNewsItems(combinedItems);
+        }
+      } catch (err) {
+        console.error("Failed to fetch news signal:", err);
+        setError('offline');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const handleRetry = () => {
     setIsLoading(true);
     setError('none');
-    setTimeout(() => setIsLoading(false), 1000);
   };
 
   if (isLoading) {
@@ -376,6 +343,14 @@ export default function NewsPage() {
     );
   }
 
+  if (error === 'empty') {
+    return (
+      <div className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6">
+        <SilenceInTheWire />
+      </div>
+    );
+  }
+
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6">
@@ -386,27 +361,19 @@ export default function NewsPage() {
 
   return (
     <div className="min-h-screen bg-[#0B0B0B] text-white selection:bg-[#D1FF3D] selection:text-black">
-      {/* 1. SIGNAL LEAD */}
-      {MOCK_NEWS.length > 0 ? (
-        <SignalLead item={MOCK_NEWS[0]} />
-      ) : (
-        <SilenceInTheWire />
+      {/* 1. SIGNAL LEAD (First Spotlight Item) */}
+      {newsItems.length > 0 && (
+        <SignalLead item={newsItems[0]} />
       )}
       
-      {/* 2. CURATED RAIL */}
-      {error === 'partial' ? (
-        <div className="px-6 md:px-12 py-10">
-          <PartialSync onRetry={handleRetry} />
-        </div>
-      ) : (
-        <CuratedRail items={MOCK_NEWS.slice(1, 6)} />
-      )}
+      {/* 2. CURATED RAIL (Remaining Spotlight Items) */}
+      <CuratedRail items={newsItems.filter(item => item.source === 'Editorial').slice(1)} />
       
-      {/* 3. UNDERGROUND */}
-      <CommunityUnderground items={MOCK_NEWS} />
+      {/* 3. UNDERGROUND (Community Items) */}
+      <CommunityUnderground items={newsItems.filter(item => item.source === 'Community')} />
       
-      {/* 4. DEEP DIVE */}
-      <DeepDive items={MOCK_NEWS.slice(2, 4)} />
+      {/* 4. DEEP DIVE (Selected Featured) */}
+      <DeepDive items={newsItems.filter(item => item.source === 'Editorial').slice(0, 2)} />
       
       {/* Footer / Load More */}
       <footer className="py-20 text-center border-t border-white/5 bg-[#0B0B0B]">
