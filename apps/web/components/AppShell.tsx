@@ -72,7 +72,6 @@ export default memo(function AppShell({
         user={mockUser}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={handleSidebarToggle}
-        onLogout={handleLogout}
       />
       <main 
         className={cn(

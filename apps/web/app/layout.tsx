@@ -36,7 +36,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://picsum.photos" />
       </head>
       <body className={`${inter.className} antialiased`} style={{ background: '#000000', minHeight: '100vh' }}>
-        {children}
+        <AppShell>
+          {children}
+        </AppShell>
         <FooterLinks />
         <Toaster />
       </body>
