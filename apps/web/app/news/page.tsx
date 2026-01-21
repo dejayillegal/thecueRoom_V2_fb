@@ -255,6 +255,8 @@ const DeepDive = ({ items }: { items: NewsItem[] }) => (
   </section>
 );
 
+// ... existing components ...
+
 export default function NewsPage() {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -283,7 +285,7 @@ export default function NewsPage() {
             publishedAt: new Date().toISOString().split('T')[0],
             readTime: '10 min',
             source: 'Editorial',
-            link: item.link || '#'
+            link: `/news/${item.id}` // Corrected to route to detail page
           })));
         }
         
@@ -299,7 +301,7 @@ export default function NewsPage() {
             publishedAt: thread.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
             readTime: '5 min',
             source: 'Community',
-            link: `/forum/thread/${thread.id}`
+            link: `/news/${thread.id}` // Routing all through the news detail flow
           })));
         }
 
@@ -318,6 +320,8 @@ export default function NewsPage() {
 
     fetchData();
   }, []);
+
+// ... rest of the file ...
 
   const handleRetry = () => {
     setIsLoading(true);
