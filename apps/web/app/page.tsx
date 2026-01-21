@@ -82,7 +82,7 @@ export default async function HomePage() {
         </div>
       </header>
 
-      <section className="min-h-[85vh] flex flex-col justify-end">
+      <section className="min-h-[70vh] md:min-h-[85vh] flex flex-col justify-end">
         <Suspense fallback={<SectionSkeleton />}>
           <SpotlightSection 
             initialFeeds={spotlightFeeds} 
@@ -91,11 +91,11 @@ export default async function HomePage() {
         </Suspense>
       </section>
 
-      <div className="max-w-screen-2xl mx-auto px-10">
+      <div className="max-w-screen-2xl mx-auto px-6 sm:px-10">
         <LandingClientLayout>
-          <div className="py-32">
+          <div className="py-12 md:py-32">
             <Suspense fallback={
-              <div className="py-48 flex flex-col items-center gap-8 opacity-10">
+              <div className="py-24 md:py-48 flex flex-col items-center gap-8 opacity-10">
                 <div className="w-12 h-px bg-[#D1FF3D]" />
               </div>
             }>
@@ -105,7 +105,7 @@ export default async function HomePage() {
         </LandingClientLayout>
       </div>
 
-      <footer className="bg-[#0B0B0B] py-32 border-t border-[#D1FF3D]/5 mt-32">
+      <footer className="bg-[#0B0B0B] py-16 md:py-32 border-t border-[#D1FF3D]/5 mt-12 md:mt-32">
         <div className="max-w-screen-2xl mx-auto px-10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-16">
             <div className="flex items-center gap-12">
