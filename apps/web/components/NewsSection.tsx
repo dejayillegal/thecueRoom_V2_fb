@@ -37,8 +37,8 @@ const FeedCard = memo(({ feed, formatDate, index }: { feed: FeedItem; formatDate
       transition={{ duration: 0.8, delay: (index % 3) * 0.1, ease: [0.22, 1, 0.36, 1] }}
       className="group relative border-b border-[#D1FF3D]/5 pb-20 last:border-0 transition-all hover:bg-[#111111]/40 p-10 -mx-10"
     >
-      <Link href={feed.url} target="_blank" rel="noopener noreferrer" className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-8 md:gap-24 items-start">
-        <div className="space-y-6 md:space-y-10 order-2 xl:order-1">
+      <Link href={feed.url} target="_blank" rel="noopener noreferrer" className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-12 md:gap-24 items-start">
+        <div className="space-y-8 md:space-y-10 order-2 xl:order-1">
           <div className="flex items-center gap-4 md:gap-8 text-[9px] font-mono uppercase tracking-[0.4em] md:tracking-[0.5em] text-muted-foreground/30 font-bold">
             <span className="text-[#D1FF3D]">{feed.source}</span>
             <span className="w-8 md:w-12 h-[1px] bg-[#D1FF3D]/10" />
@@ -48,7 +48,7 @@ const FeedCard = memo(({ feed, formatDate, index }: { feed: FeedItem; formatDate
           <motion.h3 
             initial={{ opacity: 0.8 }}
             whileHover={{ opacity: 1, x: 5 }}
-            className="text-2xl md:text-5xl font-extralight tracking-tighter leading-[1.1] group-hover:text-[#D1FF3D] transition-all duration-700 text-balance line-clamp-2"
+            className="text-2xl md:text-5xl lg:text-6xl font-extralight tracking-tighter leading-[1.05] group-hover:text-[#D1FF3D] transition-all duration-700 text-balance line-clamp-3 xl:line-clamp-2"
           >
             {feed.title}
           </motion.h3>

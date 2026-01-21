@@ -134,20 +134,20 @@ export default memo(function SpotlightSection({
 
         <motion.div 
           style={{ y: titleY, opacity: contentOpacity }}
-          className="absolute inset-0 flex items-end pb-16 md:pb-32"
+          className="absolute inset-0 flex items-end pb-12 md:pb-32"
         >
-          <div className="max-w-screen-2xl mx-auto px-10 w-full">
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-24 items-end">
-              <div className="space-y-12">
+          <div className="max-w-screen-2xl mx-auto px-6 md:px-10 w-full">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8 md:gap-24 items-end">
+              <div className="space-y-6 md:space-y-12">
                 <motion.div 
                   key={`meta-${currentIndex}`}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.8, delay: 0.3 }}
                 >
-                  <div className="flex items-center gap-6 text-[10px] font-mono uppercase tracking-[0.6em] text-[#D1FF3D] font-bold">
+                  <div className="flex items-center gap-4 md:gap-6 text-[8px] md:text-[10px] font-mono uppercase tracking-[0.4em] md:tracking-[0.6em] text-[#D1FF3D] font-bold">
                     <span>{currentFeed.source}</span>
-                    <span className="w-8 h-px bg-[#D1FF3D]/20" />
+                    <span className="w-6 md:w-8 h-px bg-[#D1FF3D]/20" />
                     <span suppressHydrationWarning>
                       {currentFeed.publishedAt && new Date(currentFeed.publishedAt).toLocaleDateString('en-US', {
                         month: 'short', day: 'numeric'
@@ -161,7 +161,7 @@ export default memo(function SpotlightSection({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-                  className="text-[clamp(2rem,8vw,10rem)] font-extralight tracking-tighter leading-[0.95] text-balance line-clamp-2 md:line-clamp-3"
+                  className="text-[clamp(1.75rem,7vw,8rem)] font-extralight tracking-tighter leading-[0.95] text-balance line-clamp-3 md:line-clamp-none overflow-hidden"
                 >
                   {currentFeed.title}
                 </motion.h1>
@@ -170,25 +170,25 @@ export default memo(function SpotlightSection({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 1, delay: 0.8 }}
-                  className="flex items-center gap-12 pt-8 sm:pt-12"
+                  className="flex items-center gap-6 md:gap-12 pt-4 md:pt-12"
                 >
                   {currentFeed.url && (
                     <Link
                       href={currentFeed.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group/link flex items-center gap-6 text-[10px] font-mono uppercase tracking-[0.8em] font-bold text-foreground"
+                      className="group/link flex items-center gap-4 md:gap-6 text-[8px] md:text-[10px] font-mono uppercase tracking-[0.4em] md:tracking-[0.8em] font-bold text-foreground"
                     >
-                      <span className="border-b border-transparent group-hover:border-[#D1FF3D] transition-all pb-2">Read more</span>
+                      <span className="border-b border-transparent group-hover:border-[#D1FF3D] transition-all pb-1 md:pb-2">Read more</span>
                     </Link>
                   )}
                   
-                  <div className="flex gap-4 ml-8">
-                    <button onClick={goToPrevious} className="p-3 border border-white/5 hover:border-[#D1FF3D]/20 transition-all opacity-40 hover:opacity-100">
-                      <ChevronLeft className="w-4 h-4" />
+                  <div className="flex gap-3 md:gap-4 ml-4 md:ml-8">
+                    <button onClick={goToPrevious} className="p-2 md:p-3 border border-white/5 hover:border-[#D1FF3D]/20 transition-all opacity-40 hover:opacity-100">
+                      <ChevronLeft className="w-3 md:w-4 h-3 md:h-4" />
                     </button>
-                    <button onClick={goToNext} className="p-3 border border-white/5 hover:border-[#D1FF3D]/20 transition-all opacity-40 hover:opacity-100">
-                      <ChevronRight className="w-4 h-4" />
+                    <button onClick={goToNext} className="p-2 md:p-3 border border-white/5 hover:border-[#D1FF3D]/20 transition-all opacity-40 hover:opacity-100">
+                      <ChevronRight className="w-3 md:w-4 h-3 md:h-4" />
                     </button>
                   </div>
                 </motion.div>
