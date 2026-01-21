@@ -21,6 +21,7 @@ export default function SmartImage({ src, alt, className, fill, sizes, priority,
     return <NextImage src={src} alt={alt} className={className} fill={fill} sizes={sizes}
                       priority={priority} fetchPriority={fetchPriority} {...rest} />;
   }
+  if (!src) return null;
   if (fill) {
     return <img src={src} alt={alt} sizes={sizes} className={["absolute inset-0 w-full h-full object-cover", className||""].join(" ")} loading={priority?"eager":"lazy"} />;
   }

@@ -14,8 +14,10 @@ export interface FeedItem {
 }
 
 const TrendingCard = memo(({ feed }: { feed: FeedItem }) => {
-  const [imgSrc, setImgSrc] = useState(feed.image);
+  const [imgSrc, setImgSrc] = useState<string | null>(feed.image || null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const resolvedSrc = imgSrc || (feed.title ? `/api/og-fallback?title=${encodeURIComponent(feed.title)}` : null);
 
   return (
     <Link
@@ -27,13 +29,22 @@ const TrendingCard = memo(({ feed }: { feed: FeedItem }) => {
       <div className="space-y-6">
         <div className="relative aspect-[16/10] bg-[#111111] overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-1000">
           {isLoading && <div className="absolute inset-0 bg-[#111111] animate-pulse" />}
-          <img
-            src={imgSrc}
-            alt={feed.title}
-            className={`w-full h-full object-cover opacity-50 group-hover:opacity-100 transition-all duration-1000 group-hover:scale-105 contrast-125 brightness-110 ${isLoading ? 'opacity-0' : ''}`}
-            onError={() => setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title)}`)}
-            onLoad={() => setIsLoading(false)}
-          />
+          {resolvedSrc && (
+            <img
+              src={resolvedSrc}
+              alt={feed.title}
+              className={`w-full h-full object-cover opacity-50 group-hover:opacity-100 transition-all duration-1000 group-hover:scale-105 contrast-125 brightness-110 ${isLoading ? 'opacity-0' : ''}`}
+              onError={() => {
+                const fallback = feed.title ? `/api/og-fallback?title=${encodeURIComponent(feed.title)}` : null;
+                if (imgSrc !== fallback) {
+                  setImgSrc(fallback);
+                } else {
+                  setImgSrc(null);
+                }
+              }}
+              onLoad={() => setIsLoading(false)}
+            />
+          )}
         </div>
         <div className="space-y-3">
           <div className="flex items-center gap-4">

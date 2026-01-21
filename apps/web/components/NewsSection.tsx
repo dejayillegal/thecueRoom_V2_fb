@@ -69,11 +69,7 @@ const FeedCard = memo(({ feed, formatDate, index }: { feed: FeedItem; formatDate
           </div>
         </div>
 
-        <motion.div 
-          whileHover={{ scale: 1.02 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="relative aspect-[16/9] overflow-hidden bg-[#111111] order-1 xl:order-2 grayscale transition-all duration-1000 opacity-20 group-hover:opacity-60 group-hover:grayscale-0"
-        >
+        <div className="relative aspect-[16/9] overflow-hidden bg-[#111111] order-1 xl:order-2 grayscale transition-all duration-1000 opacity-20 group-hover:opacity-60 group-hover:grayscale-0">
           {imgSrc && (
             <img
               src={imgSrc}
@@ -94,7 +90,7 @@ const FeedCard = memo(({ feed, formatDate, index }: { feed: FeedItem; formatDate
           <div className="absolute top-8 right-8 p-3 bg-white/5 backdrop-blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700">
             <ArrowUpRight className="w-4 h-4 text-[#D1FF3D]" />
           </div>
-        </motion.div>
+        </div>
       </Link>
     </motion.article>
   );

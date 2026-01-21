@@ -18,7 +18,7 @@ const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
     setIsLoading(true);
   }, [feed.image]);
 
-  const resolvedSrc = imgSrc || `/api/og-fallback?title=${encodeURIComponent(feed.title)}`;
+  const resolvedSrc = resolvedSrcState || (feed.title ? `/api/og-fallback?title=${encodeURIComponent(feed.title)}` : null);
 
   return (
     <motion.div 
@@ -31,19 +31,21 @@ const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
       {isLoading && (
         <div className="absolute inset-0 bg-[#111111] animate-pulse" />
       )}
-      <motion.img
-        src={resolvedSrc}
-        alt={feed.title}
-        className="absolute inset-0 w-full h-full object-cover opacity-[0.25] filter grayscale contrast-150 brightness-110"
-        onLoad={() => setIsLoading(false)}
-        onError={() => {
-          const fallback = `/api/og-fallback?title=${encodeURIComponent(feed.title)}`;
-          if (imgSrc !== fallback) {
-            setImgSrc(fallback);
-          }
-          setIsLoading(false);
-        }}
-      />
+      {resolvedSrc && (
+        <img
+          src={resolvedSrc}
+          alt={feed.title}
+          className="absolute inset-0 w-full h-full object-cover opacity-[0.25] filter grayscale contrast-150 brightness-110"
+          onLoad={() => setIsLoading(false)}
+          onError={() => {
+            const fallback = feed.title ? `/api/og-fallback?title=${encodeURIComponent(feed.title)}` : null;
+            if (resolvedSrcState !== fallback) {
+              setResolvedSrcState(fallback);
+            }
+            setIsLoading(false);
+          }}
+        />
+      )}
       <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/20 to-transparent" />
       <div className="absolute inset-0 bg-gradient-to-r from-[#0B0B0B]/60 via-transparent to-transparent" />
     </motion.div>

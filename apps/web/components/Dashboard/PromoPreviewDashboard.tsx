@@ -86,11 +86,13 @@ export function PromoPreviewDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {promos.map(promo => (
               <div key={promo.id} className="bg-[#1a1a1a] rounded-lg overflow-hidden">
-                <img
-                  src={promo.imageUrl}
-                  alt={promo.title}
-                  className="w-full aspect-square object-cover"
-                />
+                {promo.imageUrl && (
+                  <img
+                    src={promo.imageUrl}
+                    alt={promo.title}
+                    className="w-full aspect-square object-cover"
+                  />
+                )}
                 <div className="p-4">
                   <h3 className="text-white font-semibold mb-2">{promo.title}</h3>
                   <p className="text-gray-400 text-sm mb-3 line-clamp-2">{promo.caption}</p>
