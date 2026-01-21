@@ -24,19 +24,37 @@ export const SidebarItem = React.forwardRef<HTMLAnchorElement, SidebarItemProps>
         href={href}
         onClick={onClick}
         className={cn(
-          'flex items-center gap-2 px-2.5 py-2 text-[13px] transition-all duration-200 rounded-md',
-          'focus:outline-none focus:ring-2 focus:ring-[var(--tcr-accent)] focus:ring-offset-2 focus:ring-offset-black',
+          'w-full flex items-center gap-3 px-2.5 py-2.5 text-gray-400',
+          'hover:bg-white/5 hover:text-white',
+          'transition-all duration-300 rounded-lg group relative overflow-hidden',
+          'active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-[var(--tcr-accent)] focus:ring-offset-2 focus:ring-offset-black',
           'min-h-[44px] touch-manipulation',
           active
-            ? 'bg-[var(--tcr-accent)] text-black font-medium'
-            : 'text-gray-400 hover:bg-[#1a1a1a] hover:text-white',
+            ? 'text-white bg-[var(--tcr-accent)]/10 font-bold'
+            : 'text-gray-400 hover:bg-white/5 hover:text-white',
           !expanded && 'justify-center'
         )}
         aria-label={label}
         title={!expanded ? label : undefined}
       >
-        <Icon size={18} strokeWidth={active ? 2.5 : 2} aria-hidden="true" />
-        {expanded && <span>{label}</span>}
+        <Icon 
+          size={20} 
+          strokeWidth={active ? 2.5 : 2} 
+          className={cn(
+            "transition-all duration-300 group-hover:scale-110",
+            active ? "text-[var(--tcr-accent)] drop-shadow-[0_0_8px_rgba(215,255,60,0.5)]" : "text-gray-500"
+          )} 
+          aria-hidden="true" 
+        />
+        {expanded && (
+          <span className="text-xs tracking-tight whitespace-nowrap transition-opacity duration-300">
+            {label}
+          </span>
+        )}
+        {active && expanded && (
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[var(--tcr-accent)] rounded-r-full shadow-[0_0_15px_rgba(215,255,60,0.5)]" />
+        )}
+        <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       </Link>
     );
   }

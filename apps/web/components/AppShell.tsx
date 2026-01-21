@@ -55,7 +55,21 @@ export default memo(function AppShell({
   };
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black overflow-hidden">
+      <style jsx global>{`
+        .page-transition-enter {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        .page-transition-enter-active {
+          opacity: 1;
+          transform: translateY(0);
+          transition: opacity 300ms, transform 300ms ease-out;
+        }
+        .nav-item-active {
+          background: linear-gradient(90deg, rgba(215, 255, 60, 0.1) 0%, transparent 100%);
+        }
+      `}</style>
       {sidebarOpen && !isDesktop && (
         <div 
           className="fixed inset-0 bg-black/60 z-30 lg:hidden"
@@ -74,8 +88,9 @@ export default memo(function AppShell({
         onToggleSidebar={handleSidebarToggle}
       />
       <main 
+        key={pathname}
         className={cn(
-          "min-h-screen pt-[72px] transition-all duration-200 ease-out",
+          "min-h-screen pt-[72px] transition-all duration-300 ease-in-out page-transition-enter-active",
           "ml-0 lg:ml-[60px]",
           sidebarOpen && "lg:ml-[200px]"
         )}
