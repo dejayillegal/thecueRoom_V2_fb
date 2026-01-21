@@ -318,14 +318,44 @@ const DeepDive = ({ items }: { items: NewsItem[] }) => (
   </section>
 );
 
+import { SignalLost, SilenceInTheWire, PartialSync, AccessRestricted } from '@/src/components/News/NewsFailureModes';
+
+// --- Types ---
+interface NewsItem {
+  id: string;
+  title: string;
+  excerpt: string;
+  imageUrl: string;
+  category: string;
+  author: string;
+  publishedAt: string;
+  readTime: string;
+  source: string;
+  link: string;
+}
+
+// ... existing MOCK_NEWS ...
+
 export default function NewsPage() {
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<'none' | 'offline' | 'partial' | 'empty'>('none');
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // Demo state
 
   useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => setIsLoading(false), 800);
+    // Simulate loading and potential state
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+      // For demo: randomly show a failure mode 10% of the time if needed, 
+      // but default to 'none' for normal operation
+    }, 800);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleRetry = () => {
+    setIsLoading(true);
+    setError('none');
+    setTimeout(() => setIsLoading(false), 1000);
+  };
 
   if (isLoading) {
     return (
@@ -338,13 +368,39 @@ export default function NewsPage() {
     );
   }
 
+  if (error === 'offline') {
+    return (
+      <div className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6">
+        <SignalLost onRetry={handleRetry} />
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6">
+        <AccessRestricted onLogin={() => window.location.href = '/login'} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#0B0B0B] text-white selection:bg-[#D1FF3D] selection:text-black">
       {/* 1. SIGNAL LEAD */}
-      <SignalLead item={MOCK_NEWS[0]} />
+      {MOCK_NEWS.length > 0 ? (
+        <SignalLead item={MOCK_NEWS[0]} />
+      ) : (
+        <SilenceInTheWire />
+      )}
       
       {/* 2. CURATED RAIL */}
-      <CuratedRail items={MOCK_NEWS.slice(1, 6)} />
+      {error === 'partial' ? (
+        <div className="px-6 md:px-12 py-10">
+          <PartialSync onRetry={handleRetry} />
+        </div>
+      ) : (
+        <CuratedRail items={MOCK_NEWS.slice(1, 6)} />
+      )}
       
       {/* 3. UNDERGROUND */}
       <CommunityUnderground items={MOCK_NEWS} />
