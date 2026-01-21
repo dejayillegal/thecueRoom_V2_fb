@@ -1,3 +1,9 @@
+/*
+ * PATH: apps/web/app/page.tsx
+ * DESCRIPTION: Central hub for music news and creative AI tools. 
+ * Implements advanced UI readiness logic with surgical precision.
+ */
+
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { AuthButton } from '@/components/auth/AuthButton';
@@ -37,14 +43,14 @@ async function fetchLandingData() {
     clearTimeout(timeoutId);
 
     if (!spotlightRes.ok || !trendingRes.ok) {
-      return { spotlightFeeds: [], trendingFeeds: [], error: true, status: spotlightRes.status || trendingRes.status };
+      return { spotlightFeeds: [], trendingFeeds: [], error: true };
     }
 
     const spotlightData = await spotlightRes.json();
     const trendingData = await trendingRes.json();
 
-    const spotlightFeeds = spotlightData.data?.slice(0, 8) || [];
-    const trendingFeeds = trendingData.data?.slice(0, 16) || [];
+    const spotlightFeeds = spotlightData.data || [];
+    const trendingFeeds = trendingData.data || [];
 
     if (spotlightFeeds.length === 0 && trendingFeeds.length === 0) {
       return { spotlightFeeds: [], trendingFeeds: [], empty: true };
@@ -56,7 +62,6 @@ async function fetchLandingData() {
     };
   } catch (error: any) {
     clearTimeout(timeoutId);
-    console.error('Landing data fetch failed:', error);
     if (error.name === 'AbortError') {
       return { spotlightFeeds: [], trendingFeeds: [], timeout: true };
     }
@@ -70,10 +75,8 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#0B0B0B] text-foreground selection:bg-[#D1FF3D] selection:text-[#0B0B0B] font-inter antialiased overflow-x-hidden">
-      {/* ATMOSPHERIC VECTOR: Textural noise for editorial depth */}
       <div className="fixed inset-0 pointer-events-none z-50 mix-blend-overlay opacity-[0.03] grain-overlay" />
       
-      {/* STAGING: ASYMMETRIC HEADER */}
       <header className="fixed top-0 w-full z-40 bg-[#0B0B0B]/40 backdrop-blur-2xl border-b border-[#D1FF3D]/5">
         <div className="max-w-screen-2xl mx-auto px-10 h-24 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-8 group">
@@ -90,7 +93,6 @@ export default async function HomePage() {
         </div>
       </header>
 
-      {/* I. PRIMARY SIGNAL SURFACE */}
       <section className="pt-24 min-h-[90vh] flex flex-col justify-end">
         {data.timeout || data.error ? (
           <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-8 opacity-40">
@@ -103,10 +105,7 @@ export default async function HomePage() {
             <span className="text-[9px] font-mono uppercase tracking-[1em] font-bold">Establishing Signal</span>
           </div>
         ) : spotlightFeeds.length === 0 ? (
-          <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-8 opacity-20">
-             <div className="w-16 h-px bg-[#D1FF3D] animate-[pulse_3s_ease-in-out_infinite]" />
-             <span className="text-[9px] font-mono uppercase tracking-[1em] font-bold">Establishing Signal</span>
-          </div>
+          <SectionSkeleton />
         ) : (
           <Suspense fallback={<SectionSkeleton />}>
             <SpotlightSection 
@@ -117,7 +116,6 @@ export default async function HomePage() {
         )}
       </section>
 
-      {/* II. INFORMATION AS ARCHITECTURE */}
       <div className="max-w-screen-2xl mx-auto px-10">
         <LandingClientLayout>
           <header className="mb-32 flex flex-col md:flex-row items-baseline gap-12 md:gap-32">
@@ -144,12 +142,10 @@ export default async function HomePage() {
             }>
               <NewsSection />
             </Suspense>
-            
             <aside className="hidden xl:block w-px bg-gradient-to-b from-[#D1FF3D]/20 via-transparent to-transparent h-[800px] sticky top-48" />
           </div>
         </LandingClientLayout>
 
-        {/* III. SPATIAL TENSION: STUDIO & COMMUNITY */}
         <section className="py-48 md:py-64 border-t border-[#D1FF3D]/10">
           <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-48 items-start">
             <div className="space-y-24">
@@ -162,7 +158,6 @@ export default async function HomePage() {
                   <span className="font-normal text-[#873BBF]">Primary Output.</span>
                 </h3>
               </header>
-              
               <div className="flex flex-col md:flex-row gap-24">
                 <div className="space-y-8 max-w-sm">
                   <p className="text-sm font-light leading-relaxed text-muted-foreground/80">
@@ -179,7 +174,6 @@ export default async function HomePage() {
                 </div>
               </div>
             </div>
-
             <div className="relative p-16 bg-[#111111] border border-[#D1FF3D]/5 group overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-[#D1FF3D]/5 blur-[80px] group-hover:bg-[#873BBF]/10 transition-colors duration-1000" />
               <div className="relative space-y-12">
@@ -207,7 +201,6 @@ export default async function HomePage() {
               All Vectors Reserved.
             </p>
           </div>
-          
           <div className="grid grid-cols-2 md:grid-cols-3 gap-24">
             <div className="space-y-8">
               <span className="text-[10px] uppercase tracking-[0.6em] text-foreground font-bold font-mono">VECTORS</span>

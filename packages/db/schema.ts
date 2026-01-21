@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, jsonb, integer, boolean, uuid, index, uniqueIndex, varchar, numeric, primaryKey } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, jsonb, integer, boolean, uuid, index, uniqueIndex, varchar } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 // Users table for references
@@ -9,6 +9,8 @@ export const users = pgTable('users', {
   passwordHash: text('password_hash'),
   role: text('role').notNull().default('user'),
   verified: boolean('verified').notNull().default(false),
+  verificationStatus: text('verification_status').notNull().default('pending'),
+  verificationJobId: uuid('verification_job_id'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -42,6 +44,8 @@ export const feedsSources = pgTable('feeds_sources', {
   config: jsonb('config').$type<any>().default(sql`'{}'::jsonb`),
   enabled: boolean('enabled').notNull().default(true),
   minIntervalMinutes: integer('min_interval_minutes').notNull().default(60),
+  lastFetchedAt: timestamp('last_fetched_at'),
+  consecutiveFailures: integer('consecutive_failures').notNull().default(0),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -99,3 +103,19 @@ export const feedsIngestionLog = pgTable('feeds_ingestion_log', {
 }, (table) => ({
   sourceStartedIdx: index('feeds_ingestion_log_source_started_idx').on(table.sourceId, table.startedAt),
 }));
+
+// Verification Jobs Table
+export const verificationJobs = pgTable('verification_jobs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  profileUrl: text('profile_url').notNull(),
+  status: text('status').notNull().default('queued'), // 'queued' | 'processing' | 'completed' | 'failed'
+  decision: text('decision'), // 'approved' | 'rejected' | 'review'
+  score: integer('score'),
+  evidence: jsonb('evidence').$type<any>(),
+  error: text('error'),
+  reviewNotes: text('review_notes'),
+  completedAt: timestamp('completed_at'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
