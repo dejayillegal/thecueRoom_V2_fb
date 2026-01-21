@@ -31,38 +31,38 @@ interface AIToolsCardProps {
 
 function AIToolCard({ title, description, icon, usage, link, accentColor }: AIToolsCardProps) {
   return (
-    <Link href={link}>
-      <Card className="bg-[#111111] border-[#1a1a1a] p-6 hover:scale-[1.02] hover:border-[#333] transition-all duration-300 group h-full">
-        <div className="flex items-start justify-between mb-4">
-          <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${accentColor} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-            {icon}
+    <Link href={link} className="h-full block group">
+      <Card className="bg-[#111] border-white/5 p-6 hover:scale-[1.02] hover:border-[#D7FF3C]/30 transition-all duration-500 relative overflow-hidden h-full flex flex-col">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#D7FF3C]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        
+        <div className="relative z-10 flex flex-col h-full">
+          <div className="flex items-start justify-between mb-6">
+            <div className={`h-14 w-14 rounded-2xl bg-gradient-to-br ${accentColor} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-500`}>
+              {icon}
+            </div>
+            {usage.newTemplates > 0 && (
+              <Badge variant="outline" className="text-[10px] bg-[#D7FF3C]/10 text-[#D7FF3C] border-[#D7FF3C]/20 font-black uppercase tracking-widest px-2 py-0.5">
+                {usage.newTemplates} New
+              </Badge>
+            )}
           </div>
-          {usage.newTemplates > 0 && (
-            <Badge variant="outline" className="text-xs bg-[#D7FF3C]/10 text-[#D7FF3C] border-[#D7FF3C]/20">
-              {usage.newTemplates} New
-            </Badge>
-          )}
-        </div>
 
-        <h3 className="text-white text-lg font-semibold mb-2 group-hover:text-[#D7FF3C] transition-colors">
-          {title}
-        </h3>
-        <p className="text-gray-400 text-sm mb-4">
-          {description}
-        </p>
+          <h3 className="text-white text-xl font-black mb-2 group-hover:text-[#D7FF3C] transition-colors tracking-tight">
+            {title}
+          </h3>
+          <p className="text-gray-400 text-sm mb-6 flex-1 font-medium leading-relaxed">
+            {description}
+          </p>
 
-        <div className="flex items-center justify-between pt-4 border-t border-[#1a1a1a]">
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <TrendingUp className="h-3 w-3" />
-            <span>{usage.usage} uses this week</span>
+          <div className="flex items-center justify-between pt-6 border-t border-white/5 mt-auto">
+            <div className="flex items-center gap-2 text-[11px] text-gray-500 font-bold uppercase tracking-wider">
+              <TrendingUp className="h-3.5 w-3.5 text-[#D7FF3C]/50" />
+              <span>{usage.usage} active</span>
+            </div>
+            <div className="text-[#D7FF3C] group-hover:translate-x-1 transition-transform duration-300">
+              <span className="text-xs font-black uppercase tracking-tighter">Start →</span>
+            </div>
           </div>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="text-[#D7FF3C] hover:text-[#c8f02f] hover:bg-[#1a1a1a] text-xs"
-          >
-            Create Now →
-          </Button>
         </div>
       </Card>
     </Link>

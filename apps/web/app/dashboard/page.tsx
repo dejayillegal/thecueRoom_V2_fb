@@ -84,12 +84,12 @@ export default function DashboardPage() {
 
           {/* AI Tools Board */}
           <section className="will-change-transform">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-1 h-6 bg-[#D7FF3C] rounded-full" />
-              <h2 className="text-xl font-bold text-white/90 uppercase tracking-widest text-sm">Creative Suite</h2>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-1.5 h-6 bg-[#D7FF3C] rounded-full shadow-[0_0_10px_rgba(215,255,60,0.3)]" />
+              <h2 className="text-white text-xl font-black uppercase tracking-[0.2em] text-sm opacity-80">Creative Suite</h2>
             </div>
-            <div className="rounded-3xl p-1 bg-gradient-to-br from-white/10 to-transparent">
-              <div className="bg-[#0B0B0B] rounded-[22px] overflow-hidden">
+            <div className="rounded-[32px] p-px bg-gradient-to-br from-white/10 via-transparent to-transparent">
+              <div className="bg-[#0B0B0B] rounded-[31px] overflow-hidden">
                 <ErrorBoundary>
                   <AIToolsBoard />
                 </ErrorBoundary>
@@ -98,35 +98,23 @@ export default function DashboardPage() {
           </section>
 
           {/* Three Column Widgets Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 will-change-transform">
-            <section className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest">Live Radar</h3>
-                <span className="text-[10px] bg-[#D7FF3C]/10 text-[#D7FF3C] px-2 py-0.5 rounded-full font-bold">LIVE</span>
-              </div>
-              <div className="bg-[#111] rounded-2xl border border-white/5 p-1 transition-all hover:border-white/10">
-                <ErrorBoundary>
-                  <GigRadarWidget />
-                </ErrorBoundary>
-              </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 will-change-transform">
+            <section className="space-y-6">
+              <ErrorBoundary>
+                <GigRadarWidget />
+              </ErrorBoundary>
             </section>
 
-            <section className="space-y-4">
-              <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest">Trending Conversations</h3>
-              <div className="bg-[#111] rounded-2xl border border-white/5 p-1 transition-all hover:border-white/10">
-                <ErrorBoundary>
-                  <TrendingThreadsWidget />
-                </ErrorBoundary>
-              </div>
+            <section className="space-y-6">
+              <ErrorBoundary>
+                <TrendingThreadsWidget />
+              </ErrorBoundary>
             </section>
 
-            <section className="space-y-4">
-              <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest">Weekly Selects</h3>
-              <div className="bg-[#111] rounded-2xl border border-white/5 p-1 transition-all hover:border-white/10">
-                <ErrorBoundary>
-                  <MonthlyPlaylistWidget />
-                </ErrorBoundary>
-              </div>
+            <section className="space-y-6">
+              <ErrorBoundary>
+                <MonthlyPlaylistWidget />
+              </ErrorBoundary>
             </section>
           </div>
         </div>

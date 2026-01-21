@@ -77,74 +77,81 @@ export function GigRadarWidget({ limit = 3, className = "" }: GigRadarWidgetProp
   }
 
   return (
-    <Card className={`bg-[#111111] border-[#1a1a1a] p-6 h-full flex flex-col ${className}`}>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-white text-xl font-semibold">Gig Radar</h2>
-        <Link href="/gigs">
-          <Button variant="ghost" size="sm" className="text-[#D7FF3C] hover:text-[#c8f02f] hover:bg-[#1a1a1a]">
-            View All
-          </Button>
-        </Link>
-      </div>
+    <Card className={`bg-[#111] border-white/5 p-8 h-full flex flex-col relative overflow-hidden group/radar ${className}`}>
+      <div className="absolute inset-0 bg-gradient-to-br from-[#D7FF3C]/2 to-transparent opacity-0 group-hover/radar:opacity-100 transition-opacity duration-700" />
+      
+      <div className="relative z-10 flex flex-col h-full">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-white text-xl font-black tracking-tight flex items-center gap-2">
+            <span className="w-1.5 h-6 bg-[#D7FF3C] rounded-full shadow-[0_0_10px_rgba(215,255,60,0.5)]" />
+            Gig Radar
+          </h2>
+          <Link href="/gigs">
+            <Button variant="ghost" size="sm" className="text-[#D7FF3C] hover:text-[#c8f02f] hover:bg-white/5 font-bold text-[11px] uppercase tracking-widest">
+              View All
+            </Button>
+          </Link>
+        </div>
 
-      {gigs.length === 0 ? (
-        <p className="text-gray-400 text-sm">No upcoming gigs found</p>
-      ) : (
-        <div className="space-y-3 flex-1">
-          {gigs.map((gig) => (
-            <div
-              key={gig.id}
-              className="bg-[#0a0a0a] rounded-lg p-4 hover:bg-[#151515] transition-colors border border-[#1a1a1a]"
-            >
-              <div className="flex justify-between items-start gap-4">
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-white font-medium text-sm mb-2 line-clamp-1">
-                    {gig.title}
-                  </h3>
-                  <div className="flex flex-col gap-1 text-xs text-gray-400">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-3 w-3 flex-shrink-0" />
-                      <span className="line-clamp-1">
-                        {gig.venue}
-                        {gig.city && ` • ${gig.city}`}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-3 w-3 flex-shrink-0" />
-                      <span>{formatDate(gig.date)}</span>
+        {gigs.length === 0 ? (
+          <p className="text-gray-400 text-sm font-medium italic">No upcoming gigs found</p>
+        ) : (
+          <div className="space-y-4 flex-1">
+            {gigs.map((gig) => (
+              <div
+                key={gig.id}
+                className="bg-black/40 backdrop-blur-sm rounded-xl p-5 hover:bg-[#151515] transition-all duration-300 border border-white/5 hover:border-[#D7FF3C]/20 group/gig"
+              >
+                <div className="flex justify-between items-start gap-4">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-white font-bold text-sm mb-3 line-clamp-1 group-hover/gig:text-[#D7FF3C] transition-colors tracking-tight">
+                      {gig.title}
+                    </h3>
+                    <div className="flex flex-col gap-2 text-[11px] text-gray-500 font-medium">
+                      <div className="flex items-center gap-2.5">
+                        <MapPin className="h-3.5 w-3.5 text-[#D7FF3C]/70" />
+                        <span className="line-clamp-1">
+                          {gig.venue}
+                          {gig.city && ` • ${gig.city}`}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2.5">
+                        <Calendar className="h-3.5 w-3.5 text-[#9B5CFF]/70" />
+                        <span>{formatDate(gig.date)}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                {gig.isTicketed && gig.ticketUrl ? (
-                  <Link
-                    href={gig.ticketUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  
+                  {gig.isTicketed && gig.ticketUrl ? (
+                    <Link
+                      href={gig.ticketUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button
+                        size="sm"
+                        className="bg-[#D7FF3C] text-black hover:bg-[#c8f02f] text-[10px] font-black uppercase tracking-tighter h-9 px-4 rounded-lg shadow-lg hover:shadow-[#D7FF3C]/20"
+                      >
+                        <Ticket className="h-3.5 w-3.5 mr-1.5" />
+                        Book
+                      </Button>
+                    </Link>
+                  ) : (
                     <Button
                       size="sm"
-                      className="bg-[#D7FF3C] text-black hover:bg-[#c8f02f] text-xs h-8 px-3"
+                      variant="outline"
+                      className="text-gray-400 border-white/10 hover:bg-white/5 text-[10px] font-bold uppercase tracking-widest h-9 px-4 rounded-lg"
                     >
-                      <Ticket className="h-3 w-3 mr-1" />
-                      Book
+                      <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                      Info
                     </Button>
-                  </Link>
-                ) : (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-gray-400 border-[#333] hover:bg-[#1a1a1a] text-xs h-8 px-3"
-                  >
-                    <ExternalLink className="h-3 w-3 mr-1" />
-                    Details
-                  </Button>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </Card>
   );
 }
