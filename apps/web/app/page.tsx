@@ -9,7 +9,6 @@ import { Logo } from '@/components/Logo';
 import { motion } from 'framer-motion';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 60;
 
 /**
  * EDITORIAL HOLDING PATTERN

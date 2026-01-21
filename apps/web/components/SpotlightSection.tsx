@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef, memo, useMemo } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Pause, Play, ExternalLink } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import TrendingCarousel, { FeedItem } from './TrendingCarousel';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 
@@ -11,7 +11,7 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
  * Motion: Subtle slow zoom and grayscale-to-color transition.
  * Philosophy: Ink settling on paper.
  */
-const SpotlightImage = memo(({ feed, index }: { feed: FeedItem; index: number }) => {
+const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
   const [imgSrc, setImgSrc] = useState(feed.image);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -110,11 +110,11 @@ export default memo(function SpotlightSection({
   initialFeeds: FeedItem[];
   initialTrending: FeedItem[];
 }) {
-  const [currentFeeds, setCurrentFeeds] = useState<FeedItem[]>(initialFeeds);
-  const [currentTrending, setCurrentTrending] = useState<FeedItem[]>(initialTrending);
+  const [currentFeeds] = useState<FeedItem[]>(initialFeeds);
+  const [currentTrending] = useState<FeedItem[]>(initialTrending);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [isPaused, setIsPaused] = useState(false);
+  const [isAutoPlaying] = useState(true);
+  const [isPaused] = useState(false);
   const autoPlayRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const goToNext = useCallback(() => {
@@ -156,7 +156,7 @@ export default memo(function SpotlightSection({
     <div className="relative">
       <div className="relative h-[85vh] group/spotlight bg-[#0B0B0B] border-b border-[#D1FF3D]/5 overflow-hidden">
         <AnimatePresence mode="wait">
-          <SpotlightImage key={currentFeed.url} feed={currentFeed} index={currentIndex} />
+          <SpotlightImage key={currentFeed.url} feed={currentFeed} />
         </AnimatePresence>
 
         <motion.div 
