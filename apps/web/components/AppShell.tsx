@@ -65,9 +65,24 @@ export default memo(function AppShell({
           opacity: 1;
           transform: translateY(0);
           transition: opacity 300ms, transform 300ms ease-out;
+          will-change: opacity, transform;
         }
         .nav-item-active {
           background: linear-gradient(90deg, rgba(215, 255, 60, 0.1) 0%, transparent 100%);
+        }
+        /* Performance optimizations for animations */
+        * {
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+        @media (prefers-reduced-motion: no-preference) {
+          html {
+            scroll-behavior: smooth;
+          }
+        }
+        /* Optimize smooth scrolling without jank */
+        main {
+          contain: layout style paint;
         }
       `}</style>
       {sidebarOpen && !isDesktop && (

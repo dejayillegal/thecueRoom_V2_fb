@@ -153,11 +153,27 @@ export function TrendingThreadsWidget({ limit = 5, className = "" }: TrendingThr
 
       <style jsx global>{`
         @keyframes vertical-scroll {
-          0% { transform: translateY(0); }
-          100% { transform: translateY(-50%); }
+          0% { 
+            transform: translateY(0);
+            will-change: transform;
+          }
+          100% { 
+            transform: translateY(-50%);
+            will-change: transform;
+          }
         }
         .animate-vertical-scroll {
           animation: vertical-scroll linear infinite;
+          backface-visibility: hidden;
+          perspective: 1000px;
+          transform: translateZ(0);
+        }
+        /* Reduce motion for accessibility */
+        @media (prefers-reduced-motion: reduce) {
+          .animate-vertical-scroll {
+            animation: none;
+            overflow-y: auto;
+          }
         }
       `}</style>
     </Card>

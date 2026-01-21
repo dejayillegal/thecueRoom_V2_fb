@@ -26,7 +26,7 @@ export const SidebarItem = React.forwardRef<HTMLAnchorElement, SidebarItemProps>
         className={cn(
           'w-full flex items-center gap-3 px-2.5 py-2.5 text-gray-400',
           'hover:bg-white/5 hover:text-white',
-          'transition-all duration-300 rounded-lg group relative overflow-hidden',
+          'transition-all duration-300 rounded-lg group relative overflow-hidden will-change-transform',
           'active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-[var(--tcr-accent)] focus:ring-offset-2 focus:ring-offset-black',
           'min-h-[44px] touch-manipulation',
           active

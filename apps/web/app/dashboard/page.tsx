@@ -80,12 +80,12 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 gap-10">
           {/* Spotlight Carousel */}
-          <section className="relative group">
+          <section className="relative group will-change-transform">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-1 h-6 bg-[#9B5CFF] rounded-full" />
               <h2 className="text-xl font-bold text-white/90 uppercase tracking-widest text-sm">Featured Spotlight</h2>
             </div>
-            <div className="rounded-3xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl transition-all duration-500 hover:border-[#9B5CFF]/30">
+            <div className="rounded-3xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl transition-all duration-500 hover:border-[#9B5CFF]/30 will-change-[border-color]">
               <ErrorBoundary>
                 {isLoading ? (
                   <SkeletonCard variant="wide" />
@@ -97,7 +97,7 @@ export default function DashboardPage() {
           </section>
 
           {/* AI Tools Board */}
-          <section>
+          <section className="will-change-transform">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-1 h-6 bg-[#D7FF3C] rounded-full" />
               <h2 className="text-xl font-bold text-white/90 uppercase tracking-widest text-sm">Creative Suite</h2>
@@ -112,7 +112,7 @@ export default function DashboardPage() {
           </section>
 
           {/* Three Column Widgets Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 will-change-transform">
             <section className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest">Live Radar</h3>
