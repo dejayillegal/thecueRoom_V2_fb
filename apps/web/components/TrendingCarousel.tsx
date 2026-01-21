@@ -29,7 +29,7 @@ const TrendingCard = memo(({ feed }: { feed: FeedItem }) => {
       <div className="space-y-6">
         <div className="relative aspect-[16/10] bg-[#111111] overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-1000">
           {isLoading && <div className="absolute inset-0 bg-[#111111] animate-pulse" />}
-          {resolvedSrc && (
+          {resolvedSrc ? (
             <img
               src={resolvedSrc}
               alt={feed.title}
@@ -44,7 +44,7 @@ const TrendingCard = memo(({ feed }: { feed: FeedItem }) => {
               }}
               onLoad={() => setIsLoading(false)}
             />
-          )}
+          ) : null}
         </div>
         <div className="space-y-3">
           <div className="flex items-center gap-4">
