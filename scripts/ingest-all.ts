@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import Parser from 'rss-parser';
-import { feeds, sources } from '../packages/db/schema';
+import { feedsItems as feeds, feedsSources as sources } from '../packages/db/schema';
 import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
 import { seedSources } from './seed-sources';
@@ -14,7 +14,7 @@ if (!connectionString) {
 }
 
 const client = postgres(connectionString);
-const db = drizzle(client, { schema: { feeds, sources } });
+const db = drizzle(client);
 
 const parser = new Parser({
   timeout: 30000,
@@ -162,17 +162,18 @@ async function ingestSource(source: any, retryCount = 0): Promise<{ imported: nu
 
       await db.insert(feeds).values({
         sourceId: source.id,
+        externalId: hash, // Using hash as externalId for deduplication
         title: item.title.trim().slice(0, 500),
-        summary,
-        content: content || null,
+        summary: summary || '',
+        content: content || '',
         link: item.link,
-        image,
-        tags,
-        publishedAt,
+        image: image || '',
+        tags: tags || [],
+        publishedAt: publishedAt,
         contentHash: hash,
         rawData: {
-          author: item.creator || itemAny.author || null,
-          guid: item.guid || null,
+          author: item.creator || itemAny.author || '',
+          guid: item.guid || '',
         },
       });
 

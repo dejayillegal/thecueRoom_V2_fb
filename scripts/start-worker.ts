@@ -1,5 +1,5 @@
 import { getDbClient } from '../packages/db/client';
-import { sources, feeds } from '../packages/db/schema';
+import { feeds, feedsSources as sources } from '../packages/db/schema';
 import { eq, sql } from 'drizzle-orm';
 import Parser from 'rss-parser';
 import pLimit from 'p-limit';
@@ -78,15 +78,16 @@ async function processFeed(source: any) {
 
         // Insert new feed item
         await db.insert(feeds).values({
-          title: item.title,
-          summary: item.contentSnippet || item.content?.substring(0, 300) || null,
-          content: item.content || null,
-          link: item.link,
-          image,
-          tags,
-          contentHash,
-          publishedAt,
           sourceId: source.id,
+          externalId: contentHash,
+          title: item.title,
+          summary: item.contentSnippet || item.content?.substring(0, 300) || '',
+          content: item.content || '',
+          link: item.link,
+          image: image || '',
+          tags: tags || [],
+          contentHash: contentHash,
+          publishedAt: publishedAt,
         });
 
         imported++;

@@ -70,17 +70,19 @@ export const feedsItems = pgTable('feeds_items', {
   sourceId: uuid('source_id').notNull().references(() => feedsSources.id, { onDelete: 'cascade' }),
   externalId: text('external_id').notNull(),
   title: text('title').notNull(),
-  summary: text('summary'),
-  content: text('content'),
+  summary: text('summary').notNull().default(''),
+  content: text('content').notNull().default(''),
   link: text('link').notNull(),
-  image: text('image'),
-  tags: jsonb('tags').$type<string[]>().default(sql`'[]'::jsonb`),
-  rawData: jsonb('raw_data').$type<any>(),
-  publishedAt: timestamp('published_at').notNull(),
+  image: text('image').notNull().default(''),
+  tags: jsonb('tags').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  rawData: jsonb('raw_data').$type<any>().notNull().default(sql`'{}'::jsonb`),
+  publishedAt: timestamp('published_at').notNull().defaultNow(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
+  contentHash: text('content_hash').notNull().unique(),
 }, (table) => ({
   sourceExternalIdx: uniqueIndex('feeds_items_source_external_idx').on(table.sourceId, table.externalId),
   publishedAtIdx: index('feeds_items_published_at_idx').on(table.publishedAt),
+  contentHashIdx: uniqueIndex('feeds_items_content_hash_idx').on(table.contentHash),
 }));
 
 // Authoritative Ingestion Logging
