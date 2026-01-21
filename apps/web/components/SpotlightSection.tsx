@@ -51,7 +51,7 @@ const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
         className="group-hover/spotlight:grayscale-0 group-hover/spotlight:opacity-25 transition-all duration-[3000ms]"
         onLoad={() => setIsLoading(false)}
         onError={() => {
-          setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
+          setImgSrc(`/api/fallback-thumb/${encodeURIComponent(feed.id || 'default')}`);
           setIsLoading(false);
         }}
       />

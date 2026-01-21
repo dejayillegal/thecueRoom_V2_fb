@@ -24,7 +24,7 @@ interface FeedItem {
 }
 
 const FeedCard = memo(({ feed, formatDate, index }: { feed: FeedItem; formatDate: (date: string | Date) => string; index: number }) => {
-  const [imgSrc, setImgSrc] = useState(feed.image || `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
+  const [imgSrc, setImgSrc] = useState(feed.image || `/api/fallback-thumb/${encodeURIComponent(feed.id || 'default')}`);
   
   return (
     <motion.article 
@@ -45,13 +45,13 @@ const FeedCard = memo(({ feed, formatDate, index }: { feed: FeedItem; formatDate
           <motion.h3 
             initial={{ opacity: 0.8 }}
             whileHover={{ opacity: 1, x: 5 }}
-            className="text-3xl md:text-5xl font-extralight tracking-tighter leading-[1.1] group-hover:text-[#D1FF3D] transition-all duration-700"
+            className="text-3xl md:text-5xl font-extralight tracking-tighter leading-[1.1] group-hover:text-[#D1FF3D] transition-all duration-700 text-balance"
           >
             {feed.title}
           </motion.h3>
 
           {feed.summary && (
-            <p className="text-sm leading-relaxed text-muted-foreground/60 font-light line-clamp-3 max-w-2xl">
+            <p className="text-sm leading-relaxed text-muted-foreground/60 font-light line-clamp-3 max-w-2xl text-balance">
               {feed.summary}
             </p>
           )}
@@ -78,7 +78,7 @@ const FeedCard = memo(({ feed, formatDate, index }: { feed: FeedItem; formatDate
             alt={feed.title}
             className="w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-105"
             onError={() => {
-              setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
+              setImgSrc(`/api/fallback-thumb/${encodeURIComponent(feed.id || 'default')}`);
             }}
             loading="lazy"
           />
