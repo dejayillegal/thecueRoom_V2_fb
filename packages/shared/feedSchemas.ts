@@ -6,7 +6,7 @@ export const feedsSourcesSchema = z.object({
   url: z.string().url(),
   kind: z.enum(['rss', 'json', 'atom']),
   tags: z.array(z.string()).default([]),
-  config: z.record(z.any()).default({}),
+  config: z.any().default({}),
   enabled: z.boolean().default(true),
   minIntervalMinutes: z.number().int().min(1).default(60),
   createdAt: z.date().optional(),
@@ -15,23 +15,23 @@ export const feedsSourcesSchema = z.object({
 
 export const feedsStateSchema = z.object({
   sourceId: z.string().uuid(),
-  lastFetchedAt: z.date().nullable().optional(),
-  nextFetchAt: z.date().default(() => new Date()),
+  lastPolledAt: z.date().nullable().optional(),
+  nextPollAt: z.date().default(() => new Date()),
   leaseOwner: z.string().nullable().optional(),
   leaseExpiresAt: z.date().nullable().optional(),
+  status: z.enum(['idle', 'ingesting', 'healthy', 'error']).default('idle'),
+  lastError: z.string().nullable().optional(),
   etag: z.string().nullable().optional(),
   lastModified: z.string().nullable().optional(),
-  cursor: z.string().nullable().optional(),
   consecutiveFailures: z.number().int().default(0),
-  lastStatusCode: z.number().int().nullable().optional(),
   updatedAt: z.date().optional(),
 });
 
 export const feedsItemsSchema = z.object({
   id: z.string().uuid().optional(),
   sourceId: z.string().uuid(),
-  externalId: z.string(),
-  title: z.string(),
+  externalId: z.string().min(1),
+  title: z.string().min(1),
   summary: z.string().nullable().optional(),
   content: z.string().nullable().optional(),
   link: z.string().url(),
@@ -53,3 +53,8 @@ export const feedsIngestionLogSchema = z.object({
   errorMessage: z.string().nullable().optional(),
   trace: z.any().optional(),
 });
+
+export type FeedsSource = z.infer<typeof feedsSourcesSchema>;
+export type FeedsState = z.infer<typeof feedsStateSchema>;
+export type FeedsItem = z.infer<typeof feedsItemsSchema>;
+export type FeedsIngestionLog = z.infer<typeof feedsIngestionLogSchema>;

@@ -32,7 +32,7 @@ export const profiles = pgTable('profiles', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-// Enhanced Feed Sources
+// Authoritative Feed Sources
 export const feedsSources = pgTable('feeds_sources', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
@@ -46,29 +46,29 @@ export const feedsSources = pgTable('feeds_sources', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-// Feeds State (Lease Locking & Scheduling)
+// Authoritative Feeds State (Lease Locking & Scheduling)
 export const feedsState = pgTable('feeds_state', {
   sourceId: uuid('source_id').primaryKey().references(() => feedsSources.id, { onDelete: 'cascade' }),
-  lastFetchedAt: timestamp('last_fetched_at'),
-  nextFetchAt: timestamp('next_fetch_at').notNull().defaultNow(),
+  lastPolledAt: timestamp('last_polled_at'),
+  nextPollAt: timestamp('next_poll_at').notNull().defaultNow(),
   leaseOwner: text('lease_owner'),
   leaseExpiresAt: timestamp('lease_expires_at'),
+  status: text('status').notNull().default('idle'), // 'idle' | 'ingesting' | 'healthy' | 'error'
+  lastError: text('last_error'),
   etag: text('etag'),
   lastModified: text('last_modified'),
-  cursor: text('cursor'), // For incremental ingestion support
   consecutiveFailures: integer('consecutive_failures').notNull().default(0),
-  lastStatusCode: integer('last_status_code'),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 }, (table) => ({
-  nextFetchIdx: index('feeds_state_next_fetch_idx').on(table.nextFetchAt),
+  nextPollIdx: index('feeds_state_next_poll_idx').on(table.nextPollAt),
   leaseExpiryIdx: index('feeds_state_lease_expiry_idx').on(table.leaseExpiresAt),
 }));
 
-// Feed Items (Idempotent Storage)
+// Authoritative Feed Items (Idempotent Storage)
 export const feedsItems = pgTable('feeds_items', {
   id: uuid('id').primaryKey().defaultRandom(),
   sourceId: uuid('source_id').notNull().references(() => feedsSources.id, { onDelete: 'cascade' }),
-  externalId: text('external_id').notNull(), // GUID from RSS or unique ID from API
+  externalId: text('external_id').notNull(),
   title: text('title').notNull(),
   summary: text('summary'),
   content: text('content'),
@@ -81,10 +81,9 @@ export const feedsItems = pgTable('feeds_items', {
 }, (table) => ({
   sourceExternalIdx: uniqueIndex('feeds_items_source_external_idx').on(table.sourceId, table.externalId),
   publishedAtIdx: index('feeds_items_published_at_idx').on(table.publishedAt),
-  linkIdx: index('feeds_items_link_idx').on(table.link),
 }));
 
-// Full Audit Logging
+// Authoritative Ingestion Logging
 export const feedsIngestionLog = pgTable('feeds_ingestion_log', {
   id: uuid('id').primaryKey().defaultRandom(),
   sourceId: uuid('source_id').notNull().references(() => feedsSources.id, { onDelete: 'cascade' }),
@@ -98,24 +97,3 @@ export const feedsIngestionLog = pgTable('feeds_ingestion_log', {
 }, (table) => ({
   sourceStartedIdx: index('feeds_ingestion_log_source_started_idx').on(table.sourceId, table.startedAt),
 }));
-
-// Legacy/Compatibility tables (Keep to avoid breaking changes)
-export const sources = pgTable('sources', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  name: text('name').notNull(),
-  url: text('url').notNull().unique(),
-  kind: text('kind').notNull(),
-  tags: jsonb('tags').$type<string[]>().notNull(),
-  enabled: boolean('enabled').notNull().default(true),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-});
-
-export const feeds = pgTable('feeds', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  sourceId: uuid('source_id').notNull().references(() => sources.id, { onDelete: 'cascade' }),
-  title: text('title').notNull(),
-  link: text('link').notNull().unique(),
-  contentHash: text('content_hash').notNull().unique(),
-  publishedAt: timestamp('published_at').notNull(),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-});

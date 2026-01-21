@@ -1,6 +1,6 @@
 import { db } from './index';
 import { feedsSources, feedsState, feedsItems, feedsIngestionLog } from './schema';
-import { eq, and, lt, or, sql, desc } from 'drizzle-orm';
+import { eq, and, lt, or, sql, desc, gt } from 'drizzle-orm';
 
 export interface NormalizedItem {
   externalId: string;
@@ -17,14 +17,11 @@ export interface NormalizedItem {
 /**
  * IngestionService
  * 
- * A stateless engine for music news ingestion.
+ * Authoritative engine for music news ingestion.
  */
 export class IngestionService {
   private static LEASE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 
-  /**
-   * Get the global ingestion status.
-   */
   static async getGlobalStatus() {
     const logs = await db
       .select()
@@ -66,8 +63,8 @@ export class IngestionService {
         and(
           eq(feedsSources.enabled, true),
           or(
-            lt(feedsState.nextFetchAt, new Date()),
-            sql`${feedsState.nextFetchAt} IS NULL`
+            lt(feedsState.nextPollAt, new Date()),
+            sql`${feedsState.nextPollAt} IS NULL`
           ),
           or(
             lt(feedsState.leaseExpiresAt, new Date()),
@@ -78,7 +75,6 @@ export class IngestionService {
       .limit(5);
 
     if (eligibleSources.length === 0) {
-      // If no sources are eligible, but we have 0 items, we might need a forced trigger for fresh DBs
       const itemCount = await db.select({ count: sql<number>`count(*)` }).from(feedsItems);
       if (Number(itemCount[0].count) === 0) {
         const allEnabled = await db.select({ source: feedsSources, state: feedsState })
@@ -108,6 +104,7 @@ export class IngestionService {
       .set({
         leaseOwner: workerId,
         leaseExpiresAt: new Date(Date.now() + this.LEASE_DURATION_MS),
+        status: 'ingesting',
         updatedAt: new Date(),
       })
       .where(
@@ -178,17 +175,18 @@ export class IngestionService {
 
         const backoffFactor = Math.pow(2, Math.min(state.consecutiveFailures || 0, 5));
         const baseInterval = source.minIntervalMinutes * 60000;
-        const nextFetchAt = new Date(Date.now() + (baseInterval * backoffFactor));
+        const nextPollAt = new Date(Date.now() + (baseInterval * backoffFactor));
 
         await db
           .update(feedsState)
           .set({
-            lastFetchedAt: startedAt,
-            nextFetchAt,
+            lastPolledAt: startedAt,
+            nextPollAt,
             etag: response.headers.get('etag'),
             lastModified: response.headers.get('last-modified'),
             consecutiveFailures: 0,
-            lastStatusCode: response.status,
+            status: 'healthy',
+            lastError: null,
             leaseOwner: null,
             leaseExpiresAt: null,
             updatedAt: new Date(),
@@ -201,13 +199,15 @@ export class IngestionService {
       
       const nextFailCount = (state.consecutiveFailures || 0) + 1;
       const backoffFactor = Math.pow(2, Math.min(nextFailCount, 6));
-      const nextFetchAt = new Date(Date.now() + (source.minIntervalMinutes * 60000 * backoffFactor));
+      const nextPollAt = new Date(Date.now() + (source.minIntervalMinutes * 60000 * backoffFactor));
 
       await db
         .update(feedsState)
         .set({
           consecutiveFailures: nextFailCount,
-          nextFetchAt,
+          nextPollAt,
+          status: 'error',
+          lastError: errorMessage,
           leaseOwner: null,
           leaseExpiresAt: null,
           updatedAt: new Date(),
