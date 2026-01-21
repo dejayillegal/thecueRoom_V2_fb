@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import Parser from 'rss-parser';
-import { feeds, sources, fetchLogs } from '@thecueroom/db';
+import * as schema from '../packages/db/schema';
 import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
 import { extractImageFromPage, scrapeFeed } from './lib/scraper';
@@ -14,7 +14,9 @@ if (!connectionString) {
 }
 
 const client = postgres(connectionString);
-const db = drizzle(client, { schema: { feeds, sources, fetchLogs } });
+const db = drizzle(client, { schema });
+
+const { feedsItems: feeds, feedsSources: sources, feedsIngestionLog: fetchLogs } = schema;
 
 const parser = new Parser({
   timeout: 10000,
@@ -37,7 +39,7 @@ const COOLDOWN_BASE_MS = 10 * 60 * 1000;
 function generateHash(title: string, link: string): string {
   return crypto
     .createHash('sha256')
-    .update(`${title}|${link}`)
+    .update(`\${title}|\${link}`)
     .digest('hex');
 }
 
@@ -130,33 +132,12 @@ async function ingestSourceRSS(source: any, retryCount = 0): Promise<{ imported:
     sourceId: source.id,
     startedAt: new Date(),
     status: 'running',
-    httpStatus: null,
     itemsProcessed: 0,
     itemsNew: 0,
   });
 
   try {
-    if (source.circuitOpenUntil && new Date(source.circuitOpenUntil) > new Date()) {
-      console.log(`⏸️  ${source.name}: Circuit open, skipping`);
-      await db.update(fetchLogs).set({
-        finishedAt: new Date(),
-        status: 'skipped_circuit',
-      }).where(eq(fetchLogs.id, logId));
-      return { imported: 0, skipped: 0 };
-    }
-
-    console.log(`📥 Fetching RSS: ${source.name}`);
-
-    const headers: Record<string, string> = {
-      'User-Agent': 'thecueRoom/2.0 Feed Aggregator',
-    };
-
-    if (source.etag) {
-      headers['If-None-Match'] = source.etag;
-    }
-    if (source.lastModified) {
-      headers['If-Modified-Since'] = source.lastModified;
-    }
+    console.log(`📥 Fetching RSS: \${source.name}`);
 
     const feed = await parser.parseURL(source.url);
     const baseUrl = new URL(source.url).origin;
@@ -203,11 +184,12 @@ async function ingestSourceRSS(source: any, retryCount = 0): Promise<{ imported:
 
       await db.insert(feeds).values({
         sourceId: source.id,
+        externalId: item.guid || item.link,
         title: item.title.trim().slice(0, 500),
         summary,
-        content: content || null,
+        content: content || '',
         link: item.link,
-        image,
+        image: image || '',
         tags,
         publishedAt,
         contentHash: hash,
@@ -221,67 +203,49 @@ async function ingestSourceRSS(source: any, retryCount = 0): Promise<{ imported:
     }
 
     const fetchTime = Date.now() - startTime;
-    const newAverage = source.averageFetchTime 
-      ? Math.floor((source.averageFetchTime + fetchTime) / 2)
-      : fetchTime;
 
     await db
       .update(sources)
       .set({ 
         lastFetchedAt: new Date(),
-        lastSuccessAt: new Date(),
         consecutiveFailures: 0,
-        lastStatusCode: 200,
-        averageFetchTime: newAverage,
-        circuitOpenUntil: null,
       })
       .where(eq(sources.id, source.id));
 
     await db.update(fetchLogs).set({
       finishedAt: new Date(),
       status: 'success',
-      httpStatus: 200,
       itemsProcessed: items.length,
       itemsNew: imported,
     }).where(eq(fetchLogs.id, logId));
 
-    console.log(`✅ ${source.name}: ${imported} new, ${skipped} duplicates (${fetchTime}ms)`);
+    console.log(`✅ \${source.name}: \${imported} new, \${skipped} duplicates (\${fetchTime}ms)`);
 
     return { imported, skipped };
 
   } catch (error: any) {
-    if (retryCount < MAX_RETRIES && (error.code === 'ETIMEDOUT' || error.statusCode >= 500)) {
+    if (retryCount < MAX_RETRIES && (error.code === 'ETIMEDOUT')) {
       const delay = RETRY_DELAYS[retryCount];
-      console.log(`⚠️  ${source.name}: Retry ${retryCount + 1}/${MAX_RETRIES} in ${delay}ms...`);
+      console.log(`⚠️  \${source.name}: Retry \${retryCount + 1}/\${MAX_RETRIES} in \${delay}ms...`);
       await new Promise(resolve => setTimeout(resolve, delay));
       return ingestSourceRSS(source, retryCount + 1);
     }
 
     const errorMsg = error.message || String(error);
-    const statusCode = error.statusCode || null;
     const newFailures = (source.consecutiveFailures || 0) + 1;
-
-    let circuitOpenUntil = null;
-    if (newFailures >= CIRCUIT_THRESHOLD) {
-      const cooldown = COOLDOWN_BASE_MS * Math.pow(2, newFailures - CIRCUIT_THRESHOLD);
-      circuitOpenUntil = new Date(Date.now() + cooldown);
-    }
 
     await db.update(sources).set({
       lastFetchedAt: new Date(),
       consecutiveFailures: newFailures,
-      lastStatusCode: statusCode,
-      circuitOpenUntil,
     }).where(eq(sources.id, source.id));
 
     await db.update(fetchLogs).set({
       finishedAt: new Date(),
-      status: 'error',
-      httpStatus: statusCode,
+      status: 'failed',
       errorMessage: errorMsg.slice(0, 500),
     }).where(eq(fetchLogs.id, logId));
 
-    console.error(`❌ ${source.name}: ${errorMsg}`);
+    console.error(`❌ \${source.name}: \${errorMsg}`);
     return { imported: 0, skipped: 0, error: errorMsg };
   }
 }
@@ -295,13 +259,12 @@ async function ingestSourceScrape(source: any): Promise<{ imported: number; skip
     sourceId: source.id,
     startedAt: new Date(),
     status: 'running',
-    httpStatus: null,
     itemsProcessed: 0,
     itemsNew: 0,
   });
 
   try {
-    console.log(`🕷️  Scraping: ${source.name}`);
+    console.log(`🕷️  Scraping: \${source.name}`);
 
     const scrapedItems = await scrapeFeed(source.url, source.config || {});
 
@@ -324,11 +287,12 @@ async function ingestSourceScrape(source: any): Promise<{ imported: number; skip
 
       await db.insert(feeds).values({
         sourceId: source.id,
+        externalId: item.link,
         title: item.title.trim().slice(0, 500),
-        summary: item.summary || null,
-        content: null,
+        summary: item.summary || '',
+        content: '',
         link: item.link,
-        image: item.image || null,
+        image: item.image || '',
         tags: source.tags || [],
         publishedAt: item.publishedAt || new Date(),
         contentHash: hash,
@@ -343,21 +307,18 @@ async function ingestSourceScrape(source: any): Promise<{ imported: number; skip
       .update(sources)
       .set({ 
         lastFetchedAt: new Date(),
-        lastSuccessAt: new Date(),
         consecutiveFailures: 0,
-        averageFetchTime: fetchTime,
       })
       .where(eq(sources.id, source.id));
 
     await db.update(fetchLogs).set({
       finishedAt: new Date(),
       status: 'success',
-      httpStatus: 200,
       itemsProcessed: scrapedItems.length,
       itemsNew: imported,
     }).where(eq(fetchLogs.id, logId));
 
-    console.log(`✅ ${source.name}: ${imported} new, ${skipped} duplicates (scraped, ${fetchTime}ms)`);
+    console.log(`✅ \${source.name}: \${imported} new, \${skipped} duplicates (scraped, \${fetchTime}ms)`);
 
     return { imported, skipped };
 
@@ -372,11 +333,11 @@ async function ingestSourceScrape(source: any): Promise<{ imported: number; skip
 
     await db.update(fetchLogs).set({
       finishedAt: new Date(),
-      status: 'error',
+      status: 'failed',
       errorMessage: errorMsg.slice(0, 500),
     }).where(eq(fetchLogs.id, logId));
 
-    console.error(`❌ ${source.name}: ${errorMsg}`);
+    console.error(`❌ \${source.name}: \${errorMsg}`);
     return { imported: 0, skipped: 0, error: errorMsg };
   }
 }
@@ -388,7 +349,7 @@ async function ingestSource(source: any) {
     const rssResult = await ingestSourceRSS(source);
 
     if (rssResult.error && source.config?.fallbackToScrape) {
-      console.log(`   Falling back to scraping for ${source.name}...`);
+      console.log(`   Falling back to scraping for \${source.name}...`);
       return await ingestSourceScrape(source);
     }
 
@@ -396,7 +357,7 @@ async function ingestSource(source: any) {
   }
 }
 
-async function ingestBatch(sources: any[], concurrency = 5) {
+async function ingestBatch(sourcesToIngest: any[], concurrency = 5) {
   const results = {
     totalImported: 0,
     totalSkipped: 0,
@@ -405,8 +366,8 @@ async function ingestBatch(sources: any[], concurrency = 5) {
     errors: [] as Array<{ source: string; error: string }>,
   };
 
-  for (let i = 0; i < sources.length; i += concurrency) {
-    const batch = sources.slice(i, i + concurrency);
+  for (let i = 0; i < sourcesToIngest.length; i += concurrency) {
+    const batch = sourcesToIngest.slice(i, i + concurrency);
 
     const batchResults = await Promise.allSettled(
       batch.map(source => ingestSource(source))
@@ -439,35 +400,35 @@ export async function runEnhancedIngestion() {
   console.log('🚀 thecueRoom Enhanced Feed Ingestion\n');
   console.log('============================================\n');
 
-  const allSources = await db
+  const enabledSources = await db
     .select()
     .from(sources)
     .where(eq(sources.enabled, true));
 
-  if (allSources.length === 0) {
+  if (enabledSources.length === 0) {
     console.log('⚠️  No enabled sources found in database.');
     return { success: false, message: 'No enabled sources' };
   }
 
-  console.log(`📊 Processing ${allSources.length} sources (5 parallel batches) with enhanced image extraction...\n`);
+  console.log(`📊 Processing \${enabledSources.length} sources (5 parallel batches) with enhanced image extraction...\n`);
 
   const startTime = Date.now();
-  const results = await ingestBatch(allSources, 5);
+  const results = await ingestBatch(enabledSources, 5);
   const duration = ((Date.now() - startTime) / 1000).toFixed(2);
 
   console.log('\n============================================');
   console.log('📈 Ingestion Summary');
   console.log('============================================');
-  console.log(`✅ Successful: ${results.successful}/${allSources.length}`);
-  console.log(`❌ Failed: ${results.failed}/${allSources.length}`);
-  console.log(`📝 Total items imported: ${results.totalImported}`);
-  console.log(`⏭️  Total duplicates skipped: ${results.totalSkipped}`);
-  console.log(`⏱️  Duration: ${duration}s`);
+  console.log(`✅ Successful: \${results.successful}/\${enabledSources.length}`);
+  console.log(`❌ Failed: \${results.failed}/\${enabledSources.length}`);
+  console.log(`📝 Total items imported: \${results.totalImported}`);
+  console.log(`⏭️  Total duplicates skipped: \${results.totalSkipped}`);
+  console.log(`⏱️  Duration: \${duration}s`);
 
   if (results.errors.length > 0) {
     console.log('\n❌ Failed Sources:');
     results.errors.forEach(({ source, error }) => {
-      console.log(`   - ${source}: ${error}`);
+      console.log(`   - \${source}: \${error}`);
     });
   }
 

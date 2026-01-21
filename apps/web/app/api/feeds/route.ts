@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
-import { feedsItems, feedsSources, feedsState } from '@thecueroom/db/schema';
+import { feeds, sources } from '@thecueroom/db/schema';
 import { desc, eq, and, sql, gt } from 'drizzle-orm';
-import { getArticleImageSync } from '@/src/lib/feed-image';
-import { IngestionService } from '@thecueroom/db/ingestion';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
-export const maxDuration = 25;
 
-const CACHE_TTL = 30;
 const ITEMS_PER_PAGE = 24;
 
 export async function GET(request: Request) {
@@ -19,67 +15,40 @@ export async function GET(request: Request) {
     const sourceId = searchParams.get('source');
     const limit = Math.min(100, parseInt(searchParams.get('limit') || String(ITEMS_PER_PAGE), 10));
     const offset = parseInt(searchParams.get('offset') || '0', 10);
-    const statusOnly = searchParams.get('statusOnly') === 'true';
-
-    // ⚡ CRON REPLACEMENT: Trigger ingestion on every API access
-    // fire-and-forget to avoid blocking user request
-    // This opportunistic model ensures freshness without a central timer.
-    IngestionService.trigger().catch(console.error);
-
-    const status = await IngestionService.getGlobalStatus();
-
-    if (statusOnly) {
-      return NextResponse.json(status);
-    }
 
     const db = getDbClient();
     
-    // Safety check: verify tables exist
-    try {
-      await db.select({ id: feedsItems.id }).from(feedsItems).limit(1);
-    } catch (dbErr: any) {
-      console.error('Database tables missing or inaccessible:', dbErr.message);
-      return NextResponse.json(
-        { 
-          error: 'Database initialization required', 
-          data: [], 
-          status: { isRunning: false, hasFailed: true, message: 'Tables missing' } 
-        },
-        { status: 503 }
-      );
-    }
-
     const twoWeeksAgo = new Date();
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
     const conditions: any[] = [
-      gt(feedsItems.publishedAt, twoWeeksAgo)
+      gt(feeds.publishedAt, twoWeeksAgo)
     ];
 
     if (sourceId) {
-      conditions.push(eq(feedsItems.sourceId, sourceId));
+      conditions.push(eq(feeds.sourceId, sourceId));
     }
 
     if (category) {
-      conditions.push(sql`${feedsSources.tags} @> ARRAY[${category}]::text[]`);
+      conditions.push(sql`\${feeds.tags} @> ARRAY[\${category}]::text[]`);
     }
 
     const results = await db
       .select({
-        id: feedsItems.id,
-        title: feedsItems.title,
-        summary: feedsItems.summary,
-        link: feedsItems.link,
-        image: feedsItems.image,
-        tags: feedsItems.tags,
-        publishedAt: feedsItems.publishedAt,
-        sourceId: feedsItems.sourceId,
-        sourceName: feedsSources.name,
+        id: feeds.id,
+        title: feeds.title,
+        summary: feeds.summary,
+        link: feeds.link,
+        image: feeds.image,
+        tags: feeds.tags,
+        publishedAt: feeds.publishedAt,
+        sourceId: feeds.sourceId,
+        sourceName: sources.name,
       })
-      .from(feedsItems)
-      .leftJoin(feedsSources, eq(feedsItems.sourceId, feedsSources.id))
+      .from(feeds)
+      .leftJoin(sources, eq(feeds.sourceId, sources.id))
       .where(and(...conditions))
-      .orderBy(desc(feedsItems.publishedAt), desc(feedsItems.id))
+      .orderBy(desc(feeds.publishedAt), desc(feeds.id))
       .limit(limit)
       .offset(offset);
 
@@ -88,12 +57,7 @@ export async function GET(request: Request) {
       title: item.title,
       summary: item.summary,
       url: item.link || '',
-      image: getArticleImageSync({
-        image: item.image,
-        guid: item.id,
-        url: item.link || '',
-        title: item.title
-      }),
+      image: item.image,
       tags: item.tags || [],
       publishedAt: typeof item.publishedAt === 'string' ? item.publishedAt : item.publishedAt?.toISOString(),
       source: item.sourceName || 'Unknown',
@@ -101,7 +65,6 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       data: sanitizedItems,
-      status,
       hasMore: results.length === limit,
     }, {
       headers: {
@@ -111,18 +74,8 @@ export async function GET(request: Request) {
     });
   } catch (error: any) {
     console.error('Feed API error:', error);
-    
-    // Deterministic error response
     return NextResponse.json(
-      { 
-        error: 'Failed to fetch feeds', 
-        data: [], 
-        status: { 
-          isRunning: false, 
-          hasFailed: true,
-          message: error.message 
-        } 
-      },
+      { error: 'Failed to fetch feeds', data: [] },
       { status: 500 }
     );
   }

@@ -54,7 +54,6 @@ class FeedPoller {
   }
 
   async initialize() {
-    // Ensure log directory exists
     await mkdir(LOG_DIR, { recursive: true });
     this.logStream = createWriteStream(join(LOG_DIR, 'feed-poller.log'), { flags: 'a' });
     this.log('Poller initialized', this.config);
@@ -88,10 +87,9 @@ class FeedPoller {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        throw new Error(`HTTP \${response.status}: \${response.statusText}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      // Stream with size limit
       const reader = response.body?.getReader();
       if (!reader) throw new Error('No response body');
 
@@ -106,7 +104,7 @@ class FeedPoller {
         bytesRead += value.length;
         if (bytesRead > maxBytesAllowed) {
           reader.cancel();
-          throw new Error(`Content exceeds \${maxBytes}MB limit`);
+          throw new Error(`Content exceeds ${maxBytes}MB limit`);
         }
 
         chunks.push(value);
@@ -124,7 +122,7 @@ class FeedPoller {
     } catch (error: any) {
       clearTimeout(timeoutId);
       if (error.name === 'AbortError') {
-        throw new Error(`Timeout after \${timeoutMs}ms`);
+        throw new Error(`Timeout after ${timeoutMs}ms`);
       }
       throw error;
     }
@@ -134,7 +132,7 @@ class FeedPoller {
     url: string,
     retries: number = 2
   ): Promise<{ text: string; bytesRead: number }> {
-    const delays = [500, 1500]; // ms
+    const delays = [500, 1500];
     let lastError: Error | null = null;
 
     for (let i = 0; i <= retries; i++) {
@@ -147,7 +145,7 @@ class FeedPoller {
       } catch (error: any) {
         lastError = error;
         if (i < retries) {
-          const delay = delays[i] + Math.random() * 200; // Add jitter
+          const delay = delays[i] + Math.random() * 200;
           await new Promise(resolve => setTimeout(resolve, delay));
         }
       }
@@ -157,14 +155,13 @@ class FeedPoller {
   }
 
   private calculateBackoff(failureCount: number): number {
-    const baseDelay = 60000; // 1 minute
-    const maxDelay = 3600000; // 1 hour
+    const baseDelay = 60000;
+    const maxDelay = 3600000;
     const delay = Math.min(baseDelay * Math.pow(2, failureCount), maxDelay);
     return delay;
   }
 
   private async fetchSource(source: FeedSource): Promise<FetchResult> {
-    // Check backoff
     if (source.failureCount > 0 && source.lastFetch) {
       const backoffDelay = this.calculateBackoff(source.failureCount);
       const timeSinceLast = Date.now() - source.lastFetch.getTime();
@@ -172,7 +169,7 @@ class FeedPoller {
         return {
           sourceId: source.id,
           success: false,
-          error: `Backed off (\${Math.round((backoffDelay - timeSinceLast) / 1000)}s remaining)`,
+          error: `Backed off (${Math.round((backoffDelay - timeSinceLast) / 1000)}s remaining)`,
         };
       }
     }
@@ -180,7 +177,6 @@ class FeedPoller {
     try {
       const { text, bytesRead } = await this.fetchWithRetry(source.url);
 
-      // Simple item count (look for <item> or <entry> tags, or JSON array)
       let itemCount = 0;
       if (text.includes('<item>') || text.includes('<entry>')) {
         const matches = text.match(/<item>|<entry>/gi);
@@ -190,17 +186,15 @@ class FeedPoller {
           const json = JSON.parse(text);
           itemCount = Array.isArray(json) ? json.length : (json.items?.length || 0);
         } catch {
-          // Not JSON, that's okay
         }
       }
 
-      // Update source: reset failure count
       const db = await getDbClient();
       await db.update(sources)
         .set({ failureCount: 0, lastFetch: new Date() })
         .where(eq(sources.id, source.id));
 
-      this.log(`✓ \${source.name}: \${itemCount} items, \${bytesRead} bytes`);
+      this.log(`✓ ${source.name}: ${itemCount} items, ${bytesRead} bytes`);
 
       return {
         sourceId: source.id,
@@ -212,7 +206,6 @@ class FeedPoller {
       const newFailureCount = source.failureCount + 1;
       const shouldDisable = newFailureCount >= this.config.failureThreshold;
 
-      // Update source: increment failure, maybe disable
       const db = await getDbClient();
       await db.update(sources)
         .set({
@@ -222,7 +215,7 @@ class FeedPoller {
         })
         .where(eq(sources.id, source.id));
 
-      this.log(`✗ \${source.name}: \${error.message} (failures: \${newFailureCount}\${shouldDisable ? ', DISABLED' : ''})`);
+      this.log(`✗ ${source.name}: ${error.message} (failures: ${newFailureCount}${shouldDisable ? ', DISABLED' : ''})`);
 
       return {
         sourceId: source.id,
@@ -241,7 +234,7 @@ class FeedPoller {
       return;
     }
 
-    this.log(`Fetching \${enabledSources.length} sources (concurrency: \${this.config.pollConcurrency})`);
+    this.log(`Fetching ${enabledSources.length} sources (concurrency: ${this.config.pollConcurrency})`);
 
     const results = await Promise.all(
       enabledSources.map(source =>
@@ -253,7 +246,7 @@ class FeedPoller {
     const failed = results.filter(r => !r.success).length;
     const totalItems = results.reduce((sum, r) => sum + (r.itemCount || 0), 0);
 
-    this.log(`Completed: \${successful} successful, \${failed} failed, \${totalItems} items`);
+    this.log(`Completed: ${successful} successful, ${failed} failed, ${totalItems} items`);
   }
 
   start() {
@@ -263,12 +256,10 @@ class FeedPoller {
     }
 
     this.isRunning = true;
-    this.log(`Started (interval: \${this.config.pollIntervalSeconds}s)`);
+    this.log(`Started (interval: ${this.config.pollIntervalSeconds}s)`);
 
-    // Initial run
     this.runOnce().catch(err => this.log('Error in runOnce:', err));
 
-    // Set interval
     this.intervalHandle = setInterval(() => {
       this.runOnce().catch(err => this.log('Error in runOnce:', err));
     }, this.config.pollIntervalSeconds * 1000);
