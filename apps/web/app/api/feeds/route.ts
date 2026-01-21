@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
-import { feeds, sources } from '@thecueroom/db/schema';
+import { feedsItems as feeds, feedsSources as sources } from '@thecueroom/db/schema';
 import { desc, eq, and, sql, gt } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     }
 
     if (category) {
-      conditions.push(sql`\${feeds.tags} @> ARRAY[\${category}]::text[]`);
+      conditions.push(sql`${feeds.tags} @> ARRAY[${category}]::text[]`);
     }
 
     const results = await db
