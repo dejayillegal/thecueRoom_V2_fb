@@ -201,7 +201,7 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
               const isActive = pathname === item.href;
 
               return (
-                <li key={item.href}>
+                <li key={item.href} className="px-2">
                   <SidebarItem
                     icon={item.icon}
                     label={item.label}
@@ -210,6 +210,9 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
                     expanded={expanded && !isMobile}
                     onClick={handleNavClick}
                   />
+                  {isActive && (
+                    <div className="absolute left-0 w-1 h-8 bg-[#D7FF3C] rounded-r-full shadow-[0_0_15px_rgba(215,255,60,0.5)]" />
+                  )}
                 </li>
               );
             })}
