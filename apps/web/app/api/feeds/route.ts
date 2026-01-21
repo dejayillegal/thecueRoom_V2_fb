@@ -26,12 +26,29 @@ export async function GET(request: Request) {
     // This opportunistic model ensures freshness without a central timer.
     IngestionService.trigger().catch(console.error);
 
+    const status = await IngestionService.getGlobalStatus();
+
     if (statusOnly) {
-      const status = await IngestionService.getGlobalStatus();
       return NextResponse.json(status);
     }
 
     const db = getDbClient();
+    
+    // Safety check: verify tables exist
+    try {
+      await db.select({ id: feedsItems.id }).from(feedsItems).limit(1);
+    } catch (dbErr: any) {
+      console.error('Database tables missing or inaccessible:', dbErr.message);
+      return NextResponse.json(
+        { 
+          error: 'Database initialization required', 
+          data: [], 
+          status: { isRunning: false, hasFailed: true, message: 'Tables missing' } 
+        },
+        { status: 503 }
+      );
+    }
+
     const twoWeeksAgo = new Date();
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
@@ -66,8 +83,6 @@ export async function GET(request: Request) {
       .limit(limit)
       .offset(offset);
 
-    const status = await IngestionService.getGlobalStatus();
-
     const sanitizedItems = results.map(item => ({
       id: item.id,
       title: item.title,
@@ -94,10 +109,20 @@ export async function GET(request: Request) {
         'Cache-Control': `no-store, max-age=0`,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Feed API error:', error);
+    
+    // Deterministic error response
     return NextResponse.json(
-      { error: 'Failed to fetch feeds', data: [], status: { isRunning: false, hasFailed: true } },
+      { 
+        error: 'Failed to fetch feeds', 
+        data: [], 
+        status: { 
+          isRunning: false, 
+          hasFailed: true,
+          message: error.message 
+        } 
+      },
       { status: 500 }
     );
   }
