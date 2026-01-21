@@ -121,7 +121,18 @@ export default memo(function SpotlightSection({
   const titleY = useTransform(scrollY, [0, 500], [0, 50]);
   const contentOpacity = useTransform(scrollY, [0, 300], [1, 0]);
 
-  if (!currentFeeds || currentFeeds.length === 0 || !currentFeed) return null;
+  if (!currentFeeds || currentFeeds.length === 0 || !currentFeed) {
+    return (
+      <section className="relative h-[40vh] md:h-[50vh] flex flex-col items-center justify-center bg-[#0B0B0B] border-b border-[#D1FF3D]/5">
+        <div className="space-y-6 text-center px-10">
+          <div className="w-12 h-px bg-[#D1FF3D]/20 mx-auto" />
+          <p className="text-[10px] font-mono uppercase tracking-[0.6em] text-[#D1FF3D]/40 font-bold">
+            No signals available yet
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <div className="relative">

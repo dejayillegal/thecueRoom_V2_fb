@@ -214,6 +214,17 @@ export default function NewsSection() {
     );
   }
 
+  if (newsFeeds.length === 0) {
+    return (
+      <div className="py-32 md:py-48 flex flex-col items-center justify-center space-y-8">
+        <div className="w-12 h-px bg-[#D1FF3D]/10" />
+        <span className="text-[10px] font-mono uppercase tracking-[0.8em] text-muted-foreground/20 font-bold">
+          Archive Synchronizing
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-12">
       {allTags.length > 0 && (
