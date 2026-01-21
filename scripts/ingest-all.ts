@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import Parser from 'rss-parser';
+import { sql } from 'drizzle-orm';
 import { feedsItems, feedsSources } from '../packages/db/schema';
 import { eq } from 'drizzle-orm';
 import crypto from 'crypto';

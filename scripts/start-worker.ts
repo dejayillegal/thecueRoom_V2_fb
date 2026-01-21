@@ -1,4 +1,5 @@
 import { getDbClient } from '../packages/db/client';
+import { sql } from 'drizzle-orm';
 import { feedsItems, feedsSources } from '../packages/db/schema';
 import { eq, sql } from 'drizzle-orm';
 import Parser from 'rss-parser';
