@@ -518,18 +518,6 @@ export const verificationTasks = pgTable('verification_tasks', {
   userIdIdx: index('verification_tasks_user_id_idx').on(table.userId),
 }));
 
-export const feedIngestionConfig = pgTable('feed_ingestion_config', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  enabled: boolean('enabled').notNull().default(true),
-  intervalMinutes: integer('interval_minutes').notNull().default(60),
-  lastRunAt: timestamp('last_run_at'),
-  nextRunAt: timestamp('next_run_at'),
-  isRunning: boolean('is_running').notNull().default(false),
-  lastError: text('last_error'),
-  updatedByAdminId: uuid('updated_by_admin_id').references(() => users.id),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
-
 export const signupVerifications = pgTable('signup_verifications', {
   id: uuid('id').primaryKey().defaultRandom(),
   profileId: uuid('profile_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
