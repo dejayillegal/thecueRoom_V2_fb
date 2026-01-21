@@ -52,33 +52,19 @@ export default function DashboardPage() {
 
   return (
     <ErrorBoundary>
-      <div className="max-w-[1400px] mx-auto p-6 space-y-8">
-        <header className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0B0B0B] to-[#1A1A1A] p-8 border border-white/5 shadow-2xl">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[#9B5CFF]/10 blur-[100px] -mr-32 -mt-32" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#D7FF3C]/5 blur-[100px] -ml-32 -mb-32" />
-          <div className="relative z-10">
-            <h1 className="text-4xl font-black tracking-tight text-white mb-2 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
-              Dashboard
-            </h1>
-            <p className="text-gray-400 text-base font-medium flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#D7FF3C] animate-pulse" />
-              Your music industry hub
-            </p>
-          </div>
-        </header>
-
-        {/* Top Banner */}
+      <div className="max-w-[1400px] mx-auto p-6 space-y-10">
+        {/* Top Banner - Replacing the redundant header with the dynamic banner */}
         <Suspense
           fallback={
             <div className="h-24 bg-white/5 rounded-2xl animate-pulse backdrop-blur-md" />
           }
         >
-          <div className="transform transition-all hover:scale-[1.005]">
+          <div className="transform transition-all hover:scale-[1.002] will-change-transform">
             <TopBanner />
           </div>
         </Suspense>
 
-        <div className="grid grid-cols-1 gap-10">
+        <div className="grid grid-cols-1 gap-12">
           {/* Spotlight Carousel */}
           <section className="relative group will-change-transform">
             <div className="flex items-center gap-3 mb-4">
