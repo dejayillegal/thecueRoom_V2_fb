@@ -31,10 +31,12 @@ export async function startIngestionScheduler() {
       }
 
       const now = new Date();
+      // If no last run, it's the first run, so we should trigger immediately
+      const isFirstRun = !config.lastRunAt;
       const nextRun = config.nextRunAt ? new Date(config.nextRunAt) : new Date(0);
 
-      if (now >= nextRun && !config.isRunning) {
-        console.log('🕒 Scheduled ingestion trigger started...');
+      if ((isFirstRun || now >= nextRun) && !config.isRunning) {
+        console.log(isFirstRun ? '🆕 First-run ingestion trigger started...' : '🕒 Scheduled ingestion trigger started...');
         
         const acquired = await markIngestionStarted();
         if (!acquired) {

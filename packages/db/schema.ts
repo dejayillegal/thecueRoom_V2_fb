@@ -470,6 +470,17 @@ export const ingestionJobs = pgTable('ingestion_jobs', {
   createdAtIdx: index('ingestion_jobs_created_at_idx').on(table.createdAt),
 }));
 
+export const feedIngestionConfig = pgTable('feed_ingestion_config', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  enabled: boolean('enabled').notNull().default(true),
+  intervalMinutes: integer('interval_minutes').notNull().default(60),
+  isRunning: boolean('is_running').notNull().default(false),
+  lastRunAt: timestamp('last_run_at'),
+  nextRunAt: timestamp('next_run_at'),
+  lastError: text('last_error'),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
 export const verificationJobs = pgTable('verification_jobs', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
