@@ -1,0 +1,298 @@
+Redesign the News feed structure with these content strata (no visual work yet):
+
+
+Signal Lead
+
+
+One dominant story
+
+
+Large typography, cinematic spacing
+
+
+Treated as “today’s pulse”
+
+
+
+
+Curated Intelligence Rail
+
+
+Horizontally scrollable (snap, not free scroll)
+
+
+Editorial cards, not tiles
+
+
+Slow, weighted motion
+
+
+
+
+Community Underground
+
+
+Short-form updates
+
+
+Dense but readable
+
+
+Designed for scanning, not doomscrolling
+
+
+
+
+Longform / Deep Dive
+
+
+Fewer items
+
+
+Reading-first layout
+
+
+Maximize legibility
+
+
+
+
+Deliver:
+
+
+A short written rationale explaining why this structure fits thecueRoom ethos
+
+
+No code yet
+
+
+
+🎨 PHASE 2 — VISUAL LANGUAGE & UI SYSTEM (WEB + MOBILE)
+Implement the redesigned News page UI using existing brand tokens only.
+Hard requirements:
+
+
+Background: #0B0B0B
+
+
+Surfaces: #111111
+
+
+Accent usage limited to Lime #D1FF3D and Purple #873BBF
+
+
+Fonts: Inter + Source Code Pro only
+
+
+Contrast ≥ 4.5:1
+
+
+Design rules:
+
+
+No rounded-card overload
+
+
+Use negative space aggressively
+
+
+Typography hierarchy must do more work than borders
+
+
+Visual rhythm > decoration
+
+
+Deliverables:
+
+
+Full updated News page component(s)
+
+
+Web: Next.js App Router
+
+
+Mobile: Expo React Native
+
+
+Shared layout logic where possible
+
+
+
+🌀 PHASE 3 — MOTION & INTERACTION DESIGN
+Add meaningful motion, not animation spam.
+Rules:
+
+
+Use Framer Motion (web) and Reanimated v3 (mobile)
+
+
+Respect prefers-reduced-motion
+
+
+Motion must communicate:
+
+
+Content priority
+
+
+Depth
+
+
+Editorial pacing
+
+
+
+
+Examples of allowed motion:
+
+
+Subtle parallax on Signal Lead
+
+
+Weighted entrance timing
+
+
+Scroll-linked opacity or translation
+
+
+Micro-feedback on intent (hover / press)
+
+
+Explicitly forbidden:
+
+
+Infinite bounce
+
+
+Auto-playing chaos
+
+
+TikTok-style attention traps
+
+
+Deliver:
+
+
+Final motion-enabled components
+
+
+Clear separation between layout and animation logic
+
+
+
+🧪 PHASE 4 — EMPTY, ERROR & DEGRADED STATES
+Implement beautiful failure modes:
+
+
+No news available
+
+
+Network slow
+
+
+Partial data
+
+
+Anonymous user vs logged-in user
+
+
+Rules:
+
+
+No generic spinners
+
+
+No default skeletons
+
+
+Use tone consistent with thecueRoom voice
+
+
+Minimal, confident copy
+
+
+Deliver:
+
+
+UI states implemented in code
+
+
+Reusable empty/error components if appropriate
+
+
+
+🧬 PHASE 5 — VALIDATION & SELF-AUDIT
+Before finishing, you MUST self-verify:
+
+
+No theme or color drift
+
+
+No unused dependencies
+
+
+No duplicated motion logic
+
+
+No accessibility regressions
+
+
+Mobile and web parity maintained
+
+
+Imports and paths correct
+
+
+TypeScript strict passes
+
+
+Then output:
+
+
+All updated/created files with headers
+
+
+Nothing else
+
+
+
+🧠 FINAL REMINDER
+This is not a “news feed”.
+This is a designed experience.
+If something feels generic, remove it.
+If something feels loud, quiet it.
+If something feels obvious, subvert it—without breaking the codex.
+Execute all phases in order.
+
+Why this works (briefly, mentor-to-mentor)
+This prompt:
+
+
+Forces slow thinking in a fast model
+
+
+Prevents Replit from skipping architecture
+
+
+Anchors creativity to structure first
+
+
+Aligns perfectly with your Tri-Noir / underground editorial DNA
+
+
+Produces a page that feels designed, not assembled
+
+
+If you want, next we can:
+
+
+Spin this into a News → Signal → Archive tri-layer system
+
+
+Add AI-assisted curation without algorithmic creep
+
+
+Or design a print-to-screen editorial grid inspired by old zines and modern data-viz
+
+
+This page can become the soul of the app, not just another tab.Sources
