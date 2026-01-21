@@ -160,28 +160,8 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0b0b0b]">
-      <Sidebar
-        isOpen={sidebarOpen}
-        onToggle={handleSidebarToggle}
-      />
-      <Header 
-        user={{
-          name: userProfile?.profile?.displayName || userProfile?.user.username || 'User',
-          email: userProfile?.user.email || '',
-          image: userProfile?.profile?.avatar || null,
-        }}
-        sidebarOpen={sidebarOpen}
-      />
-      <main 
-        className={cn(
-          "min-h-screen pt-[72px] transition-all duration-200 ease-out",
-          "ml-0 lg:ml-[60px]",
-          sidebarOpen && "lg:ml-[200px]"
-        )}
-      >
-        <div className="px-6 py-6 max-w-4xl">
-          <div className="flex items-center justify-between mb-8">
+    <div className="px-6 py-6 max-w-4xl">
+      <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">Profile Settings</h1>
               <p className="text-gray-400">Manage your account information and preferences</p>
@@ -466,8 +446,6 @@ export default function SettingsPage() {
               </Card>
             )}
           </div>
-        </div>
-      </main>
     </div>
   );
 }
