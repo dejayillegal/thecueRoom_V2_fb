@@ -1,6 +1,7 @@
 import { db } from './index';
 import { feedsSources, feedsState, feedsItems, feedsIngestionLog } from './schema';
 import { eq, and, lt, or, sql, desc, gt } from 'drizzle-orm';
+import Parser from 'rss-parser';
 
 export interface NormalizedItem {
   externalId: string;
@@ -14,17 +15,13 @@ export interface NormalizedItem {
   tags?: string[];
 }
 
-/**
- * IngestionService
- * 
- * Authoritative, stateless engine for music news ingestion.
- * 
- * CRON REPLACEMENT STRATEGY (Opportunistic Ingestion):
- * Instead of a central timer, ingestion is triggered by actual system usage (API calls).
- * Every time the backend is touched, `IngestionService.trigger()` is called.
- * This checks for eligible sources (next_poll_at <= NOW) and processes them.
- * Since multiple users hit the API, this ensures frequent updates without a cron job.
- */
+const parser = new Parser({
+  timeout: 30000,
+  headers: {
+    'User-Agent': 'thecueRoom-Ingestor/2.0 (Stateless)',
+  },
+});
+
 export class IngestionService {
   private static LEASE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -57,24 +54,15 @@ export class IngestionService {
     }
   }
 
-  /**
-   * Opportunistic trigger.
-   * Runs in the background (fire-and-forget) to avoid blocking request latency.
-   */
   static trigger() {
-    // Fire and forget - do not await
-    this.run().catch(err => {
+    return this.run().catch(err => {
       console.error('[IngestionService] Background run failed:', err);
     });
   }
 
-  /**
-   * Main entry point for ingestion cycles.
-   */
   static async run() {
     const workerId = `worker-${Math.random().toString(36).substring(2, 15)}`;
     
-    // Select sources that are enabled and either need a poll or have an expired lease
     const eligibleSources = await db
       .select({ source: feedsSources, state: feedsState })
       .from(feedsSources)
@@ -92,7 +80,7 @@ export class IngestionService {
           )
         )
       )
-      .limit(5); // Cap work per invocation to prevent resource exhaustion
+      .limit(5);
 
     const results = [];
     for (const { source, state } of eligibleSources) {
@@ -101,13 +89,9 @@ export class IngestionService {
     return results;
   }
 
-  /**
-   * Processes a single source with lease locking and status resolution.
-   */
   private static async processSource(source: any, state: any, workerId: string) {
     const startedAt = new Date();
     
-    // 1. Acquire Lease Atomically
     const acquired = await db
       .update(feedsState)
       .set({
@@ -126,7 +110,7 @@ export class IngestionService {
         )
       );
 
-    if (acquired.rowCount === 0) return { sourceId: source.id, status: 'skipped' };
+    if (!acquired.rowCount || acquired.rowCount === 0) return { sourceId: source.id, status: 'skipped' };
 
     let itemsProcessed = 0;
     let itemsNew = 0;
@@ -134,81 +118,66 @@ export class IngestionService {
     let errorMessage: string | undefined;
 
     try {
-      // 2. Fetch Content
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 10000);
+      console.log(`[IngestionService] Processing source: ${source.name} (${source.url})`);
+      const feed = await parser.parseURL(source.url);
+      
+      const items = feed.items || [];
+      itemsProcessed = items.length;
 
-      const response = await fetch(source.url, {
-        signal: controller.signal,
-        headers: {
-          'If-None-Match': state.etag || '',
-          'If-Modified-Since': state.lastModified || '',
-          'User-Agent': 'thecueRoom-Ingestor/2.0 (Stateless)',
-        },
-      }).finally(() => clearTimeout(timeout));
+      for (const item of items.slice(0, 50)) {
+        try {
+          const externalId = item.guid || item.link || item.title;
+          if (!externalId || !item.link || !item.title) continue;
 
-      if (response.status === 304) {
-        status = 'success';
-      } else if (!response.ok) {
-        throw new Error(`HTTP Error: ${response.status}`);
-      } else {
-        // 3. Parse & Upsert
-        const body = await response.text();
-        const items = await this.parseContent(body, source.kind);
-        
-        const limitedItems = items.slice(0, 50);
-        itemsProcessed = limitedItems.length;
+          const publishedAt = item.isoDate ? new Date(item.isoDate) : new Date();
+          const contentHash = Buffer.from(`${item.title}|${item.link}`).toString('base64');
 
-        for (const item of limitedItems) {
-          try {
-            const result = await db
-              .insert(feedsItems)
-              .values({
-                sourceId: source.id,
-                externalId: item.externalId,
-                title: item.title,
-                link: item.link,
-                summary: item.summary,
-                content: item.content,
-                image: item.image,
-                publishedAt: item.publishedAt,
-                rawData: item.rawData,
-                tags: item.tags || source.tags || [],
-              })
-              .onConflictDoNothing({ target: [feedsItems.sourceId, feedsItems.externalId] });
-            
-            if (result.rowCount && result.rowCount > 0) itemsNew++;
-          } catch (itemErr) {
-            console.error(`[IngestionService] Failed to save item from ${source.id}:`, itemErr);
-            status = 'partial';
-          }
+          const result = await db
+            .insert(feedsItems)
+            .values({
+              sourceId: source.id,
+              externalId: String(externalId),
+              title: item.title,
+              link: item.link,
+              summary: item.contentSnippet || '',
+              content: item.content || '',
+              image: item.enclosure?.url || '',
+              publishedAt: isNaN(publishedAt.getTime()) ? new Date() : publishedAt,
+              rawData: item,
+              tags: item.categories || source.tags || [],
+              contentHash,
+            })
+            .onConflictDoNothing({ target: [feedsItems.contentHash] });
+          
+          if (result.rowCount && result.rowCount > 0) itemsNew++;
+        } catch (itemErr) {
+          console.error(`[IngestionService] Failed to save item from ${source.id}:`, itemErr);
+          status = 'partial';
         }
-
-        // 4. Update Success State
-        const backoffFactor = Math.pow(2, Math.min(state.consecutiveFailures || 0, 5));
-        const baseInterval = (source.minIntervalMinutes || 60) * 60000;
-        const nextPollAt = new Date(Date.now() + (baseInterval * backoffFactor));
-
-        await db
-          .update(feedsState)
-          .set({
-            lastPolledAt: startedAt,
-            nextPollAt,
-            etag: response.headers.get('etag'),
-            lastModified: response.headers.get('last-modified'),
-            consecutiveFailures: 0,
-            status: 'healthy',
-            lastError: null,
-            leaseOwner: null,
-            leaseExpiresAt: null,
-            updatedAt: new Date(),
-          })
-          .where(eq(feedsState.sourceId, source.id));
       }
+
+      const backoffFactor = Math.pow(2, Math.min(state.consecutiveFailures || 0, 5));
+      const baseInterval = (source.minIntervalMinutes || 60) * 60000;
+      const nextPollAt = new Date(Date.now() + (baseInterval * backoffFactor));
+
+      await db
+        .update(feedsState)
+        .set({
+          lastPolledAt: startedAt,
+          nextPollAt,
+          consecutiveFailures: 0,
+          status: 'healthy',
+          lastError: null,
+          leaseOwner: null,
+          leaseExpiresAt: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(feedsState.sourceId, source.id));
+
     } catch (err: any) {
-      // 5. Update Error State
       status = 'failed';
       errorMessage = err.message;
+      console.error(`[IngestionService] Failed to process ${source.name}:`, errorMessage);
       
       const nextFailCount = (state.consecutiveFailures || 0) + 1;
       const backoffFactor = Math.pow(2, Math.min(nextFailCount, 6));
@@ -227,7 +196,6 @@ export class IngestionService {
         })
         .where(eq(feedsState.sourceId, source.id));
     } finally {
-      // 6. Audit Log Entry
       await db.insert(feedsIngestionLog).values({
         sourceId: source.id,
         startedAt,
@@ -240,65 +208,5 @@ export class IngestionService {
     }
 
     return { sourceId: source.id, status, itemsNew };
-  }
-
-  private static async parseContent(body: string, kind: string): Promise<NormalizedItem[]> {
-    const items: NormalizedItem[] = [];
-    try {
-      if (kind === 'rss' || kind === 'atom') {
-        const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-        let match;
-        while ((match = itemRegex.exec(body)) !== null) {
-          const content = match[1];
-          const title = content.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/)?.[1] || 'Untitled';
-          const link = content.match(/<link>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/)?.[1] || '';
-          
-          if (!link) continue;
-
-          const guidMatch = content.match(/<guid[\s\S]*?>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/guid>/);
-          const guid = guidMatch ? guidMatch[1] : link;
-          const pubDateStr = content.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1];
-          
-          let publishedAt = new Date();
-          if (pubDateStr) {
-            const parsed = new Date(pubDateStr);
-            if (!isNaN(parsed.getTime())) publishedAt = parsed;
-          }
-
-          items.push({
-            externalId: guid.trim(),
-            title: this.cleanText(title),
-            link: link.trim(),
-            publishedAt,
-            rawData: { raw: content.substring(0, 5000) },
-          });
-        }
-      } else if (kind === 'json') {
-        const data = JSON.parse(body);
-        const rawItems = Array.isArray(data.items) ? data.items : 
-                        Array.isArray(data.articles) ? data.articles : [];
-        
-        for (const item of rawItems) {
-          const link = item.url || item.link;
-          if (!link) continue;
-
-          items.push({
-            externalId: String(item.id || link),
-            title: String(item.title || 'Untitled'),
-            link: String(link),
-            summary: item.summary || item.description,
-            publishedAt: new Date(item.date_published || item.published_at || Date.now()),
-            rawData: item,
-          });
-        }
-      }
-    } catch (parseErr) {
-      console.error(`[IngestionService] Parsing error for ${kind}:`, parseErr);
-    }
-    return items;
-  }
-
-  private static cleanText(text: string): string {
-    return text.replace(/<!\[CDATA\[/g, '').replace(/\]\]>/g, '').trim();
   }
 }
