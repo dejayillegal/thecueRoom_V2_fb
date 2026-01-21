@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
-import { feeds, sources } from '@thecueroom/db/schema';
+import { feedsItems, feedsSources } from '@thecueroom/db/schema';
 import { desc, eq, and, sql, gt } from 'drizzle-orm';
 import { getArticleImageSync } from '@/src/lib/feed-image';
 
@@ -26,40 +26,40 @@ export async function GET(request: Request) {
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
     const conditions = [
-      gt(feeds.publishedAt, twoWeeksAgo)
+      gt(feedsItems.publishedAt, twoWeeksAgo)
     ];
 
     if (sourceId) {
-      conditions.push(eq(feeds.sourceId, sourceId));
+      conditions.push(eq(feedsItems.sourceId, sourceId));
     }
 
     if (category) {
-      conditions.push(sql`${sources.tags} @> ARRAY[${category}]::text[]`);
+      conditions.push(sql`${feedsSources.tags} @> ARRAY[${category}]::text[]`);
     }
 
     if (cursor) {
       const [timestamp, id] = cursor.split('_');
       conditions.push(
-        sql`(${feeds.publishedAt}, ${feeds.id}) < (${timestamp}, ${id})`
+        sql`(${feedsItems.publishedAt}, ${feedsItems.id}) < (${timestamp}, ${id})`
       );
     }
 
     const query = db
       .select({
-        id: feeds.id,
-        title: feeds.title,
-        summary: feeds.summary,
-        link: feeds.link,
-        image: feeds.image,
-        tags: feeds.tags,
-        publishedAt: feeds.publishedAt,
-        sourceId: feeds.sourceId,
-        sourceName: sources.name,
+        id: feedsItems.id,
+        title: feedsItems.title,
+        summary: feedsItems.summary,
+        link: feedsItems.link,
+        image: feedsItems.image,
+        tags: feedsItems.tags,
+        publishedAt: feedsItems.publishedAt,
+        sourceId: feedsItems.sourceId,
+        sourceName: feedsSources.name,
       })
-      .from(feeds)
-      .leftJoin(sources, eq(feeds.sourceId, sources.id))
+      .from(feedsItems)
+      .leftJoin(feedsSources, eq(feedsItems.sourceId, feedsSources.id))
       .where(and(...conditions))
-      .orderBy(desc(feeds.publishedAt), desc(feeds.id))
+      .orderBy(desc(feedsItems.publishedAt), desc(feedsItems.id))
       .limit(limit + 1)
       .offset(offset);
 
