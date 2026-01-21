@@ -32,15 +32,15 @@ const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
       <motion.img
         src={imgSrc}
         alt={feed.title}
-        className="absolute inset-0 w-full h-full object-cover opacity-[0.15] filter grayscale contrast-125"
+        className="absolute inset-0 w-full h-full object-cover opacity-[0.25] filter grayscale contrast-150 brightness-110"
         onLoad={() => setIsLoading(false)}
         onError={() => {
           setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title)}`);
           setIsLoading(false);
         }}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/40 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#0B0B0B]/80 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/20 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#0B0B0B]/60 via-transparent to-transparent" />
     </motion.div>
   );
 });
@@ -154,7 +154,7 @@ export default memo(function SpotlightSection({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-                  className="text-6xl md:text-[10rem] font-extralight tracking-tighter leading-[0.8] text-balance"
+                  className="text-5xl sm:text-6xl md:text-[8rem] xl:text-[10rem] font-extralight tracking-tighter leading-[0.9] text-balance line-clamp-3"
                 >
                   {currentFeed.title}
                 </motion.h1>
@@ -163,7 +163,7 @@ export default memo(function SpotlightSection({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 1, delay: 0.8 }}
-                  className="flex items-center gap-12 pt-12"
+                  className="flex items-center gap-12 pt-8 sm:pt-12"
                 >
                   {currentFeed.url && (
                     <Link
@@ -172,7 +172,7 @@ export default memo(function SpotlightSection({
                       rel="noopener noreferrer"
                       className="group/link flex items-center gap-6 text-[10px] font-mono uppercase tracking-[0.8em] font-bold text-foreground"
                     >
-                      <span className="border-b border-transparent group-hover:border-[#D1FF3D] transition-all pb-2">Entrance</span>
+                      <span className="border-b border-transparent group-hover:border-[#D1FF3D] transition-all pb-2">Read more</span>
                     </Link>
                   )}
                   

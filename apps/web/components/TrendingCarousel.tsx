@@ -30,7 +30,7 @@ const TrendingCard = memo(({ feed }: { feed: FeedItem }) => {
           <img
             src={imgSrc}
             alt={feed.title}
-            className={`w-full h-full object-cover opacity-30 group-hover:opacity-100 transition-all duration-1000 group-hover:scale-105 ${isLoading ? 'opacity-0' : ''}`}
+            className={`w-full h-full object-cover opacity-50 group-hover:opacity-100 transition-all duration-1000 group-hover:scale-105 contrast-125 brightness-110 ${isLoading ? 'opacity-0' : ''}`}
             onError={() => setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title)}`)}
             onLoad={() => setIsLoading(false)}
           />
