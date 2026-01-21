@@ -169,7 +169,7 @@ export default memo(function SpotlightSection({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-                  className="text-[clamp(1.75rem,7vw,8rem)] font-extralight tracking-tighter leading-[0.95] text-balance line-clamp-3 md:line-clamp-none overflow-hidden"
+                  className="text-[clamp(1.75rem,8vw,6rem)] font-extralight tracking-tighter leading-[0.95] text-balance line-clamp-2 md:line-clamp-3 overflow-hidden"
                 >
                   {currentFeed.title}
                 </motion.h1>

@@ -51,7 +51,7 @@ const TrendingCard = memo(({ feed }: { feed: FeedItem }) => {
             <span className="text-[8px] font-mono uppercase tracking-[0.4em] text-[#D1FF3D]/40 font-bold">{feed.source}</span>
             <div className="h-px w-8 bg-[#D1FF3D]/10" />
           </div>
-          <h4 className="text-sm font-light line-clamp-2 leading-tight tracking-tight italic opacity-60 group-hover:opacity-100 transition-opacity">
+          <h4 className="text-[clamp(0.875rem,2vw,1.125rem)] font-light line-clamp-2 leading-tight tracking-tight italic opacity-60 group-hover:opacity-100 transition-opacity">
             {feed.title}
           </h4>
         </div>

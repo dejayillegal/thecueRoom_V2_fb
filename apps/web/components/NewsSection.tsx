@@ -48,7 +48,7 @@ const FeedCard = memo(({ feed, formatDate, index }: { feed: FeedItem; formatDate
           <motion.h3 
             initial={{ opacity: 0.8 }}
             whileHover={{ opacity: 1, x: 5 }}
-            className="text-2xl md:text-5xl lg:text-6xl font-extralight tracking-tighter leading-[1.05] group-hover:text-[#D1FF3D] transition-all duration-700 text-balance line-clamp-3 xl:line-clamp-2"
+            className="text-[clamp(1.25rem,4vw,3.5rem)] font-extralight tracking-tighter leading-[1.05] group-hover:text-[#D1FF3D] transition-all duration-700 text-balance line-clamp-2 md:line-clamp-3"
           >
             {feed.title}
           </motion.h3>
