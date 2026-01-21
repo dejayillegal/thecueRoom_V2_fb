@@ -51,8 +51,8 @@ export const SidebarItem = React.forwardRef<HTMLAnchorElement, SidebarItemProps>
             {label}
           </span>
         )}
-        {active && expanded && (
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[var(--tcr-accent)] rounded-r-full shadow-[0_0_15px_rgba(215,255,60,0.5)]" />
+        {active && (
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[var(--tcr-accent)] rounded-r-full shadow-[0_0_15px_rgba(215,255,60,0.5)] z-10" />
         )}
         <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       </Link>
