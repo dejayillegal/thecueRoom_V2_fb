@@ -2,9 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import Link from 'next/link';
-import { OptimizedImage } from './OptimizedImage';
-import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
-import Image from 'next/image';
 
 export interface FeedItem {
   title: string;
@@ -16,59 +13,36 @@ export interface FeedItem {
   tags: string[];
 }
 
-const TrendingCard = memo(({ feed, index }: { feed: FeedItem; index: number }) => {
-  const [imgSrc, setImgSrc] = useState(feed.image || `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
+const TrendingCard = memo(({ feed }: { feed: FeedItem }) => {
+  const [imgSrc, setImgSrc] = useState(feed.image);
   const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-
-  useEffect(() => {
-    const newSrc = feed.image || `/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`;
-    setImgSrc(newSrc);
-    setIsLoading(true);
-    setHasError(false);
-  }, [feed.image, feed.title]);
-
-  const handleError = () => {
-    if (!hasError) {
-      setHasError(true);
-      setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
-    }
-    setIsLoading(false);
-  };
 
   return (
     <Link
       href={feed.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="block group flex-shrink-0 w-56 sm:w-64 md:w-72"
+      className="block group flex-shrink-0 w-64 md:w-80 border-r border-[#D1FF3D]/5 pr-12 last:border-0"
     >
-      <div className="bg-card overflow-hidden border border-border hover:border-primary/50 transition-all shadow-sm hover:shadow-md">
-        <div className="relative">
-          <div className="relative h-36 sm:h-40 md:h-44 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
-            {isLoading && (
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
-            )}
-            <img
-              src={imgSrc}
-              alt={feed.title}
-              className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
-              onError={handleError}
-              onLoad={() => setIsLoading(false)}
-              loading="lazy"
-            />
-            
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            
-            <div className="absolute inset-0 p-2.5 sm:p-3 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <h4 className="text-xs sm:text-sm font-semibold line-clamp-2 mb-1 text-white drop-shadow-lg leading-tight">
-                {feed.title}
-              </h4>
-              <div className="flex items-center gap-2 text-[10px] sm:text-xs text-white/90">
-                <span className="truncate drop-shadow-md">{feed.source}</span>
-              </div>
-            </div>
+      <div className="space-y-6">
+        <div className="relative aspect-[16/10] bg-[#111111] overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-1000">
+          {isLoading && <div className="absolute inset-0 bg-[#111111] animate-pulse" />}
+          <img
+            src={imgSrc}
+            alt={feed.title}
+            className={`w-full h-full object-cover opacity-30 group-hover:opacity-100 transition-all duration-1000 group-hover:scale-105 ${isLoading ? 'opacity-0' : ''}`}
+            onError={() => setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title)}`)}
+            onLoad={() => setIsLoading(false)}
+          />
+        </div>
+        <div className="space-y-3">
+          <div className="flex items-center gap-4">
+            <span className="text-[8px] font-mono uppercase tracking-[0.4em] text-[#D1FF3D]/40 font-bold">{feed.source}</span>
+            <div className="h-px w-8 bg-[#D1FF3D]/10" />
           </div>
+          <h4 className="text-sm font-light line-clamp-2 leading-tight tracking-tight italic opacity-60 group-hover:opacity-100 transition-opacity">
+            {feed.title}
+          </h4>
         </div>
       </div>
     </Link>
@@ -79,154 +53,40 @@ TrendingCard.displayName = 'TrendingCard';
 
 export default function TrendingCarousel({ feeds }: { feeds: FeedItem[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const rafRef = useRef<number | undefined>(undefined);
-  const lastTimeRef = useRef<number>(0);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
-  const [isAutoScrolling, setIsAutoScrolling] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
 
-  const checkScroll = useCallback(() => {
-    if (scrollRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-      setCanScrollLeft(scrollLeft > 0);
-      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
-    }
-  }, []);
-
-  const autoScroll = useCallback((timestamp: number) => {
-    if (!scrollRef.current || !isAutoScrolling || isPaused) {
-      rafRef.current = undefined;
-      return;
-    }
-
-    const elapsed = lastTimeRef.current ? timestamp - lastTimeRef.current : 0;
-    lastTimeRef.current = timestamp;
-
-    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-    
-    // Adjusted speed for better visibility
-    const scrollSpeed = 0.03; 
-    const distance = elapsed * scrollSpeed;
-
-    // Seamless loop logic
-    if (scrollLeft >= (scrollWidth / 2)) {
-      scrollRef.current.scrollLeft = 0;
-    } else {
-      scrollRef.current.scrollLeft += distance;
-    }
-
-    rafRef.current = requestAnimationFrame(autoScroll);
-  }, [isAutoScrolling, isPaused]);
-
   useEffect(() => {
-    checkScroll();
-    const ref = scrollRef.current;
-    if (ref) {
-      ref.addEventListener('scroll', checkScroll, { passive: true });
-      return () => ref.removeEventListener('scroll', checkScroll);
-    }
-  }, [checkScroll]);
+    if (isPaused) return;
+    const container = scrollRef.current;
+    if (!container) return;
 
-  useEffect(() => {
-    if (isAutoScrolling && !isPaused) {
-      lastTimeRef.current = performance.now();
-      rafRef.current = requestAnimationFrame(autoScroll);
-    }
-
-    return () => {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
+    let scrollPos = 0;
+    const step = () => {
+      if (isPaused) return;
+      scrollPos += 0.4;
+      if (scrollPos >= container.scrollWidth / 2) scrollPos = 0;
+      container.scrollLeft = scrollPos;
+      requestAnimationFrame(step);
     };
-  }, [isAutoScrolling, isPaused, autoScroll]);
-
-  const scroll = useCallback((direction: 'left' | 'right') => {
-    if (scrollRef.current) {
-      const scrollAmount = 320;
-      scrollRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth',
-      });
-    }
-  }, []);
-
-  const toggleAutoScroll = useCallback(() => {
-    setIsPaused(!isPaused);
+    const raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
   }, [isPaused]);
 
-  const handleMouseEnter = useCallback(() => {
-    setIsPaused(true);
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    if (isAutoScrolling) {
-      setIsPaused(false);
-    }
-  }, [isAutoScrolling]);
-
-  if (!feeds || feeds.length === 0) {
-    return null;
-  }
+  if (!feeds?.length) return null;
 
   return (
     <div 
-      className="relative group"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      className="relative overflow-hidden"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-          <span className="text-xs text-muted-foreground">
-            {isPaused ? 'Paused' : 'Auto-scrolling'}
-          </span>
-        </div>
-        <button
-          onClick={toggleAutoScroll}
-          className="p-1.5 rounded-full bg-background/80 backdrop-blur-sm border border-border hover:bg-background transition-colors"
-          aria-label={isPaused ? 'Resume auto-scroll' : 'Pause auto-scroll'}
-        >
-          {isPaused ? <Play className="w-3 h-3" /> : <Pause className="w-3 h-3" />}
-        </button>
-      </div>
-
-      {canScrollLeft && (
-        <button
-          onClick={() => scroll('left')}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm border border-border rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity"
-          aria-label="Scroll left"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-      )}
-
-      {canScrollRight && (
-        <button
-          onClick={() => scroll('right')}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm border border-border rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity"
-          aria-label="Scroll right"
-        >
-          <ChevronRight className="w-5 h-5" />
-        </button>
-      )}
-
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-hidden"
-        style={{ 
-          scrollbarWidth: 'none', 
-          msOverflowStyle: 'none',
-          scrollBehavior: 'auto',
-          willChange: 'scroll-position'
-        }}
+        className="flex gap-12 overflow-x-hidden pb-4"
+        style={{ scrollBehavior: 'auto' }}
       >
-        {/* Render feeds twice for seamless looping */}
-        {feeds.map((feed, index) => (
-          <TrendingCard key={`orig-${feed.url}-${index}`} feed={feed} index={index} />
-        ))}
-        {feeds.map((feed, index) => (
-          <TrendingCard key={`dup-${feed.url}-${index}`} feed={feed} index={index} />
+        {[...feeds, ...feeds].map((feed, index) => (
+          <TrendingCard key={`${feed.url}-${index}`} feed={feed} />
         ))}
       </div>
     </div>
