@@ -61,7 +61,7 @@ export class IngestionService {
           )
         )
       )
-      .limit(10);
+      .limit(5); // Production safety: limit concurrency per trigger
 
     const results = [];
     for (const { source, state } of eligibleSources) {
@@ -73,7 +73,7 @@ export class IngestionService {
   private static async processSource(source: any, state: any, workerId: string) {
     const startedAt = new Date();
     
-    // Acquire lease atomically
+    // Acquire lease atomically with 5min expiry for crash recovery
     const acquired = await db
       .update(feedsState)
       .set({
@@ -99,13 +99,18 @@ export class IngestionService {
     let errorMessage: string | undefined;
 
     try {
+      // Production Safety: 10s timeout for fetch
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+
       const response = await fetch(source.url, {
+        signal: controller.signal,
         headers: {
           'If-None-Match': state.etag || '',
           'If-Modified-Since': state.lastModified || '',
-          'User-Agent': 'thecueRoom-Ingestor/2.0',
+          'User-Agent': 'thecueRoom-Ingestor/2.0 (Production-Grade; +https://thecueroom.com)',
         },
-      });
+      }).finally(() => clearTimeout(timeout));
 
       if (response.status === 304) {
         status = 'success';
@@ -114,29 +119,41 @@ export class IngestionService {
       } else {
         const body = await response.text();
         const items = await this.parseContent(body, source.kind);
-        itemsProcessed = items.length;
+        
+        // Production Safety: Max 50 items per poll to prevent memory exhaustion
+        const limitedItems = items.slice(0, 50);
+        itemsProcessed = limitedItems.length;
 
-        for (const item of items) {
-          const result = await db
-            .insert(feedsItems)
-            .values({
-              sourceId: source.id,
-              externalId: item.externalId,
-              title: item.title,
-              link: item.link,
-              summary: item.summary,
-              content: item.content,
-              image: item.image,
-              publishedAt: item.publishedAt,
-              rawData: item.rawData,
-              tags: item.tags,
-            })
-            .onConflictDoNothing({ target: [feedsItems.sourceId, feedsItems.externalId] });
-          
-          if (result.rowCount && result.rowCount > 0) itemsNew++;
+        for (const item of limitedItems) {
+          try {
+            const result = await db
+              .insert(feedsItems)
+              .values({
+                sourceId: source.id,
+                externalId: item.externalId,
+                title: item.title,
+                link: item.link,
+                summary: item.summary,
+                content: item.content,
+                image: item.image,
+                publishedAt: item.publishedAt,
+                rawData: item.rawData,
+                tags: item.tags,
+              })
+              .onConflictDoNothing({ target: [feedsItems.sourceId, feedsItems.externalId] });
+            
+            if (result.rowCount && result.rowCount > 0) itemsNew++;
+          } catch (itemErr) {
+            console.error(`[IngestionService] Failed to save item from ${source.id}:`, itemErr);
+            status = 'partial';
+          }
         }
 
-        const nextFetchAt = new Date(Date.now() + source.minIntervalMinutes * 60000);
+        // Exponential backoff logic: Interval * (2 ^ failures)
+        const backoffFactor = Math.pow(2, Math.min(state.consecutiveFailures || 0, 5));
+        const baseInterval = source.minIntervalMinutes * 60000;
+        const nextFetchAt = new Date(Date.now() + (baseInterval * backoffFactor));
+
         await db
           .update(feedsState)
           .set({
@@ -155,10 +172,17 @@ export class IngestionService {
     } catch (err: any) {
       status = 'failed';
       errorMessage = err.message;
+      
+      // Calculate backoff for failure
+      const nextFailCount = (state.consecutiveFailures || 0) + 1;
+      const backoffFactor = Math.pow(2, Math.min(nextFailCount, 6)); // Max ~64x delay
+      const nextFetchAt = new Date(Date.now() + (source.minIntervalMinutes * 60000 * backoffFactor));
+
       await db
         .update(feedsState)
         .set({
-          consecutiveFailures: (state.consecutiveFailures || 0) + 1,
+          consecutiveFailures: nextFailCount,
+          nextFetchAt,
           leaseOwner: null,
           leaseExpiresAt: null,
           updatedAt: new Date(),
@@ -181,37 +205,57 @@ export class IngestionService {
 
   private static async parseContent(body: string, kind: string): Promise<NormalizedItem[]> {
     const items: NormalizedItem[] = [];
-    if (kind === 'rss' || kind === 'atom') {
-      const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-      let match;
-      while ((match = itemRegex.exec(body)) !== null) {
-        const content = match[1];
-        const title = content.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/)?.[1] || 
-                     content.match(/<title>([\s\S]*?)<\/title>/)?.[1] || 'Untitled';
-        const link = content.match(/<link>([\s\S]*?)<\/link>/)?.[1] || '';
-        const guid = content.match(/<guid[\s\S]*?>([\s\S]*?)<\/guid>/)?.[1] || link;
-        const pubDateStr = content.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1];
-        items.push({
-          externalId: guid.trim(),
-          title: this.cleanText(title),
-          link: link.trim(),
-          publishedAt: pubDateStr ? new Date(pubDateStr) : new Date(),
-          rawData: { raw: content },
-        });
+    try {
+      if (kind === 'rss' || kind === 'atom') {
+        // Defensive Regex: Using non-greedy matches and verifying required fields
+        const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+        let match;
+        while ((match = itemRegex.exec(body)) !== null) {
+          const content = match[1];
+          const title = content.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/)?.[1] || 'Untitled';
+          const link = content.match(/<link>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/)?.[1] || '';
+          
+          if (!link) continue; // Skip items without links
+
+          const guidMatch = content.match(/<guid[\s\S]*?>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/guid>/);
+          const guid = guidMatch ? guidMatch[1] : link;
+          const pubDateStr = content.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1];
+          
+          let publishedAt = new Date();
+          if (pubDateStr) {
+            const parsed = new Date(pubDateStr);
+            if (!isNaN(parsed.getTime())) publishedAt = parsed;
+          }
+
+          items.push({
+            externalId: guid.trim(),
+            title: this.cleanText(title),
+            link: link.trim(),
+            publishedAt,
+            rawData: { raw: content.substring(0, 5000) }, // Limit raw data size
+          });
+        }
+      } else if (kind === 'json') {
+        const data = JSON.parse(body);
+        const rawItems = Array.isArray(data.items) ? data.items : 
+                        Array.isArray(data.articles) ? data.articles : [];
+        
+        for (const item of rawItems) {
+          const link = item.url || item.link;
+          if (!link) continue;
+
+          items.push({
+            externalId: String(item.id || link),
+            title: String(item.title || 'Untitled'),
+            link: String(link),
+            summary: item.summary || item.description,
+            publishedAt: new Date(item.date_published || item.published_at || Date.now()),
+            rawData: item,
+          });
+        }
       }
-    } else if (kind === 'json') {
-      const data = JSON.parse(body);
-      const rawItems = data.items || data.articles || [];
-      for (const item of rawItems) {
-        items.push({
-          externalId: item.id || item.url || item.link,
-          title: item.title,
-          link: item.url || item.link,
-          summary: item.summary || item.description,
-          publishedAt: new Date(item.date_published || item.published_at || Date.now()),
-          rawData: item,
-        });
-      }
+    } catch (parseErr) {
+      console.error(`[IngestionService] Parsing error for ${kind}:`, parseErr);
     }
     return items;
   }

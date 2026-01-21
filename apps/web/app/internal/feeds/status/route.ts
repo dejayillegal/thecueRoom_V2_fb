@@ -36,9 +36,15 @@ export async function GET() {
       .where(
         and(
           gte(feedsIngestionLog.startedAt, twentyFourHoursAgo),
-          sql`${feedsIngestionLog.status} = 'error'`
+          sql`${feedsIngestionLog.status} = 'failed'`
         )
       );
+
+    // 5. Active Leases (Multiple Instance Safety Check)
+    const [activeLeases] = await db
+      .select({ count: count() })
+      .from(feedsState)
+      .where(gte(feedsState.leaseExpiresAt, new Date()));
 
     return NextResponse.json({
       status: 'ok',
@@ -48,10 +54,16 @@ export async function GET() {
         lastIngestionTimestamp: lastIngestionResult?.lastIngestion || null,
         itemsIngestedLast24h: Number(itemsCountResult?.count || 0),
         errorCountLast24h: Number(errorCountResult?.count || 0),
+        activeLeases: Number(activeLeases?.count || 0),
       },
       meta: {
         engine: 'stateless-lease-locking',
-        region: process.env.VERCEL_REGION || 'local'
+        resilience: {
+          concurrencyLimit: 5,
+          maxItemsPerPoll: 50,
+          timeoutMs: 10000,
+          backoffEnabled: true
+        }
       }
     });
   } catch (error: any) {
