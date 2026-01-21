@@ -433,6 +433,14 @@ export default function NewsPage() {
   const handleRetry = () => {
     setIsLoading(true);
     setError('none');
+    // Simulate real re-fetch would go here
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
+  };
+
+  const handleLogin = () => {
+    window.location.href = '/login';
   };
 
   return (
@@ -451,11 +459,21 @@ export default function NewsPage() {
         </motion.div>
       ) : error === 'offline' ? (
         <motion.div key="offline" initial={ { opacity: 0 } } animate={ { opacity: 1 } } className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6">
-          <SignalLost onRetry={handleRetry} />
+          <div className="max-w-2xl w-full">
+            <SignalLost onRetry={handleRetry} />
+          </div>
         </motion.div>
       ) : error === 'empty' ? (
         <motion.div key="empty" initial={ { opacity: 0 } } animate={ { opacity: 1 } } className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6">
-          <SilenceInTheWire />
+          <div className="max-w-2xl w-full">
+            <SilenceInTheWire />
+          </div>
+        </motion.div>
+      ) : !isLoggedIn ? (
+        <motion.div key="unauthorized" initial={ { opacity: 0 } } animate={ { opacity: 1 } } className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6">
+          <div className="max-w-2xl w-full">
+            <AccessRestricted onLogin={handleLogin} />
+          </div>
         </motion.div>
       ) : (
         <motion.div 
@@ -465,8 +483,12 @@ export default function NewsPage() {
           className="min-h-screen bg-[#0B0B0B] text-white selection:bg-[#D1FF3D] selection:text-black"
         >
           {/* 1. SIGNAL LEAD */}
-          {newsItems.filter(item => item.source === 'Editorial').length > 0 && (
+          {newsItems.filter(item => item.source === 'Editorial').length > 0 ? (
             <SignalLead item={newsItems.filter(item => item.source === 'Editorial')[0]} />
+          ) : (
+             <div className="pt-32 px-6 max-w-[1400px] mx-auto">
+               <SilenceInTheWire />
+             </div>
           )}
           
           {/* 2. INTELLIGENCE RAIL */}
