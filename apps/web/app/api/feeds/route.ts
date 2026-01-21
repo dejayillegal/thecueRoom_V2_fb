@@ -23,9 +23,8 @@ export async function GET(request: Request) {
 
     // ⚡ CRON REPLACEMENT: Trigger ingestion on every API access
     // fire-and-forget to avoid blocking user request
-    if (process.env.NODE_ENV === 'production' || searchParams.get('trigger') === 'true') {
-      IngestionService.trigger().catch(console.error);
-    }
+    // This opportunistic model ensures freshness without a central timer.
+    IngestionService.trigger().catch(console.error);
 
     if (statusOnly) {
       const status = await IngestionService.getGlobalStatus();
