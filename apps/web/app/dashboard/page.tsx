@@ -27,10 +27,22 @@ export default function DashboardPage() {
 
     const fetchSpotlight = async () => {
       try {
-        const response = await fetch("/api/dashboard/overview");
+        const response = await fetch("/api/dashboard/overview", { cache: 'no-store' });
         const data = await response.json();
-        if (data.spotlight) {
+        console.log("Dashboard data fetched:", data);
+        if (data.spotlight && data.spotlight.length > 0) {
           setSpotlightItems(data.spotlight);
+        } else if (data.trendingThreads) {
+          // Fallback if spotlight is empty but we have news
+          const fallbackItems = data.trendingThreads.slice(0, 5).map((thread: any) => ({
+            id: thread.id,
+            title: thread.title,
+            subtitle: thread.category || "Community Discussion",
+            imageUrl: "/api/og-fallback?title=" + encodeURIComponent(thread.title),
+            link: "/forum/thread/" + thread.id,
+            tag: "Trending"
+          }));
+          setSpotlightItems(fallbackItems);
         }
       } catch (error) {
         console.error("Failed to fetch spotlight:", error);
