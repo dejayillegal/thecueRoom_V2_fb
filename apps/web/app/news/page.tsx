@@ -31,58 +31,72 @@ interface NewsItem {
 // --- Components ---
 
 /**
- * STRATUM 1: SIGNAL LEAD
- * One dominant story, large typography, cinematic spacing
+ * STRATUM 1: SIGNAL LEAD (Hero Section)
+ * One dominant story, massive typography, cinematic spacing
  */
 const SignalLead = ({ item }: { item: NewsItem }) => (
-  <section className="relative w-full min-h-[70vh] flex flex-col justify-end bg-[#0B0B0B] overflow-hidden group">
-    <div className="absolute inset-0 opacity-40 group-hover:opacity-50 transition-opacity duration-1000">
+  <section className="relative w-full min-h-[85vh] flex flex-col justify-end bg-[#0B0B0B] overflow-hidden group">
+    <div className="absolute inset-0 transition-transform duration-[2000ms] group-hover:scale-110">
        <Image 
         src={item.imageUrl} 
         alt={item.title}
         fill
-        className="object-cover"
+        className="object-cover opacity-50 contrast-125 saturate-[0.8]"
         priority
       />
       <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/40 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#0B0B0B] via-transparent to-transparent opacity-60" />
     </div>
     
-    <div className="relative z-10 max-w-[1400px] mx-auto px-6 md:px-12 pb-16 md:pb-24 w-full">
-      <div className="flex items-center gap-4 mb-6">
-        <span className="font-mono text-[10px] tracking-[0.2em] text-[#D1FF3D] border border-[#D1FF3D]/30 px-2 py-1 uppercase bg-[#D1FF3D]/5">
-          {item.category}
-        </span>
+    <div className="relative z-10 max-w-[1400px] mx-auto px-6 md:px-12 pb-20 md:pb-32 w-full">
+      <div className="flex items-center gap-4 mb-8">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[#D1FF3D] animate-pulse" />
+          <span className="font-mono text-[10px] tracking-[0.3em] text-[#D1FF3D] uppercase">
+            Lead Signal
+          </span>
+        </div>
+        <div className="h-[1px] w-12 bg-white/20" />
         <span className="font-mono text-[10px] tracking-[0.1em] text-gray-500 uppercase">
-          Today's Pulse
+          Synced 04:00 Zulu
         </span>
       </div>
       
-      <h1 className="text-5xl md:text-8xl font-bold text-white tracking-tighter leading-[0.9] max-w-5xl mb-8 group-hover:text-[#D1FF3D] transition-colors duration-500">
+      <h1 className="text-6xl md:text-[10rem] font-bold text-white tracking-tighter leading-[0.85] max-w-6xl mb-12 group-hover:text-[#D1FF3D] transition-colors duration-700">
         {item.title}
       </h1>
       
-      <p className="text-lg md:text-2xl text-gray-400 font-light max-w-2xl mb-10 leading-relaxed">
-        {item.excerpt}
-      </p>
-      
-      <Link 
-        href={item.link}
-        className="inline-flex items-center gap-4 group/btn"
-      >
-        <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center group-hover/btn:border-[#D1FF3D] group-hover/btn:bg-[#D1FF3D] transition-all duration-300">
-          <ArrowRight className="w-5 h-5 group-hover/btn:text-black transition-colors" />
-        </div>
-        <span className="font-mono text-xs uppercase tracking-[0.2em] group-hover/btn:text-[#D1FF3D] transition-colors">
-          Read Full Signal
-        </span>
-      </Link>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-12">
+        <p className="text-xl md:text-3xl text-gray-400 font-light max-w-3xl leading-tight">
+          {item.excerpt}
+        </p>
+        
+        <Link 
+          href={item.link}
+          className="flex-shrink-0 inline-flex items-center gap-6 group/btn"
+        >
+          <span className="font-mono text-[11px] uppercase tracking-[0.4em] text-white/60 group-hover/btn:text-[#D1FF3D] transition-colors">
+            Decrypt Full Signal
+          </span>
+          <div className="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center group-hover/btn:border-[#D1FF3D] group-hover/btn:bg-[#D1FF3D] transition-all duration-500">
+            <ArrowRight className="w-6 h-6 text-white group-hover/btn:text-black transition-colors" />
+          </div>
+        </Link>
+      </div>
+    </div>
+    
+    {/* Decorative corner element */}
+    <div className="absolute bottom-12 right-12 hidden md:block">
+      <div className="font-mono text-[8px] text-white/20 vertical-rl tracking-[0.5em] uppercase">
+        TCR_EDITORIAL_SIGNAL_001
+      </div>
     </div>
   </section>
 );
 
 /**
- * STRATUM 2: CURATED INTELLIGENCE RAIL
- * Horizontally scrollable (snap), editorial cards
+ * STRATUM 2: THE INTELLIGENCE RAIL
+ * Weighted horizontal scroll, magazine-style cards
  */
 const CuratedRail = ({ items }: { items: NewsItem[] }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -96,55 +110,67 @@ const CuratedRail = ({ items }: { items: NewsItem[] }) => {
   };
 
   return (
-    <section className="bg-[#111111] py-20 border-y border-white/5">
-      <div className="max-w-[1400px] mx-auto px-6 md:px-12 flex justify-between items-end mb-12">
-        <div>
-          <h2 className="text-3xl font-bold text-white tracking-tight mb-2">Curated Intelligence</h2>
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500">Weekly Industry Selection</p>
+    <section className="bg-[#111111] py-32 overflow-hidden border-y border-white/5">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12 mb-20 flex items-end justify-between">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-1 h-8 bg-[#873BBF]" />
+            <h2 className="text-4xl font-bold text-white tracking-tight italic">Intelligence Rail</h2>
+          </div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.5em] text-gray-500">Curated by the cueRoom editorial collective</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-4">
           <button 
             onClick={() => scroll('left')}
-            className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition-all"
+            className="w-12 h-12 border border-white/10 flex items-center justify-center hover:bg-white/5 transition-all group"
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={24} className="text-gray-500 group-hover:text-white" />
           </button>
           <button 
             onClick={() => scroll('right')}
-            className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-[#D1FF3D] hover:text-black hover:border-[#D1FF3D] transition-all"
+            className="w-12 h-12 border border-white/10 flex items-center justify-center hover:bg-[#D1FF3D] hover:border-[#D1FF3D] transition-all group"
           >
-            <ChevronRight size={20} />
+            <ChevronRight size={24} className="text-gray-500 group-hover:text-black" />
           </button>
         </div>
       </div>
       
       <div 
         ref={scrollRef}
-        className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar gap-8 px-6 md:px-[calc((100vw-1400px)/2+48px)] scroll-smooth"
+        className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar gap-12 px-6 md:px-[calc((100vw-1400px)/2+48px)] scroll-smooth"
       >
         {items.map((item) => (
-          <div key={item.id} className="min-w-[320px] md:min-w-[450px] snap-start bg-[#0B0B0B] group border border-transparent hover:border-[#D1FF3D]/20 transition-all duration-500">
-            <div className="relative aspect-[16/10] overflow-hidden">
+          <div key={item.id} className="min-w-[340px] md:min-w-[580px] snap-start bg-[#0B0B0B] group flex flex-col">
+            <div className="relative aspect-[4/3] overflow-hidden">
               <Image 
                 src={item.imageUrl} 
                 alt={item.title}
                 fill
-                className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
+                className="object-cover grayscale-0 group-hover:scale-105 transition-transform duration-700"
               />
+              <div className="absolute top-6 left-6">
+                 <span className="bg-[#0B0B0B] text-[#D1FF3D] font-mono text-[9px] px-3 py-1 tracking-widest uppercase border border-[#D1FF3D]/30">
+                  {item.category}
+                </span>
+              </div>
             </div>
-            <div className="p-8">
-              <span className="font-mono text-[9px] tracking-[0.2em] text-[#873BBF] uppercase mb-4 block">
-                {item.category}
-              </span>
-              <h3 className="text-xl font-bold text-white mb-4 leading-tight group-hover:text-[#D1FF3D] transition-colors">
+            <div className="p-10 flex-1 flex flex-col">
+              <h3 className="text-2xl md:text-4xl font-bold text-white mb-6 leading-[1.1] group-hover:text-[#D1FF3D] transition-colors">
                 {item.title}
               </h3>
-              <p className="text-gray-400 text-sm leading-relaxed mb-6 line-clamp-2">
+              <p className="text-gray-400 text-lg leading-relaxed mb-10 line-clamp-3 font-light">
                 {item.excerpt}
               </p>
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] text-gray-500">{item.source}</span>
-                <Link href={item.link} className="text-[#D1FF3D]"><ArrowRight size={16} /></Link>
+              <div className="mt-auto pt-8 border-t border-white/5 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-8 h-8 rounded-full bg-[#111111] border border-white/5 flex items-center justify-center">
+                    <Clock size={12} className="text-gray-500" />
+                  </div>
+                  <span className="font-mono text-[10px] text-gray-500 uppercase tracking-widest">{item.readTime} Read</span>
+                </div>
+                <Link href={item.link} className="text-white hover:text-[#D1FF3D] transition-colors">
+                  <ArrowRight size={20} />
+                </Link>
               </div>
             </div>
           </div>
@@ -155,97 +181,101 @@ const CuratedRail = ({ items }: { items: NewsItem[] }) => {
 };
 
 /**
- * STRATUM 3: COMMUNITY UNDERGROUND
- * Dense scanning cards, readable but compact
+ * STRATUM 3: THE UNDERGROUND (Scanner View)
+ * Dense, typography-heavy grid, no borders on cards
  */
 const CommunityUnderground = ({ items }: { items: NewsItem[] }) => (
-  <section className="bg-[#0B0B0B] py-24">
+  <section className="bg-[#0B0B0B] py-32">
     <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16">
-        <div className="max-w-xl">
-          <h2 className="text-4xl font-bold text-white tracking-tight mb-4">Underground Feed</h2>
-          <p className="text-gray-400 leading-relaxed">High-frequency updates from the global electronic music collective. Real-time signal from the scene's core.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 mb-24">
+        <div className="max-w-2xl">
+          <h2 className="text-5xl font-bold text-white tracking-tighter mb-6 underline decoration-[#D1FF3D] decoration-2 underline-offset-8">The Underground</h2>
+          <p className="text-gray-400 text-xl leading-relaxed font-light">High-frequency community signals decrypted in real-time. This is the raw pulse of the electronic music collective.</p>
         </div>
-        <div className="font-mono text-[10px] text-[#D1FF3D] flex items-center gap-2 px-3 py-1.5 border border-[#D1FF3D]/30 bg-[#D1FF3D]/5">
-          <span className="w-1.5 h-1.5 bg-[#D1FF3D] animate-pulse" />
-          LIVE FEED ACTIVE
-        </div>
+        <Link href="/forum" className="font-mono text-[10px] text-[#D1FF3D] uppercase tracking-[0.5em] flex items-center gap-3 hover:gap-5 transition-all">
+          Access Nodes <ChevronRight size={14} />
+        </Link>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 border-t border-l border-white/5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-16 gap-y-24">
         {items.map((item) => (
-          <div key={item.id} className="p-8 border-r border-b border-white/5 hover:bg-[#111111] transition-colors group cursor-pointer">
-            <div className="flex justify-between items-start mb-6">
-              <span className="font-mono text-[9px] text-[#D1FF3D] tracking-[0.2em]">{item.category}</span>
-              <div className="flex gap-3 text-gray-600 group-hover:text-white transition-colors">
-                <Share2 size={14} />
-                <ExternalLink size={14} />
+          <div key={item.id} className="group cursor-pointer">
+            <div className="mb-8 space-y-4">
+              <div className="flex items-center gap-4">
+                <span className="font-mono text-[9px] text-[#873BBF] tracking-[0.3em] uppercase">{item.category}</span>
+                <div className="flex-1 h-[1px] bg-white/5" />
+                <span className="font-mono text-[9px] text-gray-600">ID: {item.id.slice(0, 8)}</span>
               </div>
+              <h3 className="text-2xl font-bold text-white leading-snug group-hover:text-[#D1FF3D] transition-colors">
+                {item.title}
+              </h3>
             </div>
-            <h3 className="text-lg font-bold text-white mb-4 leading-snug group-hover:text-[#D1FF3D] transition-colors">
-              {item.title}
-            </h3>
-            <p className="text-gray-500 text-sm mb-6 leading-relaxed line-clamp-3">
+            <p className="text-gray-500 leading-relaxed mb-8 line-clamp-3 font-light">
               {item.excerpt}
             </p>
-            <div className="flex items-center gap-4 font-mono text-[10px] text-gray-600">
-              <span className="flex items-center gap-1.5"><Clock size={10} /> {item.readTime}</span>
-              <span>{item.author}</span>
+            <div className="flex items-center justify-between pt-6 border-t border-white/5">
+              <div className="flex items-center gap-3">
+                 <div className="w-6 h-6 rounded-full bg-[#111111] border border-white/5" />
+                 <span className="font-mono text-[10px] text-gray-600 uppercase tracking-wider">{item.author}</span>
+              </div>
+              <div className="flex gap-4">
+                <Share2 size={14} className="text-gray-700 hover:text-white transition-colors" />
+                <ExternalLink size={14} className="text-gray-700 hover:text-white transition-colors" />
+              </div>
             </div>
           </div>
         ))}
-      </div>
-      
-      <div className="mt-12 flex justify-center">
-        <button className="px-8 py-3 font-mono text-[10px] uppercase tracking-[0.2em] border border-white/10 hover:border-[#D1FF3D] hover:text-[#D1FF3D] transition-all">
-          Sync More Signals
-        </button>
       </div>
     </div>
   </section>
 );
 
 /**
- * STRATUM 4: DEEP DIVE
- * Reading-first layout, maximize legibility
+ * STRATUM 4: DEEP INVESTIGATIONS
+ * Maximum legibility, reading-first layout, aggressive negative space
  */
 const DeepDive = ({ items }: { items: NewsItem[] }) => (
-  <section className="bg-[#111111] py-32 border-t border-white/5">
+  <section className="bg-[#111111] py-48 border-t border-white/5">
     <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-      <div className="text-center mb-24">
-        <p className="font-mono text-[10px] text-[#873BBF] uppercase tracking-[0.4em] mb-4">Deep Intelligence</p>
-        <h2 className="text-5xl font-bold text-white tracking-tighter">The Longform Archives</h2>
+      <div className="max-w-4xl mx-auto text-center mb-32">
+        <h2 className="text-6xl md:text-8xl font-bold text-white tracking-tighter mb-8 leading-none">Deep Investigations</h2>
+        <div className="h-[2px] w-24 bg-[#D1FF3D] mx-auto mb-8" />
+        <p className="font-mono text-[11px] text-gray-500 uppercase tracking-[0.6em]">Longform editorial archives</p>
       </div>
       
-      <div className="max-w-4xl mx-auto space-y-32">
+      <div className="max-w-5xl mx-auto space-y-48">
         {items.map((item, idx) => (
           <div key={item.id} className={cn(
-            "flex flex-col gap-12 group",
+            "flex flex-col gap-20 group",
             idx % 2 === 1 ? "md:flex-row-reverse" : "md:flex-row"
           )}>
-            <div className="w-full md:w-1/2 aspect-square relative overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-1000">
+            <div className="w-full md:w-1/2 aspect-[4/5] relative overflow-hidden">
               <Image 
                 src={item.imageUrl} 
                 alt={item.title}
                 fill
-                className="object-cover scale-110 group-hover:scale-100 transition-transform duration-1000"
+                className="object-cover scale-110 group-hover:scale-100 transition-transform duration-[1500ms] saturate-0 group-hover:saturate-100"
               />
+              <div className="absolute inset-0 bg-[#0B0B0B]/20 mix-blend-overlay" />
             </div>
             <div className="w-full md:w-1/2 flex flex-col justify-center">
-              <span className="font-mono text-[10px] text-gray-500 mb-6 uppercase tracking-[0.2em] flex items-center gap-2">
-                <span className="w-8 h-[1px] bg-gray-800" /> {item.publishedAt}
+              <span className="font-mono text-[11px] text-[#873BBF] mb-10 uppercase tracking-[0.4em] block">
+                Investigative Report
               </span>
-              <h3 className="text-3xl md:text-5xl font-bold text-white mb-8 tracking-tight leading-[1.1] group-hover:text-[#D1FF3D] transition-colors">
+              <h3 className="text-4xl md:text-6xl font-bold text-white mb-10 tracking-tight leading-[0.95] group-hover:text-[#D1FF3D] transition-colors">
                 {item.title}
               </h3>
-              <p className="text-gray-400 text-lg leading-relaxed mb-10 font-light">
+              <p className="text-gray-400 text-xl md:text-2xl leading-relaxed mb-12 font-light italic border-l-2 border-white/10 pl-8">
                 {item.excerpt}
               </p>
-              <div className="flex items-center gap-8">
-                <Link href={item.link} className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#D1FF3D] hover:underline underline-offset-8">
-                  Read Investigation
+              <div className="flex items-center gap-12">
+                <Link href={item.link} className="font-mono text-[11px] uppercase tracking-[0.4em] text-white hover:text-[#D1FF3D] underline underline-offset-[12px] decoration-white/20 hover:decoration-[#D1FF3D]">
+                  Decrypt File
                 </Link>
-                <span className="font-mono text-[10px] text-gray-600">{item.readTime} reading time</span>
+                <div className="flex items-center gap-3">
+                   <Clock size={14} className="text-gray-600" />
+                   <span className="font-mono text-[10px] text-gray-600 uppercase tracking-widest">{item.readTime} decrypt time</span>
+                </div>
               </div>
             </div>
           </div>
@@ -255,13 +285,10 @@ const DeepDive = ({ items }: { items: NewsItem[] }) => (
   </section>
 );
 
-// ... existing components ...
-
 export default function NewsPage() {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<'none' | 'offline' | 'partial' | 'empty'>('none');
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -270,38 +297,35 @@ export default function NewsPage() {
         if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         
-        // Map data from dashboard/spotlight to NewsItem format
         const combinedItems: NewsItem[] = [];
         
-        // Priority 1: Spotlight items (Signal Lead + Curated Rail)
         if (data.spotlight && data.spotlight.length > 0) {
           combinedItems.push(...data.spotlight.map((item: any) => ({
             id: item.id,
             title: item.title,
             excerpt: item.subtitle || '',
             imageUrl: item.imageUrl,
-            category: item.tag || 'FEATURED',
+            category: item.tag || 'EDITORIAL',
             author: 'TCR Editorial',
             publishedAt: new Date().toISOString().split('T')[0],
-            readTime: '10 min',
+            readTime: '12 min',
             source: 'Editorial',
-            link: `/news/${item.id}` // Corrected to route to detail page
+            link: `/news/${item.id}`
           })));
         }
         
-        // Priority 2: Trending Threads (Underground)
         if (data.trendingThreads && data.trendingThreads.length > 0) {
           combinedItems.push(...data.trendingThreads.map((thread: any) => ({
             id: thread.id,
             title: thread.title,
-            excerpt: `Community discussion with ${thread.replies} replies and ${thread.likes} likes. Author: ${thread.author}`,
+            excerpt: `Community intelligence decrypted from the underground node. High frequency engagement detected.`,
             imageUrl: "/api/og-fallback?title=" + encodeURIComponent(thread.title),
             category: thread.category || 'COMMUNITY',
             author: thread.author,
             publishedAt: thread.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
-            readTime: '5 min',
+            readTime: '6 min',
             source: 'Community',
-            link: `/news/${thread.id}` // Routing all through the news detail flow
+            link: `/news/${thread.id}`
           })));
         }
 
@@ -321,8 +345,6 @@ export default function NewsPage() {
     fetchData();
   }, []);
 
-// ... rest of the file ...
-
   const handleRetry = () => {
     setIsLoading(true);
     setError('none');
@@ -331,9 +353,9 @@ export default function NewsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#0B0B0B] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-t-2 border-[#D1FF3D] rounded-full animate-spin" />
-          <p className="font-mono text-[10px] tracking-[0.4em] text-gray-500 animate-pulse">SYNCING SIGNALS</p>
+        <div className="flex flex-col items-center gap-6">
+          <div className="w-16 h-[1px] bg-[#D1FF3D] animate-pulse" />
+          <p className="font-mono text-[10px] tracking-[0.5em] text-[#D1FF3D] animate-pulse uppercase">Syncing Signals</p>
         </div>
       </div>
     );
@@ -355,33 +377,38 @@ export default function NewsPage() {
     );
   }
 
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6">
-        <AccessRestricted onLogin={() => window.location.href = '/login'} />
-      </div>
-    );
-  }
+  const editorialItems = newsItems.filter(item => item.source === 'Editorial');
+  const communityItems = newsItems.filter(item => item.source === 'Community');
 
   return (
     <div className="min-h-screen bg-[#0B0B0B] text-white selection:bg-[#D1FF3D] selection:text-black">
-      {/* 1. SIGNAL LEAD (First Spotlight Item) */}
-      {newsItems.length > 0 && (
-        <SignalLead item={newsItems[0]} />
+      {/* 1. SIGNAL LEAD (Primary Spotlight) */}
+      {editorialItems.length > 0 && (
+        <SignalLead item={editorialItems[0]} />
       )}
       
-      {/* 2. CURATED RAIL (Remaining Spotlight Items) */}
-      <CuratedRail items={newsItems.filter(item => item.source === 'Editorial').slice(1)} />
+      {/* 2. INTELLIGENCE RAIL (Remaining Spotlights) */}
+      {editorialItems.length > 1 && (
+        <CuratedRail items={editorialItems.slice(1)} />
+      )}
       
-      {/* 3. UNDERGROUND (Community Items) */}
-      <CommunityUnderground items={newsItems.filter(item => item.source === 'Community')} />
+      {/* 3. THE UNDERGROUND (Community Pulse) */}
+      <CommunityUnderground items={communityItems} />
       
-      {/* 4. DEEP DIVE (Selected Featured) */}
-      <DeepDive items={newsItems.filter(item => item.source === 'Editorial').slice(0, 2)} />
+      {/* 4. DEEP INVESTIGATIONS (Editorial Longform) */}
+      {editorialItems.length > 0 && (
+        <DeepDive items={editorialItems.slice(0, 3)} />
+      )}
       
-      {/* Footer / Load More */}
-      <footer className="py-20 text-center border-t border-white/5 bg-[#0B0B0B]">
-        <p className="font-mono text-[10px] text-gray-600 uppercase tracking-[0.2em]">End of current pulse. Stay tuned for new signal.</p>
+      {/* Footer Terminal */}
+      <footer className="py-32 text-center border-t border-white/5 bg-[#0B0B0B]">
+        <div className="max-w-lg mx-auto space-y-8">
+          <div className="w-8 h-[2px] bg-white/20 mx-auto" />
+          <p className="font-mono text-[10px] text-gray-600 uppercase tracking-[0.5em] leading-loose">
+            End of current intelligence cycle.<br />
+            Next signal synchronization in 04:00:00.
+          </p>
+        </div>
       </footer>
     </div>
   );
