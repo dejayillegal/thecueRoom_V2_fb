@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react';
 import Link from 'next/link';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, ArrowUpRight } from 'lucide-react';
 
 interface FeedItem {
   id: string;
@@ -20,57 +20,52 @@ const FeedCard = memo(({ feed, formatDate }: { feed: FeedItem; formatDate: (date
   const [isLoading, setIsLoading] = useState(true);
 
   return (
-    <article className="bg-card overflow-hidden border border-border hover:border-primary/30 transition-all group shadow-sm hover:shadow-md">
-      <Link href={feed.url} target="_blank" rel="noopener noreferrer" className="block">
-        <div className="relative">
-          <div className="relative h-48 sm:h-56 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
-            {isLoading && (
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
-            )}
-            <img
-              src={imgSrc}
-              alt={feed.title}
-              className={`w-full h-full object-cover transition-all duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
-              onLoad={() => setIsLoading(false)}
-              onError={() => {
-                setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
-                setIsLoading(false);
-              }}
-              loading="lazy"
-            />
-          </div>
-        </div>
-
-        <div className="p-4 space-y-2">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span className="font-medium truncate max-w-[60%]">
-              {feed.source || 'Unknown Source'}
-            </span>
+    <article className="group relative border-b border-border/40 pb-12 last:border-0 hover:bg-muted/5 transition-colors p-6 -mx-6">
+      <Link href={feed.url} target="_blank" rel="noopener noreferrer" className="grid grid-cols-1 md:grid-cols-[1fr_350px] gap-12 items-start">
+        <div className="space-y-6 order-2 md:order-1">
+          <div className="flex items-center gap-4 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60 font-medium">
+            <span className="text-primary">{feed.source}</span>
+            <span className="w-1 h-1 rounded-full bg-border" />
             <span>{formatDate(feed.publishedAt)}</span>
           </div>
 
-          <h3 className="text-sm font-bold line-clamp-2 text-foreground group-hover:text-[#D7FF3C] group-hover:underline transition-colors duration-200 leading-tight">
+          <h3 className="text-xl md:text-2xl font-light tracking-tight leading-snug group-hover:text-primary transition-colors">
             {feed.title}
           </h3>
 
           {feed.summary && (
-            <p className="text-xs leading-relaxed text-muted-foreground line-clamp-2">
+            <p className="text-sm leading-relaxed text-muted-foreground font-light line-clamp-3">
               {feed.summary}
             </p>
           )}
 
-          {feed.tags && feed.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 pt-1">
-              {feed.tags.slice(0, 3).map((tag, idx) => (
-                <span
-                  key={idx}
-                  className="px-2 py-0.5 text-[10px] font-medium text-[#D7FF3C] border border-[#D7FF3C]/30 transition-colors"
-                >
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          )}
+          <div className="flex flex-wrap gap-4 pt-2">
+            {feed.tags?.slice(0, 3).map((tag, idx) => (
+              <span
+                key={idx}
+                className="text-[10px] uppercase tracking-widest text-muted-foreground/40 font-medium"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="relative aspect-[16/10] overflow-hidden bg-muted order-1 md:order-2 grayscale group-hover:grayscale-0 transition-all duration-700 opacity-60 group-hover:opacity-100">
+          <img
+            src={imgSrc}
+            alt={feed.title}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            onLoad={() => setIsLoading(false)}
+            onError={() => {
+              setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title.slice(0, 120))}`);
+              setIsLoading(false);
+            }}
+            loading="lazy"
+          />
+          <div className="absolute top-4 right-4 p-2 bg-background/20 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity">
+            <ArrowUpRight className="w-4 h-4 text-white" />
+          </div>
         </div>
       </Link>
     </article>
@@ -98,10 +93,10 @@ export default function NewsSection() {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    if (diffMins < 60) return `${diffMins}M AGO`;
+    if (diffHours < 24) return `${diffHours}H AGO`;
+    if (diffDays < 7) return `${diffDays}D AGO`;
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
   }, []);
 
   const loadNewsFeeds = useCallback(async (isInitial = false) => {
@@ -128,11 +123,7 @@ export default function NewsSection() {
         headers: { 'Accept': 'application/json' }
       });
 
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => 'Unknown error');
-        console.error('Feed API error:', response.status, errorText);
-        throw new Error(`Failed to fetch: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`Status: ${response.status}`);
 
       const data = await response.json();
 
@@ -141,7 +132,6 @@ export default function NewsSection() {
         setCursor(data.nextCursor || null);
         setHasMore(data.hasMore ?? false);
       } else {
-        console.warn('Invalid feed data structure:', data);
         setHasMore(false);
       }
     } catch (error: any) {
@@ -160,7 +150,6 @@ export default function NewsSection() {
 
   useEffect(() => {
     loadNewsFeeds(true);
-
     return () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
@@ -177,7 +166,7 @@ export default function NewsSection() {
           loadNewsFeeds(false);
         }
       },
-      { threshold: 0.1, rootMargin: '200px' }
+      { threshold: 0.1, rootMargin: '400px' }
     );
 
     if (observerTarget.current) {
@@ -199,9 +188,8 @@ export default function NewsSection() {
 
   const filteredFeeds = useMemo(() => {
     if (selectedTags.size === 0) return newsFeeds;
-    
     return newsFeeds.filter(feed => {
-      if (!feed.tags || feed.tags.length === 0) return false;
+      if (!feed.tags) return false;
       const feedTags = feed.tags.map(t => t.toLowerCase());
       return Array.from(selectedTags).some(selectedTag => feedTags.includes(selectedTag));
     });
@@ -210,133 +198,66 @@ export default function NewsSection() {
   const toggleTag = useCallback((tag: string) => {
     setSelectedTags(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(tag)) {
-        newSet.delete(tag);
-      } else {
-        newSet.add(tag);
-      }
+      if (newSet.has(tag)) newSet.delete(tag);
+      else newSet.add(tag);
       return newSet;
     });
   }, []);
 
-  const clearFilters = useCallback(() => {
-    setSelectedTags(new Set());
-  }, []);
-
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {[...Array(6)].map((_, i) => (
-          <article key={i} className="bg-card overflow-hidden border border-border shadow-sm">
-            <div className="relative h-48 sm:h-56 bg-gradient-to-br from-primary/10 to-secondary/10 animate-pulse" />
-            <div className="p-4 space-y-2">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <div className="h-3 w-24 bg-gray-300 rounded animate-pulse"></div>
-                <div className="h-3 w-16 bg-gray-300 rounded animate-pulse"></div>
-              </div>
-              <div className="h-5 w-full bg-gray-300 rounded animate-pulse"></div>
-              <div className="h-4 w-4/5 bg-gray-300 rounded animate-pulse"></div>
-              <div className="flex gap-2">
-                <div className="h-5 w-16 bg-primary/20 rounded"></div>
-                <div className="h-5 w-12 bg-primary/20 rounded"></div>
-              </div>
+      <div className="space-y-24">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="grid grid-cols-1 md:grid-cols-[1fr_350px] gap-12 animate-pulse">
+            <div className="space-y-6">
+              <div className="h-4 w-32 bg-muted rounded" />
+              <div className="h-12 w-full bg-muted rounded" />
+              <div className="h-24 w-full bg-muted rounded" />
             </div>
-          </article>
+            <div className="aspect-[16/10] bg-muted rounded" />
+          </div>
         ))}
-      </div>
-    );
-  }
-
-  if (newsFeeds.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">No news feeds available yet.</p>
       </div>
     );
   }
 
   return (
-    <>
+    <div className="space-y-16">
       {allTags.length > 0 && (
-        <div className="mb-6 border border-border bg-card p-4">
-          <button
-            onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
-            className="flex items-center justify-between w-full text-left"
-          >
-            <h3 className="text-sm font-semibold flex items-center gap-2">
-              <span className="text-[#D7FF3C]">⚡</span>
-              Filter by Category
-              {selectedTags.size > 0 && (
-                <span className="text-xs text-[#D7FF3C] ml-2">({selectedTags.size} active)</span>
-              )}
-            </h3>
-            {isFiltersExpanded ? (
-              <ChevronUp className="w-4 h-4 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="w-4 h-4 text-muted-foreground" />
-            )}
-          </button>
-          
-          {isFiltersExpanded && (
-            <div className="mt-4 space-y-3">
-              <div className="flex flex-wrap gap-2">
-                {allTags.map((tag) => (
-                  <button
-                    key={tag}
-                    onClick={() => toggleTag(tag)}
-                    className={`px-3 py-1.5 text-xs font-medium border transition-all ${
-                      selectedTags.has(tag)
-                        ? 'border-[#D7FF3C] bg-[#D7FF3C]/10 text-[#D7FF3C]'
-                        : 'border-[#D7FF3C]/30 text-[#D7FF3C] hover:bg-[#D7FF3C]/5'
-                    }`}
-                  >
-                    #{tag}
-                  </button>
-                ))}
-              </div>
-              
-              {selectedTags.size > 0 && (
-                <button
-                  onClick={clearFilters}
-                  className="text-xs text-muted-foreground hover:text-[#D7FF3C] transition-colors"
-                >
-                  Clear all filters
-                </button>
-              )}
-            </div>
-          )}
+        <div className="sticky top-16 z-30 bg-background/80 backdrop-blur-md py-4 border-b border-border/10">
+          <div className="flex flex-wrap gap-4">
+            <button
+              onClick={() => setSelectedTags(new Set())}
+              className={`text-[10px] uppercase tracking-[0.2em] px-3 py-1 border transition-colors ${selectedTags.size === 0 ? 'bg-foreground text-background border-foreground' : 'border-border/40 text-muted-foreground hover:border-border'}`}
+            >
+              All Signals
+            </button>
+            {allTags.slice(0, 8).map((tag) => (
+              <button
+                key={tag}
+                onClick={() => toggleTag(tag)}
+                className={`text-[10px] uppercase tracking-[0.2em] px-3 py-1 border transition-colors ${selectedTags.has(tag) ? 'bg-primary text-primary-foreground border-primary' : 'border-border/40 text-muted-foreground hover:border-border'}`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="space-y-12">
         {filteredFeeds.map((feed) => (
           <FeedCard key={feed.id} feed={feed} formatDate={formatDate} />
         ))}
       </div>
 
-      {filteredFeeds.length === 0 && selectedTags.size > 0 && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No feeds match the selected filters.</p>
-          <button
-            onClick={clearFilters}
-            className="mt-4 text-sm text-[#D7FF3C] hover:underline"
-          >
-            Clear filters
-          </button>
-        </div>
-      )}
-
-      <div ref={observerTarget} className="h-20 flex items-center justify-center mt-8">
-        {isLoadingMore && (
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            <span>Loading more feeds...</span>
-          </div>
-        )}
-        {!hasMore && filteredFeeds.length > 0 && (
-          <p className="text-muted-foreground">You've reached the end</p>
-        )}
+      <div ref={observerTarget} className="h-40 flex items-center justify-center">
+        {isLoadingMore ? (
+          <span className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground animate-pulse">Syncing...</span>
+        ) : !hasMore && filteredFeeds.length > 0 ? (
+          <span className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground/30">End of stream</span>
+        ) : null}
       </div>
-    </>
+    </div>
   );
 }

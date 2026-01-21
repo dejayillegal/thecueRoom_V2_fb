@@ -26,19 +26,20 @@ const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
   }, []);
 
   return (
-    <>
+    <div className="absolute inset-0 bg-background overflow-hidden">
       {isLoading && (
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
+        <div className="absolute inset-0 bg-muted animate-pulse" />
       )}
       <img
         key={feedKey}
         src={imgSrc}
         alt={feed.title}
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+        className={`absolute inset-0 w-full h-full object-cover transition-all duration-1000 ease-out ${isLoading ? 'opacity-0 scale-110' : 'opacity-60 grayscale group-hover/spotlight:grayscale-0 group-hover/spotlight:opacity-80 scale-100'}`}
         onError={handleError}
         onLoad={handleLoad}
       />
-    </>
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+    </div>
   );
 });
 
@@ -55,11 +56,10 @@ const NavigationButton = memo(({
 }) => (
   <button
     onClick={onClick}
-    className={`absolute ${direction}-4 top-1/2 -translate-y-1/2 bg-background/80 border border-border p-2 opacity-0 group-hover/spotlight:opacity-100 transition-opacity hover:bg-background/90 z-10`}
-    style={{ willChange: 'opacity' }}
+    className={`absolute ${direction}-8 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center border border-border/40 bg-background/20 backdrop-blur-sm opacity-0 group-hover/spotlight:opacity-100 transition-all hover:bg-background/80 hover:border-border z-10`}
     aria-label={label}
   >
-    {direction === 'left' ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+    {direction === 'left' ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
   </button>
 ));
 
@@ -76,16 +76,16 @@ const SlideIndicator = memo(({
 }) => (
   <button
     onClick={onClick}
-    className={`rounded-full transition-all`}
+    className="h-1 transition-all duration-500 ease-in-out bg-border/40 hover:bg-border relative group/indicator"
     style={{
-      width: index === currentIndex ? '2rem' : '0.5rem',
-      height: '0.5rem',
-      backgroundColor: index === currentIndex ? 'hsl(var(--primary))' : 'rgba(255, 255, 255, 0.5)',
-      transform: 'translateZ(0)',
-      willChange: index === currentIndex ? 'width' : 'auto',
+      width: index === currentIndex ? '3rem' : '1.5rem',
     }}
     aria-label={`Go to slide ${index + 1}`}
-  />
+  >
+    {index === currentIndex && (
+      <div className="absolute inset-0 bg-primary origin-left animate-progress-fast" />
+    )}
+  </button>
 ));
 
 SlideIndicator.displayName = 'SlideIndicator';
@@ -107,11 +107,11 @@ export default memo(function SpotlightSection({
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const goToNext = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % currentFeeds.length);
+    setCurrentIndex((prev) => (prev + 1) % (currentFeeds.length || 1));
   }, [currentFeeds.length]);
 
   const goToPrevious = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + currentFeeds.length) % currentFeeds.length);
+    setCurrentIndex((prev) => (prev - 1 + (currentFeeds.length || 1)) % (currentFeeds.length || 1));
   }, [currentFeeds.length]);
 
   const goToSlide = useCallback((index: number) => {
@@ -220,7 +220,7 @@ export default memo(function SpotlightSection({
 
   useEffect(() => {
     if (isAutoPlaying && currentFeeds.length > 1 && !isPaused) {
-      autoPlayRef.current = setInterval(goToNext, 5000);
+      autoPlayRef.current = setInterval(goToNext, 8000);
     }
 
     return () => {
@@ -242,77 +242,66 @@ export default memo(function SpotlightSection({
 
   if (!currentFeeds || currentFeeds.length === 0) {
     return (
-      <div className="relative h-[60vh] bg-card rounded-lg flex items-center justify-center border border-border">
-        <p className="text-muted-foreground">No spotlight feeds available yet.</p>
+      <div className="relative h-[60vh] flex items-center justify-center border border-border border-dashed">
+        <p className="text-xs uppercase tracking-widest text-muted-foreground">Standing by for signal...</p>
       </div>
     );
   }
 
   return (
-    <section className="relative">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Spotlight</h2>
-        <div className="flex items-center gap-2">
-          <Users className="w-4 h-4 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">Live Updates</span>
-        </div>
-      </div>
+    <div className="space-y-16">
+      <div className="relative h-[65vh] md:h-[75vh] group/spotlight bg-background border border-border/40 overflow-hidden">
+        <SpotlightImage feed={currentFeed} />
 
-      <div className="relative h-[50vh] md:h-[60vh] bg-card overflow-hidden border border-border shadow-lg group/spotlight">
-        <div className="relative w-full h-full" style={{ transform: 'translateZ(0)' }}>
-          <SpotlightImage feed={currentFeed} />
-        </div>
+        <NavigationButton direction="left" onClick={goToPrevious} label="Previous Signal" />
+        <NavigationButton direction="right" onClick={goToNext} label="Next Signal" />
 
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16">
+          <div className="max-w-4xl space-y-6">
+            <div className="flex items-center gap-4 text-[10px] uppercase tracking-[0.3em] text-primary font-medium">
+              <span className="px-2 py-0.5 border border-primary/30 bg-primary/5">{currentFeed.source}</span>
+              <span className="text-muted-foreground/60" suppressHydrationWarning>
+                {currentFeed.publishedAt && new Date(currentFeed.publishedAt).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric'
+                })}
+              </span>
+            </div>
+            
+            <h2 className="text-3xl md:text-6xl font-light tracking-tight leading-[1.1] text-balance">
+              {currentFeed.title}
+            </h2>
+            
+            <p className="text-sm md:text-lg text-muted-foreground font-light leading-relaxed max-w-2xl line-clamp-3">
+              {currentFeed.summary}
+            </p>
 
-        <div className="absolute top-4 left-4 right-4 opacity-0 group-hover/spotlight:opacity-100 transition-opacity" style={{ willChange: 'opacity' }}>
-          <div className="text-sm font-medium text-white drop-shadow-lg">
-            {currentFeed.source}
-          </div>
-          <div className="text-xs text-white/90 drop-shadow-lg" suppressHydrationWarning>
-            {currentFeed.publishedAt && (() => {
-              const date = new Date(currentFeed.publishedAt);
-              return `${date.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-              })}`;
-            })()}
-          </div>
-        </div>
-
-        <NavigationButton direction="left" onClick={goToPrevious} label="Previous slide" />
-        <NavigationButton direction="right" onClick={goToNext} label="Next slide" />
-
-        <button
-          onClick={toggleAutoPlay}
-          className="absolute right-4 top-4 bg-background/80 backdrop-blur-sm border border-border rounded-full p-2 opacity-0 group-hover/spotlight:opacity-100 transition-opacity hover:bg-background/90 z-10"
-          style={{ willChange: 'opacity' }}
-          aria-label={isPaused ? 'Play' : 'Pause'}
-        >
-          {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
-        </button>
-
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-          <div className="max-w-3xl">
-            <div className="text-xs text-primary mb-2">{currentFeed.source}</div>
-            <h2 className="text-2xl md:text-4xl font-bold mb-2 line-clamp-2">{currentFeed.title}</h2>
-            <p className="text-sm md:text-base text-muted-foreground mb-4 line-clamp-2">{currentFeed.summary}</p>
-            {currentFeed.url && (
-              <Link
-                href={currentFeed.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 md:px-6 md:py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm md:text-base font-semibold"
+            <div className="pt-4 flex items-center gap-8">
+              {currentFeed.url && (
+                <Link
+                  href={currentFeed.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group/link flex items-center gap-3 text-xs uppercase tracking-[0.2em] font-medium"
+                >
+                  <span className="border-b border-foreground/20 group-hover/link:border-primary transition-colors pb-1">Read Full Entry</span>
+                  <ExternalLink className="w-3 h-3 text-muted-foreground group-hover/link:text-primary transition-colors" />
+                </Link>
+              )}
+              
+              <button
+                onClick={toggleAutoPlay}
+                className="flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors"
               >
-                Read More
-                <ExternalLink className="w-4 h-4" />
-              </Link>
-            )}
+                {isPaused ? <Play className="w-3 h-3" /> : <Pause className="w-3 h-3" />}
+                <span>{isPaused ? 'Resume Stream' : 'Pause Stream'}</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10" style={{ transform: 'translate(-50%, 0) translateZ(0)' }}>
+        <div className="absolute bottom-8 right-8 md:bottom-16 md:right-16 flex gap-4">
           {visibleIndicators.map((feed, index) => (
             <SlideIndicator
               key={`${feed.url}-${index}`}
@@ -324,10 +313,14 @@ export default memo(function SpotlightSection({
         </div>
       </div>
 
-      <div className="mt-6 md:mt-8">
-        <h3 className="text-xl font-bold mb-4">Trending Now</h3>
+      <section className="space-y-8">
+        <header className="flex items-center justify-between">
+          <h3 className="text-[10px] uppercase tracking-[0.3em] font-semibold text-muted-foreground">
+            Current Vectors
+          </h3>
+        </header>
         <TrendingCarousel feeds={currentTrending} />
-      </div>
-    </section>
+      </section>
+    </div>
   );
 });
