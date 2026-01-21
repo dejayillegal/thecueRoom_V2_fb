@@ -20,7 +20,11 @@ const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
 
   const resolvedSrc = resolvedSrcState || (feed.title ? `/api/og-fallback?title=${encodeURIComponent(feed.title)}` : null);
 
-  if (!resolvedSrc) return null;
+  if (!resolvedSrc) return (
+    <div className="absolute inset-0 bg-[#0B0B0B] flex items-center justify-center">
+      <div className="w-16 h-px bg-[#D1FF3D]/10" />
+    </div>
+  );
 
   return (
     <motion.div 

@@ -27,7 +27,7 @@ const TrendingCard = memo(({ feed }: { feed: FeedItem }) => {
       className="block group flex-shrink-0 w-64 md:w-80 border-r border-[#D1FF3D]/5 pr-12 last:border-0"
     >
       <div className="space-y-6">
-        <div className="relative aspect-[16/10] bg-[#111111] overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-1000">
+        <div className="relative aspect-[16/10] bg-[#111111]/40 overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-1000">
           {isLoading && <div className="absolute inset-0 bg-[#111111] animate-pulse" />}
           {resolvedSrc ? (
             <img
@@ -44,7 +44,11 @@ const TrendingCard = memo(({ feed }: { feed: FeedItem }) => {
               }}
               onLoad={() => setIsLoading(false)}
             />
-          ) : null}
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-6 h-px bg-[#D1FF3D]/10" />
+            </div>
+          )}
         </div>
         <div className="space-y-3">
           <div className="flex items-center gap-4">

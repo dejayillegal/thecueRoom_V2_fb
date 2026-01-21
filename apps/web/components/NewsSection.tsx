@@ -71,7 +71,7 @@ const FeedCard = memo(({ feed, formatDate, index }: { feed: FeedItem; formatDate
           </div>
         </div>
 
-        <div className="relative aspect-[16/9] overflow-hidden bg-[#111111] order-1 xl:order-2 grayscale transition-all duration-1000 opacity-20 group-hover:opacity-60 group-hover:grayscale-0">
+        <div className="relative aspect-[16/9] overflow-hidden bg-[#111111]/40 order-1 xl:order-2 grayscale transition-all duration-1000 opacity-20 group-hover:opacity-60 group-hover:grayscale-0">
           {imgSrc ? (
             <img
               src={imgSrc}
@@ -87,7 +87,11 @@ const FeedCard = memo(({ feed, formatDate, index }: { feed: FeedItem; formatDate
               }}
               loading="lazy"
             />
-          ) : null}
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-8 h-px bg-[#D1FF3D]/10" />
+            </div>
+          )}
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-[#0B0B0B]/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="absolute top-8 right-8 p-3 bg-white/5 backdrop-blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700">
             <ArrowUpRight className="w-4 h-4 text-[#D1FF3D]" />
