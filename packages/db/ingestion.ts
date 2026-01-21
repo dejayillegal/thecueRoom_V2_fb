@@ -54,7 +54,10 @@ export class IngestionService {
       .where(
         and(
           eq(feedsSources.enabled, true),
-          lt(feedsState.nextFetchAt, new Date()),
+          or(
+            lt(feedsState.nextFetchAt, new Date()),
+            sql`${feedsState.nextFetchAt} IS NULL`
+          ),
           or(
             lt(feedsState.leaseExpiresAt, new Date()),
             sql`${feedsState.leaseExpiresAt} IS NULL`
