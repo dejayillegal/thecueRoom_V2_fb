@@ -14,10 +14,9 @@ export function AuthButton() {
       <Button
         variant="default"
         onClick={() => setOpen(true)}
-        className="bg-primary hover:bg-primary/90 text-sm font-semibold gap-2"
+        className="bg-[#D1FF3D] hover:bg-[#D1FF3D]/90 text-black text-xs font-bold uppercase tracking-[0.2em] px-6 h-10 rounded-none transition-all duration-300"
       >
-        <LogIn className="w-4 h-4" />
-        Sign In / Sign Up
+        Entrance
       </Button>
       <AuthModal isOpen={open} onClose={() => setOpen(false)} />
     </>
