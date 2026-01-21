@@ -86,26 +86,15 @@ export default async function HomePage() {
         <Suspense fallback={<SectionSkeleton />}>
           <SpotlightSection 
             initialFeeds={spotlightFeeds} 
-            initialTrending={trendingFeeds} 
           />
         </Suspense>
       </section>
 
-      <div className="max-w-screen-2xl mx-auto px-6 sm:px-10 overflow-hidden">
-        <LandingClientLayout>
-          <div className="py-12 md:py-32">
-            <Suspense fallback={
-              <div className="py-24 md:py-48 flex flex-col items-center gap-8 opacity-10">
-                <div className="w-12 h-px bg-[#D1FF3D]" />
-              </div>
-            }>
-              <NewsSection />
-            </Suspense>
-          </div>
-        </LandingClientLayout>
+      <div className="max-w-screen-2xl mx-auto px-6 sm:px-10 overflow-hidden py-12 md:py-32">
+        <NewsSection />
       </div>
 
-      <footer className="bg-[#0B0B0B] py-16 md:py-32 border-t border-[#D1FF3D]/5 mt-12 md:mt-32">
+      <footer className="bg-[#0B0B0B] py-16 md:py-32 border-t border-[#D1FF3D]/5">
         <div className="max-w-screen-2xl mx-auto px-10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-16">
             <div className="flex items-center gap-12">

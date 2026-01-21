@@ -88,7 +88,6 @@ export default memo(function SpotlightSection({
   initialFeeds,
 }: {
   initialFeeds: FeedItem[];
-  initialTrending?: FeedItem[];
 }) {
   const [currentFeeds] = useState<FeedItem[]>(initialFeeds || []);
   const [currentIndex, setCurrentIndex] = useState(0);
