@@ -127,7 +127,7 @@ export default memo(function SpotlightSection({
 
         <motion.div 
           style={{ y: titleY, opacity: contentOpacity }}
-          className="absolute inset-0 flex items-end pb-32"
+          className="absolute inset-0 flex items-end pb-16 md:pb-32"
         >
           <div className="max-w-screen-2xl mx-auto px-10 w-full">
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-24 items-end">

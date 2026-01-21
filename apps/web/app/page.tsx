@@ -83,7 +83,7 @@ export default async function HomePage() {
         </div>
       </header>
 
-      <section className="min-h-screen flex flex-col justify-end">
+      <section className="min-h-[85vh] flex flex-col justify-end">
         <Suspense fallback={<SectionSkeleton />}>
           <SpotlightSection 
             initialFeeds={spotlightFeeds} 
@@ -92,9 +92,9 @@ export default async function HomePage() {
         </Suspense>
       </section>
 
-      <div className="max-w-screen-2xl mx-auto px-10 pb-32">
+      <div className="max-w-screen-2xl mx-auto px-10">
         <LandingClientLayout>
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-48 pt-32">
+          <div className="py-32">
             <Suspense fallback={
               <div className="py-48 flex flex-col items-center gap-8 opacity-10">
                 <div className="w-12 h-px bg-[#D1FF3D] animate-pulse" />
@@ -103,23 +103,26 @@ export default async function HomePage() {
             }>
               <NewsSection />
             </Suspense>
-            <aside className="hidden xl:block w-px bg-gradient-to-b from-[#D1FF3D]/20 via-transparent to-transparent h-[1200px] sticky top-48" />
           </div>
         </LandingClientLayout>
       </div>
 
-      <footer className="bg-[#0B0B0B] py-32 border-t border-[#D1FF3D]/5">
+      <footer className="bg-[#0B0B0B] py-32 border-t border-[#D1FF3D]/5 mt-32">
         <div className="max-w-screen-2xl mx-auto px-10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-16">
             <div className="flex items-center gap-12">
               <Logo className="w-6 h-6 grayscale opacity-10" />
+              <div className="h-4 w-[1px] bg-[#D1FF3D]/5" />
               <p className="text-[10px] leading-loose text-muted-foreground/20 uppercase tracking-[0.6em] font-mono font-bold">
                 thecueRoom / V2 / {new Date().getFullYear()}
               </p>
             </div>
-            <p className="text-[10px] text-muted-foreground/10 uppercase tracking-[0.4em] font-mono">
-              All Vectors Reserved.
-            </p>
+            <div className="flex items-center gap-8">
+              <div className="w-2 h-2 rounded-full bg-[#D1FF3D]/10 animate-pulse" />
+              <p className="text-[10px] text-muted-foreground/10 uppercase tracking-[0.4em] font-mono">
+                All Vectors Reserved.
+              </p>
+            </div>
           </div>
         </div>
       </footer>
