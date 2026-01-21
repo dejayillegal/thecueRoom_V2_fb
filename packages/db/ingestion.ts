@@ -18,13 +18,16 @@ export interface NormalizedItem {
  * IngestionService
  * 
  * Authoritative, stateless engine for music news ingestion.
+ * 
+ * CRON REPLACEMENT STRATEGY (Opportunistic Ingestion):
+ * Instead of a central timer, ingestion is triggered by actual system usage (API calls).
+ * Every time the backend is touched, `IngestionService.trigger()` is called.
+ * This checks for eligible sources (next_poll_at <= NOW) and processes them.
+ * Since multiple users hit the API, this ensures frequent updates without a cron job.
  */
 export class IngestionService {
   private static LEASE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 
-  /**
-   * Get the global ingestion status.
-   */
   static async getGlobalStatus() {
     try {
       const logs = await db
@@ -56,8 +59,10 @@ export class IngestionService {
 
   /**
    * Opportunistic trigger.
+   * Runs in the background (fire-and-forget) to avoid blocking request latency.
    */
   static trigger() {
+    // Fire and forget - do not await
     this.run().catch(err => {
       console.error('[IngestionService] Background run failed:', err);
     });
@@ -87,7 +92,7 @@ export class IngestionService {
           )
         )
       )
-      .limit(5);
+      .limit(5); // Cap work per invocation to prevent resource exhaustion
 
     const results = [];
     for (const { source, state } of eligibleSources) {

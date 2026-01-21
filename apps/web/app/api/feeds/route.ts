@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
-import { feedsItems, feedsSources } from '@thecueroom/db/schema';
+import { feedsItems, feedsSources, feedsState } from '@thecueroom/db/schema';
 import { desc, eq, and, sql, gt } from 'drizzle-orm';
 import { getArticleImageSync } from '@/src/lib/feed-image';
 import { IngestionService } from '@thecueroom/db/ingestion';
@@ -21,7 +21,8 @@ export async function GET(request: Request) {
     const offset = parseInt(searchParams.get('offset') || '0', 10);
     const statusOnly = searchParams.get('statusOnly') === 'true';
 
-    // Opportunistic ingestion trigger
+    // ⚡ CRON REPLACEMENT: Trigger ingestion on every API access
+    // fire-and-forget to avoid blocking user request
     IngestionService.trigger();
 
     if (statusOnly) {
