@@ -145,8 +145,9 @@ export default memo(function SpotlightSection({
 
   if (!currentFeeds || currentFeeds.length === 0) {
     return (
-      <div className="relative h-[70vh] flex items-center justify-center border border-[#D1FF3D]/5">
-        <span className="text-[9px] font-mono uppercase tracking-[1em] text-muted-foreground animate-pulse">Establishing Signal...</span>
+      <div className="relative h-[70vh] flex flex-col items-center justify-center border border-[#D1FF3D]/5 space-y-8">
+        <div className="w-16 h-px bg-[#D1FF3D]/20 animate-pulse" />
+        <span className="text-[9px] font-mono uppercase tracking-[1em] text-muted-foreground animate-pulse">Establishing Signal</span>
       </div>
     );
   }
@@ -270,7 +271,13 @@ export default memo(function SpotlightSection({
             </span>
             <div className="h-px flex-1 bg-[#D1FF3D]/5" />
           </header>
-          <TrendingCarousel feeds={currentTrending} />
+          {currentTrending.length > 0 ? (
+            <TrendingCarousel feeds={currentTrending} />
+          ) : (
+            <div className="h-24 flex items-center justify-center opacity-10">
+               <span className="text-[8px] font-mono uppercase tracking-[1em]">Scanning Network</span>
+            </div>
+          )}
         </div>
       </motion.div>
     </div>

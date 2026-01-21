@@ -12,13 +12,14 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 60;
 
 /**
- * ARCHITECTURAL SKELETON
- * Spatial tension during load.
+ * EDITORIAL HOLDING PATTERN
+ * Quiet acknowledgement of latency.
  */
 function SectionSkeleton() {
   return (
-    <div className="animate-pulse space-y-12">
-      <div className="h-[70vh] bg-[#111111] border border-[#D1FF3D]/5" />
+    <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-8 opacity-20">
+      <div className="w-16 h-px bg-[#D1FF3D] animate-[pulse_3s_ease-in-out_infinite]" />
+      <span className="text-[9px] font-mono uppercase tracking-[1em] font-bold">Establishing Signal</span>
     </div>
   );
 }
@@ -113,7 +114,12 @@ export default async function HomePage() {
           </header>
 
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-32">
-            <Suspense fallback={<div className="py-48 text-center text-[10px] tracking-[0.8em] opacity-10 font-mono uppercase">Initializing Stream...</div>}>
+            <Suspense fallback={
+              <div className="py-48 flex flex-col items-center gap-8 opacity-10">
+                <div className="w-12 h-px bg-[#D1FF3D] animate-pulse" />
+                <span className="text-[10px] tracking-[0.8em] font-mono uppercase">Syncing Archive</span>
+              </div>
+            }>
               <NewsSection />
             </Suspense>
             

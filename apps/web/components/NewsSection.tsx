@@ -182,13 +182,13 @@ export default function NewsSection() {
     return (
       <div className="space-y-48">
         {[...Array(2)].map((_, i) => (
-          <div key={i} className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-24 animate-pulse">
+          <div key={i} className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-24 opacity-10">
             <div className="space-y-10">
-              <div className="h-4 w-48 bg-[#111111] rounded" />
-              <div className="h-24 w-full bg-[#111111] rounded" />
-              <div className="h-32 w-full bg-[#111111] rounded" />
+              <div className="h-4 w-48 bg-[#D1FF3D]/20 animate-pulse" />
+              <div className="h-24 w-full bg-[#D1FF3D]/5 animate-pulse" />
+              <div className="h-32 w-full bg-[#D1FF3D]/5 animate-pulse" />
             </div>
-            <div className="aspect-[16/9] bg-[#111111] rounded" />
+            <div className="aspect-[16/9] bg-[#D1FF3D]/5 animate-pulse" />
           </div>
         ))}
       </div>
@@ -224,17 +224,24 @@ export default function NewsSection() {
         </motion.div>
       )}
 
-      <div className="space-y-0">
-        {filteredFeeds.map((feed, index) => (
-          <FeedCard key={feed.id} feed={feed} formatDate={formatDate} index={index} />
-        ))}
-      </div>
+      {filteredFeeds.length > 0 ? (
+        <div className="space-y-0">
+          {filteredFeeds.map((feed, index) => (
+            <FeedCard key={feed.id} feed={feed} formatDate={formatDate} index={index} />
+          ))}
+        </div>
+      ) : (
+        <div className="py-48 flex flex-col items-center justify-center space-y-8 opacity-10">
+          <div className="w-16 h-px bg-[#D1FF3D]/20" />
+          <span className="text-[9px] font-mono uppercase tracking-[1em]">Zero Signal Detected</span>
+        </div>
+      )}
 
       <div ref={observerTarget} className="h-64 flex flex-col items-center justify-center gap-6">
         {isLoadingMore ? (
           <div className="flex flex-col items-center gap-4">
             <div className="w-16 h-px bg-gradient-to-r from-transparent via-[#D1FF3D] to-transparent animate-pulse" />
-            <span className="text-[8px] font-mono uppercase tracking-[1em] text-muted-foreground animate-pulse">Syncing Vector...</span>
+            <span className="text-[8px] font-mono uppercase tracking-[1em] text-muted-foreground animate-pulse">Syncing Vector</span>
           </div>
         ) : !hasMore && filteredFeeds.length > 0 ? (
           <span className="text-[8px] font-mono uppercase tracking-[1em] text-muted-foreground/10">End of Transmission</span>
