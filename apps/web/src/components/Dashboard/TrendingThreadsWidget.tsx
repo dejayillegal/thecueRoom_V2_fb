@@ -85,11 +85,14 @@ export function TrendingThreadsWidget({ limit = 5, className = "" }: TrendingThr
   }
 
   return (
-    <Card className={`bg-[#111111] border-[#1a1a1a] p-6 ${className}`}>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-white text-xl font-semibold">Trending Threads</h2>
+    <Card className={`bg-[#111111] border-[#1a1a1a] p-6 relative overflow-hidden flex flex-col h-[400px] ${className}`}>
+      <div className="flex items-center justify-between mb-6 relative z-10 bg-[#111111]">
+        <h2 className="text-white text-xl font-semibold flex items-center gap-2">
+          <span className="w-1 h-5 bg-[#D7FF3C] rounded-full" />
+          Trending Threads
+        </h2>
         <Link href="/forum">
-          <Button variant="ghost" size="sm" className="text-[#D7FF3C] hover:text-[#c8f02f] hover:bg-[#1a1a1a]">
+          <Button variant="ghost" size="sm" className="text-[#D7FF3C] hover:text-[#c8f02f] hover:bg-white/5 transition-all">
             View All
           </Button>
         </Link>
@@ -98,56 +101,65 @@ export function TrendingThreadsWidget({ limit = 5, className = "" }: TrendingThr
       {threads.length === 0 ? (
         <p className="text-gray-400 text-sm">No trending threads found</p>
       ) : (
-        <div className="space-y-3">
-          {threads.map((thread) => (
-            <div
-              key={thread.id}
-              className="bg-[#0a0a0a] rounded-lg p-4 hover:bg-[#151515] transition-colors border border-[#1a1a1a]"
+        <div className="flex-1 relative overflow-hidden group">
+          {/* Top/Bottom Fades */}
+          <div className="absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-[#111111] to-transparent z-10 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[#111111] to-transparent z-10 pointer-events-none" />
+          
+          <div className="h-full overflow-hidden">
+            <div 
+              className="flex flex-col gap-3 animate-vertical-scroll hover:[animation-play-state:paused] transition-all duration-500"
+              style={{
+                animationDuration: `${threads.length * 4}s`,
+              }}
             >
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <Link href={`/forum/thread/${thread.id}`} className="flex-1 min-w-0">
-                  <h3 className="text-white font-medium text-sm line-clamp-2 hover:text-[#D7FF3C] transition-colors">
-                    {thread.title}
-                  </h3>
-                </Link>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 text-xs text-gray-400">
-                  <div className="flex items-center gap-1">
-                    <MessageSquare className="h-3 w-3" />
-                    <span>{thread.replies}</span>
+              {[...threads, ...threads].map((thread, idx) => (
+                <div
+                  key={`${thread.id}-${idx}`}
+                  className="bg-[#0a0a0a]/50 backdrop-blur-sm rounded-xl p-4 hover:bg-[#151515] transition-all border border-white/5 hover:border-[#D7FF3C]/30 group/item"
+                >
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <Link href={`/forum/thread/${thread.id}`} className="flex-1 min-w-0">
+                      <h3 className="text-white font-medium text-sm line-clamp-2 group-hover/item:text-[#D7FF3C] transition-colors leading-tight">
+                        {thread.title}
+                      </h3>
+                    </Link>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Heart className="h-3 w-3" />
-                    <span>{thread.likes}</span>
-                  </div>
-                  {thread.category && (
-                    <Badge variant="outline" className="text-xs px-2 py-0 h-5">
-                      {thread.category}
-                    </Badge>
-                  )}
-                  <span className="text-gray-500">•</span>
-                  <span>{formatTimeAgo(thread.createdAt)}</span>
-                </div>
 
-                <div className="flex items-center gap-1">
-                  <Link href={`/forum/thread/${thread.id}`}>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 w-7 p-0 text-gray-400 hover:text-white hover:bg-[#1a1a1a]"
-                      aria-label="Open thread"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </Button>
-                  </Link>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 text-[11px] text-gray-500">
+                      <div className="flex items-center gap-1.5">
+                        <MessageSquare className="h-3 w-3" />
+                        <span>{thread.replies}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Heart className="h-3 w-3 text-red-500/50" />
+                        <span>{thread.likes}</span>
+                      </div>
+                      {thread.category && (
+                        <span className="bg-[#D7FF3C]/10 text-[#D7FF3C] px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">
+                          {thread.category}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-gray-600 font-medium">{formatTimeAgo(thread.createdAt)}</span>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
       )}
+
+      <style jsx global>{`
+        @keyframes vertical-scroll {
+          0% { transform: translateY(0); }
+          100% { transform: translateY(-50%); }
+        }
+        .animate-vertical-scroll {
+          animation: vertical-scroll linear infinite;
+        }
+      `}</style>
     </Card>
   );
 }
