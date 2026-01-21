@@ -3,12 +3,13 @@ import { getDbClient } from '@/lib/db-client';
 import { feedsItems, feedsSources } from '@thecueroom/db/schema';
 import { desc, eq, and, sql, gt } from 'drizzle-orm';
 import { getArticleImageSync } from '@/src/lib/feed-image';
+import { IngestionService } from '@thecueroom/db/ingestion';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
-export const maxDuration = 10;
+export const maxDuration = 25;
 
-const CACHE_TTL = 60;
+const CACHE_TTL = 30;
 const ITEMS_PER_PAGE = 24;
 
 export async function GET(request: Request) {
@@ -17,15 +18,22 @@ export async function GET(request: Request) {
     const category = searchParams.get('category');
     const sourceId = searchParams.get('source');
     const limit = Math.min(100, parseInt(searchParams.get('limit') || String(ITEMS_PER_PAGE), 10));
-    const cursor = searchParams.get('cursor');
     const offset = parseInt(searchParams.get('offset') || '0', 10);
+    const statusOnly = searchParams.get('statusOnly') === 'true';
+
+    // Opportunistic ingestion trigger
+    IngestionService.trigger();
+
+    if (statusOnly) {
+      const status = await IngestionService.getGlobalStatus();
+      return NextResponse.json(status);
+    }
 
     const db = getDbClient();
-
     const twoWeeksAgo = new Date();
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
-    const conditions = [
+    const conditions: any[] = [
       gt(feedsItems.publishedAt, twoWeeksAgo)
     ];
 
@@ -37,14 +45,7 @@ export async function GET(request: Request) {
       conditions.push(sql`${feedsSources.tags} @> ARRAY[${category}]::text[]`);
     }
 
-    if (cursor) {
-      const [timestamp, id] = cursor.split('_');
-      conditions.push(
-        sql`(${feedsItems.publishedAt}, ${feedsItems.id}) < (${timestamp}, ${id})`
-      );
-    }
-
-    const query = db
+    const results = await db
       .select({
         id: feedsItems.id,
         title: feedsItems.title,
@@ -60,15 +61,12 @@ export async function GET(request: Request) {
       .leftJoin(feedsSources, eq(feedsItems.sourceId, feedsSources.id))
       .where(and(...conditions))
       .orderBy(desc(feedsItems.publishedAt), desc(feedsItems.id))
-      .limit(limit + 1)
+      .limit(limit)
       .offset(offset);
 
-    const results = await query;
+    const status = await IngestionService.getGlobalStatus();
 
-    const hasMore = results.length > limit;
-    const items = hasMore ? results.slice(0, -1) : results;
-
-    const sanitizedItems = items.map(item => ({
+    const sanitizedItems = results.map(item => ({
       id: item.id,
       title: item.title,
       summary: item.summary,
@@ -84,35 +82,21 @@ export async function GET(request: Request) {
       source: item.sourceName || 'Unknown',
     }));
 
-    const nextCursor = hasMore && sanitizedItems.length > 0
-      ? `${sanitizedItems[sanitizedItems.length - 1].publishedAt}_${sanitizedItems[sanitizedItems.length - 1].id}`
-      : null;
-
     return NextResponse.json({
       data: sanitizedItems,
-      nextCursor,
-      hasMore,
+      status,
+      hasMore: results.length === limit,
     }, {
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': `public, s-maxage=${CACHE_TTL}, stale-while-revalidate=${CACHE_TTL * 2}`,
-        'CDN-Cache-Control': `public, s-maxage=${CACHE_TTL}`,
-        'Vercel-CDN-Cache-Control': `public, s-maxage=${CACHE_TTL}`,
-        'X-Content-Type-Options': 'nosniff',
+        'Cache-Control': `no-store, max-age=0`,
       },
     });
   } catch (error) {
     console.error('Feed API error:', error);
-    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
-    console.error('Error details:', JSON.stringify(error, null, 2));
     return NextResponse.json(
-      { error: 'Failed to fetch feeds', data: [], nextCursor: null, hasMore: false },
-      { 
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      }
+      { error: 'Failed to fetch feeds', data: [], status: { isRunning: false, hasFailed: true } },
+      { status: 500 }
     );
   }
 }

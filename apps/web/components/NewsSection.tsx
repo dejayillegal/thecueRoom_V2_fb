@@ -5,6 +5,13 @@ import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+interface IngestionStatus {
+  isRunning: boolean;
+  hasFailed: boolean;
+  lastRun?: string;
+  totalItemsNew: number;
+}
+
 interface FeedItem {
   id: string;
   title: string;
@@ -89,7 +96,7 @@ FeedCard.displayName = 'FeedCard';
 
 export default function NewsSection() {
   const [newsFeeds, setNewsFeeds] = useState<FeedItem[]>([]);
-  const [cursor, setCursor] = useState<string | null>(null);
+  const [ingestionStatus, setIngestionStatus] = useState<IngestionStatus | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -116,9 +123,7 @@ export default function NewsSection() {
     else setIsLoadingMore(true);
 
     try {
-      const params = new URLSearchParams({ limit: '24' });
-      if (cursor) params.append('cursor', cursor);
-
+      const params = new URLSearchParams({ limit: '24', offset: isInitial ? '0' : String(newsFeeds.length) });
       const response = await fetch(`/api/feeds?${params}`, {
         signal: abortControllerRef.current.signal,
         headers: { 'Accept': 'application/json' }
@@ -133,7 +138,7 @@ export default function NewsSection() {
 
       if (data && data.data && Array.isArray(data.data)) {
         setNewsFeeds(prev => isInitial ? data.data : [...prev, ...data.data]);
-        setCursor(data.nextCursor || null);
+        setIngestionStatus(data.status || null);
         setHasMore(data.hasMore ?? false);
       } else {
         setHasMore(false);
@@ -146,7 +151,7 @@ export default function NewsSection() {
       if (isInitial) setIsLoading(false);
       else setIsLoadingMore(false);
     }
-  }, [cursor, hasMore, isLoadingMore]);
+  }, [newsFeeds.length, hasMore, isLoadingMore]);
 
   useEffect(() => {
     loadNewsFeeds(true);
@@ -205,6 +210,17 @@ export default function NewsSection() {
 
   return (
     <div className="space-y-12">
+      {/* INGESTION STATUS BAR */}
+      <div className="flex items-center gap-8 py-4 border-b border-[#D1FF3D]/5">
+        <div className={`w-2 h-2 rounded-full ${ingestionStatus?.isRunning ? 'bg-[#D1FF3D] animate-pulse' : 'bg-muted-foreground/20'}`} />
+        <span className="text-[8px] font-mono uppercase tracking-[0.4em] text-muted-foreground/60">
+          {ingestionStatus?.isRunning ? 'Signal: Synchronizing' : 'Signal: Static'}
+        </span>
+        {ingestionStatus?.hasFailed && (
+          <span className="text-[8px] font-mono uppercase tracking-[0.4em] text-red-500/60 ml-auto">Warning: Disruption Detected</span>
+        )}
+      </div>
+
       {allTags.length > 0 && (
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
@@ -241,7 +257,9 @@ export default function NewsSection() {
       ) : (
         <div className="py-48 flex flex-col items-center justify-center space-y-8 opacity-10">
           <div className="w-16 h-px bg-[#D1FF3D]/20" />
-          <span className="text-[9px] font-mono uppercase tracking-[1em]">Zero Signal Detected</span>
+          <span className="text-[9px] font-mono uppercase tracking-[1em]">
+            {ingestionStatus?.isRunning ? 'Synchronizing Archive...' : 'Zero Signal Detected'}
+          </span>
         </div>
       )}
 
