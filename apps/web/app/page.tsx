@@ -51,14 +51,12 @@ async function fetchLandingData() {
 
     const spotlightFeeds = spotlightData.data || [];
     const trendingFeeds = trendingData.data || [];
-
-    if (spotlightFeeds.length === 0 && trendingFeeds.length === 0) {
-      return { spotlightFeeds: [], trendingFeeds: [], empty: true };
-    }
+    const status = spotlightData.status || trendingData.status || { isRunning: false, hasFailed: false };
 
     return { 
       spotlightFeeds, 
-      trendingFeeds 
+      trendingFeeds,
+      status
     };
   } catch (error: any) {
     clearTimeout(timeoutId);
@@ -94,18 +92,28 @@ export default async function HomePage() {
       </header>
 
       <section className="pt-24 min-h-[90vh] flex flex-col justify-end">
-        {data.timeout || data.error ? (
+        {data.timeout || data.error || data.status?.hasFailed ? (
           <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-8 opacity-40">
             <span className="text-[9px] font-mono uppercase tracking-[1em] font-bold text-red-500/50">
               {data.timeout ? 'Signal Timeout' : 'Signal Lost'}
             </span>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
+              Technical sync required. Reconnecting...
+            </p>
           </div>
-        ) : data.empty ? (
+        ) : data.status?.isRunning && spotlightFeeds.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-8 opacity-20">
+            <div className="w-16 h-px bg-[#D1FF3D] animate-[pulse_3s_ease-in-out_infinite]" />
             <span className="text-[9px] font-mono uppercase tracking-[1em] font-bold">Establishing Signal</span>
           </div>
         ) : spotlightFeeds.length === 0 ? (
-          <SectionSkeleton />
+          <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-12 px-10">
+            <div className="space-y-4 text-center">
+              <span className="text-[10px] uppercase tracking-[0.8em] text-[#D1FF3D]/40 font-mono">Archive Empty</span>
+              <h2 className="text-3xl font-extralight tracking-tighter opacity-20">No active signals found.</h2>
+            </div>
+            <div className="w-px h-24 bg-gradient-to-b from-[#D1FF3D]/10 to-transparent" />
+          </div>
         ) : (
           <Suspense fallback={<SectionSkeleton />}>
             <SpotlightSection 
