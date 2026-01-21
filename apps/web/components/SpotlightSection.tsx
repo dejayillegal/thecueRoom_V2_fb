@@ -30,12 +30,14 @@ const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
         <div className="absolute inset-0 bg-[#111111] animate-pulse" />
       )}
       <motion.img
-        src={imgSrc}
+        src={imgSrc || `/api/og-fallback?title=${encodeURIComponent(feed.title)}`}
         alt={feed.title}
         className="absolute inset-0 w-full h-full object-cover opacity-[0.25] filter grayscale contrast-150 brightness-110"
         onLoad={() => setIsLoading(false)}
         onError={() => {
-          setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title)}`);
+          if (imgSrc !== `/api/og-fallback?title=${encodeURIComponent(feed.title)}`) {
+            setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title)}`);
+          }
           setIsLoading(false);
         }}
       />
@@ -154,7 +156,7 @@ export default memo(function SpotlightSection({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-                  className="text-5xl sm:text-6xl md:text-[8rem] xl:text-[10rem] font-extralight tracking-tighter leading-[0.9] text-balance line-clamp-3"
+                  className="text-4xl sm:text-6xl md:text-[8rem] xl:text-[10rem] font-extralight tracking-tighter leading-[0.9] text-balance line-clamp-2 md:line-clamp-3"
                 >
                   {currentFeed.title}
                 </motion.h1>

@@ -113,7 +113,7 @@ export default async function HomePage() {
             <div className="flex items-center gap-12">
               <Logo className="w-6 h-6 grayscale opacity-10" />
               <div className="h-4 w-[1px] bg-[#D1FF3D]/5" />
-              <p className="text-[10px] leading-loose text-muted-foreground/20 uppercase tracking-[0.6em] font-mono font-bold">
+              <p className="text-[9px] sm:text-[10px] leading-loose text-muted-foreground/20 uppercase tracking-[0.4em] sm:tracking-[0.6em] font-mono font-bold">
                 thecueRoom / V2 / {new Date().getFullYear()}
               </p>
             </div>
