@@ -117,7 +117,7 @@ export default async function HomePage() {
             </div>
             <div className="flex items-center gap-6 sm:gap-8">
               <p className="text-[9px] sm:text-[10px] text-muted-foreground/10 uppercase tracking-[0.3em] sm:tracking-[0.4em] font-mono">
-                All Vectors Reserved.
+                thecueRoom / Production Grade / {new Date().getFullYear()}
               </p>
             </div>
           </div>

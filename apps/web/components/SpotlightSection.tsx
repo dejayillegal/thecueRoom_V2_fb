@@ -11,6 +11,7 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
  */
 const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
   const [resolvedSrcState, setResolvedSrcState] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setResolvedSrcState(feed.image || null);
@@ -87,9 +88,9 @@ export default memo(function SpotlightSection({
   initialFeeds,
 }: {
   initialFeeds: FeedItem[];
-  initialTrending: FeedItem[];
+  initialTrending?: FeedItem[];
 }) {
-  const [currentFeeds] = useState<FeedItem[]>(initialFeeds);
+  const [currentFeeds] = useState<FeedItem[]>(initialFeeds || []);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const autoPlayRef = useRef<NodeJS.Timeout | undefined>(undefined);
