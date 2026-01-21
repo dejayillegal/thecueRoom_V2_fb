@@ -9,21 +9,17 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 60;
 
 /**
- * LOADING SKELETONS
- * Maintained for perceived performance during SSR/Streaming
+ * ARCHITECTURAL SKELETON
+ * Spatial tension during load.
  */
 function SectionSkeleton() {
   return (
     <div className="animate-pulse space-y-12">
-      <div className="h-[70vh] bg-muted/10 border border-border/20" />
+      <div className="h-[70vh] bg-[#111111] border border-[#D1FF3D]/5" />
     </div>
   );
 }
 
-/**
- * DATA ACQUISITION
- * Consumes core feed and trending APIs
- */
 async function fetchLandingData() {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://0.0.0.0:5000';
   try {
@@ -37,10 +33,10 @@ async function fetchLandingData() {
       trendingRes.json()
     ]);
 
-    const spotlightFeeds = spotlightData.data?.slice(0, 8) || [];
-    const trendingFeeds = trendingData.data?.slice(0, 16) || [];
-
-    return { spotlightFeeds, trendingFeeds };
+    return { 
+      spotlightFeeds: spotlightData.data?.slice(0, 8) || [], 
+      trendingFeeds: trendingData.data?.slice(0, 16) || [] 
+    };
   } catch (error) {
     return { spotlightFeeds: [], trendingFeeds: [] };
   }
@@ -50,24 +46,28 @@ export default async function HomePage() {
   const { spotlightFeeds, trendingFeeds } = await fetchLandingData();
 
   return (
-    <main className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground font-inter">
-      {/* ATMOSPHERIC LAYER: Subtle grain for editorial texture */}
-      <div className="fixed inset-0 pointer-events-none z-50 mix-blend-overlay opacity-[0.02] grain-overlay" />
+    <main className="min-h-screen bg-[#0B0B0B] text-foreground selection:bg-[#D1FF3D] selection:text-[#0B0B0B] font-inter antialiased overflow-x-hidden">
+      {/* 
+          ATMOSPHERIC VECTOR 
+          Subtle textural noise for editorial depth.
+      */}
+      <div className="fixed inset-0 pointer-events-none z-50 mix-blend-overlay opacity-[0.03] grain-overlay" />
       
       {/* 
-          STAGING: MINIMALIST NAVIGATION 
-          Attention: Silence. No unnecessary links. Focus is the content.
+          STAGING: ASYMMETRIC HEADER
+          Typography as architecture.
       */}
-      <header className="fixed top-0 w-full z-40 bg-background/60 backdrop-blur-xl border-b border-border/5">
-        <div className="max-w-screen-2xl mx-auto px-8 h-20 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-6 group">
-            <Logo className="w-6 h-6 grayscale opacity-40 group-hover:opacity-100 transition-all duration-700" />
-            <span className="text-[10px] font-medium tracking-[0.4em] uppercase opacity-40 group-hover:opacity-100 transition-all duration-700">
-              thecueRoom
+      <header className="fixed top-0 w-full z-40 bg-[#0B0B0B]/40 backdrop-blur-2xl border-b border-[#D1FF3D]/5">
+        <div className="max-w-screen-2xl mx-auto px-10 h-24 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-8 group">
+            <Logo className="w-5 h-5 grayscale opacity-30 group-hover:opacity-100 transition-all duration-1000" />
+            <div className="h-4 w-[1px] bg-[#D1FF3D]/10 group-hover:h-8 transition-all duration-1000" />
+            <span className="text-[9px] font-medium tracking-[0.6em] uppercase opacity-30 group-hover:opacity-100 transition-all duration-1000 font-mono">
+              The Cue Room / V2
             </span>
           </Link>
 
-          <nav className="flex items-center gap-12">
+          <nav className="flex items-center gap-16">
             <AuthButton />
           </nav>
         </div>
@@ -75,9 +75,9 @@ export default async function HomePage() {
 
       {/* 
           I. PRIMARY SIGNAL SURFACE
-          The singular focal point. Cinematic entry into the current state of culture.
+          Controlled abstraction. Cinematic entry.
       */}
-      <section className="pt-20">
+      <section className="pt-24 min-h-[90vh] flex flex-col justify-end">
         <Suspense fallback={<SectionSkeleton />}>
           <SpotlightSection 
             initialFeeds={spotlightFeeds} 
@@ -86,87 +86,121 @@ export default async function HomePage() {
         </Suspense>
       </section>
 
-      <div className="max-w-screen-xl mx-auto px-8">
-        {/* 
-            II. EDITORIAL STREAM (Curated Intelligence)
-            Chronological intelligence. Deep vertical rhythm for long-form reading.
-        */}
-        <section className="py-32 md:py-48 relative">
-          <header className="mb-24 flex flex-col gap-4">
-            <span className="text-[10px] uppercase tracking-[0.5em] text-primary/60 font-semibold">
-              02 / The Intelligence Stream
-            </span>
-            <h2 className="text-4xl md:text-6xl font-light tracking-tighter max-w-2xl leading-[1.1]">
-              A ledger of signals from the underground.
-            </h2>
+      {/* 
+          II. INFORMATION AS ARCHITECTURE
+          Aggressive negative space. Vertical rhythm.
+      */}
+      <div className="max-w-screen-2xl mx-auto px-10">
+        <section className="py-48 md:py-64 relative">
+          {/* ASYMMETRIC ACCENT ELEMENT */}
+          <div className="absolute -left-20 top-48 w-40 h-[1px] bg-[#D1FF3D]/20 hidden md:block" />
+          
+          <header className="mb-32 flex flex-col md:flex-row items-baseline gap-12 md:gap-32">
+            <div className="space-y-6">
+              <span className="text-[10px] uppercase tracking-[0.8em] text-[#D1FF3D] font-bold font-mono">
+                02 / ARCHIVE
+              </span>
+              <h2 className="text-5xl md:text-8xl font-extralight tracking-tighter leading-[0.9] max-w-4xl italic">
+                Signals. <br />
+                <span className="font-normal not-italic opacity-40">Not Stories.</span>
+              </h2>
+            </div>
+            <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground/40 font-medium max-w-[200px] leading-relaxed">
+              Synthesizing culture through raw signal acquisition.
+            </p>
           </header>
 
-          <Suspense fallback={<div className="py-48 text-center text-[10px] tracking-[0.5em] opacity-20">SYNCING STREAM...</div>}>
-            <NewsSection />
-          </Suspense>
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-32">
+            <Suspense fallback={<div className="py-48 text-center text-[10px] tracking-[0.8em] opacity-10 font-mono uppercase">Initializing Stream...</div>}>
+              <NewsSection />
+            </Suspense>
+            
+            {/* ASYMMETRIC SIDEBAR UI */}
+            <aside className="hidden xl:block w-px bg-gradient-to-b from-[#D1FF3D]/20 via-transparent to-transparent h-[800px] sticky top-48" />
+          </div>
         </section>
 
         {/* 
-            III. COMMUNITY PULSE / EXPLORATION
-            The roots and foundations. Designed for discovery and contribution.
+            III. SPATIAL TENSION: STUDIO & COMMUNITY
+            Quiet confidence.
         */}
-        <section className="py-32 md:py-48 border-t border-border/10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-24 items-end">
-            <div className="space-y-12">
-              <header className="space-y-4">
-                <span className="text-[10px] uppercase tracking-[0.5em] text-muted-foreground">
-                  03 / Community Pulse
+        <section className="py-48 md:py-64 border-t border-[#D1FF3D]/10">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-48 items-start">
+            <div className="space-y-24">
+              <header className="space-y-8">
+                <span className="text-[10px] uppercase tracking-[0.8em] text-muted-foreground font-mono">
+                  03 / NETWORK
                 </span>
-                <h3 className="text-3xl font-light tracking-tight">Participate in the discourse.</h3>
+                <h3 className="text-4xl md:text-6xl font-extralight tracking-tight leading-tight">
+                  Discourse is the <br /> 
+                  <span className="font-normal text-[#873BBF]">Primary Output.</span>
+                </h3>
               </header>
-              <p className="text-muted-foreground font-light leading-relaxed max-w-sm">
-                Join the curated dialogue within our forums or synchronize with global performance networks.
-              </p>
-              <div className="flex gap-12">
-                <Link href="/community/forum" className="text-[10px] uppercase tracking-[0.3em] border-b border-border hover:border-primary transition-colors pb-2">Enter Forum</Link>
-                <Link href="/gigs/india" className="text-[10px] uppercase tracking-[0.3em] border-b border-border hover:border-primary transition-colors pb-2">Radar</Link>
+              
+              <div className="flex flex-col md:flex-row gap-24">
+                <div className="space-y-8 max-w-sm">
+                  <p className="text-sm font-light leading-relaxed text-muted-foreground/80">
+                    Collaborative intelligence platforms for the underground. No noise. Pure synthesis.
+                  </p>
+                  <div className="flex gap-16">
+                    <Link href="/community/forum" className="group flex items-center gap-4 text-[9px] uppercase tracking-[0.5em] font-bold text-[#D1FF3D]">
+                      <span className="border-b border-transparent group-hover:border-[#D1FF3D] transition-all pb-1">Entrance</span>
+                    </Link>
+                    <Link href="/gigs/india" className="group flex items-center gap-4 text-[9px] uppercase tracking-[0.5em] font-bold opacity-30 hover:opacity-100 transition-all">
+                      <span className="border-b border-transparent group-hover:border-foreground transition-all pb-1">Radar</span>
+                    </Link>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="p-12 bg-muted/5 border border-border/10 space-y-8">
-              <span className="text-[10px] uppercase tracking-[0.5em] text-muted-foreground">Studio</span>
-              <h4 className="text-xl font-light">Synthesize your identity.</h4>
-              <p className="text-xs text-muted-foreground/60 leading-relaxed uppercase tracking-widest font-medium">
-                AI Powered Creative Tools for Artists.
-              </p>
-              <Link href="/ai/cover-art" className="block text-[10px] uppercase tracking-[0.3em] text-primary hover:translate-x-2 transition-transform">Begin Synthesis &rarr;</Link>
+            <div className="relative p-16 bg-[#111111] border border-[#D1FF3D]/5 group overflow-hidden">
+              {/* ABSTRACT GRAPHICAL ELEMENT */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#D1FF3D]/5 blur-[80px] group-hover:bg-[#873BBF]/10 transition-colors duration-1000" />
+              
+              <div className="relative space-y-12">
+                <span className="text-[10px] uppercase tracking-[0.8em] text-muted-foreground font-mono">LABS</span>
+                <h4 className="text-2xl font-light leading-tight">Identity Synthesis Engine.</h4>
+                <p className="text-[10px] text-muted-foreground/40 leading-relaxed uppercase tracking-[0.3em] font-medium">
+                  Cover Art / EPK / MEME / AVATAR
+                </p>
+                <Link href="/ai/cover-art" className="inline-block text-[9px] uppercase tracking-[0.6em] text-[#D1FF3D] font-bold group-hover:translate-x-4 transition-transform duration-700">
+                  Begin &rarr;
+                </Link>
+              </div>
             </div>
           </div>
         </section>
       </div>
 
       {/* 
-          IV. ARCHIVAL FOOTER
-          The final anchor.
+          IV. ARCHIVAL ANCHOR
       */}
-      <footer className="bg-muted/5 py-32 border-t border-border/5">
-        <div className="max-w-screen-xl mx-auto px-8 flex flex-col md:flex-row justify-between gap-24">
-          <div className="max-w-xs space-y-8">
-            <Logo className="w-6 h-6 grayscale opacity-20" />
-            <p className="text-xs leading-relaxed text-muted-foreground/40 uppercase tracking-widest font-medium">
-              thecueRoom V2 &copy; {new Date().getFullYear()} / Zero Error Build / Editorial Gateway
+      <footer className="bg-[#111111]/50 py-48 border-t border-[#D1FF3D]/5">
+        <div className="max-w-screen-2xl mx-auto px-10 flex flex-col md:flex-row justify-between gap-32">
+          <div className="max-w-sm space-y-12">
+            <Logo className="w-6 h-6 grayscale opacity-10" />
+            <p className="text-[9px] leading-loose text-muted-foreground/30 uppercase tracking-[0.4em] font-mono">
+              TC.R V2 // {new Date().getFullYear()} <br />
+              Synthesized by thecueRoom <br />
+              All Vectors Reserved.
             </p>
           </div>
           
-          <div className="flex flex-wrap gap-24">
-            <div className="space-y-6">
-              <span className="text-[10px] uppercase tracking-[0.4em] text-foreground font-semibold">Vectors</span>
-              <div className="flex flex-col gap-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                <Link href="/news" className="hover:text-primary transition-colors">Archive</Link>
-                <Link href="/feeds" className="hover:text-primary transition-colors">Signals</Link>
-                <Link href="/music/weekly" className="hover:text-primary transition-colors">Weekly</Link>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-24">
+            <div className="space-y-8">
+              <span className="text-[10px] uppercase tracking-[0.6em] text-foreground font-bold font-mono">VECTORS</span>
+              <div className="flex flex-col gap-4 text-[9px] uppercase tracking-[0.4em] text-muted-foreground">
+                <Link href="/news" className="hover:text-[#D1FF3D] transition-colors">Archive</Link>
+                <Link href="/feeds" className="hover:text-[#D1FF3D] transition-colors">Signals</Link>
+                <Link href="/music/weekly" className="hover:text-[#D1FF3D] transition-colors">Weekly</Link>
               </div>
             </div>
-            <div className="space-y-6">
-              <span className="text-[10px] uppercase tracking-[0.4em] text-foreground font-semibold">Network</span>
-              <div className="flex flex-col gap-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                <Link href="/community/forum" className="hover:text-primary transition-colors">Forums</Link>
-                <Link href="/settings" className="hover:text-primary transition-colors">Profile</Link>
+            <div className="space-y-8">
+              <span className="text-[10px] uppercase tracking-[0.6em] text-foreground font-bold font-mono">NETWORK</span>
+              <div className="flex flex-col gap-4 text-[9px] uppercase tracking-[0.4em] text-muted-foreground">
+                <Link href="/community/forum" className="hover:text-[#D1FF3D] transition-colors">Forum</Link>
+                <Link href="/settings" className="hover:text-[#D1FF3D] transition-colors">Profile</Link>
               </div>
             </div>
           </div>
