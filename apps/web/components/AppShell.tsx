@@ -44,6 +44,8 @@ export default memo(function AppShell({
   // Define routes that should NOT show the sidebar (e.g. landing page, login)
   const isAuthPage = pathname === '/' || pathname === '/login' || pathname === '/signup';
   
+  const isNewsPage = pathname === '/news';
+  
   if (isAuthPage) {
     return <>{children}</>;
   }
@@ -84,6 +86,14 @@ export default memo(function AppShell({
         main {
           contain: layout style paint;
         }
+        /* Hide scrollbars but keep functionality */
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
       `}</style>
       {sidebarOpen && !isDesktop && (
         <div 
@@ -107,7 +117,8 @@ export default memo(function AppShell({
         className={cn(
           "min-h-screen pt-[72px] transition-all duration-300 ease-in-out page-transition-enter-active",
           "ml-0 lg:ml-[60px]",
-          sidebarOpen && "lg:ml-[200px]"
+          sidebarOpen && "lg:ml-[200px]",
+          isNewsPage && "pt-0 ml-0 lg:ml-0 overflow-x-hidden" // Special handling for cinematic news page
         )}
       >
         {children}
