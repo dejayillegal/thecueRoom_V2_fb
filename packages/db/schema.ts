@@ -96,7 +96,6 @@ export const feeds = pgTable('feeds', {
 export const feedState = pgTable('feed_state', {
   id: integer('id').primaryKey().default(1),
   lastIngestedAt: timestamp('last_ingested_at', { withTimezone: true }),
-  ingestLockUntil: timestamp('ingest_lock_until', { withTimezone: true }),
 });
 
 // Authoritative Feed Sources
