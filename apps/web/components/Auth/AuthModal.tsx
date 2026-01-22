@@ -12,7 +12,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialTab?: 'signin' | 'signup';
+  initialTab?: 'signin' | 'signup' | 'forgot';
 }
 
 export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: AuthModalProps) {
@@ -72,7 +72,9 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
   };
 
   if (tab === 'signup') {
-    return <SignupModal open={isOpen} onOpenChange={(open) => !open && onClose()} />;
+    return <SignupModal open={isOpen} onOpenChange={(open) => {
+      if (!open) onClose();
+    }} onSwitchToSignin={() => setTab('signin')} />;
   }
 
   const motionProps = {
@@ -95,6 +97,26 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
         <div className="p-10 sm:p-12">
           <motion.div {...motionProps}>
             <DialogHeader className="mb-12 text-left">
+              <div className="flex gap-6 mb-8 border-b border-white/5 pb-4">
+                <button 
+                  onClick={() => setTab('signin')}
+                  className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${tab === 'signin' ? 'text-[#D1FF3D]' : 'text-zinc-600 hover:text-white'}`}
+                >
+                  Entrance
+                </button>
+                <button 
+                  onClick={() => setTab('signup')}
+                  className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${tab === 'signup' ? 'text-[#D1FF3D]' : 'text-zinc-600 hover:text-white'}`}
+                >
+                  Registry
+                </button>
+                <button 
+                  onClick={() => setTab('forgot')}
+                  className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${tab === 'forgot' ? 'text-[#D1FF3D]' : 'text-zinc-600 hover:text-white'}`}
+                >
+                  Recovery
+                </button>
+              </div>
               <DialogTitle className="text-3xl font-bold text-white tracking-tight mb-3">
                 {tab === 'signin' ? 'Entrance' : 'Recovery'}
               </DialogTitle>

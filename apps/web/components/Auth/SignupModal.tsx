@@ -12,6 +12,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 interface SignupModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSwitchToSignin?: () => void;
 }
 
 interface AvailabilityStatus {
@@ -20,7 +21,7 @@ interface AvailabilityStatus {
   reason?: string;
 }
 
-export function SignupModal({ open, onOpenChange }: SignupModalProps) {
+export function SignupModal({ open, onOpenChange, onSwitchToSignin }: SignupModalProps) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [artistName, setArtistName] = useState('');
@@ -31,6 +32,8 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
   const [genre, setGenre] = useState('');
   const [socialLinks, setSocialLinks] = useState<string[]>(['']);
   const [selectedUsername, setSelectedUsername] = useState('');
+  const [isArtist, setIsArtist] = useState(true);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -53,7 +56,11 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
     const timer = setTimeout(async () => {
       setEmailStatus({ checking: true, available: null });
       try {
-        const res = await fetch('/api/auth/check-availability', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'email', value: email }) });
+        const res = await fetch('/api/auth/check-availability', { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' }, 
+          body: JSON.stringify({ type: 'email', value: email }) 
+        });
         const data = await res.json();
         setEmailStatus({ checking: false, available: data.available, reason: data.reason });
       } catch { setEmailStatus({ checking: false, available: null }); }
@@ -62,29 +69,39 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
   }, [email]);
 
   useEffect(() => {
-    if (!artistName) return setArtistNameStatus({ checking: false, available: null });
+    if (!artistName || !isArtist) return setArtistNameStatus({ checking: false, available: null });
     const timer = setTimeout(async () => {
       setArtistNameStatus({ checking: true, available: null });
       try {
-        const res = await fetch('/api/auth/check-availability', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'artist', value: artistName }) });
+        const res = await fetch('/api/auth/check-availability', { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' }, 
+          body: JSON.stringify({ type: 'artist', value: artistName }) 
+        });
         const data = await res.json();
         setArtistNameStatus({ checking: false, available: data.available, reason: data.reason });
       } catch { setArtistNameStatus({ checking: false, available: null }); }
     }, 500);
     return () => clearTimeout(timer);
-  }, [artistName]);
+  }, [artistName, isArtist]);
 
   useEffect(() => {
-    if (artistName && artistNameStatus.available) {
+    if (isArtist && artistName && artistNameStatus.available) {
       const normalized = artistName.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/\s+/g, '.');
       setSelectedUsername(`${normalized}.${Math.random().toString(36).substring(2, 5)}`);
+    } else if (!isArtist && email) {
+      const normalized = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+      setSelectedUsername(`${normalized}.${Math.random().toString(36).substring(2, 5)}`);
     }
-  }, [artistName, artistNameStatus.available]);
+  }, [artistName, artistNameStatus.available, isArtist, email]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) return setError('Passwords do not match');
     if (strength.score < 4) return setError('Security requirements not met');
+    if (isArtist && artistNameStatus.available === false) return setError('Artist name is unavailable');
+    if (emailStatus.available === false) return setError('Email is already registered');
+
     setIsSubmitting(true);
     setError('');
 
@@ -92,13 +109,30 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firstName, lastName, artistName, email, password, confirmPassword, username: selectedUsername, region, genre, isArtist: true, artistProfile: { profileUrl: socialLinks[0] || '', genre, socialLinks: socialLinks.filter(l => l.trim()) } })
+        body: JSON.stringify({ 
+          firstName, 
+          lastName, 
+          artistName: isArtist ? artistName : undefined, 
+          email, 
+          password, 
+          confirmPassword, 
+          username: selectedUsername, 
+          region, 
+          genre: isArtist ? genre : undefined, 
+          isArtist, 
+          artistProfile: isArtist ? { profileUrl: socialLinks[0] || '', genre, socialLinks: socialLinks.filter(l => l.trim()) } : undefined 
+        })
       });
       const data = await res.json();
       if (!data.ok) return setError(data.error || 'Registration failed'), setIsSubmitting(false);
+      
       setSuccess(true);
-      setTimeout(() => { setVerificationJobId(data.jobId); setShowVerification(true); onOpenChange(false); }, 600);
-    } catch { setError('Protocol error. Try again.'); setIsSubmitting(false); }
+      if (isArtist) {
+        setTimeout(() => { setVerificationJobId(data.jobId); setShowVerification(true); onOpenChange(false); }, 600);
+      } else {
+        setTimeout(() => { window.location.href = '/dashboard'; }, 1000);
+      }
+    } catch { setError('Communication error. Please try again.'); setIsSubmitting(false); }
   };
 
   const AvailabilityIndicator = ({ status }: { status: AvailabilityStatus }) => {
@@ -129,8 +163,27 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
           <div className="p-10 sm:p-14">
             <motion.div {...motionProps}>
               <DialogHeader className="mb-14 text-left">
+                <div className="flex gap-6 mb-8 border-b border-white/5 pb-4">
+                  <button 
+                    onClick={onSwitchToSignin}
+                    className="text-[10px] uppercase tracking-[0.3em] font-bold text-zinc-600 hover:text-white transition-all"
+                  >
+                    Entrance
+                  </button>
+                  <button 
+                    className="text-[10px] uppercase tracking-[0.3em] font-bold text-[#D1FF3D]"
+                  >
+                    Registry
+                  </button>
+                  <button 
+                    onClick={onSwitchToSignin}
+                    className="text-[10px] uppercase tracking-[0.3em] font-bold text-zinc-600 hover:text-white transition-all"
+                  >
+                    Recovery
+                  </button>
+                </div>
                 <DialogTitle className="text-3xl font-bold text-white tracking-tight mb-3">Registry</DialogTitle>
-                <DialogDescription className="text-[#9B5CFF] text-[10px] font-bold uppercase tracking-[0.3em] font-mono opacity-80">thecueRoom Onboarding</DialogDescription>
+                <DialogDescription className="text-[#9B5CFF] text-[10px] font-bold uppercase tracking-[0.3em] font-mono opacity-80">Onboarding Process</DialogDescription>
               </DialogHeader>
 
               <AnimatePresence mode="wait">
@@ -141,11 +194,28 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
                     className="flex flex-col items-center justify-center py-20 text-center"
                   >
                     <CheckCircle2 className="w-16 h-16 text-[#D1FF3D] mb-6" />
-                    <h3 className="text-3xl font-bold text-white mb-2 tracking-tight">Registry Complete</h3>
-                    <p className="text-zinc-600 font-mono text-[9px] uppercase tracking-[0.3em]">Transitioning to audit...</p>
+                    <h3 className="text-3xl font-bold text-white mb-2 tracking-tight">Success</h3>
+                    <p className="text-zinc-600 font-mono text-[9px] uppercase tracking-[0.3em]">{isArtist ? 'Identity pending verification...' : 'Redirecting to dashboard...'}</p>
                   </motion.div>
                 ) : (
                   <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-10">
+                    <div className="flex items-center gap-4 mb-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsArtist(true)}
+                        className={`flex-1 py-3 text-[10px] uppercase tracking-widest font-bold border rounded-none transition-all ${isArtist ? 'bg-[#D1FF3D] border-[#D1FF3D] text-black' : 'bg-transparent border-white/5 text-zinc-500'}`}
+                      >
+                        Artist
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsArtist(false)}
+                        className={`flex-1 py-3 text-[10px] uppercase tracking-widest font-bold border rounded-none transition-all ${!isArtist ? 'bg-[#D1FF3D] border-[#D1FF3D] text-black' : 'bg-transparent border-white/5 text-zinc-500'}`}
+                      >
+                        Enthusiast
+                      </button>
+                    </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                       <div className="space-y-3">
                         <Label className="text-[10px] uppercase tracking-[0.2em] text-[#D1FF3D] font-bold opacity-90">First Name</Label>
@@ -157,13 +227,15 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
                       </div>
                     </div>
 
-                    <div className="space-y-3">
-                      <Label className="text-[10px] uppercase tracking-[0.2em] text-[#D1FF3D] font-bold opacity-90">Artist Alias</Label>
-                      <div className="relative">
-                        <Input value={artistName} onChange={e => setArtistName(e.target.value)} className="bg-[#111111] border-white/5 text-white h-12 pr-10 rounded-none placeholder:text-zinc-800 focus:bg-[#151515]" placeholder="Stage Name" required />
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2"><AvailabilityIndicator status={artistNameStatus} /></div>
+                    {isArtist && (
+                      <div className="space-y-3">
+                        <Label className="text-[10px] uppercase tracking-[0.2em] text-[#D1FF3D] font-bold opacity-90">Artist Alias</Label>
+                        <div className="relative">
+                          <Input value={artistName} onChange={e => setArtistName(e.target.value)} className="bg-[#111111] border-white/5 text-white h-12 pr-10 rounded-none placeholder:text-zinc-800 focus:bg-[#151515]" placeholder="Stage Name" required />
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2"><AvailabilityIndicator status={artistNameStatus} /></div>
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     <div className="space-y-3">
                       <Label className="text-[10px] uppercase tracking-[0.2em] text-[#D1FF3D] font-bold opacity-90">Email Address</Label>
@@ -189,16 +261,20 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
                         <Label className="text-[10px] uppercase tracking-[0.2em] text-[#D1FF3D] font-bold opacity-90">Region</Label>
                         <Input value={region} onChange={e => setRegion(e.target.value)} className="bg-[#111111] border-white/5 text-white h-12 rounded-none placeholder:text-zinc-800 focus:bg-[#151515]" placeholder="City, Country" required />
                       </div>
-                      <div className="space-y-3">
-                        <Label className="text-[10px] uppercase tracking-[0.2em] text-[#D1FF3D] font-bold opacity-90">Primary Genre</Label>
-                        <Input value={genre} onChange={e => setGenre(e.target.value)} className="bg-[#111111] border-white/5 text-white h-12 rounded-none placeholder:text-zinc-800 focus:bg-[#151515]" placeholder="Main genre" required />
-                      </div>
+                      {isArtist && (
+                        <div className="space-y-3">
+                          <Label className="text-[10px] uppercase tracking-[0.2em] text-[#D1FF3D] font-bold opacity-90">Primary Genre</Label>
+                          <Input value={genre} onChange={e => setGenre(e.target.value)} className="bg-[#111111] border-white/5 text-white h-12 rounded-none placeholder:text-zinc-800 focus:bg-[#151515]" placeholder="Main genre" required />
+                        </div>
+                      )}
                     </div>
 
-                    <div className="space-y-3">
-                      <Label className="text-[10px] uppercase tracking-[0.2em] text-[#D1FF3D] font-bold opacity-90">Verification Source</Label>
-                      <Input value={socialLinks[0]} onChange={e => setSocialLinks([e.target.value])} className="bg-[#111111] border-white/5 text-white h-12 rounded-none placeholder:text-zinc-800 focus:bg-[#151515]" placeholder="SoundCloud / Spotify URL" required />
-                    </div>
+                    {isArtist && (
+                      <div className="space-y-3">
+                        <Label className="text-[10px] uppercase tracking-[0.2em] text-[#D1FF3D] font-bold opacity-90">Verification Source</Label>
+                        <Input value={socialLinks[0]} onChange={e => setSocialLinks([e.target.value])} className="bg-[#111111] border-white/5 text-white h-12 rounded-none placeholder:text-zinc-800 focus:bg-[#151515]" placeholder="SoundCloud / Spotify URL" required />
+                      </div>
+                    )}
 
                     <AnimatePresence>
                       {error && (
