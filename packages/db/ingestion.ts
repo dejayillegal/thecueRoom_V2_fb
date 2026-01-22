@@ -46,7 +46,7 @@ export class IngestionService {
         isRunning,
         hasFailed,
         lastRun: latestLog?.finishedAt || latestLog?.startedAt || null,
-        totalItemsNew: logs.reduce((acc, l) => acc + (l.itemsNew || 0), 0)
+        totalItemsNew: logs.reduce((acc: number, l: any) => acc + (l.itemsNew || 0), 0)
       };
     } catch (err) {
       console.error('[IngestionService] Failed to get status:', err);

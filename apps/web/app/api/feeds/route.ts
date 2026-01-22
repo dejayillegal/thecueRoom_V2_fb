@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@thecueroom/db/client';
 import { feedsItems as feeds, feedsSources as sources } from '@thecueroom/db/schema';
 import { desc, eq, and, sql, gt } from 'drizzle-orm';
+import { IngestionService } from '@thecueroom/db/ingestion';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -10,6 +11,9 @@ const ITEMS_PER_PAGE = 24;
 
 export async function GET(request: Request) {
   try {
+    // Trigger demand-driven ingestion (non-blocking)
+    IngestionService.trigger();
+
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const sourceId = searchParams.get('source');
