@@ -9,6 +9,8 @@ import {
   Loader2,
   ChevronRight,
   X,
+  Mail,
+  Lock,
 } from "lucide-react";
 import { generateUsername } from "@/src/lib/username-generator";
 import { useRouter } from "next/navigation";
@@ -204,7 +206,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           <div className="absolute bottom-0 left-10 right-10 h-[1px] bg-white/5" />
         </div>
 
-        {/* Mode Indicators (Redesigned Tabs) */}
+        {/* Mode Indicators */}
         <div className="flex px-10">
           {(["signin", "signup", "forgot"] as const).map((tab) => (
             <button
@@ -219,8 +221,6 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               }`}>
                 {tab === "signin" ? "Entrance" : tab === "signup" ? "Registry" : "Recovery"}
               </span>
-              
-              {/* Signal Bar */}
               <div className={`absolute bottom-0 left-0 right-0 h-[2px] transition-all duration-500 transform origin-left ${
                 activeTab === tab 
                   ? "bg-[#D7FF3C] scale-x-100 opacity-100" 
@@ -232,28 +232,36 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
         {/* Form Body */}
         <div className="px-10 py-12">
-          <form onSubmit={handleSignIn} className="space-y-10">
-            <div className="space-y-8">
-              <div className="space-y-2">
-                <Label className="text-[10px] font-mono uppercase tracking-widest text-gray-600">Identifier</Label>
+          <form onSubmit={handleSignIn} className="space-y-12">
+            <div className="space-y-10">
+              {/* Identifier Field */}
+              <div className="relative group/field">
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="text-[10px] font-mono uppercase tracking-widest text-gray-600 group-focus-within/field:text-[#D7FF3C] transition-colors">Identifier</Label>
+                  <Mail className="w-3 h-3 text-gray-800 group-focus-within/field:text-[#D7FF3C]/40 transition-colors" />
+                </div>
                 <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="EMAIL@THECUEROOM.COM"
-                  className="bg-black border-white/10 border-x-0 border-t-0 border-b rounded-none px-0 h-10 focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-colors placeholder:text-gray-800"
+                  className="bg-transparent border-white/5 border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
                 />
               </div>
 
+              {/* Security Key Field */}
               {activeTab !== "forgot" && (
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-mono uppercase tracking-widest text-gray-600">Security Key</Label>
+                <div className="relative group/field">
+                  <div className="flex items-center justify-between mb-3">
+                    <Label className="text-[10px] font-mono uppercase tracking-widest text-gray-600 group-focus-within/field:text-[#D7FF3C] transition-colors">Security Key</Label>
+                    <Lock className="w-3 h-3 text-gray-800 group-focus-within/field:text-[#D7FF3C]/40 transition-colors" />
+                  </div>
                   <Input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="bg-black border-white/10 border-x-0 border-t-0 border-b rounded-none px-0 h-10 focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-colors placeholder:text-gray-800"
+                    className="bg-transparent border-white/5 border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
                   />
                 </div>
               )}
