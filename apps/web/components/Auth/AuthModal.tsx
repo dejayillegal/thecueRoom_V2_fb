@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, Loader2, X } from 'lucide-react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const prefersReducedMotion = useReducedMotion();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +61,6 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
       const data = await res.json();
       if (data.ok) {
         setTab('signin');
-        alert('Recovery link sent if account exists.');
       } else {
         setError(data.error || 'Failed to send recovery link');
       }
@@ -74,91 +75,107 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
     return <SignupModal open={isOpen} onOpenChange={(open) => !open && onClose()} />;
   }
 
+  const motionProps = {
+    initial: { opacity: 0, y: prefersReducedMotion ? 0 : 4 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.2, ease: "easeOut" }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md bg-[#0B0B0B] border-white/10 p-0 overflow-hidden shadow-2xl rounded-none sm:rounded-none">
+      <DialogContent className="max-w-md bg-[#0B0B0B] border-white/10 p-0 overflow-hidden shadow-2xl rounded-none ring-0 focus:ring-0">
         <button 
           onClick={onClose}
-          className="absolute right-4 top-4 text-zinc-500 hover:text-white transition-colors z-50"
+          className="absolute right-6 top-6 text-zinc-600 hover:text-white transition-colors z-50"
+          aria-label="Close"
         >
-          <X size={20} />
+          <X size={18} />
         </button>
         
-        <div className="p-8 sm:p-10">
-          <DialogHeader className="mb-10 text-left">
-            <DialogTitle className="text-3xl font-bold text-white tracking-tight mb-2">
-              {tab === 'signin' ? 'Entrance' : 'Recovery'}
-            </DialogTitle>
-            <DialogDescription className="text-[#9B5CFF] text-sm font-medium uppercase tracking-widest font-mono">
-              Registry Access
-            </DialogDescription>
-          </DialogHeader>
+        <div className="p-10 sm:p-12">
+          <motion.div {...motionProps}>
+            <DialogHeader className="mb-12 text-left">
+              <DialogTitle className="text-3xl font-bold text-white tracking-tight mb-3">
+                {tab === 'signin' ? 'Entrance' : 'Recovery'}
+              </DialogTitle>
+              <DialogDescription className="text-[#9B5CFF] text-[10px] font-bold uppercase tracking-[0.3em] font-mono opacity-80">
+                Registry Access
+              </DialogDescription>
+            </DialogHeader>
 
-          <form onSubmit={tab === 'signin' ? handleSignIn : handleForgot} className="space-y-8">
-            <div className="space-y-3">
-              <Label htmlFor="email" className="text-[10px] uppercase tracking-[0.2em] text-[#D1FF3D] font-bold">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="bg-[#111111] border-white/5 focus:border-[#D1FF3D]/30 text-white h-12 rounded-none transition-all placeholder:text-zinc-700"
-                placeholder="email@example.com"
-                required
-              />
-            </div>
-
-            {tab === 'signin' && (
+            <form onSubmit={tab === 'signin' ? handleSignIn : handleForgot} className="space-y-8">
               <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <Label htmlFor="password" className="text-[10px] uppercase tracking-[0.2em] text-[#D1FF3D] font-bold">Security Pass</Label>
-                  <button
-                    type="button"
-                    onClick={() => setTab('forgot')}
-                    className="text-[9px] uppercase tracking-widest text-zinc-600 hover:text-[#D1FF3D] transition-colors font-mono"
-                  >
-                    Lost Pass?
-                  </button>
-                </div>
+                <Label htmlFor="email" className="text-[10px] uppercase tracking-[0.2em] text-[#D1FF3D] font-bold opacity-90">Email Address</Label>
                 <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="bg-[#111111] border-white/5 focus:border-[#D1FF3D]/30 text-white h-12 rounded-none transition-all placeholder:text-zinc-700"
-                  placeholder="••••••••••••"
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-[#111111] border-white/5 focus:border-[#D1FF3D]/40 text-white h-12 rounded-none transition-all placeholder:text-zinc-800 focus:bg-[#151515]"
+                  placeholder="Enter email"
                   required
                 />
               </div>
-            )}
 
-            {error && (
-              <div className="flex items-center gap-3 text-red-500 text-[11px] bg-red-500/5 p-4 border border-red-500/10 font-mono uppercase tracking-wider">
-                <AlertCircle size={14} />
-                <span>{error}</span>
-              </div>
-            )}
+              {tab === 'signin' && (
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <Label htmlFor="password" className="text-[10px] uppercase tracking-[0.2em] text-[#D1FF3D] font-bold opacity-90">Security Pass</Label>
+                    <button
+                      type="button"
+                      onClick={() => setTab('forgot')}
+                      className="text-[9px] uppercase tracking-widest text-zinc-600 hover:text-[#D1FF3D] transition-colors font-mono"
+                    >
+                      Lost Pass?
+                    </button>
+                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="bg-[#111111] border-white/5 focus:border-[#D1FF3D]/40 text-white h-12 rounded-none transition-all placeholder:text-zinc-800 focus:bg-[#151515]"
+                    placeholder="••••••••••••"
+                    required
+                  />
+                </div>
+              )}
 
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-[#D1FF3D] hover:bg-white text-black font-bold h-14 rounded-none transition-all duration-500 uppercase tracking-[0.3em] text-xs"
-            >
-              {isSubmitting ? <Loader2 className="animate-spin" /> : 'Proceed'}
-            </Button>
-          </form>
+              <AnimatePresence>
+                {error && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="flex items-center gap-3 text-red-500 text-[10px] bg-red-500/5 p-4 border border-red-500/10 font-mono uppercase tracking-wider"
+                  >
+                    <AlertCircle size={12} />
+                    <span>{error}</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-          <div className="mt-12 pt-8 border-t border-white/5 text-center">
-            <p className="text-zinc-600 text-[10px] uppercase tracking-[0.2em]">
-              {tab === 'signin' ? "No Account?" : "Identified?"}{' '}
-              <button
-                onClick={() => setTab(tab === 'signin' ? 'signup' : 'signin')}
-                className="text-[#D1FF3D] hover:text-white transition-colors font-bold ml-2"
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-[#D1FF3D] hover:bg-white text-black font-bold h-14 rounded-none transition-all duration-300 uppercase tracking-[0.4em] text-[10px]"
               >
-                {tab === 'signin' ? 'Register' : 'Entrance'}
-              </button>
-            </p>
-          </div>
+                {isSubmitting ? <Loader2 className="animate-spin w-4 h-4" /> : 'Proceed'}
+              </Button>
+            </form>
+
+            <div className="mt-14 pt-8 border-t border-white/5 text-center">
+              <p className="text-zinc-600 text-[9px] uppercase tracking-[0.3em] font-mono">
+                {tab === 'signin' ? "No Account?" : "Identified?"}{' '}
+                <button
+                  onClick={() => setTab(tab === 'signin' ? 'signup' : 'signin')}
+                  className="text-[#D1FF3D] hover:text-white transition-colors font-bold ml-3"
+                >
+                  {tab === 'signin' ? 'Register' : 'Entrance'}
+                </button>
+              </p>
+            </div>
+          </motion.div>
         </div>
       </DialogContent>
     </Dialog>
