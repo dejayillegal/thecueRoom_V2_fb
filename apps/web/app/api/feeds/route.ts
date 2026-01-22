@@ -31,36 +31,68 @@ export async function GET(request: Request) {
        }, { status: 200 });
     }
 
-    // PHASE 2 & 3: Self-Triggered Ingestion with feed_state
-    let stateResults = await db.select().from(feedState).where(eq(feedState.id, 1)).limit(1);
-    
-    if (stateResults.length === 0) {
-      try {
-        await db.insert(feedState).values({ id: 1, lastIngestedAt: null }).onConflictDoNothing();
-        stateResults = await db.select().from(feedState).where(eq(feedState.id, 1)).limit(1);
-      } catch (e) {
-        stateResults = [{ id: 1, lastIngestedAt: null }];
-      }
+    // PHASE 2 — SCHEMA GUARANTEE (IDEMPOTENT)
+    try {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS feeds (
+          id uuid primary key default gen_random_uuid(),
+          source text not null,
+          title text not null,
+          summary text,
+          url text not null,
+          thumbnail_url text,
+          published_at timestamptz,
+          created_at timestamptz default now(),
+          content_hash text unique
+        );
+      `);
+
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS feed_state (
+          id int primary key,
+          last_ingested_at timestamptz,
+          ingest_lock_until timestamptz
+        );
+      `);
+
+      await db.execute(sql`
+        INSERT INTO feed_state (id, last_ingested_at)
+        VALUES (1, NULL)
+        ON CONFLICT (id) DO NOTHING;
+      `);
+    } catch (schemaError) {
+      console.error('Schema guarantee failed:', schemaError);
     }
 
-    const lastIngested = stateResults[0]?.lastIngestedAt;
+    // PHASE 3 — SAFE INGESTION LOGIC
     const now = new Date();
-    
+    let state;
+    try {
+      const stateResults = await db.select().from(feedState).where(eq(feedState.id, 1)).limit(1);
+      state = stateResults[0] || { id: 1, lastIngestedAt: null };
+    } catch (e) {
+      state = { id: 1, lastIngestedAt: null };
+    }
+
     const feedCountResult = await db.select({ count: sql`count(*)` }).from(feeds);
     const feedCount = Number(feedCountResult[0]?.count || 0);
 
     const shouldIngest = feedCount === 0 || 
-                         !lastIngested || 
-                         (now.getTime() - new Date(lastIngested).getTime() > INGEST_THRESHOLD_MS);
+                         !state.lastIngestedAt || 
+                         (now.getTime() - new Date(state.lastIngestedAt).getTime() > 60 * 60 * 1000);
 
     if (shouldIngest) {
       try {
-        console.log('Self-triggered ingestion started (Awaiting completion)...');
+        console.log('Self-triggered ingestion started...');
+        // Update timestamp FIRST to prevent concurrent triggers
+        await db.update(feedState)
+          .set({ lastIngestedAt: now })
+          .where(eq(feedState.id, 1));
+          
         await IngestionService.run();
         console.log('Ingestion completed successfully.');
       } catch (ingestError) {
         console.error('Ingestion failed during request:', ingestError);
-        // Fallback: If we have zero items, let the user know we're syncing
         if (feedCount === 0) {
           return NextResponse.json({
             error: 'Synchronizing network signal... please refresh in a moment.',
