@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
-import { feeds, feedsSources, feedState } from '@thecueroom/db/schema';
+import { feeds, feedState } from '@thecueroom/db/schema';
 import { desc, eq, and, sql, gt } from 'drizzle-orm';
 import Parser from 'rss-parser';
 
@@ -11,29 +11,17 @@ const ITEMS_PER_PAGE = 24;
 const INGEST_THRESHOLD_MS = 60 * 60 * 1000; // 60 minutes
 const FALLBACK_IMAGE = 'https://thecueroom.com/images/fallback-vector.png';
 
+// Hardcoded authoritative sources to avoid feeds_sources table dependency
+const AUTHORITATIVE_SOURCES = [
+  { name: 'Resident Advisor', url: 'https://ra.co/xml/rss/news.xml' },
+  { name: 'Pitchfork', url: 'https://pitchfork.com/rss/news/' },
+  { name: 'FACT Magazine', url: 'https://www.factmag.com/feed/' }
+];
+
 async function ingestFeeds(db: any) {
   const parser = new Parser({ timeout: 10000 });
   
-  // Guarantee feeds_sources exists before querying
-  try {
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS feeds_sources (
-        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-        name TEXT NOT NULL,
-        url TEXT NOT NULL UNIQUE,
-        kind TEXT NOT NULL,
-        tags jsonb NOT NULL DEFAULT '[]'::jsonb,
-        enabled BOOLEAN NOT NULL DEFAULT true,
-        created_at TIMESTAMPTZ DEFAULT now()
-      );
-    `);
-  } catch (e) {
-    console.error('Failed to ensure feeds_sources:', e);
-  }
-
-  const sources = await db.select().from(feedsSources).where(eq(feedsSources.enabled, true));
-  
-  for (const source of sources) {
+  for (const source of AUTHORITATIVE_SOURCES) {
     try {
       const feed = await parser.parseURL(source.url);
       for (const item of (feed.items || []).slice(0, 20)) {
@@ -56,7 +44,6 @@ async function ingestFeeds(db: any) {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const category = searchParams.get('category');
     const limitParam = parseInt(searchParams.get('limit') || String(ITEMS_PER_PAGE), 10);
     const offsetParam = parseInt(searchParams.get('offset') || '0', 10);
     
@@ -121,14 +108,6 @@ export async function GET(request: Request) {
 
     const conditions: any[] = [gt(feeds.publishedAt, twoWeeksAgo)];
 
-    if (category) {
-      conditions.push(sql`EXISTS (
-        SELECT 1 FROM feeds_sources 
-        WHERE feeds_sources.name = ${feeds.source} 
-        AND feeds_sources.tags ? ${category}
-      )`);
-    }
-
     const rawResults = await db
       .select({
         id: feeds.id,
@@ -150,7 +129,6 @@ export async function GET(request: Request) {
     const sanitizedItems = rows.map(item => {
       if (!item) return null;
       
-      // Strict thumbnail guarantee
       const imageUrl = (item.thumbnail_url && 
                         typeof item.thumbnail_url === 'string' && 
                         item.thumbnail_url.trim() !== '' && 
