@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback, memo, useRef } from 'react';
-import { useInView } from 'react-intersection-observer';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export interface FeedItem {
@@ -108,11 +107,6 @@ export default function FeedUX({ initialItems = [], initialHasMore = true }: Fee
   const [offset, setOffset] = useState(initialItems.length);
   const loadingRef = useRef(false);
 
-  const { ref, inView } = useInView({ 
-    threshold: 0.1,
-    rootMargin: '400px',
-  });
-
   const fetchFeeds = useCallback(async (currentOffset: number) => {
     if (loadingRef.current) return;
     loadingRef.current = true;
@@ -152,13 +146,31 @@ export default function FeedUX({ initialItems = [], initialHasMore = true }: Fee
     }
   }, [items.length]);
 
-  const [mounted, setMounted] = useState(false);
+  const observerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (inView && hasMore && !isLoading && !error && items.length > 0) {
-      fetchFeeds(offset);
+    if (!hasMore || isLoading || error || items.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          fetchFeeds(offset);
+        }
+      },
+      { threshold: 0.1, rootMargin: '400px' }
+    );
+
+    const currentRef = observerRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
     }
-  }, [inView, hasMore, isLoading, error, offset, fetchFeeds, items.length]);
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [fetchFeeds, hasMore, isLoading, error, items.length, offset]);
 
   const formatDate = (dateStr: string) => {
     if (!mounted) return ""; // Prevent hydration mismatch
@@ -193,7 +205,7 @@ export default function FeedUX({ initialItems = [], initialHasMore = true }: Fee
             <FeedCard key={item.id} item={item} formatDate={formatDate} />
           ))}
           {hasMore && (
-            <div ref={ref} className="col-span-full h-32 flex items-center justify-center mt-24">
+            <div ref={observerRef} className="col-span-full h-32 flex items-center justify-center mt-24">
               <div className="h-8 w-8 border-2 border-[#D1FF3D]/20 border-t-[#D1FF3D] rounded-full animate-spin" />
             </div>
           )}

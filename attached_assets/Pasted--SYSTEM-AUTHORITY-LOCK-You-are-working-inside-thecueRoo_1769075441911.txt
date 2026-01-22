@@ -1,0 +1,106 @@
+🔒 SYSTEM / AUTHORITY LOCK
+
+You are working inside thecueRoom_V2.
+
+You MUST obey this precedence order:
+
+docs/CHATGPT_PROJECT_RULES.md
+
+docs/thecue_room_master_codex_prompt_mobile_web_backend_zero_error_build.md
+
+Existing repository code
+
+V1 reference repo (read-only parity)
+
+Non-negotiables:
+
+❌ NO new npm dependencies (this includes intersection observers, image libs, schedulers)
+
+❌ NO schema changes
+
+❌ NO external cron / background services
+
+❌ NO fake features, demo text, or implied security claims
+
+❌ NO UI breaking on cold start, refresh, or slow network
+
+Everything must work on:
+
+Fresh clone
+
+First run
+
+Replit free tier
+
+Page refresh
+
+Mobile + desktop
+
+🧠 CORE TRUTH (READ CAREFULLY)
+
+The landing page is NOT allowed to be empty.
+Feeds must appear immediately on first render.
+
+Ingestion must be:
+
+Self-triggered
+
+Idempotent
+
+Non-blocking
+
+Deterministic
+
+UI must be:
+
+Editorial
+
+Calm
+
+High-contrast
+
+Professional
+
+Never blank
+
+Never jittery
+
+Never “loading demo”
+
+🧩 PHASE 1 — SOURCE REGISTRY (CANONICAL)
+
+Create a single authoritative source list using ONLY the following sources.
+
+You MUST NOT remove any of them.
+
+You MUST NOT hardcode Pitchfork behavior.
+
+// packages/db/feedSources.ts (or existing equivalent)
+export const FEED_SOURCES = [
+  // Scene / Underground
+  { name:"6AM Group", kind:"rss", url:"https://www.6amgroup.com/feed/", tags:["scene","asia"] },
+  { name:"The Playground", kind:"rss", url:"https://theplayground.co.uk/blog/feed/", tags:["scene"] },
+  { name:"Earmilk", kind:"rss", url:"https://earmilk.com/feed/", tags:["scene"] },
+  { name:"XLR8R", kind:"rss", url:"https://xlr8r.com/feed/", tags:["scene","mixes"] },
+  { name:"FACT", kind:"rss", url:"https://www.factmag.com/feed/", tags:["news"] },
+  { name:"Bandcamp Daily", kind:"rss", url:"https://daily.bandcamp.com/feed", tags:["features"] },
+  { name:"Ransom Note", kind:"rss", url:"https://www.theransomnote.com/feed/", tags:["culture"] },
+  { name:"Stereofox", kind:"rss", url:"https://www.stereofox.com/feed/", tags:["discover"] },
+  { name:"Neon Music", kind:"rss", url:"https://neonmusic.co.uk/feed/", tags:["discover"] },
+  { name:"This Song Is Sick", kind:"rss", url:"https://thissongissick.com/feed/", tags:["discover"] },
+  { name:"Your EDM", kind:"rss", url:"https://www.youredm.com/feed/", tags:["edm"] },
+  { name:"EDM.com", kind:"rss", url:"https://edm.com/.rss/full/", tags:["edm"] },
+
+  // Industry
+  { name:"Music Business Worldwide", kind:"rss", url:"https://www.musicbusinessworldwide.com/feed/", tags:["industry"] },
+  { name:"Hypebot", kind:"rss", url:"https://www.hypebot.com/feed", tags:["industry"] },
+
+  // Gear / Production
+  { name:"CDM", kind:"rss", url:"https://cdm.link/feed/", tags:["production"] },
+  { name:"MusicTech", kind:"rss", url:"https://musictech.com/feed/", tags:["gear"] },
+  { name:"Bedroom Producers Blog", kind:"rss", url:"https://bedroomproducersblog.com/feed/", tags:["plugins"] },
+
+  // Asia / India
+  { name:"Rolling Stone India", kind:"rss", url:"https://rollingstoneindia.com/feed/", tags:["india"] },
+  { name:"HighOnScore", kind:"rss", url:"https://highonscore.com/feed/", tags:["india"] },
+];

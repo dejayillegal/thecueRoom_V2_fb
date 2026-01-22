@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
 import { feeds, feedState } from '@thecueroom/db/schema';
+import { FEED_SOURCES } from '@thecueroom/db/feedSources';
 import { desc, eq, sql, gt } from 'drizzle-orm';
 import Parser from 'rss-parser';
 
@@ -26,16 +27,7 @@ function getDeterministicFallback(title: string): string {
   return FALLBACK_IMAGES[index];
 }
 
-const AUTHORITATIVE_SOURCES = [
-  { name: 'Resident Advisor', url: 'https://ra.co/xml/rss/news.xml' },
-  { name: 'Pitchfork', url: 'https://pitchfork.com/rss/news/' },
-  { name: 'FACT Magazine', url: 'https://www.factmag.com/feed/' },
-  { name: 'Mixmag', url: 'https://mixmag.net/rss/news' },
-  { name: 'DJ Mag', url: 'https://djmag.com/news/feed' },
-  { name: 'MusicRadar', url: 'https://www.musicradar.com/rss/news' },
-  { name: 'XLR8R', url: 'https://xlr8r.com/feed/' },
-  { name: 'Stereogum', url: 'https://www.stereogum.com/feed/' }
-];
+const AUTHORITATIVE_SOURCES = FEED_SOURCES;
 
 function normalizeUrl(url: string): string {
   try {
