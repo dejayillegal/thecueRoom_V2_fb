@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import AuthModal from '@/src/components/Auth/AuthModal';
+import AuthModal from '../Auth/AuthModal';
 import { Button } from '@/components/ui/button';
 import { LogIn } from 'lucide-react';
 
