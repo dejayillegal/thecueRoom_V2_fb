@@ -1,0 +1,145 @@
+🔒 SYSTEM / AUTHORITY LOCK
+
+You are working inside thecueRoom_V2.
+
+You MUST obey this precedence order without exception:
+
+docs/CHATGPT_PROJECT_RULES.md
+
+docs/thecue_room_master_codex_prompt_mobile_web_backend_zero_error_build.md
+
+Existing repository implementation
+
+V1 reference repo (read-only parity)
+
+Official framework documentation
+
+If anything conflicts, higher precedence wins immediately.
+
+🚨 CRITICAL CONTEXT (READ FULLY)
+
+This task fixes auth UI + auth logic together, because the current state is broken.
+
+Current confirmed problems (from screenshots + logs):
+
+Duplicate close (×) icons
+
+Overlapping text, labels, and inputs
+
+Excess vertical padding causing scroll on desktop & mobile
+
+Placeholder text overpowering real input values
+
+Signup missing existing required fields
+
+Fake / misleading security copy (“Secure session”, “System nominal”)
+
+UI implying features that DO NOT exist
+
+Auth modal visually drifting from landing + header identity
+
+Motion overpowering readability
+
+Inconsistent sizing across breakpoints
+
+Old auth logic duplicated and partially broken
+
+Feeds & auth initialization errors cascading visually
+
+This prompt resets auth cleanly.
+
+🚫 NON-NEGOTIABLE CONSTRAINTS
+❌ DO NOT:
+
+Invent AI verification
+
+Invent social validation
+
+Invent risk-adaptive login
+
+Invent hardware-backed auth
+
+Invent new security claims
+
+Invent new flows
+
+Change Supabase configuration
+
+Change DB schemas
+
+Change API routes
+
+Add dependencies
+
+Break existing auth behavior
+
+Break free-tier compatibility
+
+✅ YOU MAY:
+
+Clean up duplicated auth logic
+
+Re-wire auth calls to existing APIs cleanly
+
+Improve validation feedback (UI only)
+
+Improve error visibility (UI only)
+
+Improve layout, spacing, sizing, hierarchy
+
+Improve motion clarity (subtle only)
+
+Match landing page design language exactly
+
+🎯 OBJECTIVE (SINGLE SOURCE OF TRUTH)
+
+Re-implement the Entrance / Registry / Recovery modal as:
+
+A professional social platform auth
+
+Editorial, calm, confident
+
+No sci-fi theatrics
+
+No fake security claims
+
+No visual noise
+
+Fully responsive
+
+Fully aligned with landing + header
+
+Functionality MUST remain exactly the same.
+Only implementation quality improves.
+
+🧩 PHASE 1 — HARD AUDIT (NO CODE YET)
+
+Before touching visuals:
+
+Identify existing auth components:
+
+Sign In
+
+Sign Up
+
+Forgot Password
+
+Identify:
+
+Required fields per flow
+
+Validation rules
+
+API calls used
+
+Identify duplicated or unused auth code
+
+Identify modal mount/unmount logic
+
+Deliverable:
+
+Short written audit
+
+List of files to be touched
+
+Explicit confirmation: no new auth features added
