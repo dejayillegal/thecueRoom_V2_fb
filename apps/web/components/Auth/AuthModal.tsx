@@ -140,9 +140,64 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
                       onSwitchToSignin={() => setTab('signin')} 
                       isEmbedded={true}
                     />
+                  ) : tab === 'forgot' ? (
+                    <div className="space-y-10">
+                      <div className="space-y-2">
+                        <h3 className="text-3xl font-extralight tracking-tighter text-white">Restore Access</h3>
+                        <p className="text-[10px] font-mono leading-relaxed text-zinc-500 uppercase tracking-widest">
+                          Enter your registered email to receive access instructions.
+                        </p>
+                      </div>
+
+                      <form onSubmit={handleForgot} className="space-y-8">
+                        <div className="space-y-3">
+                          <Label htmlFor="email" className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold">Email</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="bg-white/[0.02] border-white/10 focus:border-[#D1FF3D]/40 text-white h-12 rounded-none px-4 transition-all duration-300 placeholder:text-zinc-800 focus:ring-0 text-sm"
+                            placeholder="identity@network.com"
+                            required
+                          />
+                        </div>
+
+                        <AnimatePresence>
+                          {error && (
+                            <motion.div 
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="flex items-center gap-3 text-red-400 text-[10px] bg-red-400/5 p-4 border border-red-400/10 font-mono uppercase tracking-wider"
+                            >
+                              <AlertCircle size={12} />
+                              <span>{error}</span>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
+                        <Button
+                          type="submit"
+                          disabled={isSubmitting}
+                          className="w-full bg-[#D1FF3D] hover:bg-white text-black font-bold h-14 rounded-none transition-all duration-500 uppercase tracking-[0.3em] text-[10px] flex items-center justify-center gap-2 group active:scale-[0.98]"
+                        >
+                          {isSubmitting ? <Loader2 className="animate-spin w-4 h-4" /> : (
+                            <>
+                              Send Recovery Email <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            </>
+                          )}
+                        </Button>
+                      </form>
+                    </div>
                   ) : (
                     <div className="space-y-10">
-                      <form onSubmit={tab === 'signin' ? handleSignIn : handleForgot} className="space-y-8">
+                      <div className="space-y-2">
+                        <h3 className="text-3xl font-extralight tracking-tighter text-white">Welcome Back</h3>
+                        <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#9B5CFF]/60 font-bold">Registry Identification</p>
+                      </div>
+
+                      <form onSubmit={handleSignIn} className="space-y-8">
                         <div className="space-y-6">
                           <div className="space-y-3">
                             <Label htmlFor="email" className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold">Email</Label>
