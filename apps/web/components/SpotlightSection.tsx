@@ -150,7 +150,7 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
                   initial={{ opacity: 0, y: 10 }} 
                   animate={{ opacity: 1, y: 0 }} 
                   transition={{ duration: 0.4, delay: 0.1 }} 
-                  className="text-xl md:text-4xl lg:text-6xl font-light tracking-tighter leading-[0.95] text-balance group-hover:text-white transition-colors duration-500 break-words max-w-none md:max-w-[1200px]"
+                  className="text-lg md:text-2xl lg:text-4xl font-light tracking-tighter leading-[1.1] text-pretty group-hover:text-white transition-colors duration-500 break-words max-w-none md:max-w-[1400px]"
                 >
                   {currentFeed.title}
                 </motion.h1>
