@@ -51,75 +51,6 @@ async function fetchProfileData(url: string) {
   }
 }
 
-function extractSignals(html: string, url: string) {
-  const signals = {
-    foundAudio: false,
-    foundVideo: false,
-    foundReleases: false,
-    followerCount: 0,
-    username: '',
-    bio: '',
-    recentActivity: false,
-  };
-
-  // SoundCloud signals
-  if (url.includes('soundcloud.com')) {
-    signals.foundAudio = html.includes('SoundCloud') && 
-                         (html.includes('track') || html.includes('playlist'));
-    signals.foundReleases = html.includes('tracks-module') || html.includes('playlistsModule');
-    
-    const followerMatch = html.match(/(\d+)\s*followers?/i);
-    if (followerMatch) signals.followerCount = parseInt(followerMatch[1]);
-  }
-
-  // Instagram signals
-  if (url.includes('instagram.com')) {
-    signals.foundVideo = html.includes('video') || html.includes('reel');
-    const followerMatch = html.match(/(\d+)\s*followers?/i);
-    if (followerMatch) signals.followerCount = parseInt(followerMatch[1]);
-  }
-
-  // Bandcamp signals
-  if (url.includes('bandcamp.com')) {
-    signals.foundAudio = html.includes('trackView') || html.includes('albumView');
-    signals.foundReleases = html.includes('music-grid-item');
-  }
-
-  // General signals
-  signals.recentActivity = html.includes('2024') || html.includes('2025');
-  
-  return signals;
-}
-
-function calculateScore(signals: any, url: string) {
-  let score = 0;
-
-  // Audio/video presence
-  if (signals.foundAudio) score += 30;
-  if (signals.foundVideo) score += 20;
-  if (signals.foundReleases) score += 25;
-
-  // Follower threshold
-  if (signals.followerCount > 100) score += 15;
-  if (signals.followerCount > 1000) score += 10;
-
-  // Recent activity
-  if (signals.recentActivity) score += 10;
-
-  // Platform bonus
-  if (url.includes('soundcloud.com') || url.includes('bandcamp.com')) {
-    score += 10; // Music-first platforms
-  }
-
-  return Math.min(score, 100);
-}
-
-function makeDecision(score: number) {
-  if (score >= 70) return 'approved';
-  if (score >= 40) return 'review';
-  return 'rejected';
-}
-
 async function processJob(jobId: string) {
   const db = getDbClient();
   
@@ -138,7 +69,7 @@ async function processJob(jobId: string) {
       .set({ status: 'processing', updatedAt: new Date() })
       .where(eq(verificationJobs.id, jobId));
 
-    let decision, score, evidence;
+    let decision: any, score: any, evidence: any;
 
     if (TEST_MODE) {
       // Deterministic test mode

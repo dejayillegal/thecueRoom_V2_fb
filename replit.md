@@ -45,7 +45,7 @@ The project utilizes a pnpm monorepo structure with `apps/web` for the Next.js f
   - **PDF Export**: Professional PDF generation with social platform integration
   - **Backward Compatible**: Maintains compatibility with existing EPKStudio through rewrite endpoint
 - **Performance:** Includes fixes for memory leaks, TypeScript strict mode errors, optimized image loading with `Next.js Image` component, and robust WebSocket handling.
-  - **Background Worker Optimization (October 2025):** Parallel processing of 5 RSS sources simultaneously (reduced ingestion time from ~15s to ~13s for 25 sources)
+  - **Background Worker Optimization (January 2026):** Fixed column name errors and schema mismatches in background feed worker.
   - **Webpack Optimization (October 2025):** Filesystem caching, deterministic module IDs, and optimized code splitting for faster development builds
 
 **Feature Specifications:**
@@ -73,7 +73,8 @@ The project utilizes a pnpm monorepo structure with `apps/web` for the Next.js f
   - API endpoints: GET `/api/profile` (fetch), PATCH `/api/profile` (update) with authentication
   - Live save feedback with loading states
   - Proper validation and error handling
-- **AI Verification System (October 31, 2025):**
+- **AI Verification System (January 2026):**
+  - **Background Worker (January 2026):** Automated verification worker for fake account detection and artist verification.
   - Advanced fake account detection with 15+ sophisticated checks:
     * Disposable email patterns (10minutemail, guerrillamail, tempmail, etc.)
     * Keyboard spam detection (qwerty, asdf patterns)

@@ -128,3 +128,44 @@ export const feedsItems = pgTable('feeds_items', {
   publishedAtIdx: index('feeds_items_published_at_idx').on(table.publishedAt),
   contentHashIdx: uniqueIndex('feeds_items_content_hash_idx').on(table.contentHash),
 }));
+
+// Verification Jobs
+export const verificationJobs = pgTable('verification_jobs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  profileUrl: text('profile_url').notNull(),
+  status: text('status').notNull().default('queued'),
+  progress: integer('progress').notNull().default(0),
+  decision: text('decision'),
+  score: integer('score'),
+  evidence: jsonb('evidence'),
+  error: text('error'),
+  reviewNotes: text('review_notes'),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Notifications
+export const notifications = pgTable('notifications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(),
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  link: text('link'),
+  read: boolean('read').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Feed Ingestion Logs
+export const feedsIngestionLog = pgTable('feeds_ingestion_log', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  sourceId: uuid('source_id').references(() => feedsSources.id, { onDelete: 'cascade' }),
+  startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
+  finishedAt: timestamp('finished_at', { withTimezone: true }),
+  status: text('status').notNull(),
+  itemsProcessed: integer('items_processed').default(0),
+  itemsNew: integer('items_new').default(0),
+  errorMessage: text('error_message'),
+});
