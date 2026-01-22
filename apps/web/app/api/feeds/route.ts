@@ -49,6 +49,22 @@ function getDeterministicFallback(title: string): string {
   return FALLBACK_IMAGES[Math.abs(hash) % FALLBACK_IMAGES.length];
 }
 
+async function bootstrapDb(db: any) {
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS feeds (
+      id SERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      url TEXT NOT NULL UNIQUE,
+      summary TEXT,
+      published_at TIMESTAMP,
+      source TEXT NOT NULL,
+      tags TEXT[],
+      thumbnail TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+  `);
+}
+
 async function ingestFeeds(db: any) {
   const parser = new Parser({ timeout: 10000 });
   const promises = FEED_SOURCES.map(async (source) => {
@@ -64,7 +80,7 @@ async function ingestFeeds(db: any) {
           title: item.title || 'Untitled',
           summary: item.contentSnippet || item.content || '',
           url: item.link || '',
-          thumbnailUrl: thumb,
+          thumbnail: thumb || getDeterministicFallback(item.title || ''),
           publishedAt: item.isoDate ? new Date(item.isoDate) : new Date(),
         }).onConflictDoNothing();
       }
@@ -81,6 +97,9 @@ export async function GET(request: Request) {
     const offset = parseInt(searchParams.get('offset') || '0', 10);
     const limit = parseInt(searchParams.get('limit') || String(ITEMS_PER_PAGE), 10);
     const db = getDbClient();
+
+    // Bootstrap first
+    await bootstrapDb(db);
 
     // Check reality - derive state from feeds table
     const feedsCountResult = await db.select({ count: sql<number>`count(*)` }).from(feeds);
@@ -116,7 +135,7 @@ export async function GET(request: Request) {
         title: r.title,
         summary: r.summary || '',
         url: r.url,
-        image: r.thumbnailUrl && r.thumbnailUrl.startsWith('http') ? r.thumbnailUrl : getDeterministicFallback(r.title),
+        image: r.thumbnail && r.thumbnail.startsWith('http') ? r.thumbnail : getDeterministicFallback(r.title),
         publishedAt: r.publishedAt?.toISOString() || new Date().toISOString(),
         source: r.source || 'Unknown',
       })),
