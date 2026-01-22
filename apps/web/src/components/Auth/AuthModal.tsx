@@ -188,8 +188,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       <DialogContent className="max-w-[500px] bg-[#0A0A0A] border-none text-white p-0 overflow-hidden shadow-2xl rounded-none">
         <DialogTitle className="sr-only">Authentication Portal</DialogTitle>
         
-        {/* Close Button - Reduced noise */}
-        <DialogPrimitive.Close className="absolute right-6 top-6 rounded-sm opacity-30 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+        <DialogPrimitive.Close className="absolute right-6 top-6 rounded-sm opacity-30 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none">
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>
@@ -202,23 +201,31 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </div>
           <p className="text-[10px] font-mono tracking-[0.4em] uppercase text-gray-600">Secure Access Portal</p>
           
-          {/* Subtle Divider */}
           <div className="absolute bottom-0 left-10 right-10 h-[1px] bg-white/5" />
         </div>
 
-        {/* Mode Selector */}
-        <div className="flex border-b border-white/5">
+        {/* Mode Indicators (Redesigned Tabs) */}
+        <div className="flex px-10">
           {(["signin", "signup", "forgot"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-4 text-[10px] font-mono uppercase tracking-[0.2em] transition-all duration-300 ${
-                activeTab === tab 
-                  ? "text-[#D7FF3C] bg-[#0F0F0F]" 
-                  : "text-gray-700 hover:text-gray-400 bg-black"
-              }`}
+              className={`flex-1 py-5 text-[10px] font-mono uppercase tracking-[0.2em] transition-all duration-500 relative group`}
             >
-              {tab === "signin" ? "Entrance" : tab === "signup" ? "Registry" : "Recovery"}
+              <span className={`transition-colors duration-500 ${
+                activeTab === tab 
+                  ? "text-[#D7FF3C]" 
+                  : "text-gray-700 group-hover:text-gray-400"
+              }`}>
+                {tab === "signin" ? "Entrance" : tab === "signup" ? "Registry" : "Recovery"}
+              </span>
+              
+              {/* Signal Bar */}
+              <div className={`absolute bottom-0 left-0 right-0 h-[2px] transition-all duration-500 transform origin-left ${
+                activeTab === tab 
+                  ? "bg-[#D7FF3C] scale-x-100 opacity-100" 
+                  : "bg-white/5 scale-x-0 opacity-0 group-hover:opacity-50 group-hover:scale-x-100"
+              }`} />
             </button>
           ))}
         </div>
