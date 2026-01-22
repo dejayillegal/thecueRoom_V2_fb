@@ -13,16 +13,5 @@ export const db = getDbClient();
  * Using a dynamic import to avoid circular dependency / initialization issues.
  */
 if (typeof window === 'undefined' || (typeof process !== 'undefined' && process.env.NODE_ENV === 'test')) {
-  // Use a slight delay to ensure DB client and schema are fully ready in the module cache
-  setTimeout(async () => {
-    try {
-      const mod = await import('./ingestion');
-      const IngestionService = mod.IngestionService;
-      if (IngestionService && typeof IngestionService.trigger === 'function') {
-        IngestionService.trigger();
-      }
-    } catch (err) {
-      console.error('[DB] Failed to trigger ingestion:', err);
-    }
-  }, 1000);
+  // Background ingestion disabled - ingestion moved inline to API
 }

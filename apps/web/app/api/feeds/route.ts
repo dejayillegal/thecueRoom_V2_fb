@@ -13,6 +13,24 @@ const FALLBACK_IMAGE = 'https://thecueroom.com/images/fallback-vector.png';
 
 async function ingestFeeds(db: any) {
   const parser = new Parser({ timeout: 10000 });
+  
+  // Guarantee feeds_sources exists before querying
+  try {
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS feeds_sources (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL,
+        url TEXT NOT NULL UNIQUE,
+        kind TEXT NOT NULL,
+        tags jsonb NOT NULL DEFAULT '[]'::jsonb,
+        enabled BOOLEAN NOT NULL DEFAULT true,
+        created_at TIMESTAMPTZ DEFAULT now()
+      );
+    `);
+  } catch (e) {
+    console.error('Failed to ensure feeds_sources:', e);
+  }
+
   const sources = await db.select().from(feedsSources).where(eq(feedsSources.enabled, true));
   
   for (const source of sources) {
@@ -23,7 +41,6 @@ async function ingestFeeds(db: any) {
         
         const publishedAt = item.isoDate ? new Date(item.isoDate) : new Date();
         
-        // Idempotent insert: ONLY insert if url doesn't exist
         await db.execute(sql`
           INSERT INTO feeds (source, title, summary, url, thumbnail_url, published_at)
           SELECT ${source.name}, ${item.title}, ${item.contentSnippet || ''}, ${item.link}, ${item.enclosure?.url || ''}, ${publishedAt}
@@ -95,7 +112,6 @@ export async function GET(request: Request) {
                          (now.getTime() - new Date(state.lastIngestedAt).getTime() > INGEST_THRESHOLD_MS);
 
     if (shouldIngest) {
-      // update timestamp FIRST to prevent concurrent triggers
       await db.update(feedState).set({ lastIngestedAt: now }).where(eq(feedState.id, 1));
       await ingestFeeds(db);
     }
@@ -129,19 +145,26 @@ export async function GET(request: Request) {
       .limit(limit)
       .offset(offset);
 
-    // 🛡 PHASE 4 — NULL-PROOF API (MANDATORY)
     const rows = Array.isArray(rawResults) ? rawResults : [];
 
     const sanitizedItems = rows.map(item => {
       if (!item) return null;
+      
+      // Strict thumbnail guarantee
+      const imageUrl = (item.thumbnail_url && 
+                        typeof item.thumbnail_url === 'string' && 
+                        item.thumbnail_url.trim() !== '' && 
+                        item.thumbnail_url.trim() !== 'null' &&
+                        item.thumbnail_url.startsWith('http')) 
+        ? item.thumbnail_url 
+        : FALLBACK_IMAGE;
+
       return {
         id: item.id ?? '',
         title: item.title ?? 'Untitled Signal',
         summary: item.summary ?? '',
         url: item.url ?? '',
-        image: (item.thumbnail_url && typeof item.thumbnail_url === 'string' && item.thumbnail_url.trim() !== '' && item.thumbnail_url.trim() !== 'null') 
-          ? item.thumbnail_url 
-          : FALLBACK_IMAGE,
+        image: imageUrl,
         publishedAt: item.published_at instanceof Date ? item.published_at.toISOString() : new Date().toISOString(),
         source: item.source ?? 'Unknown',
       };
