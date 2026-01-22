@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@thecueroom/db/client';
-import { feeds, feedsSources as sources } from '@thecueroom/db/schema';
+import { feeds, feedState as globalFeedState, feedsSources as sources } from '@thecueroom/db/schema';
 import { desc, eq, and, sql, gt } from 'drizzle-orm';
 import { IngestionService } from '@thecueroom/db/ingestion';
 
@@ -11,8 +11,24 @@ const ITEMS_PER_PAGE = 24;
 
 export async function GET(request: Request) {
   try {
-    // Trigger demand-driven ingestion (non-blocking)
-    IngestionService.trigger();
+    const db = getDbClient();
+    
+    // Phase 3 & 4: Self-Triggered Ingestion Engine
+    const [existingCount] = await db.select({ count: sql<number>`count(*)` }).from(feeds);
+    const [status] = await db.select().from(globalFeedState).where(eq(globalFeedState.id, 1)).limit(1);
+    
+    const now = new Date();
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+    const isStale = !status?.lastIngestedAt || status.lastIngestedAt < oneHourAgo;
+    const isEmpty = Number(existingCount?.count || 0) === 0;
+
+    if (isEmpty) {
+      console.log('[API] First run detected, awaiting ingestion...');
+      await IngestionService.run();
+    } else if (isStale) {
+      console.log('[API] Data stale, triggering background ingestion...');
+      IngestionService.trigger();
+    }
 
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
@@ -20,8 +36,6 @@ export async function GET(request: Request) {
     const limit = Math.min(100, parseInt(searchParams.get('limit') || String(ITEMS_PER_PAGE), 10));
     const offset = parseInt(searchParams.get('offset') || '0', 10);
 
-    const db = getDbClient();
-    
     const twoWeeksAgo = new Date();
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 

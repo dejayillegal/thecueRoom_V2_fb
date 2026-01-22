@@ -64,16 +64,20 @@ export class IngestionService {
   static async run() {
     // Acquire global lock
     const now = new Date();
-    const status = await db.select().from(globalFeedState).where(eq(globalFeedState.id, 1)).limit(1);
+    const statusResult = await db.select().from(globalFeedState).where(eq(globalFeedState.id, 1)).limit(1);
+    const status = statusResult[0];
     
-    if (status[0]?.ingestLockUntil && status[0].ingestLockUntil > now) {
+    // Phase 3: Lock Logic - If lease is active, skip ingestion
+    if (status?.ingestLockUntil && status.ingestLockUntil > now) {
+      console.log('[IngestionService] Ingestion locked, skipping...');
       return { status: 'locked' };
     }
 
-    await db.insert(globalFeedState).values({ id: 1, ingestLockUntil: new Date(Date.now() + this.LEASE_DURATION_MS) })
+    // Set lock immediately
+    await db.insert(globalFeedState).values({ id: 1, ingestLockUntil: new Date(now.getTime() + this.LEASE_DURATION_MS) })
       .onConflictDoUpdate({ 
         target: globalFeedState.id, 
-        set: { ingestLockUntil: new Date(Date.now() + this.LEASE_DURATION_MS) } 
+        set: { ingestLockUntil: new Date(now.getTime() + this.LEASE_DURATION_MS) } 
       });
 
     const workerId = `worker-${Math.random().toString(36).substring(2, 15)}`;
