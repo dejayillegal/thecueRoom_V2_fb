@@ -2,35 +2,14 @@ import { NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
 import { feeds, feedsSources, feedState } from '@thecueroom/db/schema';
 import { desc, eq, and, sql, gt } from 'drizzle-orm';
+import { IngestionService } from '@thecueroom/db/ingestion';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 const ITEMS_PER_PAGE = 24;
 const INGEST_THRESHOLD_MS = 60 * 60 * 1000; // 60 minutes
-
-async function ingestNow(db: any) {
-  try {
-    // 1. Lock ingestion by updating timestamp
-    await db.insert(feedState)
-      .values({ id: 1, lastIngestedAt: new Date() })
-      .onConflictDoUpdate({
-        target: feedState.id,
-        set: { lastIngestedAt: new Date() }
-      });
-
-    console.log('Self-triggered ingestion started...');
-    
-    // Attempt to trigger ingestion script safely
-    // Since we are in a serverless-style environment, we simulate the success of the trigger.
-    // In a full implementation, this could call an internal helper that performs the fetch.
-    
-    return true;
-  } catch (error) {
-    console.error('Ingestion failed:', error);
-    return false;
-  }
-}
+const FALLBACK_IMAGE = 'https://thecueroom.com/images/fallback-vector.png';
 
 export async function GET(request: Request) {
   try {
@@ -45,20 +24,21 @@ export async function GET(request: Request) {
 
     const db = getDbClient();
     if (!db) {
-       return NextResponse.json({ data: [], hasMore: false }, { status: 200 });
+       return NextResponse.json({ 
+         error: 'Database connection failed',
+         data: [], 
+         hasMore: false 
+       }, { status: 200 });
     }
 
     // PHASE 2 & 3: Self-Triggered Ingestion with feed_state
-    // Get state without joins
     let stateResults = await db.select().from(feedState).where(eq(feedState.id, 1)).limit(1);
     
-    // Idempotent creation if missing
     if (stateResults.length === 0) {
       try {
         await db.insert(feedState).values({ id: 1, lastIngestedAt: null }).onConflictDoNothing();
         stateResults = await db.select().from(feedState).where(eq(feedState.id, 1)).limit(1);
       } catch (e) {
-        // Fallback for parallel race conditions
         stateResults = [{ id: 1, lastIngestedAt: null }];
       }
     }
@@ -66,7 +46,6 @@ export async function GET(request: Request) {
     const lastIngested = stateResults[0]?.lastIngestedAt;
     const now = new Date();
     
-    // Quick count check for cold-start
     const feedCountResult = await db.select({ count: sql`count(*)` }).from(feeds);
     const feedCount = Number(feedCountResult[0]?.count || 0);
 
@@ -75,8 +54,22 @@ export async function GET(request: Request) {
                          (now.getTime() - new Date(lastIngested).getTime() > INGEST_THRESHOLD_MS);
 
     if (shouldIngest) {
-      // Locking is handled inside ingestNow via timestamp update
-      await ingestNow(db);
+      // PHASE 4: Await completion for first-run guarantee
+      // Using the actual IngestionService to fulfill the guarantee
+      try {
+        console.log('Self-triggered ingestion started (Awaiting completion)...');
+        await IngestionService.run();
+        console.log('Ingestion completed successfully.');
+      } catch (ingestError) {
+        console.error('Ingestion failed during request:', ingestError);
+        if (feedCount === 0) {
+          return NextResponse.json({
+            error: 'Synchronizing network signal... please refresh in a moment.',
+            data: [],
+            hasMore: false
+          }, { status: 200 });
+        }
+      }
     }
     
     const twoWeeksAgo = new Date();
@@ -91,7 +84,6 @@ export async function GET(request: Request) {
     }
 
     if (category) {
-      // Use standard JSONB check
       conditions.push(sql`${feeds.sourceId} IN (
         SELECT id FROM feeds_sources WHERE tags ? ${category}
       )`);
@@ -117,15 +109,20 @@ export async function GET(request: Request) {
 
     const safeResults = Array.isArray(results) ? results : [];
 
+    // PHASE 5: Server-side Thumbnail Fallback Enforcement
     const sanitizedItems = safeResults.map(item => {
       if (!item) return null;
       
+      const imageUrl = (item.image && item.image.trim() !== '' && item.image.trim() !== 'null') 
+        ? item.image 
+        : FALLBACK_IMAGE;
+
       return {
         id: item.id ?? '',
         title: item.title ?? 'Untitled Signal',
         summary: item.summary ?? '',
         url: item.link ?? '',
-        image: item.image ?? '',
+        image: imageUrl,
         tags: [],
         publishedAt: item.publishedAt instanceof Date 
           ? item.publishedAt.toISOString() 
@@ -146,7 +143,7 @@ export async function GET(request: Request) {
   } catch (error: any) {
     console.error('Feed API fatal error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch feeds', data: [], hasMore: false },
+      { error: 'Critical signal failure. Scanning for recovery.', data: [], hasMore: false },
       { 
         status: 200,
         headers: { 'Content-Type': 'application/json' }
