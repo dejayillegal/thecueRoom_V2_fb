@@ -26,12 +26,12 @@ const FeedCard = memo(({ item, index }: { item: FeedItem; index: number }) => (
     <a 
       href={item.url} 
       target="_blank" 
-      className="aspect-[16/10] bg-white/5 overflow-hidden relative block shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)]"
+      className="aspect-[16/10] bg-white/5 overflow-hidden relative block shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)] rounded-sm"
     >
       <img 
         src={item.image} 
         alt=""
-        className="w-full h-full object-cover transition-all duration-300 filter brightness-[0.8] contrast-[1.1] group-hover:brightness-[1.1] group-hover:contrast-[1.2] group-hover:scale-[1.02]" 
+        className="w-full h-full object-cover transition-all duration-300 filter brightness-[0.9] contrast-[1.05] group-hover:brightness-[1.1] group-hover:contrast-[1.15] group-hover:scale-[1.02] grayscale-0" 
       />
     </a>
     <div className="space-y-4">
