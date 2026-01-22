@@ -1,52 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDbClient } from '@thecueroom/db/client';
-import { feeds, feedState as globalFeedState, feedsSources as sources } from '@thecueroom/db/schema';
+import { getDbClient } from '@/lib/db-client';
+import { feedsItems as feeds, feedsSources as sources } from '@thecueroom/db/schema';
 import { desc, eq, and, sql, gt } from 'drizzle-orm';
-import { IngestionService } from '@thecueroom/db/ingestion';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 const ITEMS_PER_PAGE = 24;
 
-interface FeedResponseItem {
-  id: string;
-  title: string;
-  summary: string;
-  url: string;
-  image: string;
-  tags: string[];
-  publishedAt: string;
-  source: string;
-}
-
 export async function GET(request: Request) {
   try {
-    const db = getDbClient();
-    
-    // Phase 3, 4 & 7: Self-Triggered Ingestion Engine (Demand-Driven)
-    const [existingCount] = await db.select({ count: sql<number>`count(*)` }).from(feeds);
-    const [status] = await db.select().from(globalFeedState).where(eq(globalFeedState.id, 1)).limit(1);
-    
-    const now = new Date();
-    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-    const isStale = !status?.lastIngestedAt || status.lastIngestedAt < oneHourAgo;
-    const isEmpty = Number(existingCount?.count || 0) === 0;
-
-    if (isEmpty) {
-      // Phase 4: Await first ingestion
-      await IngestionService.run();
-    } else if (isStale) {
-      // Phase 3 & 7: Trigger background polling
-      IngestionService.trigger();
-    }
-
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const sourceId = searchParams.get('source');
-    const limit = Math.min(100, parseInt(searchParams.get('limit') || String(ITEMS_PER_PAGE), 10));
-    const offset = parseInt(searchParams.get('offset') || '0', 10);
+    const limitParam = parseInt(searchParams.get('limit') || String(ITEMS_PER_PAGE), 10);
+    const offsetParam = parseInt(searchParams.get('offset') || '0', 10);
+    
+    const limit = isNaN(limitParam) ? ITEMS_PER_PAGE : Math.min(100, Math.max(1, limitParam));
+    const offset = isNaN(offsetParam) ? 0 : Math.max(0, offsetParam);
 
+    const db = getDbClient();
+    
     const twoWeeksAgo = new Date();
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
@@ -59,7 +33,12 @@ export async function GET(request: Request) {
     }
 
     if (category) {
-      conditions.push(sql`${feeds.tags} @> ARRAY[${category}]::jsonb`);
+      conditions.push(sql`${feeds.tags} @> ARRAY[${category}]::text[]`);
+    }
+
+    // Defensive check before database query
+    if (!db) {
+       return NextResponse.json({ data: [], hasMore: false }, { status: 200 });
     }
 
     const results = await db
@@ -67,8 +46,8 @@ export async function GET(request: Request) {
         id: feeds.id,
         title: feeds.title,
         summary: feeds.summary,
-        link: feeds.url,
-        image: feeds.thumbnailUrl,
+        link: feeds.link,
+        image: feeds.image,
         tags: feeds.tags,
         publishedAt: feeds.publishedAt,
         sourceId: feeds.sourceId,
@@ -81,31 +60,45 @@ export async function GET(request: Request) {
       .limit(limit)
       .offset(offset);
 
-    const sanitizedItems: FeedResponseItem[] = results.map((item: any) => ({
-      id: item.id,
-      title: item.title,
-      summary: item.summary,
-      url: item.link || '',
-      image: item.image || '/images/fallback-editorial.png',
-      tags: (item.tags as string[]) || [],
-      publishedAt: typeof item.publishedAt === 'string' ? item.publishedAt : item.publishedAt?.toISOString() || new Date().toISOString(),
-      source: item.sourceName || 'Unknown',
-    }));
+    // Hard Safety: Ensure results is an array
+    const safeResults = Array.isArray(results) ? results : [];
+
+    const sanitizedItems = safeResults.map(item => {
+      // Defensive property access
+      if (!item) return null;
+      
+      return {
+        id: item.id ?? '',
+        title: item.title ?? 'Untitled Signal',
+        summary: item.summary ?? '',
+        url: item.link ?? '',
+        image: item.image ?? '',
+        tags: Array.isArray(item.tags) ? item.tags : [],
+        publishedAt: item.publishedAt instanceof Date 
+          ? item.publishedAt.toISOString() 
+          : (typeof item.publishedAt === 'string' ? item.publishedAt : new Date().toISOString()),
+        source: item.sourceName ?? 'Unknown',
+      };
+    }).filter(Boolean);
 
     return NextResponse.json({
       data: sanitizedItems,
-      hasMore: results.length === limit,
+      hasMore: sanitizedItems.length === limit,
     }, {
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'no-store, max-age=0, must-revalidate',
+        'Cache-Control': 'no-store, max-age=0',
       },
     });
   } catch (error: any) {
-    console.error('Feed API error:', error);
+    // Fail Silently with valid structure as per requirement
+    console.error('Feed API error (Safety Patch):', error);
     return NextResponse.json(
-      { error: 'Failed to fetch feeds', data: [] },
-      { status: 500 }
+      { error: 'Failed to fetch feeds', data: [], hasMore: false },
+      { 
+        status: 200, // Return 200 to prevent breaking frontend logic that expects data
+        headers: { 'Content-Type': 'application/json' }
+      }
     );
   }
 }
