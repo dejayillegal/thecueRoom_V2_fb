@@ -21,9 +21,6 @@ export default function LandingPage() {
           
           <div className="flex items-center gap-12">
             <div className="hidden md:flex items-center gap-12 text-[10px] font-mono uppercase tracking-[0.6em] text-foreground/40">
-              <span className="hover:text-[#D1FF3D] cursor-pointer transition-colors">Signals</span>
-              <span className="hover:text-[#D1FF3D] cursor-pointer transition-colors">Vectors</span>
-              <span className="hover:text-[#D1FF3D] cursor-pointer transition-colors">Creative</span>
             </div>
             <AuthButton />
           </div>
