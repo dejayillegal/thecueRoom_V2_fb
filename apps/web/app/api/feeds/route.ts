@@ -9,7 +9,7 @@ export const runtime = 'nodejs';
 
 const ITEMS_PER_PAGE = 24;
 const INGEST_THRESHOLD_MS = 60 * 60 * 1000; // 60 minutes
-const FALLBACK_IMAGE = '/images/fallback/feed-default.jpg';
+const FALLBACK_IMAGE = '/images/fallback/feed-default.png';
 
 const AUTHORITATIVE_SOURCES = [
   { name: 'Resident Advisor', url: 'https://ra.co/xml/rss/news.xml' },
