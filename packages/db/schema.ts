@@ -7,12 +7,13 @@ export const users = pgTable('users', {
   email: text('email').notNull().unique(),
   username: text('username').notNull().unique(),
   passwordHash: text('password_hash'),
-  role: text('role').notNull().default('user'), // 'user' | 'artist' | 'admin'
+  role: text('role').notNull().default('user'), 
   trustLevel: integer('trust_level').notNull().default(0),
   riskScore: integer('risk_score').notNull().default(0),
   verified: boolean('verified').notNull().default(false),
   verificationStatus: text('verification_status').notNull().default('pending'),
   lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
+  lastDeviceHash: text('last_device_hash'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
@@ -35,24 +36,37 @@ export const profiles = pgTable('profiles', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
-// Artist Profiles (Foundation for Onboarding)
+// Artist Profiles
 export const artistProfiles = pgTable('artist_profiles', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
   artistName: text('artist_name').notNull(),
   primarySocialUrl: text('primary_social_url'),
-  verificationStatus: text('verification_status').notNull().default('unverified'), // 'unverified' | 'pending' | 'verified'
+  verificationStatus: text('verification_status').notNull().default('unverified'),
   verifiedAt: timestamp('verified_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// WebAuthn Credentials (Phase 5 - Prepared)
+export const userCredentials = pgTable('user_credentials', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  credentialId: text('credential_id').notNull().unique(),
+  publicKey: text('public_key').notNull(),
+  counter: integer('counter').notNull().default(0),
+  authenticatorType: text('authenticator_type'), // 'platform' | 'cross-platform'
+  lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 // Auth Events (Security Audit)
 export const authEvents = pgTable('auth_events', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  eventType: text('event_type').notNull(), // 'login' | 'signup' | 'recovery' | 'risk_challenge'
+  eventType: text('event_type').notNull(), 
   deviceHash: text('device_hash'),
+  riskScore: integer('risk_score'),
   metadata: jsonb('metadata').$type<any>(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => ({
@@ -65,7 +79,7 @@ export const feedsSources = pgTable('feeds_sources', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
   url: text('url').notNull().unique(),
-  kind: text('kind').notNull(), // 'rss' | 'json' | 'atom'
+  kind: text('kind').notNull(),
   tags: jsonb('tags').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
   config: jsonb('config').$type<any>().default(sql`'{}'::jsonb`),
   enabled: boolean('enabled').notNull().default(true),
@@ -83,7 +97,7 @@ export const feedsState = pgTable('feeds_state', {
   nextPollAt: timestamp('next_poll_at', { withTimezone: true }).notNull().defaultNow(),
   leaseOwner: text('lease_owner'),
   leaseExpiresAt: timestamp('lease_expires_at', { withTimezone: true }),
-  status: text('status').notNull().default('idle'), // 'idle' | 'ingesting' | 'healthy' | 'error'
+  status: text('status').notNull().default('idle'),
   lastError: text('last_error'),
   etag: text('etag'),
   lastModified: text('last_modified'),
@@ -114,34 +128,3 @@ export const feedsItems = pgTable('feeds_items', {
   publishedAtIdx: index('feeds_items_published_at_idx').on(table.publishedAt),
   contentHashIdx: uniqueIndex('feeds_items_content_hash_idx').on(table.contentHash),
 }));
-
-// Authoritative Ingestion Logging
-export const feedsIngestionLog = pgTable('feeds_ingestion_log', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  sourceId: uuid('source_id').notNull().references(() => feedsSources.id, { onDelete: 'cascade' }),
-  startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
-  finishedAt: timestamp('finished_at', { withTimezone: true }),
-  status: text('status').notNull(), // 'success' | 'failed' | 'partial'
-  itemsProcessed: integer('items_processed').notNull().default(0),
-  itemsNew: integer('items_new').notNull().default(0),
-  errorMessage: text('error_message'),
-  trace: jsonb('trace').$type<any>(),
-}, (table) => ({
-  sourceStartedIdx: index('feeds_ingestion_log_source_started_idx').on(table.sourceId, table.startedAt),
-}));
-
-// Verification Jobs Table
-export const verificationJobs = pgTable('verification_jobs', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  profileUrl: text('profile_url').notNull(),
-  status: text('status').notNull().default('queued'), // 'queued' | 'processing' | 'completed' | 'failed'
-  decision: text('decision'), // 'approved' | 'rejected' | 'review'
-  score: integer('score'),
-  evidence: jsonb('evidence').$type<any>(),
-  error: text('error'),
-  reviewNotes: text('review_notes'),
-  completedAt: timestamp('completed_at', { withTimezone: true }),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-});
