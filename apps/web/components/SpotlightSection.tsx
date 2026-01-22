@@ -123,9 +123,14 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
   return (
     <div className="relative">
       <section 
-        className="relative h-[85vh] group bg-[#0B0B0B] overflow-hidden" 
+        className="relative h-[85vh] group bg-[#0B0B0B] overflow-hidden cursor-pointer" 
         onMouseEnter={() => setIsPaused(true)} 
         onMouseLeave={() => setIsPaused(false)}
+        onClick={() => {
+          if (window.innerWidth < 768) {
+            window.open(currentFeed.url, '_blank');
+          }
+        }}
       >
         <AnimatePresence mode="wait">
           <SpotlightImage key={currentFeed.url} feed={currentFeed} />
@@ -165,7 +170,7 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
                 </motion.div>
                 <div className="flex items-center justify-between w-full pt-4 md:pt-8 relative">
                   <div className="flex items-center gap-8 md:gap-12">
-                    <Link href={currentFeed.url} target="_blank" className="group/link flex items-center gap-6 text-[10px] font-mono uppercase tracking-[0.8em] font-bold text-foreground focus:outline-none">
+                    <Link href={currentFeed.url} target="_blank" className="hidden md:flex group/link items-center gap-6 text-[10px] font-mono uppercase tracking-[0.8em] font-bold text-foreground focus:outline-none">
                       <span className="border-b border-transparent group-hover:border-[#D1FF3D] transition-all pb-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 focus:border-[#D1FF3D] focus:opacity-100 focus:translate-y-0">Read more →</span>
                     </Link>
                     <div className="hidden md:flex gap-4 relative z-[60]">
