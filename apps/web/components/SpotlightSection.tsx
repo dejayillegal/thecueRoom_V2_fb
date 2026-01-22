@@ -24,19 +24,19 @@ const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
       className="absolute inset-0 bg-[#0B0B0B] overflow-hidden"
     >
       {isLoading && <div className="absolute inset-0 bg-[#111111] animate-pulse" />}
-      <motion.img
-        src={imgSrc}
-        alt={feed.title}
-        initial={{ scale: 1.05 }}
-        animate={{ scale: 1 }}
-        transition={{ duration: 0.8, ease: [0.33, 1, 0.68, 1] }}
-        className="absolute inset-0 w-full h-full object-cover opacity-25 grayscale contrast-[1.2] transition-all duration-700"
-        onLoad={() => setIsLoading(false)}
-        onError={() => {
-          setImgSrc(`/api/fallback-thumb/${encodeURIComponent((feed as any).id || 'default')}`);
-          setIsLoading(false);
-        }}
-      />
+        <motion.img
+          src={imgSrc}
+          alt={feed.title}
+          initial={{ scale: 1.05 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.8, ease: [0.33, 1, 0.68, 1] }}
+          className="absolute inset-0 w-full h-full object-cover grayscale opacity-25 contrast-[1.1] transition-all duration-700 group-hover:grayscale-0 group-hover:opacity-50"
+          onLoad={() => setIsLoading(false)}
+          onError={() => {
+            setImgSrc(`/api/fallback-thumb/${encodeURIComponent((feed as any).id || 'default')}`);
+            setIsLoading(false);
+          }}
+        />
       <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/20 to-transparent" />
       <div className="absolute inset-0 bg-gradient-to-r from-[#0B0B0B]/60 to-transparent" />
       {/* Subtle Glow Overlay */}

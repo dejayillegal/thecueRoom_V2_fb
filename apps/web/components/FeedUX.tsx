@@ -31,7 +31,7 @@ const FeedCard = memo(({ item, index }: { item: FeedItem; index: number }) => (
       <img 
         src={item.image} 
         alt=""
-        className="w-full h-full object-cover transition-all duration-300 filter brightness-[0.9] contrast-[1.05] group-hover:brightness-[1.1] group-hover:contrast-[1.15] group-hover:scale-[1.02] grayscale-0" 
+        className="w-full h-full object-cover transition-all duration-300 filter grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-[1.02] contrast-[1.05]" 
       />
     </a>
     <div className="space-y-4">
