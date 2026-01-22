@@ -62,7 +62,7 @@ export default async function LandingPage() {
       </div>
 
       {/* Main Feed Content */}
-      <section className="max-w-screen-2xl mx-auto px-6 md:px-10 py-24 md:py-32">
+      <section className="max-w-screen-2xl mx-auto px-6 md:px-10 pt-12 pb-24 md:pb-32">
         <header className="mb-24 space-y-4">
           <div className="flex items-center gap-6">
             <span className="text-[10px] font-mono uppercase tracking-[1em] font-bold text-[#D1FF3D]">Global Transmission</span>

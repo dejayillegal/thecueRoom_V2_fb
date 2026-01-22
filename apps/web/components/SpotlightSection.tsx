@@ -205,22 +205,6 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
           ))}
         </div>
       </section>
-
-      <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 1 }} className="max-w-screen-2xl mx-auto px-10 -translate-y-24 relative z-20">
-        <div className="bg-[#0B0B0B]/60 backdrop-blur-3xl border border-[#D1FF3D]/5 p-20 shadow-2xl">
-          <header className="flex items-center gap-12 mb-12">
-            <span className="text-[10px] font-mono uppercase tracking-[1.2em] font-bold text-[#D1FF3D]/40">Active Vectors</span>
-            <div className="h-px flex-1 bg-[#D1FF3D]/5" />
-          </header>
-          {currentTrending.length > 0 ? (
-            <TrendingCarousel feeds={currentTrending} />
-          ) : (
-            <div className="h-32 flex items-center justify-center opacity-10">
-               <span className="text-[9px] font-mono uppercase tracking-[1em] animate-pulse">Scanning Network</span>
-            </div>
-          )}
-        </div>
-      </motion.div>
     </div>
   );
 });
