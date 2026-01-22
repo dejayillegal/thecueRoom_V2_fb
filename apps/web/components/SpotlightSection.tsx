@@ -24,23 +24,23 @@ const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
       animate={{ scale: 1, opacity: 1 }}
       exit={{ scale: 1.02, opacity: 0 }}
       transition={{ duration: 2, ease: [0.22, 1, 0.36, 1] }}
-      style={{ position: 'absolute', inset: 0, backgroundColor: '#0B0B0B', overflow: 'hidden' }}
+      style={{ position: 'absolute', inset: 0, backgroundColor: '#0B0B0B', overflow: 'hidden' } as any}
     >
       {isLoading && (
-        <div style={{ position: 'absolute', inset: 0, backgroundColor: '#111111' }} className="animate-pulse" />
+        <div style={{ position: 'absolute', inset: 0, backgroundColor: '#111111' } as any} className="animate-pulse" />
       )}
       <motion.img
         src={imgSrc}
         alt={feed.title}
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.25, filter: 'grayscale(1) contrast(1.5) brightness(1.1)' }}
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.25, filter: 'grayscale(1) contrast(1.5) brightness(1.1)' } as any}
         onLoad={() => setIsLoading(false)}
         onError={() => {
           setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title)}`);
           setIsLoading(false);
         }}
       />
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #0B0B0B, rgba(11, 11, 11, 0.2), transparent)' }} />
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(11, 11, 11, 0.6), transparent, transparent)' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #0B0B0B, rgba(11, 11, 11, 0.2), transparent)' } as any} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(11, 11, 11, 0.6), transparent, transparent)' } as any} />
     </motion.div>
   );
 });
@@ -58,21 +58,14 @@ const SlideIndicator = memo(({
 }) => (
   <button
     onClick={onClick}
-    style={{ 
-      height: '1px', 
-      transition: 'all 700ms ease-in-out', 
-      position: 'relative', 
-      overflow: 'hidden', 
-      width: index === currentIndex ? '6rem' : '1.5rem', 
-      backgroundColor: index === currentIndex ? '#D1FF3D' : 'rgba(209, 255, 61, 0.1)' 
-    }}
+    style={{ height: '1px', transition: 'all 700ms ease-in-out', position: 'relative', overflow: 'hidden', width: index === currentIndex ? '6rem' : '1.5rem', backgroundColor: index === currentIndex ? '#D1FF3D' : 'rgba(209, 255, 61, 0.1)' } as any}
     className="hover:bg-[#D1FF3D]/30"
     aria-label={`Entry ${index + 1}`}
   >
     {index === currentIndex && (
       <motion.div 
         layoutId="indicator"
-        style={{ position: 'absolute', inset: 0, backgroundColor: '#D1FF3D' }}
+        style={{ position: 'absolute', inset: 0, backgroundColor: '#D1FF3D' } as any}
         initial={{ x: "-100%" }}
         animate={{ x: "0%" }}
         transition={{ duration: 12, ease: "linear" }}
@@ -87,14 +80,29 @@ export default memo(function SpotlightSection({
   initialFeeds,
   initialTrending
 }: {
-  initialFeeds: FeedItem[];
-  initialTrending: FeedItem[];
+  initialFeeds?: FeedItem[];
+  initialTrending?: FeedItem[];
 }) {
-  const [currentFeeds] = useState<FeedItem[]>(initialFeeds || []);
-  const [currentTrending] = useState<FeedItem[]>(initialTrending || []);
+  const [currentFeeds, setCurrentFeeds] = useState<FeedItem[]>(initialFeeds || []);
+  const [currentTrending, setCurrentTrending] = useState<FeedItem[]>(initialTrending || []);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const autoPlayRef = useRef<any>(null);
+
+  // Fetch initial feeds if none provided (Phase 4 cold-start recovery)
+  useEffect(() => {
+    if (currentFeeds.length === 0) {
+      fetch('/api/feeds?limit=5')
+        .then(res => res.json())
+        .then(data => {
+          if (data.data) {
+            setCurrentFeeds(data.data);
+            setCurrentTrending(data.data); // Fallback trending
+          }
+        })
+        .catch(console.error);
+    }
+  }, [currentFeeds.length]);
 
   const goToNext = useCallback(() => {
     if (!currentFeeds || currentFeeds.length === 0) return;
@@ -123,6 +131,14 @@ export default memo(function SpotlightSection({
   const { scrollY } = useScroll();
   const titleY = useTransform(scrollY, [0, 500], [0, 50]);
   const contentOpacity = useTransform(scrollY, [0, 300], [1, 0]);
+
+  if (!currentFeed && currentFeeds.length === 0) {
+    return (
+      <div className="h-[85vh] bg-[#0B0B0B] flex items-center justify-center">
+        <span className="text-[10px] font-mono uppercase tracking-[1em] text-[#D1FF3D]/20 animate-pulse">Syncing Network</span>
+      </div>
+    );
+  }
 
   if (!currentFeed) return null;
 
