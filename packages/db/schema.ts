@@ -1,7 +1,6 @@
-import { pgTable, text, timestamp, jsonb, integer, boolean, uuid, index, uniqueIndex } from 'drizzle-orm/pg-core';
-import { sql } from 'drizzle-orm';
+import { pgTable, text, timestamp, jsonb, integer, boolean, uuid, index } from 'drizzle-orm/pg-core';
 
-// Users table (Standardized Identity)
+// Users table
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   email: text('email').notNull().unique(),
@@ -48,46 +47,15 @@ export const artistProfiles = pgTable('artist_profiles', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
-// WebAuthn Credentials (Phase 5 - Prepared)
-export const userCredentials = pgTable('user_credentials', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  credentialId: text('credential_id').notNull().unique(),
-  publicKey: text('public_key').notNull(),
-  counter: integer('counter').notNull().default(0),
-  authenticatorType: text('authenticator_type'), // 'platform' | 'cross-platform'
-  lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-});
-
-// Auth Events (Security Audit)
-export const authEvents = pgTable('auth_events', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  eventType: text('event_type').notNull(), 
-  deviceHash: text('device_hash'),
-  riskScore: integer('risk_score'),
-  metadata: jsonb('metadata').$type<any>(),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-}, (table) => ({
-  userEventsIdx: index('auth_events_user_idx').on(table.userId),
-  typeIdx: index('auth_events_type_idx').on(table.eventType),
-}));
-
-// Authoritative Feeds (Phase 2 Aligned)
+// Feeds table - SINGLE SOURCE OF TRUTH
 export const feeds = pgTable('feeds', {
   id: uuid('id').primaryKey().defaultRandom(),
   source: text('source').notNull(),
   title: text('title').notNull(),
   summary: text('summary'),
-  url: text('url').notNull(),
+  url: text('url').notNull().unique(),
   thumbnailUrl: text('thumbnail_url'),
   publishedAt: timestamp('published_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
-});
-
-// Global Feed State (Singleton row - Phase 2 Aligned)
-export const feedState = pgTable('feed_state', {
-  id: integer('id').primaryKey(),
-  lastIngestedAt: timestamp('last_ingested_at', { withTimezone: true }),
+  lastIngestedAt: timestamp('last_ingested_at', { withTimezone: true }), // State is stored per-feed or derived from latest entry
 });

@@ -1,0 +1,180 @@
+🧠 PRODUCTION-GRADE FEED ARCHITECTURE (WORKING, SIMPLE, AAA)
+
+Here is the architecture that actually works on free tiers, cold starts, and Replit.
+
+❌ What we will NOT do
+
+❌ No feed_state table
+
+❌ No feeds_sources table
+
+❌ No background workers
+
+❌ No cron
+
+❌ No ingestion locks
+
+❌ No dynamic imports
+
+❌ No fake “state” rows
+
+✅ What we WILL do (this is the fix)
+✅ SINGLE SOURCE OF TRUTH ARCHITECTURE
+1️⃣ Database: ONE TABLE ONLY
+
+You need one table and only one:
+
+feeds
+
+
+Columns (already implied by your code):
+
+id
+
+title
+
+url
+
+summary
+
+published_at
+
+source
+
+tags
+
+thumbnail
+
+created_at
+
+👉 No state tables. No source tables. No lock tables.
+
+All “state” is derived, not stored.
+
+2️⃣ Feed Sources: CODE-LEVEL REGISTRY (NOT DB)
+
+All feed sources live only in code, exactly like you pasted:
+
+const FEED_SOURCES = [...]
+
+
+Why this is correct:
+
+No migrations
+
+No missing tables
+
+No drift
+
+No cold-start failures
+
+No Replit schema desync
+
+This is how Netlify, Vercel, Supabase edge apps do it.
+
+3️⃣ Ingestion Model: REQUEST-DRIVEN, IDEMPOTENT
+
+This is the key design shift.
+
+Instead of:
+
+“Check feed_state → maybe ingest → maybe fail”
+
+We do:
+
+“On request → if feeds table empty OR stale → ingest safely”
+
+Rules:
+
+Ingestion happens inside /api/feeds
+
+Ingestion is non-blocking
+
+Ingestion is idempotent
+
+Ingestion NEVER assumes tables other than feeds
+
+🧩 CORRECT INGESTION FLOW (THIS WILL WORK)
+Step A — Request comes in
+GET /api/feeds
+
+Step B — Check reality (not imaginary state)
+SELECT count(*) FROM feeds
+SELECT max(published_at) FROM feeds
+
+
+That’s it.
+
+No feed_state.
+
+Step C — Decide to ingest
+if (feedCount === 0) ingestImmediately()
+else if (latestFeedOlderThan(60 minutes)) ingestInBackground()
+
+
+No locks. No state rows. Time is enough.
+
+Step D — Ingest safely
+
+For each source:
+
+Fetch RSS
+
+Parse items
+
+Normalize
+
+Deduplicate by URL
+
+Resolve thumbnail or fallback
+
+INSERT ... ON CONFLICT DO NOTHING
+
+If a source fails → log and continue.
+
+Step E — Return feeds immediately
+
+Even if ingestion is still running:
+
+Return existing feeds
+
+UI renders instantly
+
+No blank page ever
+
+🔒 WHY THIS ARCHITECTURE IS AAA-GRADE
+
+✔ Works on cold start
+✔ Works without migrations
+✔ Works on free tiers
+✔ Works on Replit
+✔ No phantom tables
+✔ No schema drift
+✔ No race conditions
+✔ No infinite loops
+✔ No fake state
+✔ No “relation does not exist” ever again
+
+This is how production SaaS feeds are actually built when cron is unavailable.
+
+🚨 WHAT YOU MUST DELETE (IMPORTANT)
+
+To stop the bleeding, you MUST REMOVE all references to:
+
+feed_state
+
+feeds_sources
+
+feeds_items
+
+globalFeedState
+
+IngestionService
+
+Background worker files
+
+Any setTimeout ingestion logic
+
+Any dynamic import('./ingestion')
+
+If you don’t delete them, Replit will keep resurrecting the bug.
