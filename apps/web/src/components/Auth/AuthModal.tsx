@@ -190,7 +190,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       <DialogContent className="max-w-[500px] bg-[#0A0A0A] border-none text-white p-0 overflow-hidden shadow-2xl rounded-none">
         <DialogTitle className="sr-only">Authentication Portal</DialogTitle>
         
-        <DialogPrimitive.Close className="absolute right-6 top-6 rounded-sm opacity-30 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none">
+        <DialogPrimitive.Close className="absolute right-6 top-6 rounded-sm opacity-20 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none">
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>
@@ -198,12 +198,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         {/* Header / Identity Zone */}
         <div className="px-10 pt-14 pb-10 flex flex-col items-center relative">
           <div className="flex items-center gap-3 mb-6 group">
-            <Logo className="w-10 h-10 text-[#D7FF3C] transition-transform duration-500 group-hover:scale-105" />
+            <Logo className="w-10 h-10 text-[#D7FF3C] transition-transform duration-700 group-hover:scale-105" />
             <span className="text-2xl font-bold tracking-[-0.04em] text-white">thecueRoom</span>
           </div>
-          <p className="text-[10px] font-mono tracking-[0.4em] uppercase text-gray-600">Secure Access Portal</p>
+          <p className="text-[10px] font-mono tracking-[0.4em] uppercase text-gray-700">Secure Access Portal</p>
           
-          <div className="absolute bottom-0 left-10 right-10 h-[1px] bg-white/5" />
+          <div className="absolute bottom-0 left-10 right-10 h-[1px] bg-white/[0.03]" />
         </div>
 
         {/* Mode Indicators */}
@@ -217,14 +217,14 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               <span className={`transition-colors duration-500 ${
                 activeTab === tab 
                   ? "text-[#D7FF3C]" 
-                  : "text-gray-700 group-hover:text-gray-400"
+                  : "text-gray-800 group-hover:text-gray-500"
               }`}>
                 {tab === "signin" ? "Entrance" : tab === "signup" ? "Registry" : "Recovery"}
               </span>
-              <div className={`absolute bottom-0 left-0 right-0 h-[2px] transition-all duration-500 transform origin-left ${
+              <div className={`absolute bottom-0 left-0 right-0 h-[2px] transition-all duration-700 transform origin-left ${
                 activeTab === tab 
                   ? "bg-[#D7FF3C] scale-x-100 opacity-100" 
-                  : "bg-white/5 scale-x-0 opacity-0 group-hover:opacity-50 group-hover:scale-x-100"
+                  : "bg-white/5 scale-x-0 opacity-0 group-hover:opacity-30 group-hover:scale-x-100"
               }`} />
             </button>
           ))}
@@ -237,15 +237,15 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               {/* Identifier Field */}
               <div className="relative group/field">
                 <div className="flex items-center justify-between mb-3">
-                  <Label className="text-[10px] font-mono uppercase tracking-widest text-gray-600 group-focus-within/field:text-[#D7FF3C] transition-colors">Identifier</Label>
-                  <Mail className="w-3 h-3 text-gray-800 group-focus-within/field:text-[#D7FF3C]/40 transition-colors" />
+                  <Label className="text-[10px] font-mono uppercase tracking-widest text-gray-700 group-focus-within/field:text-[#D7FF3C]/80 transition-colors">Identifier</Label>
+                  <Mail className="w-3 h-3 text-gray-900 group-focus-within/field:text-[#D7FF3C]/30 transition-colors" />
                 </div>
                 <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="EMAIL@THECUEROOM.COM"
-                  className="bg-transparent border-white/5 border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
+                  className="bg-transparent border-white/[0.03] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C]/60 transition-all duration-500 placeholder:text-gray-900"
                 />
               </div>
 
@@ -253,26 +253,37 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               {activeTab !== "forgot" && (
                 <div className="relative group/field">
                   <div className="flex items-center justify-between mb-3">
-                    <Label className="text-[10px] font-mono uppercase tracking-widest text-gray-600 group-focus-within/field:text-[#D7FF3C] transition-colors">Security Key</Label>
-                    <Lock className="w-3 h-3 text-gray-800 group-focus-within/field:text-[#D7FF3C]/40 transition-colors" />
+                    <Label className="text-[10px] font-mono uppercase tracking-widest text-gray-700 group-focus-within/field:text-[#D7FF3C]/80 transition-colors">Security Key</Label>
+                    <Lock className="w-3 h-3 text-gray-900 group-focus-within/field:text-[#D7FF3C]/30 transition-colors" />
                   </div>
                   <Input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="bg-transparent border-white/5 border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
+                    className="bg-transparent border-white/[0.03] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C]/60 transition-all duration-500 placeholder:text-gray-900"
                   />
+                  {activeTab === "signin" && (
+                    <div className="flex justify-end mt-4">
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab("forgot")}
+                        className="text-[10px] font-mono uppercase tracking-widest text-gray-700 hover:text-white transition-colors"
+                      >
+                        Recovery Needed?
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
 
             {/* Action Zone */}
-            <div className="pt-2 flex flex-col gap-8">
+            <div className="pt-2 flex flex-col gap-6">
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-14 bg-white hover:bg-[#D7FF3C] text-black font-mono uppercase tracking-widest text-xs transition-all duration-500 rounded-none group"
+                className="w-full h-14 bg-white/[0.03] border border-white/5 hover:bg-[#D7FF3C] hover:border-[#D7FF3C] text-white hover:text-black font-mono uppercase tracking-widest text-[10px] transition-all duration-700 rounded-none group"
               >
                 {isLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -283,18 +294,28 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 )}
               </Button>
 
-              <div className="flex justify-between items-center text-[9px] font-mono uppercase tracking-widest text-gray-700">
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-800 hover:text-gray-400 transition-colors py-2"
+                >
+                  Return to Surface
+                </button>
+              </div>
+
+              <div className="flex justify-between items-center text-[8px] font-mono uppercase tracking-widest text-gray-800 border-t border-white/[0.02] pt-4">
                 <span>Session Secure</span>
-                <span>ID: {Math.random().toString(36).substr(2, 9).toUpperCase()}</span>
+                <span>SYS_ID: {Math.random().toString(36).substr(2, 6).toUpperCase()}</span>
               </div>
             </div>
           </form>
         </div>
 
         {/* Status Bar */}
-        <div className="bg-[#050505] px-10 py-3 border-t border-white/5 flex justify-between items-center">
+        <div className="bg-[#050505] px-10 py-3 border-t border-white/[0.02] flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <div className="w-1 h-1 bg-green-500/50 rounded-full" />
+            <div className="w-1 h-1 bg-green-500/30 rounded-full" />
             <span className="text-[8px] font-mono text-gray-800 uppercase tracking-tighter">System Nominal</span>
           </div>
           <span className="text-[8px] font-mono text-gray-800 uppercase">v2.4.0-Stable</span>
