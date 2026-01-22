@@ -36,22 +36,23 @@ export async function GET(request: Request) {
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS feeds (
           id uuid primary key default gen_random_uuid(),
+          source_id uuid not null,
           source text not null,
           title text not null,
-          summary text,
+          summary text default '',
           url text not null,
-          thumbnail_url text,
-          published_at timestamptz,
+          thumbnail_url text default '',
+          published_at timestamptz default now(),
           created_at timestamptz default now(),
-          content_hash text unique
+          content_hash text unique,
+          raw_data jsonb default '{}'::jsonb
         );
       `);
 
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS feed_state (
-          id int primary key,
-          last_ingested_at timestamptz,
-          ingest_lock_until timestamptz
+          id int primary key default 1,
+          last_ingested_at timestamptz
         );
       `);
 
