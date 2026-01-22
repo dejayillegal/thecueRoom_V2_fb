@@ -201,7 +201,7 @@ export async function GET(request: Request) {
 
     const now = new Date();
     const stateResult = await db.select().from(feedState).where(eq(feedState.id, 1)).limit(1);
-    const state = stateResult[0] || { id: 1, lastIngestedAt: null };
+    const state = (stateResult as any)[0] || { id: 1, lastIngestedAt: null };
 
     const feedsCountResult = await db.select({ count: sql`count(*)` }).from(feeds);
     const count = Number(feedsCountResult[0]?.count || 0);
@@ -240,7 +240,7 @@ export async function GET(request: Request) {
       })
       .from(feeds)
       .where(gt(feeds.publishedAt, twoWeeksAgo))
-      .orderBy(desc(feeds.publishedAt), desc(feeds.id))
+      .orderBy(desc(feeds.publishedAt))
       .limit(limit)
       .offset(offset);
 

@@ -20,10 +20,10 @@ const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
 
   return (
     <motion.div 
-      initial={{ scale: 1.05, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      exit={{ scale: 1.02, opacity: 0 }}
-      transition={{ duration: 2, ease: [0.22, 1, 0.36, 1] }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
       style={{ position: 'absolute', inset: 0, backgroundColor: '#0B0B0B', overflow: 'hidden' } as any}
     >
       {isLoading && (
@@ -32,10 +32,10 @@ const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
       <motion.img
         src={imgSrc}
         alt={feed.title}
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.25, filter: 'grayscale(1) contrast(1.5) brightness(1.1)' } as any}
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.25, filter: 'grayscale(1) contrast(1.2)' } as any}
         onLoad={() => setIsLoading(false)}
         onError={() => {
-          setImgSrc(`/api/og-fallback?title=${encodeURIComponent(feed.title)}`);
+          setImgSrc(`/api/fallback-thumb/${encodeURIComponent((feed as any).id || 'default')}`);
           setIsLoading(false);
         }}
       />
@@ -175,10 +175,10 @@ export default memo(function SpotlightSection({
                 
                 <motion.h1 
                   key={`title-${currentIndex}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] } as any}
-                  className="text-5xl sm:text-6xl md:text-[8rem] xl:text-[10rem] font-extralight tracking-tighter leading-[0.9] text-balance line-clamp-3"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-5xl sm:text-6xl md:text-8xl xl:text-9xl font-light tracking-tighter leading-[0.9] text-balance"
                 >
                   {currentFeed.title}
                 </motion.h1>

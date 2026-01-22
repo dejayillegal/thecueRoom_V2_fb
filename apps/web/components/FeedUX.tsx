@@ -39,55 +39,44 @@ const FeedSkeleton = () => (
 const FeedCard = memo(({ item, formatDate }: { item: FeedItem; formatDate: (d: string) => string }) => {
   return (
     <motion.article
-      initial={{ opacity: 0, y: 40, scale: 0.98, filter: 'blur(10px)' }}
-      whileInView={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] } as any}
-      style={{}}
-      className="group relative flex flex-col gap-8 p-6 transition-all duration-700 hover:bg-white/[0.02]"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.2 }}
+      className="group relative flex flex-col gap-6 py-8 border-b border-white/5 last:border-0"
     >
-      <a href={item.url} target="_blank" rel="noopener noreferrer" className="relative aspect-[16/10] overflow-hidden bg-[#0B0B0B] ring-1 ring-white/5 transition-all duration-700 group-hover:ring-white/10 group-hover:shadow-[0_0_80px_-20px_rgba(209,255,61,0.15)]">
-        <img
-          src={item.image}
-          alt={item.title}
-          loading="lazy"
-          className="absolute inset-0 w-full h-full object-cover grayscale opacity-60 mix-blend-luminosity group-hover:grayscale-0 group-hover:opacity-100 group-hover:mix-blend-normal transition-all duration-1000 ease-out scale-110 group-hover:scale-100"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = '/fallbacks/fallback_1.png';
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/20 to-transparent opacity-80" />
-        
-        {/* Hover Accent Line */}
-        <motion.div 
-          initial={{ scaleX: 0 }}
-          whileHover={{ scaleX: 1 }}
-          style={{}}
-          className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#D1FF3D] origin-left transition-transform duration-700"
-        />
-      </a>
-      
-      <div className="space-y-6 relative">
-        <div className="flex items-center gap-4 text-[9px] font-mono uppercase tracking-[0.5em] text-[#D1FF3D]/40 group-hover:text-[#D1FF3D]/80 transition-colors duration-500">
-          <span className="px-2 py-0.5 border border-[#D1FF3D]/20 rounded-sm">{item.source}</span>
-          <span className="w-1 h-1 rounded-full bg-[#D1FF3D]/20" />
-          <time dateTime={item.publishedAt}>
-            {formatDate(item.publishedAt)}
-          </time>
-        </div>
-        
-        <a href={item.url} target="_blank" rel="noopener noreferrer" className="block group/title">
-          <h3 className="text-3xl md:text-4xl font-extralight tracking-tight leading-[1.1] transition-all duration-700 group-hover/title:text-[#D1FF3D] group-hover/title:translate-x-1">
-            {item.title}
-          </h3>
+      <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-8 items-start">
+        <a href={item.url} target="_blank" rel="noopener noreferrer" className="relative aspect-[16/10] overflow-hidden bg-[#0B0B0B] block">
+          <img
+            src={item.image}
+            alt={item.title}
+            loading="lazy"
+            className="absolute inset-0 w-full h-full object-cover grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300 ease-out"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/fallbacks/fallback_1.png';
+            }}
+          />
         </a>
         
-        <p className="text-sm font-light leading-relaxed text-foreground/30 line-clamp-3 italic transition-colors duration-700 group-hover:text-foreground/60">
-          {item.summary}
-        </p>
-
-        {/* Dynamic Shadow Element */}
-        <div className="absolute -inset-10 bg-[#D1FF3D]/[0.02] opacity-0 blur-3xl rounded-full transition-opacity duration-1000 group-hover:opacity-100 pointer-events-none" />
+        <div className="space-y-4">
+          <div className="flex items-center gap-4 text-[10px] font-mono uppercase tracking-[0.2em] text-[#D1FF3D]/60">
+            <span>{item.source}</span>
+            <span className="w-1 h-1 rounded-full bg-white/10" />
+            <time dateTime={item.publishedAt}>
+              {formatDate(item.publishedAt)}
+            </time>
+          </div>
+          
+          <a href={item.url} target="_blank" rel="noopener noreferrer" className="block">
+            <h3 className="text-2xl md:text-3xl font-light tracking-tight leading-snug group-hover:text-[#D1FF3D] transition-colors duration-200 text-balance">
+              {item.title}
+            </h3>
+          </a>
+          
+          <p className="text-sm font-light leading-relaxed text-foreground/40 line-clamp-2 text-balance">
+            {item.summary}
+          </p>
+        </div>
       </div>
     </motion.article>
   );
@@ -149,30 +138,6 @@ export default function FeedUX({ initialItems = [], initialHasMore = true }: Fee
 
   const observerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!hasMore || isLoading || error || items.length === 0) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          fetchFeeds(offset);
-        }
-      },
-      { threshold: 0.1, rootMargin: '400px' }
-    );
-
-    const currentRef = observerRef.current;
-    if (currentRef) {
-      observer.observe(currentRef);
-    }
-
-    return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef);
-      }
-    };
-  }, [fetchFeeds, hasMore, isLoading, error, items.length, offset]);
-
   const formatDate = (dateStr: string) => {
     try {
       return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -194,22 +159,31 @@ export default function FeedUX({ initialItems = [], initialHasMore = true }: Fee
           <p className="text-sm font-mono uppercase tracking-[0.5em] text-[#D1FF3D]">{error}</p>
         </motion.div>
       ) : (
-        <motion.div 
-          key="content"
-          initial={{ opacity: 0 }} 
-          animate={{ opacity: 1 }}
-          style={{}}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16 md:gap-24"
-        >
-          {items.map((item) => (
-            <FeedCard key={item.id} item={item} formatDate={formatDate} />
-          ))}
+        <div className="flex flex-col">
+          <motion.div 
+            key="content"
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+            style={{}}
+            className="flex flex-col"
+          >
+            {items.map((item) => (
+              <FeedCard key={item.id} item={item} formatDate={formatDate} />
+            ))}
+          </motion.div>
           {hasMore && (
-            <div ref={observerRef} className="col-span-full h-32 flex items-center justify-center mt-24">
-              <div className="h-8 w-8 border-2 border-[#D1FF3D]/20 border-t-[#D1FF3D] rounded-full animate-spin" />
+            <div className="flex justify-center mt-24">
+              <button 
+                onClick={() => fetchFeeds(offset)}
+                disabled={isLoading}
+                className="text-[10px] font-mono uppercase tracking-[0.4em] px-8 py-4 border border-white/10 hover:border-[#D1FF3D] hover:text-[#D1FF3D] transition-all duration-200 disabled:opacity-20"
+              >
+                {isLoading ? 'Syncing...' : 'Fetch More Signals'}
+              </button>
             </div>
           )}
-        </motion.div>
+        </div>
       )}
     </AnimatePresence>
   );
