@@ -9,7 +9,7 @@ export const runtime = 'nodejs';
 
 const ITEMS_PER_PAGE = 24;
 const INGEST_THRESHOLD_MS = 60 * 60 * 1000; // 60 minutes
-const FALLBACK_IMAGE = 'https://thecueroom.com/images/fallback-vector.png';
+const FALLBACK_IMAGE = '/images/fallback/feed-default.jpg';
 
 const AUTHORITATIVE_SOURCES = [
   { name: 'Resident Advisor', url: 'https://ra.co/xml/rss/news.xml' },
@@ -199,13 +199,18 @@ export async function GET(request: Request) {
       .offset(offset);
 
     const sanitizedItems = rows.map((item: any) => {
-      const imageUrl = (item.thumbnail_url && 
-                        typeof item.thumbnail_url === 'string' && 
-                        item.thumbnail_url.trim() !== '' && 
-                        item.thumbnail_url.trim() !== 'null' &&
-                        item.thumbnail_url.startsWith('http')) 
-        ? item.thumbnail_url 
-        : FALLBACK_IMAGE;
+      let imageUrl = FALLBACK_IMAGE;
+      
+      if (item.thumbnail_url && 
+          typeof item.thumbnail_url === 'string' && 
+          item.thumbnail_url.trim() !== '' && 
+          item.thumbnail_url.trim() !== 'null') {
+        
+        const trimmedUrl = item.thumbnail_url.trim();
+        if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+          imageUrl = trimmedUrl;
+        }
+      }
 
       return {
         id: item.id,
