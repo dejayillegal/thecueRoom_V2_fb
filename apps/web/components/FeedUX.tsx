@@ -36,13 +36,13 @@ const FeedSkeleton = () => (
   </div>
 );
 
-const FeedCard = memo(({ item, index }: { item: FeedItem; index: number }) => {
+const FeedCard = memo(({ item }: { item: FeedItem }) => {
   return (
     <motion.article
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.8, delay: (index % 6) * 0.1, ease: [0.22, 1, 0.36, 1] } as any}
+      transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] } as any}
       className="group flex flex-col gap-6"
     >
       <a href={item.url} target="_blank" rel="noopener noreferrer" className="relative aspect-video overflow-hidden bg-[#0B0B0B]">
@@ -51,9 +51,6 @@ const FeedCard = memo(({ item, index }: { item: FeedItem; index: number }) => {
           alt={item.title}
           loading="lazy"
           className="absolute inset-0 w-full h-full object-cover grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000 ease-in-out scale-100 group-hover:scale-105"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = 'https://thecueroom.com/images/fallback-vector.png';
-          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-transparent to-transparent opacity-60" />
       </a>
@@ -116,9 +113,8 @@ export default function FeedUX({ initialItems = [], initialHasMore = true }: Fee
       } else {
         setItems(prev => {
           const newItems = result.data || [];
-          // Filter out duplicates based on URL
-          const existingUrls = new Set(prev.map(i => i.url));
-          const uniqueNewItems = newItems.filter(i => !existingUrls.has(i.url));
+          const existingIds = new Set(prev.map(i => i.id));
+          const uniqueNewItems = newItems.filter(i => !existingIds.has(i.id));
           return [...prev, ...uniqueNewItems];
         });
         setOffset(prev => prev + (result.data?.length || 0));
@@ -128,7 +124,7 @@ export default function FeedUX({ initialItems = [], initialHasMore = true }: Fee
     } catch (err) {
       console.error('Feed fetch error:', err);
       if (currentOffset === 0 && items.length === 0) {
-        setError('Signal lost. Scanning for recovery...');
+        setError('Transmission Error');
       }
     } finally {
       setIsLoading(false);
@@ -138,7 +134,7 @@ export default function FeedUX({ initialItems = [], initialHasMore = true }: Fee
 
   const { ref, inView } = useInView({ 
     threshold: 0.1,
-    rootMargin: '400px', // Trigger slightly before reaching the bottom
+    rootMargin: '400px',
   });
 
   useEffect(() => {
@@ -149,24 +145,14 @@ export default function FeedUX({ initialItems = [], initialHasMore = true }: Fee
 
   return (
     <AnimatePresence mode="wait">
-      {items.length === 0 && isLoading ? (
-        <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          <FeedSkeleton />
-        </motion.div>
-      ) : items.length === 0 && error ? (
+      {items.length === 0 && error ? (
         <motion.div 
           key="error"
           initial={{ opacity: 0 }} 
           animate={{ opacity: 1 }} 
           className="h-[40vh] flex flex-col items-center justify-center space-y-8 text-center"
         >
-          <p className="text-sm font-mono uppercase tracking-[0.5em] text-[#D1FF3D] animate-pulse">{error}</p>
-          <button 
-            onClick={() => { fetchFeeds(0); }}
-            className="text-[10px] font-mono uppercase tracking-[0.8em] border border-[#D1FF3D]/20 px-8 py-4 hover:bg-[#D1FF3D] hover:text-[#0B0B0B] transition-all"
-          >
-            Retry Connection
-          </button>
+          <p className="text-sm font-mono uppercase tracking-[0.5em] text-[#D1FF3D]">{error}</p>
         </motion.div>
       ) : (
         <motion.div 
@@ -175,15 +161,12 @@ export default function FeedUX({ initialItems = [], initialHasMore = true }: Fee
           animate={{ opacity: 1 }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16 md:gap-24"
         >
-          {items.map((item, index) => (
-            <FeedCard key={`${item.id}-${index}`} item={item} index={index} />
+          {items.map((item) => (
+            <FeedCard key={item.id} item={item} />
           ))}
-          {/* Intersection Observer target at the end of the grid */}
           {hasMore && (
             <div ref={ref} className="col-span-full h-32 flex items-center justify-center mt-24">
-              <span className="text-[10px] font-mono uppercase tracking-[1em] opacity-20 animate-pulse">
-                {isLoading ? 'Syncing Archive' : 'Transmission Ready'}
-              </span>
+              <div className="h-8 w-8 border-2 border-[#D1FF3D]/20 border-t-[#D1FF3D] rounded-full animate-spin" />
             </div>
           )}
         </motion.div>
