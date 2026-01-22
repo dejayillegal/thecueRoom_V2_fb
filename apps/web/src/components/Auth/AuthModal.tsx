@@ -25,7 +25,8 @@ import { motion, AnimatePresence } from "framer-motion";
 
 /**
  * thecueRoom V2 - Authentication Portal
- * Stabilization of the tab system and structural layout.
+ * Phase 4: Typography & Scale Fixes.
+ * Implements fluid typography and stabilized input spacing.
  */
 
 interface AuthModalProps {
@@ -201,14 +202,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     e.preventDefault();
     setError("");
     setIsLoading(true);
-    // Logic as per original...
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
-    // Logic as per original...
   };
 
   return (
@@ -236,23 +235,23 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   <span className="sr-only">Close</span>
                 </DialogPrimitive.Close>
 
-                {/* Header Zone - FIXED HEIGHT & SPACING */}
+                {/* Header Zone - Fluid Typography */}
                 <div className="px-6 pt-16 pb-12 sm:px-10 flex flex-col items-center relative z-10 flex-shrink-0">
                   <div className="flex items-center gap-4 mb-6 group">
-                    <Logo className="w-12 h-12 text-[#D7FF3C] transition-transform duration-700 group-hover:scale-105" />
-                    <span className="text-3xl font-bold tracking-[-0.04em] text-white">thecueRoom</span>
+                    <Logo className="w-[clamp(2.5rem,8vw,3rem)] h-[clamp(2.5rem,8vw,3rem)] text-[#D7FF3C] transition-transform duration-700 group-hover:scale-105" />
+                    <span className="text-[clamp(1.5rem,5vw,1.875rem)] font-bold tracking-[-0.04em] text-white">thecueRoom</span>
                   </div>
-                  <p className="text-[11px] font-mono tracking-[0.4em] uppercase text-gray-700">Secure Access Portal</p>
+                  <p className="text-[clamp(0.6rem,2vw,0.7rem)] font-mono tracking-[0.4em] uppercase text-gray-700">Secure Access Portal</p>
                   <div className="absolute bottom-0 left-6 right-6 sm:left-10 sm:right-10 h-[1px] bg-white/[0.05]" />
                 </div>
 
-                {/* Tab Row - STABILIZED IN DEDICATED ROW */}
+                {/* Mode Selector - Fluid Typography */}
                 <div className="flex px-6 sm:px-10 relative z-10 border-b border-white/[0.05] flex-shrink-0 bg-black/40 backdrop-blur-sm">
                   {(["signin", "signup", "forgot"] as const).map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
-                      className={`flex-1 py-5 text-[11px] font-mono uppercase tracking-[0.2em] transition-all duration-500 relative group`}
+                      className={`flex-1 py-5 text-[clamp(0.6rem,2vw,0.7rem)] font-mono uppercase tracking-[0.2em] transition-all duration-500 relative group`}
                     >
                       <span className={`transition-colors duration-500 ${
                         activeTab === tab 
@@ -270,7 +269,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   ))}
                 </div>
 
-                {/* Form Body - PUSHED DOWNWARD BY TAB ROW */}
+                {/* Form Body - Stable Input Spacing */}
                 <div className="px-6 py-10 sm:px-10 relative z-10 flex-grow">
                   <AnimatePresence mode="wait">
                     <motion.div
@@ -283,30 +282,30 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       {activeTab === "signin" && (
                         <form onSubmit={handleSignIn} className="space-y-12">
                           <div className="space-y-10">
-                            <FieldGroup label="Email" icon={<Mail className="w-3.5 h-3.5" />}>
+                            <FieldGroup label="Email" icon={<Mail className="w-4 h-4" />}>
                               <Input
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="you@artistmail.com"
-                                className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-14 text-base focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
+                                className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-14 text-[clamp(0.875rem,2.5vw,1rem)] focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
                                 required
                               />
                             </FieldGroup>
-                            <FieldGroup label="Password" icon={<Lock className="w-3.5 h-3.5" />}>
+                            <FieldGroup label="Password" icon={<Lock className="w-4 h-4" />}>
                               <Input
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
-                                className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-14 text-base focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
+                                className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-14 text-[clamp(0.875rem,2.5vw,1rem)] focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
                                 required
                               />
                               <div className="flex justify-end pt-4">
                                 <button
                                   type="button"
                                   onClick={() => setActiveTab("forgot")}
-                                  className="text-[11px] font-mono uppercase tracking-widest text-gray-700 hover:text-white transition-colors py-2"
+                                  className="text-[clamp(0.6rem,2vw,0.7rem)] font-mono uppercase tracking-widest text-gray-700 hover:text-white transition-colors py-2"
                                 >
                                   Forgot Password?
                                 </button>
@@ -326,7 +325,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                                   value={firstName}
                                   onChange={(e) => setFirstName(e.target.value)}
                                   placeholder="First"
-                                  className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
+                                  className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-[clamp(0.875rem,2.5vw,1rem)] focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
                                   required
                                 />
                               </FieldGroup>
@@ -335,39 +334,39 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                                   value={lastName}
                                   onChange={(e) => setLastName(e.target.value)}
                                   placeholder="Last"
-                                  className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
+                                  className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-[clamp(0.875rem,2.5vw,1rem)] focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
                                   required
                                 />
                               </FieldGroup>
                             </div>
-                            <FieldGroup label="Email" icon={<Mail className="w-3.5 h-3.5" />}>
+                            <FieldGroup label="Email" icon={<Mail className="w-4 h-4" />}>
                               <Input
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="you@artistmail.com"
-                                className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
+                                className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-[clamp(0.875rem,2.5vw,1rem)] focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
                                 required
                               />
                             </FieldGroup>
                             <div className="grid grid-cols-2 gap-8">
-                              <FieldGroup label="Password" icon={<Lock className="w-3.5 h-3.5" />}>
+                              <FieldGroup label="Password" icon={<Lock className="w-4 h-4" />}>
                                 <Input
                                   type="password"
                                   value={password}
                                   onChange={(e) => setPassword(e.target.value)}
                                   placeholder="••••••••"
-                                  className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
+                                  className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-[clamp(0.875rem,2.5vw,1rem)] focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
                                   required
                                 />
                               </FieldGroup>
-                              <FieldGroup label="Confirm" icon={<Lock className="w-3.5 h-3.5" />}>
+                              <FieldGroup label="Confirm" icon={<Lock className="w-4 h-4" />}>
                                 <Input
                                   type="password"
                                   value={confirmPassword}
                                   onChange={(e) => setConfirmPassword(e.target.value)}
                                   placeholder="••••••••"
-                                  className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
+                                  className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-[clamp(0.875rem,2.5vw,1rem)] focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
                                   required
                                 />
                               </FieldGroup>
@@ -375,7 +374,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
                             <div className="pt-4 space-y-8">
                               <label className="flex items-center gap-4 cursor-pointer group">
-                                <div className="relative w-10 h-10 border border-white/10 flex items-center justify-center transition-colors group-hover:border-[#D7FF3C]/50">
+                                <div className="relative w-10 h-10 border border-white/10 flex items-center justify-center transition-colors group-hover:border-[#D7FF3C]/50 flex-shrink-0">
                                   <input
                                     type="checkbox"
                                     checked={isArtist}
@@ -384,46 +383,46 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                                   />
                                   {isArtist && <div className="w-4 h-4 bg-[#D7FF3C]" />}
                                 </div>
-                                <span className="text-[11px] font-mono uppercase tracking-widest text-gray-500 group-hover:text-white transition-colors">Register as Professional Artist</span>
+                                <span className="text-[clamp(0.65rem,2vw,0.75rem)] font-mono uppercase tracking-widest text-gray-500 group-hover:text-white transition-colors">Register as Professional Artist</span>
                               </label>
 
                               {isArtist && (
                                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-10 pt-4">
-                                  <FieldGroup label="Artist Name" icon={<User className="w-3.5 h-3.5" />}>
+                                  <FieldGroup label="Artist Name" icon={<User className="w-4 h-4" />}>
                                     <Input
                                       value={artistName}
                                       onChange={(e) => setArtistName(e.target.value)}
                                       placeholder="PROFESSIONAL ALIAS"
-                                      className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
+                                      className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-[clamp(0.875rem,2.5vw,1rem)] focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
                                       required
                                     />
                                   </FieldGroup>
                                   <div className="grid grid-cols-2 gap-8">
-                                    <FieldGroup label="Region" icon={<MapPin className="w-3.5 h-3.5" />}>
+                                    <FieldGroup label="Region" icon={<MapPin className="w-4 h-4" />}>
                                       <Input
                                         value={region}
                                         onChange={(e) => setRegion(e.target.value)}
                                         placeholder="LOCATION"
-                                        className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
+                                        className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-[clamp(0.875rem,2.5vw,1rem)] focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
                                         required
                                       />
                                     </FieldGroup>
-                                    <FieldGroup label="Genre" icon={<Music className="w-3.5 h-3.5" />}>
+                                    <FieldGroup label="Genre" icon={<Music className="w-4 h-4" />}>
                                       <Input
                                         value={genre}
                                         onChange={(e) => setGenre(e.target.value)}
                                         placeholder="GENRE"
-                                        className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
+                                        className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-[clamp(0.875rem,2.5vw,1rem)] focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
                                         required
                                       />
                                     </FieldGroup>
                                   </div>
-                                  <FieldGroup label="Portfolio Link" icon={<LinkIcon className="w-3.5 h-3.5" />}>
+                                  <FieldGroup label="Portfolio Link" icon={<LinkIcon className="w-4 h-4" />}>
                                     <Input
                                       value={publicProfileUrl}
                                       onChange={(e) => setPublicProfileUrl(e.target.value)}
                                       placeholder="SOUNDCLOUD / SPOTIFY URL"
-                                      className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
+                                      className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-[clamp(0.875rem,2.5vw,1rem)] focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
                                       required
                                     />
                                   </FieldGroup>
@@ -439,17 +438,17 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                         <form onSubmit={handleForgotPassword} className="space-y-12">
                           <div className="space-y-10">
                             <div className="p-6 bg-white/[0.02] border border-white/5">
-                              <p className="text-[11px] font-mono leading-relaxed text-gray-500 uppercase tracking-widest">
+                              <p className="text-[clamp(0.65rem,2vw,0.75rem)] font-mono leading-relaxed text-gray-500 uppercase tracking-widest">
                                 Enter your email address and we'll send you a link to reset your password.
                               </p>
                             </div>
-                            <FieldGroup label="Email" icon={<Mail className="w-3.5 h-3.5" />}>
+                            <FieldGroup label="Email" icon={<Mail className="w-4 h-4" />}>
                               <Input
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="you@artistmail.com"
-                                className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-14 text-base focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
+                                className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-14 text-[clamp(0.875rem,2.5vw,1rem)] focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-900"
                                 required
                               />
                             </FieldGroup>
@@ -465,9 +464,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 <div className="bg-[#050505] px-6 py-4 sm:px-10 border-t border-white/[0.05] flex justify-between items-center relative z-10 flex-shrink-0">
                   <div className="flex items-center gap-3">
                     <div className="w-1.5 h-1.5 bg-[#D7FF3C]/30 rounded-full animate-pulse" />
-                    <span className="text-[9px] font-mono text-gray-800 uppercase tracking-widest">System Nominal</span>
+                    <span className="text-[clamp(0.55rem,1.5vw,0.6rem)] font-mono text-gray-800 uppercase tracking-widest">System Nominal</span>
                   </div>
-                  <span className="text-[9px] font-mono text-gray-800 uppercase tracking-widest">Ver 2.4.0-S</span>
+                  <span className="text-[clamp(0.55rem,1.5vw,0.6rem)] font-mono text-gray-800 uppercase tracking-widest">Ver 2.4.0-S</span>
                 </div>
               </div>
             </motion.div>
@@ -482,10 +481,10 @@ function FieldGroup({ label, icon, children }: { label: string, icon?: React.Rea
   return (
     <div className="relative group/field">
       <div className="flex items-center justify-between mb-4">
-        <Label className="text-[11px] font-mono uppercase tracking-[0.2em] text-gray-700 group-focus-within/field:text-white transition-colors duration-300">
+        <Label className="text-[clamp(0.65rem,2vw,0.75rem)] font-mono uppercase tracking-[0.2em] text-gray-700 group-focus-within/field:text-white transition-colors duration-300">
           {label}
         </Label>
-        {icon && <div className="text-gray-900 group-focus-within/field:text-[#D7FF3C]/40 transition-colors duration-300">{icon}</div>}
+        {icon && <div className="text-gray-900 group-focus-within/field:text-[#D7FF3C]/40 transition-colors duration-300 flex-shrink-0">{icon}</div>}
       </div>
       {children}
     </div>
@@ -498,7 +497,7 @@ function ActionZone({ activeTab, isLoading, onClose }: { activeTab: string, isLo
       <Button
         type="submit"
         disabled={isLoading}
-        className="w-full h-16 bg-white/[0.03] border border-white/10 hover:bg-[#D7FF3C] hover:border-[#D7FF3C] text-white hover:text-black font-mono uppercase tracking-[0.2em] text-[11px] transition-all duration-700 rounded-none group"
+        className="w-full h-16 bg-white/[0.03] border border-white/10 hover:bg-[#D7FF3C] hover:border-[#D7FF3C] text-white hover:text-black font-mono uppercase tracking-[0.2em] text-[clamp(0.65rem,2vw,0.75rem)] transition-all duration-700 rounded-none group"
       >
         {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
           <span className="flex items-center gap-3">
@@ -511,11 +510,11 @@ function ActionZone({ activeTab, isLoading, onClose }: { activeTab: string, isLo
         <button
           type="button"
           onClick={onClose}
-          className="text-[11px] font-mono uppercase tracking-[0.3em] text-gray-700 hover:text-white transition-colors py-4 px-6 border border-transparent hover:border-white/10"
+          className="text-[clamp(0.65rem,2vw,0.75rem)] font-mono uppercase tracking-[0.3em] text-gray-700 hover:text-white transition-colors py-4 px-6 border border-transparent hover:border-white/10"
         >
           Cancel
         </button>
-        <div className="w-full flex justify-between items-center text-[9px] font-mono uppercase tracking-[0.2em] text-gray-800 border-t border-white/[0.05] pt-6">
+        <div className="w-full flex justify-between items-center text-[clamp(0.5rem,1.5vw,0.55rem)] font-mono uppercase tracking-[0.2em] text-gray-800 border-t border-white/[0.05] pt-6">
           <span className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 bg-green-500/40 rounded-full" />
             Secure Session
