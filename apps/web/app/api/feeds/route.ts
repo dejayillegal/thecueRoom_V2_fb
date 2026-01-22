@@ -199,6 +199,9 @@ export async function GET(request: Request) {
       .offset(offset);
 
     const sanitizedItems = rows.map((item: any) => {
+      // PHASE 7: STABILITY GUARANTEE
+      if (!item.title || !item.url) return null;
+
       let imageUrl = FALLBACK_IMAGE;
       
       if (item.thumbnail_url && 
@@ -212,6 +215,9 @@ export async function GET(request: Request) {
         }
       }
 
+      const sourceName = item.source || 'Unknown Source';
+      const sourceSlug = sourceName.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+
       return {
         id: item.id,
         title: item.title,
@@ -219,9 +225,10 @@ export async function GET(request: Request) {
         url: item.url,
         image: imageUrl,
         publishedAt: item.published_at instanceof Date ? item.published_at.toISOString() : new Date().toISOString(),
-        source: item.source,
+        source: sourceName,
+        sourceSlug: sourceSlug
       };
-    });
+    }).filter(Boolean);
 
     return NextResponse.json({
       data: sanitizedItems,
