@@ -105,15 +105,44 @@ export async function GET(request: Request) {
     const feedsCountResult = await db.select({ count: sql<number>`count(*)` }).from(feeds);
     const count = Number(feedsCountResult[0]?.count || 0);
     
-    const lastFeed = await db.select({ date: feeds.createdAt })
+    const lastFeed = await db.select({ date: feeds.publishedAt })
       .from(feeds)
-      .orderBy(desc(feeds.createdAt))
+      .orderBy(desc(feeds.publishedAt))
       .limit(1);
 
-    const isStale = !lastFeed[0] || (Date.now() - new Date(lastFeed[0].date!).getTime() > INGEST_THRESHOLD_MS);
+    const isStale = count > 0 && lastFeed[0] && (Date.now() - new Date(lastFeed[0].date!).getTime() > INGEST_THRESHOLD_MS);
 
-    // If empty OR stale → Ingest asynchronously
-    if (count === 0 || isStale) {
+    // If empty -> Ingest immediately (but don't block total response if possible, 
+    // though count=0 usually means we want data now)
+    // If stale -> Ingest asynchronously
+    if (count === 0) {
+      await ingestFeeds(db);
+      // Refresh count after immediate ingestion
+      const newCountResult = await db.select({ count: sql<number>`count(*)` }).from(feeds);
+      const newCount = Number(newCountResult[0]?.count || 0);
+      
+      const rows = await db.select().from(feeds)
+        .orderBy(desc(feeds.publishedAt))
+        .limit(limit)
+        .offset(offset);
+
+      return NextResponse.json({
+        items: rows.map((r: any) => ({
+          id: r.id,
+          title: r.title,
+          summary: r.summary || '',
+          url: r.url,
+          image: r.thumbnail && r.thumbnail.startsWith('http') ? r.thumbnail : getDeterministicFallback(r.title),
+          publishedAt: r.publishedAt?.toISOString() || new Date().toISOString(),
+          source: r.source || 'Unknown',
+        })),
+        total: newCount,
+        hydrated: newCount > 0
+      }, {
+        headers: { 'Cache-Control': 'no-store, max-age=0' }
+      });
+    } else if (isStale) {
+      // Ingest asynchronously for stale data
       (async () => {
         try {
           const innerDb = getDbClient();
