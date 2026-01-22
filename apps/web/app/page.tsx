@@ -57,7 +57,7 @@ export default async function LandingPage() {
       </header>
 
       {/* Hero / Spotlight */}
-      <div className="pt-20">
+      <div className="pt-20 px-10">
         <SpotlightSection initialFeeds={initialData.data.slice(0, 5)} initialTrending={[]} />
       </div>
 

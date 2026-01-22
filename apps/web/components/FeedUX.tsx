@@ -36,7 +36,7 @@ const FeedSkeleton = () => (
   </div>
 );
 
-const FeedCard = memo(({ item }: { item: FeedItem }) => {
+const FeedCard = memo(({ item, formatDate }: { item: FeedItem; formatDate: (d: string) => string }) => {
   return (
     <motion.article
       initial={{ opacity: 0, y: 20 }}
@@ -51,6 +51,9 @@ const FeedCard = memo(({ item }: { item: FeedItem }) => {
           alt={item.title}
           loading="lazy"
           className="absolute inset-0 w-full h-full object-cover grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000 ease-in-out scale-100 group-hover:scale-105"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = 'https://thecueroom.com/images/fallback-vector.png';
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-transparent to-transparent opacity-60" />
       </a>
@@ -60,7 +63,7 @@ const FeedCard = memo(({ item }: { item: FeedItem }) => {
           <span>{item.source}</span>
           <span>/</span>
           <time dateTime={item.publishedAt}>
-            {new Date(item.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            {formatDate(item.publishedAt)}
           </time>
         </div>
         
@@ -92,6 +95,12 @@ export default function FeedUX({ initialItems = [], initialHasMore = true }: Fee
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [offset, setOffset] = useState(initialItems.length);
   const loadingRef = useRef(false);
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const fetchFeeds = useCallback(async (currentOffset: number) => {
     if (loadingRef.current) return;
@@ -143,6 +152,15 @@ export default function FeedUX({ initialItems = [], initialHasMore = true }: Fee
     }
   }, [inView, hasMore, isLoading, error, offset, fetchFeeds, items.length]);
 
+  const formatDate = (dateStr: string) => {
+    if (!mounted) return ""; // Prevent hydration mismatch
+    try {
+      return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    } catch (e) {
+      return "";
+    }
+  };
+
   return (
     <AnimatePresence mode="wait">
       {items.length === 0 && error ? (
@@ -162,7 +180,7 @@ export default function FeedUX({ initialItems = [], initialHasMore = true }: Fee
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16 md:gap-24"
         >
           {items.map((item) => (
-            <FeedCard key={item.id} item={item} />
+            <FeedCard key={item.id} item={item} formatDate={formatDate} />
           ))}
           {hasMore && (
             <div ref={ref} className="col-span-full h-32 flex items-center justify-center mt-24">

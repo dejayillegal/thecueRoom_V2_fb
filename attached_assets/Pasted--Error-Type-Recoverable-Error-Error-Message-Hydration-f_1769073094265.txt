@@ -1,0 +1,58 @@
+## Error Type
+Recoverable Error
+
+## Error Message
+Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <section className="max-w-scre...">
+      <header>
+      <FeedUX initialItems={[...]} initialHasMore={true}>
+        <AnimatePresence mode="wait">
+          <PresenceChild isPresent={true} initial={undefined} custom={undefined} presenceAffectsLayout={true} mode="wait" ...>
+            <MotionComponent initial={{opacity:0}} animate={{opacity:1}} className="grid grid-...">
+              <div className="grid grid-..." style={{opacity:0, ...}} ref={function}>
+                <FeedCard item={{id:"7d5518...", ...}}>
+                  <MotionComponent initial={{opacity:0,y:20}} whileInView={{opacity:1,y:0}} viewport={{once:true, ...}} ...>
+                    <article className="group flex..." style={{opacity:0, ...}} ref={function}>
+                      <a>
+                      <div className="space-y-4">
+                        <div className="flex items...">
+                          <span>
+                          <span>
+                          <time dateTime="2026-01-21T23:50:56.000Z">
++                           Jan 22
+-                           Jan 21
+                        ...
+                ...
+                ...
+
+
+
+    at time (<anonymous>:null:null)
+    at FeedCard (components/FeedUX.tsx:62:11)
+    at eval (components/FeedUX.tsx:165:13)
+    at Array.map (<anonymous>:null:null)
+    at FeedUX (components/FeedUX.tsx:164:18)
+    at LandingPage (app/page.tsx:74:9)
+
+## Code Frame
+  60 |           <span>{item.source}</span>
+  61 |           <span>/</span>
+> 62 |           <time dateTime={item.publishedAt}>
+     |           ^
+  63 |             {new Date(item.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+  64 |           </time>
+  65 |         </div>
+
+Next.js version: 15.5.6 (Webpack)
