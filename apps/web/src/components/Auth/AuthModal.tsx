@@ -191,153 +191,154 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="relative max-h-[90vh] flex flex-col overflow-y-auto overflow-x-hidden"
             >
-              {/* Depth Treatment: Noise & Gradient */}
-              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/[0.02] to-transparent" />
-              <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
+              <div className="relative max-h-[90vh] flex flex-col overflow-y-auto overflow-x-hidden">
+                {/* Depth Treatment: Noise & Gradient */}
+                <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/[0.02] to-transparent" />
+                <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
 
-              <DialogTitle className="sr-only">Authentication Portal</DialogTitle>
-              
-              <DialogPrimitive.Close className="absolute right-6 top-6 rounded-sm opacity-20 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none z-10">
-                <X className="h-4 w-4" />
-                <span className="sr-only">Close</span>
-              </DialogPrimitive.Close>
-
-              {/* Header / Identity Zone */}
-              <div className="px-6 py-12 sm:px-10 sm:pt-14 sm:pb-10 flex flex-col items-center relative z-10">
-                <div className="flex items-center gap-3 mb-6 group">
-                  <Logo className="w-10 h-10 text-[#D7FF3C] transition-transform duration-700 group-hover:scale-105" />
-                  <span className="text-2xl font-bold tracking-[-0.04em] text-white">thecueRoom</span>
-                </div>
-                <p className="text-[10px] font-mono tracking-[0.4em] uppercase text-gray-700">Secure Access Portal</p>
+                <DialogTitle className="sr-only">Authentication Portal</DialogTitle>
                 
-                <div className="absolute bottom-0 left-6 right-6 sm:left-10 sm:right-10 h-[1px] bg-white/[0.03]" />
-              </div>
+                <DialogPrimitive.Close className="absolute right-6 top-6 rounded-sm opacity-20 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none z-10">
+                  <X className="h-4 w-4" />
+                  <span className="sr-only">Close</span>
+                </DialogPrimitive.Close>
 
-              {/* Mode Indicators */}
-              <div className="flex px-6 sm:px-10 relative z-10">
-                {(["signin", "signup", "forgot"] as const).map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`flex-1 py-5 text-[10px] font-mono uppercase tracking-[0.2em] transition-all duration-500 relative group`}
-                  >
-                    <span className={`transition-colors duration-500 ${
-                      activeTab === tab 
-                        ? "text-[#D7FF3C]" 
-                        : "text-gray-800 group-hover:text-gray-500"
-                    }`}>
-                      {tab === "signin" ? "Entrance" : tab === "signup" ? "Registry" : "Recovery"}
-                    </span>
-                    <div className={`absolute bottom-0 left-0 right-0 h-[2px] transition-all duration-700 transform origin-left ${
-                      activeTab === tab 
-                        ? "bg-[#D7FF3C] scale-x-100 opacity-100" 
-                        : "bg-white/5 scale-x-0 opacity-0 group-hover:opacity-30 group-hover:scale-x-100"
-                    }`} />
-                  </button>
-                ))}
-              </div>
+                {/* Header / Identity Zone */}
+                <div className="px-6 py-12 sm:px-10 sm:pt-14 sm:pb-10 flex flex-col items-center relative z-10">
+                  <div className="flex items-center gap-3 mb-6 group">
+                    <Logo className="w-10 h-10 text-[#D7FF3C] transition-transform duration-700 group-hover:scale-105" />
+                    <span className="text-2xl font-bold tracking-[-0.04em] text-white">thecueRoom</span>
+                  </div>
+                  <p className="text-[10px] font-mono tracking-[0.4em] uppercase text-gray-700">Secure Access Portal</p>
+                  
+                  <div className="absolute bottom-0 left-6 right-6 sm:left-10 sm:right-10 h-[1px] bg-white/[0.03]" />
+                </div>
 
-              {/* Form Body */}
-              <div className="px-6 py-10 sm:px-10 sm:py-12 relative min-h-[400px] z-10">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeTab}
-                    initial={{ opacity: 0, x: -4 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 4 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
-                  >
-                    <form onSubmit={handleSignIn} className="space-y-10 sm:space-y-12">
-                      <div className="space-y-8 sm:space-y-10">
-                        {/* Identifier Field */}
-                        <div className="relative group/field">
-                          <div className="flex items-center justify-between mb-3">
-                            <Label className="text-[10px] font-mono uppercase tracking-widest text-gray-700 group-focus-within/field:text-[#D7FF3C]/80 transition-colors duration-200">Identifier</Label>
-                            <Mail className="w-3 h-3 text-gray-900 group-focus-within/field:text-[#D7FF3C]/30 transition-colors duration-200" />
-                          </div>
-                          <Input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="EMAIL@THECUEROOM.COM"
-                            className="bg-transparent border-white/[0.03] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C]/60 transition-all duration-300 placeholder:text-gray-900"
-                          />
-                        </div>
+                {/* Mode Indicators */}
+                <div className="flex px-6 sm:px-10 relative z-10">
+                  {(["signin", "signup", "forgot"] as const).map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      className={`flex-1 py-5 text-[10px] font-mono uppercase tracking-[0.2em] transition-all duration-500 relative group`}
+                    >
+                      <span className={`transition-colors duration-500 ${
+                        activeTab === tab 
+                          ? "text-[#D7FF3C]" 
+                          : "text-gray-800 group-hover:text-gray-500"
+                      }`}>
+                        {tab === "signin" ? "Entrance" : tab === "signup" ? "Registry" : "Recovery"}
+                      </span>
+                      <div className={`absolute bottom-0 left-0 right-0 h-[2px] transition-all duration-700 transform origin-left ${
+                        activeTab === tab 
+                          ? "bg-[#D7FF3C] scale-x-100 opacity-100" 
+                          : "bg-white/5 scale-x-0 opacity-0 group-hover:opacity-30 group-hover:scale-x-100"
+                      }`} />
+                    </button>
+                  ))}
+                </div>
 
-                        {/* Security Key Field */}
-                        {activeTab !== "forgot" && (
+                {/* Form Body */}
+                <div className="px-6 py-10 sm:px-10 sm:py-12 relative min-h-[400px] z-10">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeTab}
+                      initial={{ opacity: 0, x: -4 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 4 }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                    >
+                      <form onSubmit={handleSignIn} className="space-y-10 sm:space-y-12">
+                        <div className="space-y-8 sm:space-y-10">
+                          {/* Identifier Field */}
                           <div className="relative group/field">
                             <div className="flex items-center justify-between mb-3">
-                              <Label className="text-[10px] font-mono uppercase tracking-widest text-gray-700 group-focus-within/field:text-[#D7FF3C]/80 transition-colors duration-200">Security Key</Label>
-                              <Lock className="w-3 h-3 text-gray-900 group-focus-within/field:text-[#D7FF3C]/30 transition-colors duration-200" />
+                              <Label className="text-[10px] font-mono uppercase tracking-widest text-gray-700 group-focus-within/field:text-[#D7FF3C]/80 transition-colors duration-200">Identifier</Label>
+                              <Mail className="w-3 h-3 text-gray-900 group-focus-within/field:text-[#D7FF3C]/30 transition-colors duration-200" />
                             </div>
                             <Input
-                              type="password"
-                              value={password}
-                              onChange={(e) => setPassword(e.target.value)}
-                              placeholder="••••••••••••"
+                              type="email"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              placeholder="EMAIL@THECUEROOM.COM"
                               className="bg-transparent border-white/[0.03] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C]/60 transition-all duration-300 placeholder:text-gray-900"
                             />
-                            {activeTab === "signin" && (
-                              <div className="flex justify-end mt-4">
-                                <button
-                                  type="button"
-                                  onClick={() => setActiveTab("forgot")}
-                                  className="text-[10px] font-mono uppercase tracking-widest text-gray-700 hover:text-white transition-colors py-2"
-                                >
-                                  Recovery Needed?
-                                </button>
-                              </div>
-                            )}
                           </div>
-                        )}
-                      </div>
 
-                      {/* Action Zone */}
-                      <div className="pt-2 flex flex-col gap-6">
-                        <Button
-                          type="submit"
-                          disabled={isLoading}
-                          className="w-full h-14 bg-white/[0.03] border border-white/5 hover:bg-[#D7FF3C] hover:border-[#D7FF3C] text-white hover:text-black font-mono uppercase tracking-widest text-[10px] transition-all duration-700 rounded-none group"
-                        >
-                          {isLoading ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <span className="flex items-center gap-2">
-                              Initialize Access <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                            </span>
+                          {/* Security Key Field */}
+                          {activeTab !== "forgot" && (
+                            <div className="relative group/field">
+                              <div className="flex items-center justify-between mb-3">
+                                <Label className="text-[10px] font-mono uppercase tracking-widest text-gray-700 group-focus-within/field:text-[#D7FF3C]/80 transition-colors duration-200">Security Key</Label>
+                                <Lock className="w-3 h-3 text-gray-900 group-focus-within/field:text-[#D7FF3C]/30 transition-colors duration-200" />
+                              </div>
+                              <Input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="••••••••••••"
+                                className="bg-transparent border-white/[0.03] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C]/60 transition-all duration-300 placeholder:text-gray-900"
+                              />
+                              {activeTab === "signin" && (
+                                <div className="flex justify-end mt-4">
+                                  <button
+                                    type="button"
+                                    onClick={() => setActiveTab("forgot")}
+                                    className="text-[10px] font-mono uppercase tracking-widest text-gray-700 hover:text-white transition-colors py-2"
+                                  >
+                                    Recovery Needed?
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           )}
-                        </Button>
+                        </div>
 
-                        <div className="flex justify-center">
-                          <button
-                            type="button"
-                            onClick={onClose}
-                            className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-800 hover:text-gray-400 transition-colors py-4 px-2"
+                        {/* Action Zone */}
+                        <div className="pt-2 flex flex-col gap-6">
+                          <Button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full h-14 bg-white/[0.03] border border-white/5 hover:bg-[#D7FF3C] hover:border-[#D7FF3C] text-white hover:text-black font-mono uppercase tracking-widest text-[10px] transition-all duration-700 rounded-none group"
                           >
-                            Return to Surface
-                          </button>
-                        </div>
+                            {isLoading ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <span className="flex items-center gap-2">
+                                Initialize Access <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                              </span>
+                            )}
+                          </Button>
 
-                        <div className="flex justify-between items-center text-[8px] font-mono uppercase tracking-widest text-gray-800 border-t border-white/[0.02] pt-4">
-                          <span>Session Secure</span>
-                          <span className="hidden sm:inline">SYS_ID: {Math.random().toString(36).substr(2, 6).toUpperCase()}</span>
-                        </div>
-                      </div>
-                    </form>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
+                          <div className="flex justify-center">
+                            <button
+                              type="button"
+                              onClick={onClose}
+                              className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-800 hover:text-gray-400 transition-colors py-4 px-2"
+                            >
+                              Return to Surface
+                            </button>
+                          </div>
 
-              {/* Status Bar */}
-              <div className="bg-[#050505] px-6 py-3 sm:px-10 border-t border-white/[0.02] flex justify-between items-center relative z-10">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-1 bg-green-500/30 rounded-full" />
-                  <span className="text-[8px] font-mono text-gray-800 uppercase tracking-tighter">System Nominal</span>
+                          <div className="flex justify-between items-center text-[8px] font-mono uppercase tracking-widest text-gray-800 border-t border-white/[0.02] pt-4">
+                            <span>Session Secure</span>
+                            <span className="hidden sm:inline">SYS_ID: {Math.random().toString(36).substr(2, 6).toUpperCase()}</span>
+                          </div>
+                        </div>
+                      </form>
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
-                <span className="text-[8px] font-mono text-gray-800 uppercase">v2.4.0-Stable</span>
+
+                {/* Status Bar */}
+                <div className="bg-[#050505] px-6 py-3 sm:px-10 border-t border-white/[0.02] flex justify-between items-center relative z-10">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-1 bg-green-500/30 rounded-full" />
+                    <span className="text-[8px] font-mono text-gray-800 uppercase tracking-tighter">System Nominal</span>
+                  </div>
+                  <span className="text-[8px] font-mono text-gray-800 uppercase">v2.4.0-Stable</span>
+                </div>
               </div>
             </motion.div>
           </DialogContent>
