@@ -11,7 +11,6 @@ const ITEMS_PER_PAGE = 24;
 const INGEST_THRESHOLD_MS = 60 * 60 * 1000; // 60 minutes
 const FALLBACK_IMAGE = 'https://thecueroom.com/images/fallback-vector.png';
 
-// Hardcoded authoritative sources to avoid feeds_sources table dependency
 const AUTHORITATIVE_SOURCES = [
   { name: 'Resident Advisor', url: 'https://ra.co/xml/rss/news.xml' },
   { name: 'Pitchfork', url: 'https://pitchfork.com/rss/news/' },
@@ -24,7 +23,9 @@ async function ingestFeeds(db: any) {
   for (const source of AUTHORITATIVE_SOURCES) {
     try {
       const feed = await parser.parseURL(source.url);
-      for (const item of (feed.items || []).slice(0, 20)) {
+      const items = Array.isArray(feed.items) ? feed.items : [];
+      
+      for (const item of items.slice(0, 20)) {
         if (!item.link || !item.title) continue;
         
         const publishedAt = item.isoDate ? new Date(item.isoDate) : new Date();
