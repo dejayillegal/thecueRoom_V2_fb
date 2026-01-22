@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
 import { feeds, feedState } from '@thecueroom/db/schema';
-import { desc, eq, and, sql, gt } from 'drizzle-orm';
+import { desc, eq, sql, gt } from 'drizzle-orm';
 import Parser from 'rss-parser';
 
 export const dynamic = 'force-dynamic';
@@ -17,9 +17,6 @@ const AUTHORITATIVE_SOURCES = [
   { name: 'FACT Magazine', url: 'https://www.factmag.com/feed/' }
 ];
 
-/**
- * Normalizes a URL by removing tracking parameters and lowercasing
- */
 function normalizeUrl(url: string): string {
   try {
     const u = new URL(url);
@@ -28,15 +25,12 @@ function normalizeUrl(url: string): string {
       k.startsWith('utm_') || k === 'ref' || k === 'source' || k === 'fbclid'
     );
     toDelete.forEach(k => params.delete(k));
-    return u.origin + u.pathname + u.search;
+    return (u.origin + u.pathname + u.search).toLowerCase().trim();
   } catch (e) {
     return url.toLowerCase().trim();
   }
 }
 
-/**
- * Normalizes a title for matching
- */
 function normalizeTitle(title: string): string {
   return title.toLowerCase()
     .trim()
@@ -47,14 +41,11 @@ function normalizeTitle(title: string): string {
 async function ingestFeeds(db: any) {
   const parser = new Parser({ 
     timeout: 10000,
-    headers: {
-      'User-Agent': 'thecueRoom-V2-Ingest/1.0'
-    }
+    headers: { 'User-Agent': 'thecueRoom-V2-Ingest/1.0' }
   });
   
   const allItems: any[] = [];
 
-  // PHASE 1: Collect from all sources safely
   for (const source of AUTHORITATIVE_SOURCES) {
     try {
       const feed = await parser.parseURL(source.url);
@@ -67,7 +58,6 @@ async function ingestFeeds(db: any) {
         const normTitle = normalizeTitle(item.title);
         const publishedAt = item.isoDate ? new Date(item.isoDate) : new Date();
 
-        // Extract thumbnail
         let thumbnailUrl = '';
         if (item.enclosure?.url) {
           thumbnailUrl = item.enclosure.url;
@@ -79,7 +69,7 @@ async function ingestFeeds(db: any) {
         }
 
         allItems.push({
-          canonicalKey: normUrl, // Primary identity is normalized URL
+          canonicalKey: normUrl,
           normTitle,
           title: item.title,
           summary: item.contentSnippet || '',
@@ -87,7 +77,7 @@ async function ingestFeeds(db: any) {
           thumbnail_url: thumbnailUrl,
           published_at: publishedAt,
           source: source.name,
-          hasImage: !!thumbnailUrl && thumbnailUrl.startsWith('http')
+          hasImage: !!thumbnailUrl && (thumbnailUrl.startsWith('http://') || thumbnailUrl.startsWith('https://'))
         });
       }
     } catch (err) {
@@ -95,20 +85,14 @@ async function ingestFeeds(db: any) {
     }
   }
 
-  // PHASE 2: Deduplicate in-memory before DB insert
-  // Strategy: Group by canonicalKey (URL) or normTitle+Date
   const dedupedMap = new Map<string, any>();
-
   for (const item of allItems) {
     const existing = dedupedMap.get(item.canonicalKey);
-    
     if (!existing) {
       dedupedMap.set(item.canonicalKey, item);
       continue;
     }
 
-    // PHASE 3: Conflict Resolution
-    // Priority: Richer metadata (has image) > Earliest publish date
     let replace = false;
     if (!existing.hasImage && item.hasImage) {
       replace = true;
@@ -118,12 +102,9 @@ async function ingestFeeds(db: any) {
       }
     }
 
-    if (replace) {
-      dedupedMap.set(item.canonicalKey, item);
-    }
+    if (replace) dedupedMap.set(item.canonicalKey, item);
   }
 
-  // PHASE 4: Safe Batch Insertion
   for (const item of dedupedMap.values()) {
     try {
       await db.execute(sql`
@@ -148,16 +129,11 @@ async function ingestFeeds(db: any) {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const limitParam = parseInt(searchParams.get('limit') || String(ITEMS_PER_PAGE), 10);
-    const offsetParam = parseInt(searchParams.get('offset') || '0', 10);
-    
-    const limit = isNaN(limitParam) ? ITEMS_PER_PAGE : Math.min(100, Math.max(1, limitParam));
-    const offset = isNaN(offsetParam) ? 0 : Math.max(0, offsetParam);
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || String(ITEMS_PER_PAGE), 10)));
+    const offset = Math.max(0, parseInt(searchParams.get('offset') || '0', 10));
 
     const db = getDbClient();
-    if (!db) {
-       return NextResponse.json({ error: 'Database connection failed', data: [], hasMore: false }, { status: 200 });
-    }
+    if (!db) return NextResponse.json({ error: 'Database connection failed', data: [], hasMore: false }, { status: 200 });
 
     const now = new Date();
     const stateResult = await db.select().from(feedState).where(eq(feedState.id, 1)).limit(1);
@@ -166,9 +142,7 @@ export async function GET(request: Request) {
     const feedsCountResult = await db.select({ count: sql`count(*)` }).from(feeds);
     const count = Number(feedsCountResult[0]?.count || 0);
 
-    const shouldIngest = count === 0 || 
-                         !state.lastIngestedAt || 
-                         (now.getTime() - new Date(state.lastIngestedAt).getTime() > INGEST_THRESHOLD_MS);
+    const shouldIngest = count === 0 || !state.lastIngestedAt || (now.getTime() - new Date(state.lastIngestedAt).getTime() > INGEST_THRESHOLD_MS);
 
     if (shouldIngest) {
       await db.execute(sql`
@@ -199,16 +173,10 @@ export async function GET(request: Request) {
       .offset(offset);
 
     const sanitizedItems = rows.map((item: any) => {
-      // PHASE 7: STABILITY GUARANTEE
       if (!item.title || !item.url) return null;
 
       let imageUrl = FALLBACK_IMAGE;
-      
-      if (item.thumbnail_url && 
-          typeof item.thumbnail_url === 'string' && 
-          item.thumbnail_url.trim() !== '' && 
-          item.thumbnail_url.trim() !== 'null') {
-        
+      if (item.thumbnail_url && typeof item.thumbnail_url === 'string' && item.thumbnail_url.trim() !== '' && item.thumbnail_url.trim() !== 'null') {
         const trimmedUrl = item.thumbnail_url.trim();
         if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
           imageUrl = trimmedUrl;
