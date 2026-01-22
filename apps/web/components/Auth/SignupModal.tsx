@@ -210,9 +210,10 @@ export function SignupModal({ open, onOpenChange, onSwitchToSignin, isEmbedded =
 
             <Button type="submit" disabled={isSubmitting} className="w-full bg-[#D1FF3D] hover:bg-white text-black font-bold h-14 rounded-none transition-all duration-500 uppercase tracking-[0.3em] text-[10px] border-none group active:scale-[0.98]">
               {isSubmitting ? <Loader2 className="animate-spin w-4 h-4" /> : (
-                <>
-                  Create Account <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </>
+                <div className="flex items-center justify-center gap-2">
+                  <span>Create Account</span>
+                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </div>
               )}
             </Button>
           </form>

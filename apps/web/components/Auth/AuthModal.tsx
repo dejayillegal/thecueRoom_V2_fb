@@ -112,7 +112,8 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
                   {tab === t && (
                     <motion.div 
                       layoutId="activeRail" 
-                      className="absolute inset-0 bg-white/[0.03] shadow-[inset_0_0_15px_rgba(209,255,61,0.05)]" 
+                      className="absolute inset-0 bg-white/[0.03]" 
+                      style={{ boxShadow: 'inset 0 0 15px rgba(209,255,61,0.05)' }}
                       transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
                     />
                   )}
@@ -200,6 +201,43 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
                       <form onSubmit={handleSignIn} className="space-y-8">
                         <div className="space-y-6">
                           <div className="space-y-3">
+                            <Label htmlFor="email-signin" className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold">Email</Label>
+                            <Input
+                              id="email-signin"
+                              type="email"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              className="bg-white/[0.02] border-white/10 focus:border-[#D1FF3D]/40 text-white h-12 rounded-none px-4 transition-all duration-300 placeholder:text-zinc-800 focus:ring-0 text-sm"
+                              placeholder="identity@network.com"
+                              required
+                            />
+                          </div>
+
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-center">
+                              <Label htmlFor="password-signin" className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold">Password</Label>
+                            </div>
+                            <div className="relative">
+                              <Input
+                                id="password-signin"
+                                type={showPassword ? "text" : "password"}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="bg-white/[0.02] border-white/10 focus:border-[#D1FF3D]/40 text-white h-12 rounded-none px-4 pr-12 transition-all duration-300 placeholder:text-zinc-800 focus:ring-0 text-sm"
+                                placeholder="••••••••••••"
+                                required
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-zinc-400 transition-colors"
+                              >
+                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                          <div className="space-y-3">
                             <Label htmlFor="email" className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold">Email</Label>
                             <Input
                               id="email"
@@ -211,32 +249,6 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
                               required
                             />
                           </div>
-
-                          {tab === 'signin' && (
-                            <div className="space-y-3">
-                              <div className="flex justify-between items-center">
-                                <Label htmlFor="password" className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold">Password</Label>
-                              </div>
-                              <div className="relative">
-                                <Input
-                                  id="password"
-                                  type={showPassword ? "text" : "password"}
-                                  value={password}
-                                  onChange={(e) => setPassword(e.target.value)}
-                                  className="bg-white/[0.02] border-white/10 focus:border-[#D1FF3D]/40 text-white h-12 rounded-none px-4 pr-12 transition-all duration-300 placeholder:text-zinc-800 focus:ring-0 text-sm"
-                                  placeholder="••••••••••••"
-                                  required
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => setShowPassword(!showPassword)}
-                                  className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-zinc-400 transition-colors"
-                                >
-                                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                                </button>
-                              </div>
-                            </div>
-                          )}
                         </div>
 
                         <AnimatePresence>
