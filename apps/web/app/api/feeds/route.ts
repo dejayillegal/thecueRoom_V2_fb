@@ -19,16 +19,35 @@ export async function GET(request: Request) {
     const limitParam = parseInt(searchParams.get('limit') || String(ITEMS_PER_PAGE), 10);
     const offsetParam = parseInt(searchParams.get('offset') || '0', 10);
     
-    const limit = isNaN(limitParam) ? ITEMS_PER_PAGE : Math.min(100, Math.max(1, limitParam));
-    const offset = isNaN(offsetParam) ? 0 : Math.max(0, offsetParam);
+    // PHASE 2 — SCHEMA GUARANTEE (IDEMPOTENT)
+    try {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS feeds (
+          id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+          source TEXT NOT NULL,
+          title TEXT NOT NULL,
+          summary TEXT,
+          url TEXT NOT NULL,
+          thumbnail_url TEXT,
+          published_at TIMESTAMPTZ,
+          created_at TIMESTAMPTZ DEFAULT now()
+        );
+      `);
 
-    const db = getDbClient();
-    if (!db) {
-       return NextResponse.json({ 
-         error: 'Database connection failed',
-         data: [], 
-         hasMore: false 
-       }, { status: 200 });
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS feed_state (
+          id INTEGER PRIMARY KEY,
+          last_ingested_at TIMESTAMPTZ
+        );
+      `);
+
+      await db.execute(sql`
+        INSERT INTO feed_state (id, last_ingested_at)
+        SELECT 1, NULL
+        WHERE NOT EXISTS (SELECT 1 FROM feed_state WHERE id = 1);
+      `);
+    } catch (schemaError) {
+      console.error('Schema guarantee failed:', schemaError);
     }
 
     const twoWeeksAgo = new Date();

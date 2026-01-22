@@ -77,23 +77,18 @@ export const authEvents = pgTable('auth_events', {
 // Authoritative Feeds (Phase 2 Aligned)
 export const feeds = pgTable('feeds', {
   id: uuid('id').primaryKey().defaultRandom(),
-  source: text('source').notNull(), // Source name/identifier
+  source: text('source').notNull(),
   title: text('title').notNull(),
-  summary: text('summary').notNull().default(''),
+  summary: text('summary'),
   url: text('url').notNull(),
-  thumbnailUrl: text('thumbnail_url').notNull().default(''),
-  rawData: jsonb('raw_data').$type<any>().notNull().default(sql`'{}'::jsonb`),
-  publishedAt: timestamp('published_at', { withTimezone: true }).notNull().defaultNow(),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  contentHash: text('content_hash').notNull().unique(),
-}, (table) => ({
-  publishedAtIdx: index('feeds_published_at_idx').on(table.publishedAt),
-  contentHashIdx: uniqueIndex('feeds_content_hash_idx').on(table.contentHash),
-}));
+  thumbnailUrl: text('thumbnail_url'),
+  publishedAt: timestamp('published_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
 
 // Global Feed State (Singleton row - Phase 2 Aligned)
 export const feedState = pgTable('feed_state', {
-  id: integer('id').primaryKey().default(1),
+  id: integer('id').primaryKey(),
   lastIngestedAt: timestamp('last_ingested_at', { withTimezone: true }),
 });
 
