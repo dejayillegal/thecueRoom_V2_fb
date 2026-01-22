@@ -1,13 +1,13 @@
-import { Suspense, lazy } from 'react';
+import { Suspense } from 'react';
 import SpotlightSection from '@/components/SpotlightSection';
 import { Logo } from '@/components/Logo';
 import { AuthButton } from '@/components/auth/AuthButton';
 import FeedUX, { FeedItem } from '@/components/FeedUX';
 
-// Fallback domain for server-side fetching in Replit environment
+// Authority function for SSR domain retrieval
 const getBaseUrl = () => {
-  if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
-    return `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
+  if (process.env.REPLIT_DEV_DOMAIN) {
+    return `https://${process.env.REPLIT_DEV_DOMAIN}`;
   }
   return 'http://localhost:5000';
 };
@@ -17,11 +17,17 @@ async function getInitialFeeds(): Promise<{ data: FeedItem[]; hasMore: boolean }
     const baseUrl = getBaseUrl();
     const res = await fetch(`${baseUrl}/api/feeds?limit=12&offset=0`, {
       cache: 'no-store',
+      next: { revalidate: 0 },
       headers: {
         'Content-Type': 'application/json',
       },
     });
-    if (!res.ok) throw new Error('Failed to fetch initial feeds');
+    
+    if (!res.ok) {
+      console.error(`Fetch failed with status: ${res.status}`);
+      return { data: [], hasMore: false };
+    }
+    
     return res.json();
   } catch (error) {
     console.error('Server-side feed fetch error:', error);
