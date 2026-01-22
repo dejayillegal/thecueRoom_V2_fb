@@ -20,14 +20,17 @@ const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.4, ease: [0.33, 1, 0.68, 1] }}
       className="absolute inset-0 bg-[#0B0B0B] overflow-hidden"
     >
       {isLoading && <div className="absolute inset-0 bg-[#111111] animate-pulse" />}
       <motion.img
         src={imgSrc}
         alt={feed.title}
-        className="absolute inset-0 w-full h-full object-cover opacity-25 grayscale contrast-[1.2]"
+        initial={{ scale: 1.05 }}
+        animate={{ scale: 1 }}
+        transition={{ duration: 0.8, ease: [0.33, 1, 0.68, 1] }}
+        className="absolute inset-0 w-full h-full object-cover opacity-25 grayscale contrast-[1.2] transition-all duration-700"
         onLoad={() => setIsLoading(false)}
         onError={() => {
           setImgSrc(`/api/fallback-thumb/${encodeURIComponent((feed as any).id || 'default')}`);
@@ -36,6 +39,8 @@ const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
       />
       <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/20 to-transparent" />
       <div className="absolute inset-0 bg-gradient-to-r from-[#0B0B0B]/60 to-transparent" />
+      {/* Subtle Glow Overlay */}
+      <div className="absolute inset-0 z-10 border border-white/0 group-hover:border-[#D1FF3D]/10 group-hover:shadow-[0_0_40px_-10px_rgba(209,255,61,0.1)] transition-all duration-700" />
     </motion.div>
   );
 });
@@ -140,12 +145,18 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
                     <span>{new Date(currentFeed.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}</span>
                   </div>
                 </motion.div>
-                <motion.h1 key={`title-${currentIndex}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }} className="text-6xl md:text-8xl xl:text-9xl font-light tracking-tighter leading-[0.9] text-balance">
+                <motion.h1 
+                  key={`title-${currentIndex}`} 
+                  initial={{ opacity: 0, y: 10 }} 
+                  animate={{ opacity: 1, y: 0 }} 
+                  transition={{ duration: 0.4, delay: 0.1 }} 
+                  className="text-6xl md:text-8xl xl:text-9xl font-light tracking-tighter leading-[0.9] text-balance group-hover:text-white transition-colors duration-500"
+                >
                   {currentFeed.title}
                 </motion.h1>
                 <div className="flex items-center gap-12 pt-12">
                   <Link href={currentFeed.url} target="_blank" className="group/link flex items-center gap-6 text-[10px] font-mono uppercase tracking-[0.8em] font-bold text-foreground">
-                    <span className="border-b border-transparent group-hover:border-[#D1FF3D] transition-all pb-2">Read more</span>
+                    <span className="border-b border-transparent group-hover:border-[#D1FF3D] transition-all pb-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0">Analyze Signal →</span>
                   </Link>
                   <div className="flex gap-4 ml-8">
                     <button onClick={goToPrevious} className="p-3 border border-white/5 hover:border-[#D1FF3D]/20 transition-all opacity-40 hover:opacity-100"><ChevronLeft className="w-4 h-4" /></button>
@@ -153,8 +164,14 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
                   </div>
                 </div>
               </div>
-              <motion.div key={`summary-${currentIndex}`} initial={{ opacity: 0 }} animate={{ opacity: 0.5 }} transition={{ duration: 0.2 }} className="hidden lg:block space-y-8 border-l border-[#D1FF3D]/10 pl-16 mb-4">
-                <p className="text-sm font-light leading-relaxed line-clamp-3 italic opacity-80">{currentFeed.summary}</p>
+              <motion.div 
+                key={`summary-${currentIndex}`} 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 0.5 }} 
+                transition={{ duration: 0.4, delay: 0.2 }} 
+                className="hidden lg:block space-y-8 border-l border-[#D1FF3D]/10 pl-16 mb-4 group-hover:opacity-80 transition-opacity duration-500"
+              >
+                <p className="text-sm font-light leading-relaxed line-clamp-3 italic">{currentFeed.summary}</p>
               </motion.div>
             </div>
           </div>
