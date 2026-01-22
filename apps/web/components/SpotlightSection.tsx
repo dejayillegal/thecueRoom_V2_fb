@@ -133,11 +133,11 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
 
         <motion.div 
           style={{ y: titleY, opacity: contentOpacity }}
-          className="absolute inset-0 flex items-start pt-32"
+          className="absolute inset-0 flex flex-col justify-end pb-12 md:pb-24"
         >
-          <div className="max-w-screen-2xl mx-auto px-10 w-full pt-12 md:pt-20">
-            <div className="grid grid-cols-1 lg:grid-cols-1 gap-12 items-start">
-              <div className="space-y-12 w-full">
+          <div className="max-w-screen-2xl mx-auto px-10 w-full">
+            <div className="grid grid-cols-1 lg:grid-cols-1 gap-8 md:gap-12 items-end">
+              <div className="space-y-6 md:space-y-12 w-full">
                 <motion.div key={`meta-${currentIndex}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
                   <div className="flex items-center gap-6 text-[10px] font-mono uppercase tracking-[0.6em] text-[#D1FF3D] font-bold">
                     <span>{currentFeed.source}</span>
@@ -161,7 +161,7 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
                   transition={{ duration: 0.4, delay: 0.2 }} 
                   className="space-y-8 border-l border-[#D1FF3D]/10 pl-8 md:pl-16 mb-4 group-hover:opacity-80 transition-opacity duration-500 max-w-2xl"
                 >
-                  <p className="text-xs md:text-sm font-light leading-relaxed line-clamp-3 italic">{currentFeed.summary}</p>
+                  <p className="text-xs md:text-sm font-light leading-relaxed line-clamp-2 md:line-clamp-3 italic">{currentFeed.summary}</p>
                 </motion.div>
                 <div className="flex items-center justify-between w-full pt-4 md:pt-8 relative">
                   <div className="flex items-center gap-8 md:gap-12">
@@ -196,7 +196,7 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
                     </div>
                   </div>
 
-                  <div className="flex flex-row gap-4 z-10 items-center">
+                  <div className="flex flex-row gap-3 md:gap-4 z-10 items-center">
                     {currentFeeds.slice(0, 5).map((_, index) => (
                       <SlideIndicator key={index} index={index} currentIndex={currentIndex} onClick={() => setCurrentIndex(index)} />
                     ))}
