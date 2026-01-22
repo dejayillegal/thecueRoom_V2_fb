@@ -133,10 +133,10 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
 
         <motion.div 
           style={{ y: titleY, opacity: contentOpacity }}
-          className="absolute inset-0 flex items-end pb-32"
+          className="absolute inset-0 flex items-start pt-32"
         >
-          <div className="max-w-screen-2xl mx-auto px-10 w-full">
-            <div className="grid grid-cols-1 lg:grid-cols-1 gap-12 items-end">
+          <div className="max-w-screen-2xl mx-auto px-10 w-full pt-12 md:pt-20">
+            <div className="grid grid-cols-1 lg:grid-cols-1 gap-12 items-start">
               <div className="space-y-12 w-full">
                 <motion.div key={`meta-${currentIndex}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
                   <div className="flex items-center gap-6 text-[10px] font-mono uppercase tracking-[0.6em] text-[#D1FF3D] font-bold">
@@ -150,7 +150,7 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
                   initial={{ opacity: 0, y: 10 }} 
                   animate={{ opacity: 1, y: 0 }} 
                   transition={{ duration: 0.4, delay: 0.1 }} 
-                  className="text-lg md:text-2xl lg:text-4xl font-light tracking-tighter leading-[1.1] text-pretty group-hover:text-white transition-colors duration-500 break-words max-w-none md:max-w-[1400px]"
+                  className="text-2xl md:text-5xl lg:text-7xl font-light tracking-tighter leading-[0.95] text-pretty group-hover:text-white transition-colors duration-500 break-words max-w-none md:max-w-[1400px]"
                 >
                   {currentFeed.title}
                 </motion.h1>
