@@ -206,8 +206,6 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
             </div>
           </div>
         </motion.div>
-
-        </div>
       </section>
     </div>
   );
