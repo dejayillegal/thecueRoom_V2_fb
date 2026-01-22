@@ -67,6 +67,9 @@ export default async function LandingPage() {
           <div className="flex items-center gap-6">
             <span className="text-[10px] font-mono uppercase tracking-[1em] font-bold text-[#D1FF3D]">Global Transmission</span>
             <div className="h-px flex-1 bg-[#D1FF3D]/10" />
+            {!initialData.hydrated && (
+              <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-[#D1FF3D]/60 animate-pulse">Syncing network...</span>
+            )}
           </div>
           <h2 className="text-6xl md:text-8xl font-extralight tracking-tighter">Latest Signals</h2>
         </header>

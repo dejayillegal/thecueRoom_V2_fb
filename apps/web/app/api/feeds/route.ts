@@ -98,26 +98,39 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get('limit') || String(ITEMS_PER_PAGE), 10);
     const db = getDbClient();
 
-    // Bootstrap first
-    await bootstrapDb(db);
+    // Bootstrap first - ensures table exists without throwing
+    try {
+      await bootstrapDb(db);
+    } catch (bootstrapErr) {
+      console.error('Bootstrap failed, but continuing:', (bootstrapErr as any).message);
+    }
 
     // Check reality - derive state from feeds table
-    const feedsCountResult = await db.select({ count: sql<number>`count(*)` }).from(feeds);
-    const count = Number(feedsCountResult[0]?.count || 0);
+    let count = 0;
+    try {
+      const feedsCountResult = await db.select({ count: sql<number>`count(*)` }).from(feeds);
+      count = Number(feedsCountResult[0]?.count || 0);
+    } catch (countErr) {
+      console.error('Count query failed, table might be transitioning:', (countErr as any).message);
+    }
     
-    const lastFeed = await db.select({ date: feeds.publishedAt })
-      .from(feeds)
-      .orderBy(desc(feeds.publishedAt))
-      .limit(1);
+    let lastFeedDate: Date | null = null;
+    try {
+      const lastFeed = await db.select({ date: feeds.publishedAt })
+        .from(feeds)
+        .orderBy(desc(feeds.publishedAt))
+        .limit(1);
+      lastFeedDate = lastFeed[0]?.date ? new Date(lastFeed[0].date) : null;
+    } catch (lastFeedErr) {
+      console.error('Last feed query failed:', (lastFeedErr as any).message);
+    }
 
-    const isStale = count > 0 && lastFeed[0] && (Date.now() - new Date(lastFeed[0].date!).getTime() > INGEST_THRESHOLD_MS);
+    const isStale = count > 0 && lastFeedDate && (Date.now() - lastFeedDate.getTime() > INGEST_THRESHOLD_MS);
 
-    // If empty -> Ingest immediately (but don't block total response if possible, 
-    // though count=0 usually means we want data now)
-    // If stale -> Ingest asynchronously
+    // If empty -> Ingest immediately and BLOCK until first batch is in
     if (count === 0) {
       await ingestFeeds(db);
-      // Refresh count after immediate ingestion
+      // Refresh count and get rows after mandatory ingestion
       const newCountResult = await db.select({ count: sql<number>`count(*)` }).from(feeds);
       const newCount = Number(newCountResult[0]?.count || 0);
       
@@ -133,7 +146,7 @@ export async function GET(request: Request) {
           summary: r.summary || '',
           url: r.url,
           image: r.thumbnail && r.thumbnail.startsWith('http') ? r.thumbnail : getDeterministicFallback(r.title),
-          publishedAt: r.publishedAt?.toISOString() || new Date().toISOString(),
+          publishedAt: (r.publishedAt instanceof Date ? r.publishedAt : new Date(r.publishedAt)).toISOString(),
           source: r.source || 'Unknown',
         })),
         total: newCount,
@@ -142,7 +155,7 @@ export async function GET(request: Request) {
         headers: { 'Cache-Control': 'no-store, max-age=0' }
       });
     } else if (isStale) {
-      // Ingest asynchronously for stale data
+      // Ingest asynchronously for stale data - don't block
       (async () => {
         try {
           const innerDb = getDbClient();
@@ -153,6 +166,7 @@ export async function GET(request: Request) {
       })();
     }
 
+    // Standard path for existing data
     const rows = await db.select().from(feeds)
       .orderBy(desc(feeds.publishedAt))
       .limit(limit)
@@ -165,7 +179,7 @@ export async function GET(request: Request) {
         summary: r.summary || '',
         url: r.url,
         image: r.thumbnail && r.thumbnail.startsWith('http') ? r.thumbnail : getDeterministicFallback(r.title),
-        publishedAt: r.publishedAt?.toISOString() || new Date().toISOString(),
+        publishedAt: (r.publishedAt instanceof Date ? r.publishedAt : new Date(r.publishedAt)).toISOString(),
         source: r.source || 'Unknown',
       })),
       total: count,
