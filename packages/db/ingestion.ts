@@ -37,12 +37,6 @@ export class IngestionService {
     }
   }
 
-  static trigger() {
-    this.run().catch(err => {
-      console.error('[IngestionService] Background run failed:', err);
-    });
-  }
-
   static async run() {
     const now = new Date();
     const statusResult = await db.select().from(globalFeedState).where(eq(globalFeedState.id, 1)).limit(1);
