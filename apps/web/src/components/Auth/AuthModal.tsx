@@ -10,12 +10,16 @@ import {
   ChevronRight,
   X,
 } from "lucide-react";
-import { generateUsername } from "@/src/lib/username-generator";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { useToast } from "@/src/hooks/use-toast";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { motion, AnimatePresence } from "framer-motion";
+
+/**
+ * thecueRoom V2 - Authentication Portal
+ * High-authority implementation aligned with DB schema and project rules.
+ */
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -24,84 +28,12 @@ interface AuthModalProps {
 
 type ActiveTab = "signin" | "signup" | "forgot";
 
-interface AvailabilityResult {
-  available: boolean | null;
-  checking: boolean;
-  reason?: string | null;
-}
-
-export function useAvailability(
-  type: "email" | "artist" | "username",
-  value: string,
-  debounceMs: number = 400,
-): AvailabilityResult {
-  const [result, setResult] = useState<AvailabilityResult>({
-    available: null,
-    checking: false,
-  });
-
-  const controllerRef = useRef<AbortController | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const checkAvailability = useCallback(
-    async (val: string) => {
-      if (!val || val.trim() === '') {
-        setResult({ available: null, checking: false });
-        return;
-      }
-
-      setResult({ available: null, checking: true });
-
-      if (controllerRef.current) {
-        controllerRef.current.abort();
-      }
-
-      const controller = new AbortController();
-      controllerRef.current = controller;
-
-      try {
-        const response = await fetch("/api/auth/check-availability", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type, value: val.trim() }),
-          signal: controller.signal,
-        });
-
-        const data = await response.json();
-        setResult({
-          available: data.available,
-          checking: false,
-          reason: data.reason || null,
-        });
-      } catch (error: any) {
-        if (error.name === "AbortError") return;
-        setResult({
-          available: false,
-          checking: false,
-          reason: "Error checking availability",
-        });
-      }
-    },
-    [type],
-  );
-
-  useEffect(() => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => checkAvailability(value), debounceMs);
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      if (controllerRef.current) controllerRef.current.abort();
-    };
-  }, [value, debounceMs, checkAvailability]);
-
-  return result;
-}
-
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<ActiveTab>("signin");
 
+  // Form state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -114,19 +46,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [publicProfileUrl, setPublicProfileUrl] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
-  const [, setGeneratedUsername] = useState("");
-
-  const artistAvailability = useAvailability("artist", artistName);
 
   useEffect(() => {
     if (!isOpen) resetForm();
   }, [isOpen]);
-
-  useEffect(() => {
-    if (artistName && artistAvailability.available) {
-      setGeneratedUsername(generateUsername(artistName));
-    }
-  }, [artistName, artistAvailability.available]);
 
   const resetForm = () => {
     setEmail("");
@@ -141,7 +64,6 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setPublicProfileUrl("");
     setIsLoading(false);
     setActiveTab("signin");
-    setGeneratedUsername("");
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -162,7 +84,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      toast({ variant: "destructive", title: "Error", description: "A system error occurred. Please try again." });
+      toast({ variant: "destructive", title: "Error", description: "Connection error. Please try again." });
     } finally {
       setIsLoading(false);
     }
@@ -171,7 +93,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      toast({ variant: "destructive", title: "Password Mismatch", description: "Confirmation does not match." });
+      toast({ variant: "destructive", title: "Password Mismatch", description: "Passwords do not match." });
       return;
     }
     setIsLoading(true);
@@ -181,7 +103,6 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         password,
         firstName,
         lastName,
-        isArtist,
         artistName: isArtist ? artistName : undefined,
         region: isArtist ? region : undefined,
         genre: isArtist ? genre : undefined,
@@ -196,11 +117,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
       const data = await response.json();
       if (!response.ok) {
-        toast({ variant: "destructive", title: "Registration Failed", description: data.error || "Please check your details." });
+        toast({ variant: "destructive", title: "Registration Failed", description: data.error || "Check your details and try again." });
         return;
       }
 
-      toast({ title: "Account Created", description: "Welcome to thecueRoom." });
+      toast({ title: "Welcome", description: "Account created successfully." });
       onClose();
       router.push("/dashboard");
       router.refresh();
@@ -222,13 +143,13 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       });
       const data = await response.json();
       if (!response.ok) {
-        toast({ variant: "destructive", title: "Request Failed", description: data.error || "Unable to send reset link." });
+        toast({ variant: "destructive", title: "Request Failed", description: data.error || "Unable to process request." });
         return;
       }
-      toast({ title: "Link Sent", description: "Please check your inbox." });
+      toast({ title: "Check Email", description: "Reset instructions sent if account exists." });
       setActiveTab("signin");
     } catch (err) {
-      toast({ variant: "destructive", title: "Error", description: "A system error occurred." });
+      toast({ variant: "destructive", title: "Error", description: "System unavailable." });
     } finally {
       setIsLoading(false);
     }
@@ -240,253 +161,218 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         {isOpen && (
           <DialogContent 
             forceMount
-            className="w-[95vw] max-w-[500px] bg-[#0A0A0A] border-none text-white p-0 shadow-2xl rounded-none outline-none sm:w-full overflow-hidden flex flex-col max-h-[90vh]"
+            className="w-[95vw] max-w-[480px] bg-[#0B0B0B] border-none text-white p-0 shadow-2xl rounded-none outline-none sm:w-full overflow-hidden flex flex-col max-h-[90vh]"
           >
             <motion.div
               className="flex flex-col flex-grow overflow-hidden relative"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.3 }}
             >
-              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/[0.02] to-transparent z-0" />
-              <div className="absolute inset-0 pointer-events-none opacity-[0.02] mix-blend-overlay z-0" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
-
-              <DialogTitle className="sr-only">Authentication Portal</DialogTitle>
+              <DialogTitle className="sr-only">Authentication</DialogTitle>
               
-              <DialogPrimitive.Close className="absolute right-6 top-6 rounded-sm opacity-20 transition-opacity hover:opacity-100 focus:outline-none z-50">
-                <X className="h-4 w-4" />
+              <DialogPrimitive.Close className="absolute right-6 top-6 rounded-sm opacity-40 transition-opacity hover:opacity-100 focus:outline-none z-50">
+                <X className="h-5 w-5" />
                 <span className="sr-only">Close</span>
               </DialogPrimitive.Close>
 
-              <div className="px-6 pt-12 pb-8 sm:px-10 flex flex-col items-center relative z-10 flex-shrink-0">
-                <div className="flex items-center gap-4 mb-4 group">
-                  <Logo className="w-10 h-10 text-[#D7FF3C] transition-transform duration-700 group-hover:scale-105" />
-                  <span className="text-2xl font-bold tracking-tight text-white">thecueRoom</span>
-                </div>
-                <p className="text-[10px] font-mono tracking-[0.3em] uppercase text-gray-500">Music News & Creative AI</p>
-                <div className="absolute bottom-0 left-6 right-6 sm:left-10 sm:right-10 h-[1px] bg-white/[0.05]" />
+              <div className="px-6 pt-10 pb-6 sm:px-10 flex flex-col items-center flex-shrink-0">
+                <Logo className="w-12 h-12 text-[#D7FF3C] mb-4" />
+                <span className="text-2xl font-bold tracking-tight text-white mb-1">thecueRoom</span>
+                <p className="text-[11px] font-mono tracking-widest uppercase text-gray-500">Music & Intelligence</p>
               </div>
 
-              <div className="flex px-6 sm:px-10 relative z-10 border-b border-white/[0.05] flex-shrink-0 bg-black/40 backdrop-blur-sm">
+              <div className="flex px-6 sm:px-10 border-b border-white/[0.05] flex-shrink-0">
                 {(["signin", "signup", "forgot"] as const).map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`flex-1 py-4 text-[10px] font-mono uppercase tracking-widest transition-all duration-500 relative group focus:outline-none`}
+                    className={`flex-1 py-4 text-[11px] font-mono uppercase tracking-widest transition-all duration-300 relative focus:outline-none`}
                   >
-                    <span className={`transition-colors duration-500 ${
-                      activeTab === tab 
-                        ? "text-[#D7FF3C]" 
-                        : "text-gray-600 group-hover:text-gray-400"
-                    }`}>
-                      {tab === "signin" ? "Sign In" : tab === "signup" ? "Sign Up" : "Forgot"}
+                    <span className={activeTab === tab ? "text-[#D7FF3C]" : "text-gray-500"}>
+                      {tab === "signin" ? "Sign In" : tab === "signup" ? "Sign Up" : "Recovery"}
                     </span>
-                    <div className={`absolute bottom-0 left-0 right-0 h-[2px] transition-all duration-700 transform origin-left ${
-                      activeTab === tab 
-                        ? "bg-[#D7FF3C] scale-x-100 opacity-100" 
-                        : "bg-transparent scale-x-0 opacity-0"
-                    }`} />
+                    {activeTab === tab && (
+                      <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#D7FF3C]" />
+                    )}
                   </button>
                 ))}
               </div>
 
-              <div className="px-6 py-8 sm:px-10 relative z-10 overflow-y-auto flex-grow scrollbar-hide">
+              <div className="px-6 py-8 sm:px-10 overflow-y-auto flex-grow scrollbar-hide">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeTab}
-                    initial={{ opacity: 0, x: -8 }}
+                    initial={{ opacity: 0, x: -5 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 8 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    exit={{ opacity: 0, x: 5 }}
+                    transition={{ duration: 0.2 }}
                   >
                     {activeTab === "signin" && (
-                      <form onSubmit={handleSignIn} className="space-y-10">
-                        <div className="space-y-8">
-                          <FieldGroup label="Email Address">
+                      <form onSubmit={handleSignIn} className="space-y-8">
+                        <FieldGroup label="Email">
+                          <Input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Email address"
+                            className="bg-transparent border-white/[0.1] border-x-0 border-t-0 border-b rounded-none px-0 h-11 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] placeholder:text-gray-700"
+                            required
+                          />
+                        </FieldGroup>
+                        <FieldGroup label="Password">
+                          <Input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Password"
+                            className="bg-transparent border-white/[0.1] border-x-0 border-t-0 border-b rounded-none px-0 h-11 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] placeholder:text-gray-700"
+                            required
+                          />
+                        </FieldGroup>
+                        <ActionZone activeTab={activeTab} isLoading={isLoading} />
+                      </form>
+                    )}
+
+                    {activeTab === "signup" && (
+                      <form onSubmit={handleSignUp} className="space-y-6">
+                        <div className="grid grid-cols-2 gap-4">
+                          <FieldGroup label="First Name">
                             <Input
-                              type="email"
-                              value={email}
-                              onChange={(e) => setEmail(e.target.value)}
-                              placeholder="you@email.com"
-                              className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-800"
+                              value={firstName}
+                              onChange={(e) => setFirstName(e.target.value)}
+                              placeholder="First"
+                              className="bg-transparent border-white/[0.1] border-x-0 border-t-0 border-b rounded-none px-0 h-10 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] placeholder:text-gray-700"
                               required
                             />
                           </FieldGroup>
+                          <FieldGroup label="Last Name">
+                            <Input
+                              value={lastName}
+                              onChange={(e) => setLastName(e.target.value)}
+                              placeholder="Last"
+                              className="bg-transparent border-white/[0.1] border-x-0 border-t-0 border-b rounded-none px-0 h-10 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] placeholder:text-gray-700"
+                              required
+                            />
+                          </FieldGroup>
+                        </div>
+                        <FieldGroup label="Email">
+                          <Input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Email address"
+                            className="bg-transparent border-white/[0.1] border-x-0 border-t-0 border-b rounded-none px-0 h-10 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] placeholder:text-gray-700"
+                            required
+                          />
+                        </FieldGroup>
+                        <div className="grid grid-cols-2 gap-4">
                           <FieldGroup label="Password">
                             <Input
                               type="password"
                               value={password}
                               onChange={(e) => setPassword(e.target.value)}
-                              placeholder="••••••••"
-                              className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-800"
+                              placeholder="Create password"
+                              className="bg-transparent border-white/[0.1] border-x-0 border-t-0 border-b rounded-none px-0 h-10 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] placeholder:text-gray-700"
                               required
                             />
-                            <div className="flex justify-end pt-2">
-                              <button
-                                type="button"
-                                onClick={() => setActiveTab("forgot")}
-                                className="text-[10px] font-mono uppercase tracking-widest text-gray-600 hover:text-white transition-colors py-2 focus:outline-none"
-                              >
-                                Recover Password
-                              </button>
-                            </div>
                           </FieldGroup>
-                        </div>
-                        <ActionZone activeTab={activeTab} isLoading={isLoading} onClose={onClose} />
-                      </form>
-                    )}
-
-                    {activeTab === "signup" && (
-                      <form onSubmit={handleSignUp} className="space-y-10">
-                        <div className="space-y-8">
-                          <div className="grid grid-cols-2 gap-6">
-                            <FieldGroup label="First Name">
-                              <Input
-                                value={firstName}
-                                onChange={(e) => setFirstName(e.target.value)}
-                                placeholder="First"
-                                className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-10 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-800"
-                                required
-                              />
-                            </FieldGroup>
-                            <FieldGroup label="Last Name">
-                              <Input
-                                value={lastName}
-                                onChange={(e) => setLastName(e.target.value)}
-                                placeholder="Last"
-                                className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-10 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-800"
-                                required
-                              />
-                            </FieldGroup>
-                          </div>
-                          <FieldGroup label="Email Address">
+                          <FieldGroup label="Confirm">
                             <Input
-                              type="email"
-                              value={email}
-                              onChange={(e) => setEmail(e.target.value)}
-                              placeholder="you@email.com"
-                              className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-10 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-800"
+                              type="password"
+                              value={confirmPassword}
+                              onChange={(e) => setConfirmPassword(e.target.value)}
+                              placeholder="Confirm password"
+                              className="bg-transparent border-white/[0.1] border-x-0 border-t-0 border-b rounded-none px-0 h-10 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] placeholder:text-gray-700"
                               required
                             />
                           </FieldGroup>
-                          <div className="grid grid-cols-2 gap-6">
-                            <FieldGroup label="Password">
-                              <Input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="••••••••"
-                                className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-10 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-800"
-                                required
-                              />
-                            </FieldGroup>
-                            <FieldGroup label="Confirm">
-                              <Input
-                                type="password"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                placeholder="••••••••"
-                                className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-10 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-800"
-                                required
-                              />
-                            </FieldGroup>
-                          </div>
-
-                          <div className="pt-2 space-y-6">
-                            <label className="flex items-center gap-3 cursor-pointer group">
-                              <div className="relative w-8 h-8 border border-white/10 flex items-center justify-center transition-colors group-hover:border-[#D7FF3C]/50 flex-shrink-0">
-                                <input
-                                  type="checkbox"
-                                  checked={isArtist}
-                                  onChange={(e) => setIsArtist(e.target.checked)}
-                                  className="sr-only"
-                                />
-                                {isArtist && <div className="w-3 h-3 bg-[#D7FF3C]" />}
-                              </div>
-                              <span className="text-[10px] font-mono uppercase tracking-widest text-gray-500 group-hover:text-white transition-colors">Register as Artist</span>
-                            </label>
-
-                            {isArtist && (
-                              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-8 pt-2">
-                                <FieldGroup label="Artist Name">
-                                  <Input
-                                    value={artistName}
-                                    onChange={(e) => setArtistName(e.target.value)}
-                                    placeholder="Alias"
-                                    className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-10 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-800"
-                                    required
-                                  />
-                                </FieldGroup>
-                                <div className="grid grid-cols-2 gap-6">
-                                  <FieldGroup label="Region">
-                                    <Input
-                                      value={region}
-                                      onChange={(e) => setRegion(e.target.value)}
-                                      placeholder="Location"
-                                      className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-10 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-800"
-                                      required
-                                    />
-                                  </FieldGroup>
-                                  <FieldGroup label="Genre">
-                                    <Input
-                                      value={genre}
-                                      onChange={(e) => setGenre(e.target.value)}
-                                      placeholder="Genre"
-                                      className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-10 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-800"
-                                      required
-                                    />
-                                  </FieldGroup>
-                                </div>
-                                <FieldGroup label="Portfolio URL">
-                                  <Input
-                                    value={publicProfileUrl}
-                                    onChange={(e) => setPublicProfileUrl(e.target.value)}
-                                    placeholder="Link"
-                                    className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-10 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-800"
-                                    required
-                                  />
-                                </FieldGroup>
-                              </motion.div>
-                            )}
-                          </div>
                         </div>
-                        <ActionZone activeTab={activeTab} isLoading={isLoading} onClose={onClose} />
+
+                        <div className="pt-2 space-y-4">
+                          <label className="flex items-center gap-3 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={isArtist}
+                              onChange={(e) => setIsArtist(e.target.checked)}
+                              className="accent-[#D7FF3C] h-4 w-4 rounded-none bg-black border-white/20"
+                            />
+                            <span className="text-[11px] font-mono uppercase tracking-widest text-gray-500">I am an Artist</span>
+                          </label>
+
+                          {isArtist && (
+                            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-6 pt-2">
+                              <FieldGroup label="Artist Name">
+                                <Input
+                                  value={artistName}
+                                  onChange={(e) => setArtistName(e.target.value)}
+                                  placeholder="Artist alias"
+                                  className="bg-transparent border-white/[0.1] border-x-0 border-t-0 border-b rounded-none px-0 h-10 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] placeholder:text-gray-700"
+                                  required={isArtist}
+                                />
+                              </FieldGroup>
+                              <div className="grid grid-cols-2 gap-4">
+                                <FieldGroup label="Region">
+                                  <Input
+                                    value={region}
+                                    onChange={(e) => setRegion(e.target.value)}
+                                    placeholder="Location"
+                                    className="bg-transparent border-white/[0.1] border-x-0 border-t-0 border-b rounded-none px-0 h-10 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] placeholder:text-gray-700"
+                                    required={isArtist}
+                                  />
+                                </FieldGroup>
+                                <FieldGroup label="Genre">
+                                  <Input
+                                    value={genre}
+                                    onChange={(e) => setGenre(e.target.value)}
+                                    placeholder="Genre"
+                                    className="bg-transparent border-white/[0.1] border-x-0 border-t-0 border-b rounded-none px-0 h-10 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] placeholder:text-gray-700"
+                                    required={isArtist}
+                                  />
+                                </FieldGroup>
+                              </div>
+                              <FieldGroup label="Portfolio URL">
+                                <Input
+                                  value={publicProfileUrl}
+                                  onChange={(e) => setPublicProfileUrl(e.target.value)}
+                                  placeholder="Spotify / Soundcloud"
+                                  className="bg-transparent border-white/[0.1] border-x-0 border-t-0 border-b rounded-none px-0 h-10 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] placeholder:text-gray-700"
+                                  required={isArtist}
+                                />
+                              </FieldGroup>
+                            </motion.div>
+                          )}
+                        </div>
+                        <ActionZone activeTab={activeTab} isLoading={isLoading} />
                       </form>
                     )}
 
                     {activeTab === "forgot" && (
-                      <form onSubmit={handleForgotPassword} className="space-y-10">
-                        <div className="space-y-8">
-                          <div className="p-4 bg-white/[0.02] border border-white/5">
-                            <p className="text-[10px] font-mono leading-relaxed text-gray-500 uppercase tracking-widest">
-                              Enter your email to receive a password recovery link.
-                            </p>
-                          </div>
-                          <FieldGroup label="Email Address">
-                            <Input
-                              type="email"
-                              value={email}
-                              onChange={(e) => setEmail(e.target.value)}
-                              placeholder="you@email.com"
-                              className="bg-transparent border-white/[0.08] border-x-0 border-t-0 border-b rounded-none px-0 h-12 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-all duration-500 placeholder:text-gray-800"
-                              required
-                            />
-                          </FieldGroup>
-                        </div>
-                        <ActionZone activeTab={activeTab} isLoading={isLoading} onClose={onClose} />
+                      <form onSubmit={handleForgotPassword} className="space-y-8">
+                        <p className="text-[11px] font-mono leading-relaxed text-gray-500 uppercase tracking-widest">
+                          Enter your email to receive recovery instructions.
+                        </p>
+                        <FieldGroup label="Email">
+                          <Input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Email address"
+                            className="bg-transparent border-white/[0.1] border-x-0 border-t-0 border-b rounded-none px-0 h-11 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] placeholder:text-gray-700"
+                            required
+                          />
+                        </FieldGroup>
+                        <ActionZone activeTab={activeTab} isLoading={isLoading} />
                       </form>
                     )}
                   </motion.div>
                 </AnimatePresence>
               </div>
 
-              <div className="bg-[#050505] px-6 py-4 sm:px-10 border-t border-white/[0.05] flex justify-between items-center relative z-10 flex-shrink-0">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-1 bg-[#D7FF3C]/30 rounded-full" />
-                  <span className="text-[8px] font-mono text-gray-700 uppercase tracking-widest">Secure Access</span>
-                </div>
-                <span className="text-[8px] font-mono text-gray-700 uppercase tracking-widest">thecueRoom v2.4.0</span>
+              <div className="bg-[#050505] px-6 py-4 sm:px-10 border-t border-white/[0.05] flex justify-between items-center flex-shrink-0">
+                <span className="text-[8px] font-mono text-gray-700 uppercase tracking-widest">© thecueRoom</span>
+                <span className="text-[8px] font-mono text-gray-700 uppercase tracking-widest">PRODUCTION READY</span>
               </div>
             </motion.div>
           </DialogContent>
@@ -498,8 +384,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
 function FieldGroup({ label, children }: { label: string, children: React.ReactNode }) {
   return (
-    <div className="relative group/field">
-      <Label className="text-[10px] font-mono uppercase tracking-widest text-gray-600 group-focus-within/field:text-white transition-colors duration-300 block mb-3">
+    <div className="relative">
+      <Label className="text-[10px] font-mono uppercase tracking-widest text-gray-600 mb-2 block">
         {label}
       </Label>
       {children}
@@ -507,28 +393,21 @@ function FieldGroup({ label, children }: { label: string, children: React.ReactN
   );
 }
 
-function ActionZone({ activeTab, isLoading, onClose }: { activeTab: string, isLoading: boolean, onClose: () => void }) {
+function ActionZone({ activeTab, isLoading }: { activeTab: string, isLoading: boolean }) {
   return (
-    <div className="pt-4 flex flex-col gap-6">
+    <div className="pt-4">
       <Button
         type="submit"
         disabled={isLoading}
-        className="w-full h-14 bg-white/[0.03] border border-white/10 hover:bg-[#D7FF3C] hover:border-[#D7FF3C] text-white hover:text-black font-mono uppercase tracking-widest text-[10px] transition-all duration-700 rounded-none group"
+        className="w-full h-12 bg-white/[0.05] border border-white/10 hover:bg-[#D7FF3C] hover:border-[#D7FF3C] text-white hover:text-black font-mono uppercase tracking-widest text-[11px] transition-all duration-300 rounded-none group"
       >
         {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
           <span className="flex items-center gap-2">
-            {activeTab === 'signin' ? 'Sign In' : activeTab === 'signup' ? 'Sign Up' : 'Send Recovery Link'} 
+            {activeTab === 'signin' ? 'Sign In' : activeTab === 'signup' ? 'Create Account' : 'Send Instructions'} 
             <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </span>
         )}
       </Button>
-      <button
-        type="button"
-        onClick={onClose}
-        className="text-[10px] font-mono uppercase tracking-widest text-gray-700 hover:text-white transition-colors py-2 focus:outline-none"
-      >
-        Dismiss
-      </button>
     </div>
   );
 }
