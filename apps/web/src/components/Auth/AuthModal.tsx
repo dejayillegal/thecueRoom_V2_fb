@@ -193,34 +193,39 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           <DialogContent 
             forceMount
             asChild
-            className="max-w-[500px] bg-[#0A0A0A] border-none text-white p-0 overflow-hidden shadow-2xl rounded-none"
+            className="w-[95vw] max-w-[500px] bg-[#0A0A0A] border-none text-white p-0 overflow-hidden shadow-2xl rounded-none outline-none sm:w-full"
           >
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="relative max-h-[90vh] flex flex-col overflow-y-auto"
             >
+              {/* Depth Treatment: Noise & Gradient */}
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/[0.02] to-transparent" />
+              <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
+
               <DialogTitle className="sr-only">Authentication Portal</DialogTitle>
               
-              <DialogPrimitive.Close className="absolute right-6 top-6 rounded-sm opacity-20 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none">
+              <DialogPrimitive.Close className="absolute right-6 top-6 rounded-sm opacity-20 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none z-10">
                 <X className="h-4 w-4" />
                 <span className="sr-only">Close</span>
               </DialogPrimitive.Close>
 
               {/* Header / Identity Zone */}
-              <div className="px-10 pt-14 pb-10 flex flex-col items-center relative">
+              <div className="px-6 py-12 sm:px-10 sm:pt-14 sm:pb-10 flex flex-col items-center relative z-10">
                 <div className="flex items-center gap-3 mb-6 group">
                   <Logo className="w-10 h-10 text-[#D7FF3C] transition-transform duration-700 group-hover:scale-105" />
                   <span className="text-2xl font-bold tracking-[-0.04em] text-white">thecueRoom</span>
                 </div>
                 <p className="text-[10px] font-mono tracking-[0.4em] uppercase text-gray-700">Secure Access Portal</p>
                 
-                <div className="absolute bottom-0 left-10 right-10 h-[1px] bg-white/[0.03]" />
+                <div className="absolute bottom-0 left-6 right-6 sm:left-10 sm:right-10 h-[1px] bg-white/[0.03]" />
               </div>
 
               {/* Mode Indicators */}
-              <div className="flex px-10">
+              <div className="flex px-6 sm:px-10 relative z-10">
                 {(["signin", "signup", "forgot"] as const).map((tab) => (
                   <button
                     key={tab}
@@ -244,7 +249,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               </div>
 
               {/* Form Body */}
-              <div className="px-10 py-12 relative min-h-[400px]">
+              <div className="px-6 py-10 sm:px-10 sm:py-12 relative min-h-[400px] z-10">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeTab}
@@ -253,8 +258,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     exit={{ opacity: 0, x: 4 }}
                     transition={{ duration: 0.3, ease: "easeOut" }}
                   >
-                    <form onSubmit={handleSignIn} className="space-y-12">
-                      <div className="space-y-10">
+                    <form onSubmit={handleSignIn} className="space-y-10 sm:space-y-12">
+                      <div className="space-y-8 sm:space-y-10">
                         {/* Identifier Field */}
                         <div className="relative group/field">
                           <div className="flex items-center justify-between mb-3">
@@ -289,7 +294,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                                 <button
                                   type="button"
                                   onClick={() => setActiveTab("forgot")}
-                                  className="text-[10px] font-mono uppercase tracking-widest text-gray-700 hover:text-white transition-colors"
+                                  className="text-[10px] font-mono uppercase tracking-widest text-gray-700 hover:text-white transition-colors py-2"
                                 >
                                   Recovery Needed?
                                 </button>
@@ -319,7 +324,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                           <button
                             type="button"
                             onClick={onClose}
-                            className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-800 hover:text-gray-400 transition-colors py-2"
+                            className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-800 hover:text-gray-400 transition-colors py-4 px-2"
                           >
                             Return to Surface
                           </button>
@@ -327,7 +332,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
                         <div className="flex justify-between items-center text-[8px] font-mono uppercase tracking-widest text-gray-800 border-t border-white/[0.02] pt-4">
                           <span>Session Secure</span>
-                          <span>SYS_ID: {Math.random().toString(36).substr(2, 6).toUpperCase()}</span>
+                          <span className="hidden sm:inline">SYS_ID: {Math.random().toString(36).substr(2, 6).toUpperCase()}</span>
                         </div>
                       </div>
                     </form>
@@ -336,7 +341,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               </div>
 
               {/* Status Bar */}
-              <div className="bg-[#050505] px-10 py-3 border-t border-white/[0.02] flex justify-between items-center">
+              <div className="bg-[#050505] px-6 py-3 sm:px-10 border-t border-white/[0.02] flex justify-between items-center relative z-10">
                 <div className="flex items-center gap-2">
                   <div className="w-1 h-1 bg-green-500/30 rounded-full" />
                   <span className="text-[8px] font-mono text-gray-800 uppercase tracking-tighter">System Nominal</span>
