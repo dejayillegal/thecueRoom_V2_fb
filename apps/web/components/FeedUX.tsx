@@ -49,10 +49,10 @@ const FeedCard = memo(({ item, index }: { item: FeedItem; index: number }) => (
       <a 
         href={item.url} 
         target="_blank"
-        className="inline-flex items-center gap-2 text-[9px] font-mono uppercase tracking-[0.2em] text-[#D1FF3D]/40 group-hover:text-[#D1FF3D] transition-colors"
+        className="inline-flex items-center gap-2 text-[9px] font-mono uppercase tracking-[0.2em] text-[#D1FF3D]/40 group-hover:text-[#D1FF3D] transition-colors focus:outline-none focus:text-[#D1FF3D]"
       >
         Read Signal
-        <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+        <span className="transition-transform duration-300 group-hover:translate-x-1 focus:translate-x-1">→</span>
       </a>
     </div>
   </motion.article>

@@ -150,13 +150,13 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
                   initial={{ opacity: 0, y: 10 }} 
                   animate={{ opacity: 1, y: 0 }} 
                   transition={{ duration: 0.4, delay: 0.1 }} 
-                  className="text-6xl md:text-8xl xl:text-9xl font-light tracking-tighter leading-[0.9] text-balance group-hover:text-white transition-colors duration-500"
+                  className="text-4xl md:text-8xl xl:text-9xl font-light tracking-tighter leading-[0.9] text-balance group-hover:text-white transition-colors duration-500 break-words"
                 >
                   {currentFeed.title}
                 </motion.h1>
                 <div className="flex items-center gap-12 pt-12">
-                  <Link href={currentFeed.url} target="_blank" className="group/link flex items-center gap-6 text-[10px] font-mono uppercase tracking-[0.8em] font-bold text-foreground">
-                    <span className="border-b border-transparent group-hover:border-[#D1FF3D] transition-all pb-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0">Analyze Signal →</span>
+                  <Link href={currentFeed.url} target="_blank" className="group/link flex items-center gap-6 text-[10px] font-mono uppercase tracking-[0.8em] font-bold text-foreground focus:outline-none">
+                    <span className="border-b border-transparent group-hover:border-[#D1FF3D] transition-all pb-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 focus:border-[#D1FF3D] focus:opacity-100 focus:translate-y-0">Analyze Signal →</span>
                   </Link>
                   <div className="flex gap-4 ml-8">
                     <button onClick={goToPrevious} className="p-3 border border-white/5 hover:border-[#D1FF3D]/20 transition-all opacity-40 hover:opacity-100"><ChevronLeft className="w-4 h-4" /></button>

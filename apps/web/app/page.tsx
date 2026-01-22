@@ -42,7 +42,7 @@ export default async function LandingPage() {
     <main className="min-h-screen bg-[#0B0B0B] text-foreground selection:bg-[#D1FF3D] selection:text-[#0B0B0B]">
       {/* Editorial Header */}
       <header className="fixed top-0 left-0 right-0 z-[100] bg-[#0B0B0B]/40 backdrop-blur-3xl border-b border-white/5">
-        <nav className="max-w-screen-2xl mx-auto px-10 h-20 flex items-center justify-between">
+        <nav className="max-w-screen-2xl mx-auto px-6 md:px-10 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4 group cursor-pointer">
             <Logo className="w-8 h-8 transition-transform duration-700 group-hover:rotate-[360deg]" />
             <span className="text-sm font-light tracking-[0.4em] uppercase">thecueRoom</span>
@@ -57,12 +57,12 @@ export default async function LandingPage() {
       </header>
 
       {/* Hero / Spotlight */}
-      <div className="pt-20 px-10">
+      <div className="pt-24 px-6 md:px-10">
         <SpotlightSection initialFeeds={initialData.items.slice(0, 5)} initialTrending={[]} />
       </div>
 
       {/* Main Feed Content */}
-      <section className="max-w-screen-2xl mx-auto px-10 py-32">
+      <section className="max-w-screen-2xl mx-auto px-6 md:px-10 py-24 md:py-32">
         <header className="mb-24 space-y-4">
           <div className="flex items-center gap-6">
             <span className="text-[10px] font-mono uppercase tracking-[1em] font-bold text-[#D1FF3D]">Global Transmission</span>
