@@ -92,8 +92,11 @@ export default function FeedUX() {
       const response = await fetch(`/api/feeds?offset=${currentOffset}&limit=12`);
       const result: FeedAPIResponse = await response.json();
       
+      // If we got an error but already have items, just log it. 
+      // If we have no items and got an error, show it.
       if (result.error && currentOffset === 0 && (!result.data || result.data.length === 0)) {
         setError(result.error);
+        setIsLoading(false);
         return;
       }
 
@@ -106,15 +109,16 @@ export default function FeedUX() {
       setError(null);
     } catch (err) {
       console.error('Feed fetch error:', err);
-      if (currentOffset === 0) setError('Signal lost. Scanning for recovery...');
+      if (currentOffset === 0 && items.length === 0) {
+        setError('Signal lost. Scanning for recovery...');
+      }
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [items.length]);
 
   useEffect(() => {
     fetchFeeds(0);
-    // Auto-refresh every 60 minutes
     const interval = setInterval(() => fetchFeeds(0), 60 * 60 * 1000);
     return () => clearInterval(interval);
   }, [fetchFeeds]);
@@ -144,7 +148,7 @@ export default function FeedUX() {
           <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <FeedSkeleton />
           </motion.div>
-        ) : error ? (
+        ) : error && items.length === 0 ? (
           <motion.div 
             key="error"
             initial={{ opacity: 0 }} 

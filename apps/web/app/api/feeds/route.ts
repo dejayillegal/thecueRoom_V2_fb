@@ -79,7 +79,7 @@ export async function GET(request: Request) {
 
     const shouldIngest = feedCount === 0 || 
                          !state.lastIngestedAt || 
-                         (now.getTime() - new Date(state.lastIngestedAt).getTime() > 60 * 60 * 1000);
+                         (now.getTime() - new Date(state.lastIngestedAt).getTime() > INGEST_THRESHOLD_MS);
 
     if (shouldIngest) {
       try {
@@ -93,13 +93,7 @@ export async function GET(request: Request) {
         console.log('Ingestion completed successfully.');
       } catch (ingestError) {
         console.error('Ingestion failed during request:', ingestError);
-        if (feedCount === 0) {
-          return NextResponse.json({
-            error: 'Synchronizing network signal... please refresh in a moment.',
-            data: [],
-            hasMore: false
-          }, { status: 200 });
-        }
+        // We continue to serve what we have, or return a friendly error if truly empty
       }
     }
     
