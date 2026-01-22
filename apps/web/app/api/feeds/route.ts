@@ -9,11 +9,22 @@ export const runtime = 'nodejs';
 
 const ITEMS_PER_PAGE = 24;
 
+interface FeedResponseItem {
+  id: string;
+  title: string;
+  summary: string;
+  url: string;
+  image: string;
+  tags: string[];
+  publishedAt: string;
+  source: string;
+}
+
 export async function GET(request: Request) {
   try {
     const db = getDbClient();
     
-    // Phase 3 & 4: Self-Triggered Ingestion Engine
+    // Phase 3, 4 & 7: Self-Triggered Ingestion Engine (Demand-Driven)
     const [existingCount] = await db.select({ count: sql<number>`count(*)` }).from(feeds);
     const [status] = await db.select().from(globalFeedState).where(eq(globalFeedState.id, 1)).limit(1);
     
@@ -23,10 +34,10 @@ export async function GET(request: Request) {
     const isEmpty = Number(existingCount?.count || 0) === 0;
 
     if (isEmpty) {
-      console.log('[API] First run detected, awaiting ingestion...');
+      // Phase 4: Await first ingestion
       await IngestionService.run();
     } else if (isStale) {
-      console.log('[API] Data stale, triggering background ingestion...');
+      // Phase 3 & 7: Trigger background polling
       IngestionService.trigger();
     }
 
@@ -70,14 +81,14 @@ export async function GET(request: Request) {
       .limit(limit)
       .offset(offset);
 
-    const sanitizedItems = results.map((item: any) => ({
+    const sanitizedItems: FeedResponseItem[] = results.map((item: any) => ({
       id: item.id,
       title: item.title,
       summary: item.summary,
       url: item.link || '',
       image: item.image || '/images/fallback-editorial.png',
-      tags: item.tags || [],
-      publishedAt: typeof item.publishedAt === 'string' ? item.publishedAt : item.publishedAt?.toISOString(),
+      tags: (item.tags as string[]) || [],
+      publishedAt: typeof item.publishedAt === 'string' ? item.publishedAt : item.publishedAt?.toISOString() || new Date().toISOString(),
       source: item.sourceName || 'Unknown',
     }));
 
@@ -87,7 +98,7 @@ export async function GET(request: Request) {
     }, {
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': `no-store, max-age=0`,
+        'Cache-Control': 'no-store, max-age=0, must-revalidate',
       },
     });
   } catch (error: any) {

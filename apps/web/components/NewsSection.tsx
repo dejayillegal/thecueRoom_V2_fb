@@ -72,9 +72,7 @@ const FeedCard = memo(({ feed, formatDate, index }: { feed: FeedItem; formatDate
             src={imgSrc || '/images/fallback-editorial.png'}
             alt={feed.title}
             className="w-full h-full object-cover transition-transform duration-[3000ms] ease-out group-hover:scale-105"
-            onError={() => {
-              setImgSrc('/images/fallback-editorial.png');
-            }}
+            onError={() => setImgSrc('/images/fallback-editorial.png')}
             loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B]/80 via-transparent to-transparent opacity-60" />
@@ -190,52 +188,32 @@ export default function NewsSection() {
     return (
       <div className="space-y-48">
         {[...Array(2)].map((_, i) => (
-          <div key={i} className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-24 opacity-10">
+          <div key={i} className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-24 opacity-10">
             <div className="space-y-10">
               <div className="h-4 w-48 bg-[#D1FF3D]/20 animate-pulse" />
               <div className="h-24 w-full bg-[#D1FF3D]/5 animate-pulse" />
               <div className="h-32 w-full bg-[#D1FF3D]/5 animate-pulse" />
             </div>
-            <div className="aspect-[16/9] bg-[#D1FF3D]/5 animate-pulse" />
+            <div className="aspect-[3/2] bg-[#D1FF3D]/5 animate-pulse" />
           </div>
         ))}
       </div>
     );
   }
 
-  if (newsFeeds.length === 0) {
-    return (
-      <div className="py-32 md:py-48 flex flex-col items-center justify-center space-y-8">
-        <div className="w-12 h-px bg-[#D1FF3D]/10" />
-        <span className="text-[10px] font-mono uppercase tracking-[0.8em] text-muted-foreground/20 font-bold">
-          Archive Synchronizing
-        </span>
-      </div>
-    );
-  }
+  if (newsFeeds.length === 0) return null;
 
   return (
     <div className="space-y-12">
       {allTags.length > 0 && (
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="sticky top-24 z-30 bg-[#0B0B0B]/40 backdrop-blur-2xl py-8 border-b border-[#D1FF3D]/5"
-        >
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="sticky top-24 z-30 bg-[#0B0B0B]/40 backdrop-blur-2xl py-8 border-b border-[#D1FF3D]/5">
           <div className="flex flex-wrap gap-8 items-center">
              <span className="text-[8px] font-mono uppercase tracking-[1em] text-[#D1FF3D]/20 mr-4">Filter</span>
-            <button
-              onClick={() => setSelectedTags(new Set())}
-              className={`text-[9px] font-mono uppercase tracking-[0.5em] px-4 py-2 border transition-all ${selectedTags.size === 0 ? 'bg-[#D1FF3D] text-[#0B0B0B] border-[#D1FF3D]' : 'border-[#D1FF3D]/10 text-muted-foreground hover:border-[#D1FF3D]/30'}`}
-            >
+            <button onClick={() => setSelectedTags(new Set())} className={`text-[9px] font-mono uppercase tracking-[0.5em] px-4 py-2 border transition-all ${selectedTags.size === 0 ? 'bg-[#D1FF3D] text-[#0B0B0B] border-[#D1FF3D]' : 'border-[#D1FF3D]/10 text-muted-foreground hover:border-[#D1FF3D]/30'}`}>
               Signal: All
             </button>
             {allTags.slice(0, 6).map((tag) => (
-              <button
-                key={tag}
-                onClick={() => setSelectedTags(new Set([tag]))}
-                className={`text-[9px] font-mono uppercase tracking-[0.5em] px-4 py-2 border transition-all ${selectedTags.has(tag) ? 'bg-[#D1FF3D] text-[#0B0B0B] border-[#D1FF3D]' : 'border-[#D1FF3D]/10 text-muted-foreground hover:border-[#D1FF3D]/30'}`}
-              >
+              <button key={tag} onClick={() => setSelectedTags(new Set([tag]))} className={`text-[9px] font-mono uppercase tracking-[0.5em] px-4 py-2 border transition-all ${selectedTags.has(tag) ? 'bg-[#D1FF3D] text-[#0B0B0B] border-[#D1FF3D]' : 'border-[#D1FF3D]/10 text-muted-foreground hover:border-[#D1FF3D]/30'}`}>
                 #{tag}
               </button>
             ))}
@@ -252,19 +230,13 @@ export default function NewsSection() {
       ) : (
         <div className="py-48 flex flex-col items-center justify-center space-y-8 opacity-10">
           <div className="w-16 h-px bg-[#D1FF3D]/20" />
-          <span className="text-[9px] font-mono uppercase tracking-[1em]">
-            {ingestionStatus?.isRunning ? 'Synchronizing Archive...' : 'Zero Signal Detected'}
-          </span>
+          <span className="text-[9px] font-mono uppercase tracking-[1em]">Zero Signal Detected</span>
         </div>
       )}
 
       <div ref={observerTarget} className="h-64 flex flex-col items-center justify-center gap-6">
         {isLoadingMore && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex flex-col items-center gap-4"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-4">
             <div className="w-16 h-px bg-[#D1FF3D] animate-pulse" />
           </motion.div>
         )}

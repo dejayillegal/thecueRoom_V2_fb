@@ -3,25 +3,6 @@ import { feedsSources, feedsState, feeds, feedsIngestionLog, feedState as global
 import { eq, and, lt, or, sql, desc, gt } from 'drizzle-orm';
 import Parser from 'rss-parser';
 
-export interface NormalizedItem {
-  externalId: string;
-  title: string;
-  link: string;
-  summary?: string;
-  content?: string;
-  image?: string;
-  publishedAt: Date;
-  rawData: any;
-  tags?: string[];
-}
-
-const parser = new Parser({
-  timeout: 30000,
-  headers: {
-    'User-Agent': 'thecueRoom-Ingestor/2.0 (Stateless)',
-  },
-});
-
 export class IngestionService {
   private static LEASE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -33,13 +14,14 @@ export class IngestionService {
         .orderBy(desc(feedsIngestionLog.startedAt))
         .limit(10);
       
-      const status = await db
+      const statusResult = await db
         .select()
         .from(globalFeedState)
         .where(eq(globalFeedState.id, 1))
         .limit(1);
+      const status = statusResult[0];
 
-      const isRunning = status[0]?.ingestLockUntil ? status[0].ingestLockUntil > new Date() : false;
+      const isRunning = status?.ingestLockUntil ? status.ingestLockUntil > new Date() : false;
       const latestLog = logs[0];
       const hasFailed = latestLog?.status === 'failed';
 
@@ -56,24 +38,20 @@ export class IngestionService {
   }
 
   static trigger() {
-    return this.run().catch(err => {
+    this.run().catch(err => {
       console.error('[IngestionService] Background run failed:', err);
     });
   }
 
   static async run() {
-    // Acquire global lock
     const now = new Date();
     const statusResult = await db.select().from(globalFeedState).where(eq(globalFeedState.id, 1)).limit(1);
     const status = statusResult[0];
     
-    // Phase 3: Lock Logic - If lease is active, skip ingestion
     if (status?.ingestLockUntil && status.ingestLockUntil > now) {
-      console.log('[IngestionService] Ingestion locked, skipping...');
       return { status: 'locked' };
     }
 
-    // Set lock immediately
     await db.insert(globalFeedState).values({ id: 1, ingestLockUntil: new Date(now.getTime() + this.LEASE_DURATION_MS) })
       .onConflictDoUpdate({ 
         target: globalFeedState.id, 
@@ -90,11 +68,11 @@ export class IngestionService {
         and(
           eq(feedsSources.enabled, true),
           or(
-            lt(feedsState.nextPollAt, new Date()),
+            lt(feedsState.nextPollAt, now),
             sql`${feedsState.nextPollAt} IS NULL`
           ),
           or(
-            lt(feedsState.leaseExpiresAt, new Date()),
+            lt(feedsState.leaseExpiresAt, now),
             sql`${feedsState.leaseExpiresAt} IS NULL`
           )
         )
@@ -115,6 +93,7 @@ export class IngestionService {
 
   private static async processSource(source: any, state: any, workerId: string) {
     const startedAt = new Date();
+    const parser = new Parser({ timeout: 30000 });
     
     const acquired = await db
       .update(feedsState)
@@ -142,9 +121,7 @@ export class IngestionService {
     let errorMessage: string | undefined;
 
     try {
-      console.log(`[IngestionService] Processing source: ${source.name} (${source.url})`);
       const feed = await parser.parseURL(source.url);
-      
       const items = feed.items || [];
       itemsProcessed = items.length;
 
@@ -174,17 +151,14 @@ export class IngestionService {
           
           if (result.rowCount && result.rowCount > 0) itemsNew++;
         } catch (itemErr) {
-          console.error(`[IngestionService] Failed to save item from ${source.id}:`, itemErr);
           status = 'partial';
         }
       }
 
       const backoffFactor = Math.pow(2, Math.min(state.consecutiveFailures || 0, 5));
-      const baseInterval = (source.minIntervalMinutes || 60) * 60000;
-      const nextPollAt = new Date(Date.now() + (baseInterval * backoffFactor));
+      const nextPollAt = new Date(Date.now() + ((source.minIntervalMinutes || 60) * 60000 * backoffFactor));
 
-      await db
-        .update(feedsState)
+      await db.update(feedsState)
         .set({
           lastPolledAt: startedAt,
           nextPollAt,
@@ -200,14 +174,11 @@ export class IngestionService {
     } catch (err: any) {
       status = 'failed';
       errorMessage = err.message;
-      console.error(`[IngestionService] Failed to process ${source.name}:`, errorMessage);
-      
       const nextFailCount = (state.consecutiveFailures || 0) + 1;
       const backoffFactor = Math.pow(2, Math.min(nextFailCount, 6));
       const nextPollAt = new Date(Date.now() + ((source.minIntervalMinutes || 60) * 60000 * backoffFactor));
 
-      await db
-        .update(feedsState)
+      await db.update(feedsState)
         .set({
           consecutiveFailures: nextFailCount,
           nextPollAt,

@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback, useRef, memo, useMemo } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+
 interface SpotlightFeedItem {
   id: string;
   title: string;
@@ -14,11 +16,71 @@ interface SpotlightFeedItem {
   source: string;
 }
 
-export default memo(function SpotlightSection({
-  initialFeeds,
-}: {
-  initialFeeds: SpotlightFeedItem[];
-}) {
+const SpotlightImage = memo(({ feed }: { feed: SpotlightFeedItem }) => {
+  const [resolvedSrcState, setResolvedSrcState] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setResolvedSrcState(feed.image || null);
+    setIsLoading(true);
+  }, [feed.image]);
+
+  const resolvedSrc = resolvedSrcState || '/images/fallback-editorial.png';
+
+  return (
+    <motion.div 
+      initial={{ scale: 1.05, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      exit={{ scale: 1.02, opacity: 0 }}
+      transition={{ duration: 2.5, ease: [0.22, 1, 0.36, 1] }}
+      className="absolute inset-0 bg-[#0B0B0B] overflow-hidden"
+    >
+      {isLoading && (
+        <div className="absolute inset-0 bg-[#0B0B0B] flex items-center justify-center">
+           <div className="w-16 h-px bg-[#D1FF3D]/5 animate-pulse" />
+        </div>
+      )}
+      <img
+        src={resolvedSrc}
+        alt={feed.title}
+        className="absolute inset-0 w-full h-full object-cover opacity-[0.35] filter grayscale hover:grayscale-0 transition-all duration-[3000ms] ease-out contrast-125 brightness-90"
+        onLoad={() => setIsLoading(false)}
+        onError={() => {
+          setResolvedSrcState('/images/fallback-editorial.png');
+          setIsLoading(false);
+        }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/20 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#0B0B0B]/60 via-transparent to-transparent" />
+    </motion.div>
+  );
+});
+
+SpotlightImage.displayName = 'SpotlightImage';
+
+const SlideIndicator = memo(({ index, currentIndex, onClick }: { index: number; currentIndex: number; onClick: () => void; }) => (
+  <button
+    onClick={onClick}
+    className={`h-[1px] transition-all duration-700 relative overflow-hidden ${
+      index === currentIndex ? 'w-24 bg-[#D1FF3D]' : 'w-6 bg-[#D1FF3D]/10 hover:bg-[#D1FF3D]/30'
+    }`}
+    aria-label={`Entry ${index + 1}`}
+  >
+    {index === currentIndex && (
+      <motion.div 
+        layoutId="indicator"
+        className="absolute inset-0 bg-[#D1FF3D]"
+        initial={{ x: "-100%" }}
+        animate={{ x: "0%" }}
+        transition={{ duration: 12, ease: "linear" }}
+      />
+    )}
+  </button>
+));
+
+SlideIndicator.displayName = 'SlideIndicator';
+
+export default memo(function SpotlightSection({ initialFeeds }: { initialFeeds: SpotlightFeedItem[]; }) {
   const [currentFeeds] = useState<SpotlightFeedItem[]>(initialFeeds || []);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -41,26 +103,14 @@ export default memo(function SpotlightSection({
     };
   }, [isPaused, goToNext, currentFeeds.length]);
 
-  const currentFeed = useMemo(
-    () => currentFeeds[currentIndex] || currentFeeds[0],
-    [currentFeeds, currentIndex]
-  );
+  const currentFeed = useMemo(() => currentFeeds[currentIndex] || currentFeeds[0], [currentFeeds, currentIndex]);
 
   const { scrollY } = useScroll();
   const titleY = useTransform(scrollY, [0, 500], [0, 50]);
   const contentOpacity = useTransform(scrollY, [0, 300], [1, 0]);
 
   if (!currentFeeds || currentFeeds.length === 0 || !currentFeed) {
-    return (
-      <section className="relative h-[40vh] md:h-[50vh] flex flex-col items-center justify-center bg-[#0B0B0B] border-b border-[#D1FF3D]/5">
-        <div className="space-y-6 text-center px-10">
-          <div className="w-12 h-px bg-[#D1FF3D]/20 mx-auto" />
-          <p className="text-[10px] font-mono uppercase tracking-[0.6em] text-[#D1FF3D]/40 font-bold">
-            No signals available yet
-          </p>
-        </div>
-      </section>
-    );
+    return null;
   }
 
   return (
@@ -70,53 +120,27 @@ export default memo(function SpotlightSection({
           <SpotlightImage key={currentFeed.url} feed={currentFeed} />
         </AnimatePresence>
 
-        <motion.div 
-          style={{ y: titleY, opacity: contentOpacity }}
-          className="absolute inset-0 flex items-end pb-12 md:pb-32"
-        >
+        <motion.div style={{ y: titleY, opacity: contentOpacity }} className="absolute inset-0 flex items-end pb-12 md:pb-32">
           <div className="max-w-screen-2xl mx-auto px-6 md:px-10 w-full">
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8 md:gap-24 items-end">
               <div className="space-y-6 md:space-y-12">
-                <motion.div 
-                  key={`meta-${currentIndex}`}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.8, delay: 0.3 }}
-                >
+                <motion.div key={`meta-${currentIndex}`} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.3 }}>
                   <div className="flex items-center gap-4 md:gap-6 text-[8px] md:text-[10px] font-mono uppercase tracking-[0.4em] md:tracking-[0.6em] text-[#D1FF3D] font-bold">
                     <span>{currentFeed.source}</span>
                     <span className="w-6 md:w-8 h-px bg-[#D1FF3D]/20" />
                     <span suppressHydrationWarning>
-                      {currentFeed.publishedAt && new Date(currentFeed.publishedAt).toLocaleDateString('en-US', {
-                        month: 'short', day: 'numeric'
-                      }).toUpperCase()}
+                      {currentFeed.publishedAt && new Date(currentFeed.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}
                     </span>
                   </div>
                 </motion.div>
                 
-                <motion.h1 
-                  key={`title-${currentIndex}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-                  className="text-[clamp(1.75rem,8vw,6rem)] font-extralight tracking-tighter leading-[0.95] text-balance line-clamp-2 md:line-clamp-3 overflow-hidden"
-                >
+                <motion.h1 key={`title-${currentIndex}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }} className="text-[clamp(1.75rem,8vw,6rem)] font-extralight tracking-tighter leading-[0.95] text-balance line-clamp-2 md:line-clamp-3 overflow-hidden">
                   {currentFeed.title}
                 </motion.h1>
                 
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 1, delay: 0.8 }}
-                  className="flex items-center gap-6 md:gap-12 pt-4 md:pt-12"
-                >
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.8 }} className="flex items-center gap-6 md:gap-12 pt-4 md:pt-12">
                   {currentFeed.url && (
-                    <Link
-                      href={currentFeed.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group/link flex items-center gap-4 md:gap-6 text-[8px] md:text-[10px] font-mono uppercase tracking-[0.4em] md:tracking-[0.8em] font-bold text-foreground"
-                    >
+                    <Link href={currentFeed.url} target="_blank" rel="noopener noreferrer" className="group/link flex items-center gap-4 md:gap-6 text-[8px] md:text-[10px] font-mono uppercase tracking-[0.4em] md:tracking-[0.8em] font-bold text-foreground">
                       <span className="border-b border-transparent group-hover:border-[#D1FF3D] transition-all pb-1 md:pb-2">Read more</span>
                     </Link>
                   )}
@@ -132,18 +156,12 @@ export default memo(function SpotlightSection({
                 </motion.div>
               </div>
 
-              <motion.div 
-                key={`summary-${currentIndex}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.5 }}
-                transition={{ duration: 1, delay: 1 }}
-                className="hidden lg:block space-y-8 border-l border-[#D1FF3D]/10 pl-16 mb-4"
-              >
+              <motion.div key={`summary-${currentIndex}`} initial={{ opacity: 0 }} animate={{ opacity: 0.5 }} transition={{ duration: 1, delay: 1 }} className="hidden lg:block space-y-8 border-l border-[#D1FF3D]/10 pl-16 mb-4">
                 <p className="text-sm font-light leading-relaxed line-clamp-3 italic opacity-80">
                   {currentFeed.summary}
                 </p>
                 <div className="flex gap-6">
-                  {currentFeed.tags?.slice(0, 3).map((tag, i) => (
+                  {currentFeeds[currentIndex]?.tags?.slice(0, 3).map((tag, i) => (
                     <span key={i} className="text-[9px] font-mono uppercase tracking-[0.4em] text-[#D1FF3D]/60">#{tag}</span>
                   ))}
                 </div>
@@ -152,16 +170,10 @@ export default memo(function SpotlightSection({
           </div>
         </motion.div>
 
-        {/* INDICATORS */}
         <div className="absolute bottom-12 right-6 sm:right-10 flex flex-col gap-4 z-10 items-end">
           <div className="flex flex-col gap-4">
             {currentFeeds.slice(0, 5).map((_, index) => (
-              <SlideIndicator
-                key={index}
-                index={index}
-                currentIndex={currentIndex}
-                onClick={() => setCurrentIndex(index)}
-              />
+              <SlideIndicator key={index} index={index} currentIndex={currentIndex} onClick={() => setCurrentIndex(index)} />
             ))}
           </div>
         </div>

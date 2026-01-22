@@ -1,24 +1,35 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { ReactNode } from 'react';
+import { useEffect } from 'react';
 
-/**
- * LANDING CLIENT LAYOUT
- * Handles motion animations that require client-side execution.
- * Preserves editorial hierarchy while fixing Server/Client component mismatches.
- */
-export default function LandingClientLayout({ children }: { children: ReactNode }) {
-  return (
-    <motion.section 
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-      className="py-12 md:py-48 relative"
-    >
-      <div className="absolute -left-20 top-48 w-40 h-[1px] bg-[#D1FF3D]/20 hidden xl:block" />
-      {children}
-    </motion.section>
-  );
+export default function LandingClientLayout({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    // Phase 7: Polling via visibility events & traffic
+    const triggerPolling = () => {
+      // Small limit to keep it light
+      fetch('/api/feeds?limit=1').catch(() => {});
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        triggerPolling();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Light conditional polling (every 15 mins while page is active)
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        triggerPolling();
+      }
+    }, 15 * 60 * 1000);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearInterval(interval);
+    };
+  }, []);
+
+  return <>{children}</>;
 }
