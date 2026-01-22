@@ -7,25 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Loader2,
-  Mail,
-  Info,
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
-  ArrowRight,
-  Lock,
-  Music,
-  MapPin,
-  Link as LinkIcon,
-  User,
   ChevronRight,
+  X,
 } from "lucide-react";
 import { generateUsername } from "@/src/lib/username-generator";
-import VerificationModal from "./VerificationModal";
-import InfoModal from "@/components/InfoModal";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { useToast } from "@/src/hooks/use-toast";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -122,9 +111,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const [firstName, setFirstName] = useState("");
@@ -135,15 +122,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [genre, setGenre] = useState("");
   const [publicProfileUrl, setPublicProfileUrl] = useState("");
   const [socialLinks, setSocialLinks] = useState<string[]>([""]);
-  const [agreeTerms] = useState(true);
 
   const [generatedUsername, setGeneratedUsername] = useState("");
 
-  const emailAvailability = useAvailability("email", email);
   const artistAvailability = useAvailability("artist", artistName);
-
-  const [verificationJobId, setVerificationJobId] = useState<string | null>(null);
-  const [showVerificationModal, setShowVerificationModal] = useState(false);
 
   useEffect(() => {
     if (!isOpen) resetForm();
@@ -151,7 +133,6 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   useEffect(() => {
     setError("");
-    setSuccess("");
   }, [activeTab]);
 
   useEffect(() => {
@@ -163,7 +144,6 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const resetForm = () => {
     setEmail("");
     setPassword("");
-    setConfirmPassword("");
     setFirstName("");
     setLastName("");
     setIsArtist(false);
@@ -173,11 +153,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setPublicProfileUrl("");
     setSocialLinks([""]);
     setError("");
-    setSuccess("");
     setIsLoading(false);
     setActiveTab("signin");
-    setVerificationJobId(null);
-    setShowVerificationModal(false);
     setGeneratedUsername("");
   };
 
@@ -208,28 +185,37 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[500px] bg-[#0A0A0A] border border-[#1A1A1A] text-white p-0 overflow-hidden shadow-2xl rounded-none">
+      <DialogContent className="max-w-[500px] bg-[#0A0A0A] border-none text-white p-0 overflow-hidden shadow-2xl rounded-none">
         <DialogTitle className="sr-only">Authentication Portal</DialogTitle>
+        
+        {/* Close Button - Reduced noise */}
+        <DialogPrimitive.Close className="absolute right-6 top-6 rounded-sm opacity-30 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogPrimitive.Close>
 
-        {/* Identity Zone */}
-        <div className="px-10 pt-12 pb-8 flex flex-col items-center border-b border-[#111]">
-          <div className="w-12 h-12 mb-6 bg-[#D7FF3C] flex items-center justify-center">
-            <Logo className="w-8 h-8 text-black" />
+        {/* Header / Identity Zone */}
+        <div className="px-10 pt-14 pb-10 flex flex-col items-center relative">
+          <div className="flex items-center gap-3 mb-6 group">
+            <Logo className="w-10 h-10 text-[#D7FF3C] transition-transform duration-500 group-hover:scale-105" />
+            <span className="text-2xl font-bold tracking-[-0.04em] text-white">thecueRoom</span>
           </div>
-          <h2 className="text-sm font-mono tracking-[0.3em] uppercase text-gray-500">The Cue Room</h2>
-          <p className="mt-2 text-xl font-medium tracking-tight text-white">Secure Portal Access</p>
+          <p className="text-[10px] font-mono tracking-[0.4em] uppercase text-gray-600">Secure Access Portal</p>
+          
+          {/* Subtle Divider */}
+          <div className="absolute bottom-0 left-10 right-10 h-[1px] bg-white/5" />
         </div>
 
         {/* Mode Selector */}
-        <div className="flex border-b border-[#111]">
+        <div className="flex border-b border-white/5">
           {(["signin", "signup", "forgot"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-4 text-[10px] font-mono uppercase tracking-widest transition-all duration-300 ${
+              className={`flex-1 py-4 text-[10px] font-mono uppercase tracking-[0.2em] transition-all duration-300 ${
                 activeTab === tab 
                   ? "text-[#D7FF3C] bg-[#0F0F0F]" 
-                  : "text-gray-600 hover:text-gray-400 bg-black"
+                  : "text-gray-700 hover:text-gray-400 bg-black"
               }`}
             >
               {tab === "signin" ? "Entrance" : tab === "signup" ? "Registry" : "Recovery"}
@@ -238,36 +224,36 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         </div>
 
         {/* Form Body */}
-        <div className="px-10 py-10">
-          <form onSubmit={handleSignIn} className="space-y-8">
-            <div className="space-y-6">
+        <div className="px-10 py-12">
+          <form onSubmit={handleSignIn} className="space-y-10">
+            <div className="space-y-8">
               <div className="space-y-2">
-                <Label className="text-[10px] font-mono uppercase tracking-widest text-gray-500">Identifier</Label>
+                <Label className="text-[10px] font-mono uppercase tracking-widest text-gray-600">Identifier</Label>
                 <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="EMAIL@THECUEROOM.COM"
-                  className="bg-black border-[#1A1A1A] border-x-0 border-t-0 border-b rounded-none px-0 h-10 focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-colors placeholder:text-gray-800"
+                  className="bg-black border-white/10 border-x-0 border-t-0 border-b rounded-none px-0 h-10 focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-colors placeholder:text-gray-800"
                 />
               </div>
 
               {activeTab !== "forgot" && (
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-mono uppercase tracking-widest text-gray-500">Security Key</Label>
+                  <Label className="text-[10px] font-mono uppercase tracking-widest text-gray-600">Security Key</Label>
                   <Input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="bg-black border-[#1A1A1A] border-x-0 border-t-0 border-b rounded-none px-0 h-10 focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-colors placeholder:text-gray-800"
+                    className="bg-black border-white/10 border-x-0 border-t-0 border-b rounded-none px-0 h-10 focus-visible:ring-0 focus-visible:border-[#D7FF3C] transition-colors placeholder:text-gray-800"
                   />
                 </div>
               )}
             </div>
 
             {/* Action Zone */}
-            <div className="pt-4 flex flex-col gap-6">
+            <div className="pt-2 flex flex-col gap-8">
               <Button
                 type="submit"
                 disabled={isLoading}
@@ -282,8 +268,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 )}
               </Button>
 
-              <div className="flex justify-between items-center text-[9px] font-mono uppercase tracking-widest text-gray-600">
-                <span>Encrypted Session</span>
+              <div className="flex justify-between items-center text-[9px] font-mono uppercase tracking-widest text-gray-700">
+                <span>Session Secure</span>
                 <span>ID: {Math.random().toString(36).substr(2, 9).toUpperCase()}</span>
               </div>
             </div>
@@ -291,10 +277,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         </div>
 
         {/* Status Bar */}
-        <div className="bg-[#050505] px-10 py-3 border-t border-[#111] flex justify-between items-center">
+        <div className="bg-[#050505] px-10 py-3 border-t border-white/5 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse" />
-            <span className="text-[8px] font-mono text-gray-700 uppercase tracking-tighter">System Nominal</span>
+            <div className="w-1 h-1 bg-green-500/50 rounded-full" />
+            <span className="text-[8px] font-mono text-gray-800 uppercase tracking-tighter">System Nominal</span>
           </div>
           <span className="text-[8px] font-mono text-gray-800 uppercase">v2.4.0-Stable</span>
         </div>
