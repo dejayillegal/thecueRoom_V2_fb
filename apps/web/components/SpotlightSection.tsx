@@ -137,7 +137,7 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
         >
           <div className="max-w-screen-2xl mx-auto px-10 w-full">
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-24 items-end">
-              <div className="space-y-12">
+              <div className="space-y-12 w-full">
                 <motion.div key={`meta-${currentIndex}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
                   <div className="flex items-center gap-6 text-[10px] font-mono uppercase tracking-[0.6em] text-[#D1FF3D] font-bold">
                     <span>{currentFeed.source}</span>
@@ -150,7 +150,7 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
                   initial={{ opacity: 0, y: 10 }} 
                   animate={{ opacity: 1, y: 0 }} 
                   transition={{ duration: 0.4, delay: 0.1 }} 
-                  className="text-2xl md:text-5xl lg:text-7xl font-light tracking-tighter leading-[0.95] text-balance group-hover:text-white transition-colors duration-500 break-words"
+                  className="text-2xl md:text-5xl lg:text-7xl font-light tracking-tighter leading-[0.95] text-balance group-hover:text-white transition-colors duration-500 break-words max-w-none md:max-w-4xl"
                 >
                   {currentFeed.title}
                 </motion.h1>
