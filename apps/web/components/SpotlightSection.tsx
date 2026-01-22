@@ -154,7 +154,16 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
                 >
                   {currentFeed.title}
                 </motion.h1>
-                <div className="flex flex-wrap items-center gap-8 md:gap-12 pt-8 md:pt-12">
+                <motion.div 
+                  key={`summary-${currentIndex}`} 
+                  initial={{ opacity: 0 }} 
+                  animate={{ opacity: 0.5 }} 
+                  transition={{ duration: 0.4, delay: 0.2 }} 
+                  className="space-y-8 border-l border-[#D1FF3D]/10 pl-8 md:pl-16 mb-4 group-hover:opacity-80 transition-opacity duration-500 max-w-2xl"
+                >
+                  <p className="text-xs md:text-sm font-light leading-relaxed line-clamp-3 italic">{currentFeed.summary}</p>
+                </motion.div>
+                <div className="flex flex-wrap items-center gap-8 md:gap-12 pt-4 md:pt-8">
                   <Link href={currentFeed.url} target="_blank" className="group/link flex items-center gap-6 text-[10px] font-mono uppercase tracking-[0.8em] font-bold text-foreground focus:outline-none">
                     <span className="border-b border-transparent group-hover:border-[#D1FF3D] transition-all pb-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 focus:border-[#D1FF3D] focus:opacity-100 focus:translate-y-0">Read more →</span>
                   </Link>
@@ -186,15 +195,6 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
                   </div>
                 </div>
               </div>
-              <motion.div 
-                key={`summary-${currentIndex}`} 
-                initial={{ opacity: 0 }} 
-                animate={{ opacity: 0.5 }} 
-                transition={{ duration: 0.4, delay: 0.2 }} 
-                className="hidden lg:block space-y-8 border-l border-[#D1FF3D]/10 pl-16 mb-4 group-hover:opacity-80 transition-opacity duration-500"
-              >
-                <p className="text-sm font-light leading-relaxed line-clamp-3 italic">{currentFeed.summary}</p>
-              </motion.div>
             </div>
           </div>
         </motion.div>
