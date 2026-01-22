@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@thecueroom/db/client';
-import { users, profiles, verificationJobs } from '@thecueroom/db/schema';
+import { users, profiles, verificationJobs, notifications } from '@thecueroom/db/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
@@ -56,6 +56,8 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const validatedData = signupSchema.parse(body);
+
+    const db = getDbClient();
 
     // Validate profile URL domain (only for artists)
     if (validatedData.isArtist && validatedData.artistProfile?.profileUrl) {
@@ -114,11 +116,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for duplicate profile URLs (only for artists)
-    if (validatedData.isArtist && validatedData.profileUrl) {
+    if (validatedData.isArtist && validatedData.artistProfile?.profileUrl) {
       const existingProfile = await db
         .select()
         .from(profiles)
-        .where(eq(profiles.socialProfileUrl, validatedData.profileUrl))
+        .where(eq(profiles.socialProfileUrl, validatedData.artistProfile.profileUrl))
         .limit(1);
 
       if (existingProfile.length > 0) {
@@ -131,6 +133,8 @@ export async function POST(request: NextRequest) {
 
     // Hash password
     const hashedPassword = await bcrypt.hash(validatedData.password, 10);
+
+    const db = getDbClient();
 
     // Create user with appropriate role
     const [newUser] = await db
@@ -187,36 +191,36 @@ export async function POST(request: NextRequest) {
         .where(eq(users.id, newUser.id));
 
       // Create initial notification
-      await db.insert(notifications).values({
-        userId: newUser.id,
-        type: 'verification_started',
-        title: 'Verification Started',
-        message: 'Your artist profile verification is in progress. This usually takes a few moments.',
-        link: '/verification',
-      });
-    }
-
-    return NextResponse.json({
-      ok: true,
+    await db.insert(notifications).values({
       userId: newUser.id,
-      jobId: verificationJobId,
-      verificationJobId,
-      role: newUser.role,
-      message: validatedData.isArtist 
-        ? 'Artist account created. Your profile is being verified.'
-        : 'Account created successfully.',
+      type: 'verification_started',
+      title: 'Verification Started',
+      message: 'Your artist profile verification is in progress. This usually takes a few moments.',
+      link: '/verification',
     });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { ok: false, error: 'Validation failed', errors: error.errors },
-        { status: 400 }
-      );
-    }
-    console.error('Signup error:', error);
+  }
+
+  return NextResponse.json({
+    ok: true,
+    userId: newUser.id,
+    jobId: verificationJobId,
+    verificationJobId,
+    role: newUser.role,
+    message: validatedData.isArtist 
+      ? 'Artist account created. Your profile is being verified.'
+      : 'Account created successfully.',
+  });
+} catch (error) {
+  if (error instanceof z.ZodError) {
     return NextResponse.json(
-      { ok: false, error: 'Internal server error' },
-      { status: 500 }
+      { ok: false, error: 'Validation failed', errors: error.errors.map(e => ({ path: e.path, message: e.message })) },
+      { status: 400 }
     );
   }
+  console.error('Signup error:', error);
+  return NextResponse.json(
+    { ok: false, error: 'Internal server error' },
+    { status: 500 }
+  );
+}
 }

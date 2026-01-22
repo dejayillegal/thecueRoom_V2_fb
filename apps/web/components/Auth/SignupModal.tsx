@@ -5,8 +5,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CheckCircle2, XCircle, Loader2, RefreshCw } from 'lucide-react';
+import { CheckCircle2, XCircle, Loader2, RefreshCw, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { VerificationModal } from '../Auth/VerificationModal';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
 interface SignupModalProps {
   open: boolean;
@@ -19,7 +20,21 @@ interface AvailabilityStatus {
   reason?: string;
 }
 
+interface PasswordStrength {
+  score: number;
+  label: string;
+  color: string;
+  requirements: {
+    length: boolean;
+    upper: boolean;
+    lower: boolean;
+    special: boolean;
+  };
+}
+
 export function SignupModal({ open, onOpenChange }: SignupModalProps) {
+  const shouldReduceMotion = useReducedMotion();
+
   // Form fields
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -48,10 +63,37 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
   // Form state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   // Verification modal
   const [verificationJobId, setVerificationJobId] = useState<string | null>(null);
   const [showVerification, setShowVerification] = useState(false);
+
+  // Password strength logic
+  const getPasswordStrength = (pass: string): PasswordStrength => {
+    const requirements = {
+      length: pass.length >= 10,
+      upper: /[A-Z]/.test(pass),
+      lower: /[a-z]/.test(pass),
+      special: /[0-9!@#$%^&*(),.?":{}|<>_\-+=]/.test(pass),
+    };
+
+    const metCount = Object.values(requirements).filter(Boolean).length;
+    
+    let label = 'Weak';
+    let color = 'text-red-400';
+    if (metCount === 4) {
+      label = 'Strong';
+      color = 'text-lime-400';
+    } else if (metCount >= 2) {
+      label = 'Fair';
+      color = 'text-yellow-400';
+    }
+
+    return { score: metCount, label, color, requirements };
+  };
+
+  const strength = getPasswordStrength(password);
 
   // Debounced availability check
   useEffect(() => {
@@ -160,13 +202,8 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
       return false;
     }
 
-    if (password.length < 10) {
-      setError('Password must be at least 10 characters');
-      return false;
-    }
-
-    if (!/[0-9!@#$%^&*]/.test(password)) {
-      setError('Password must include a number or symbol');
+    if (strength.score < 4) {
+      setError('Password does not meet security requirements');
       return false;
     }
 
@@ -175,13 +212,13 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
       return false;
     }
 
-    if (!emailStatus.available) {
-      setError('Email is not available');
+    if (emailStatus.available === false) {
+      setError('Email is already registered');
       return false;
     }
 
-    if (!artistNameStatus.available) {
-      setError('Artist name is not available');
+    if (artistNameStatus.available === false) {
+      setError('Artist name is already taken');
       return false;
     }
 
@@ -212,8 +249,12 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
           username: selectedUsername,
           region,
           genre,
-          profileUrl: validSocialLinks[0] || '',
-          socialLinks: validSocialLinks,
+          isArtist: true,
+          artistProfile: {
+            profileUrl: validSocialLinks[0] || '',
+            genre,
+            socialLinks: validSocialLinks,
+          }
         }),
       });
 
@@ -225,10 +266,13 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
         return;
       }
 
-      // Show verification modal
-      setVerificationJobId(data.jobId);
-      setShowVerification(true);
-      onOpenChange(false);
+      setSuccess(true);
+      // Brief delay for success animation
+      setTimeout(() => {
+        setVerificationJobId(data.jobId);
+        setShowVerification(true);
+        onOpenChange(false);
+      }, 600);
     } catch (err) {
       setError('An error occurred. Please try again.');
       setIsSubmitting(false);
@@ -248,225 +292,339 @@ export function SignupModal({ open, onOpenChange }: SignupModalProps) {
     return null;
   };
 
+  const motionVariants = {
+    initial: { opacity: 0, y: shouldReduceMotion ? 0 : 10 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: shouldReduceMotion ? 0 : -10 },
+  };
+
+  const shakeVariants = {
+    shake: {
+      x: shouldReduceMotion ? 0 : [0, -5, 5, -5, 5, 0],
+      transition: { duration: 0.4 }
+    }
+  };
+
+  const successVariants = {
+    initial: { opacity: 0, scale: shouldReduceMotion ? 1 : 0.9 },
+    animate: { opacity: 1, scale: 1 },
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-black border-lime-400/20">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-black border-lime-400/20 shadow-2xl">
           <DialogHeader className="space-y-1">
-            <DialogTitle className="text-base font-bold text-white leading-tight">Create your account</DialogTitle>
-            <p className="text-sm italic leading-tight" style={{ color: '#9B5CFF' }}>Join thecueRoom community</p>
+            <DialogTitle className="text-xl font-bold text-white tracking-tight">Create your account</DialogTitle>
+            <p className="text-sm italic" style={{ color: '#9B5CFF' }}>Join thecueRoom community</p>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="firstName" className="text-lime-400">First Name *</Label>
-                <Input
-                  id="firstName"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="bg-gray-900 border-gray-700 text-white"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="lastName" className="text-lime-400">Last Name *</Label>
-                <Input
-                  id="lastName"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="bg-gray-900 border-gray-700 text-white"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="artistName" className="text-lime-400">Artist Name *</Label>
-              <div className="relative">
-                <Input
-                  id="artistName"
-                  value={artistName}
-                  onChange={(e) => setArtistName(e.target.value)}
-                  className="bg-gray-900 border-gray-700 text-white pr-10"
-                  required
-                />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <AvailabilityIndicator status={artistNameStatus} />
+          <AnimatePresence mode="wait">
+            {success ? (
+              <motion.div
+                key="success"
+                variants={successVariants}
+                initial="initial"
+                animate="animate"
+                className="flex flex-col items-center justify-center py-12 space-y-4"
+              >
+                <div className="w-20 h-20 bg-lime-400/20 rounded-full flex items-center justify-center">
+                  <CheckCircle2 className="w-12 h-12 text-lime-400" />
                 </div>
-              </div>
-              {artistNameStatus.reason && (
-                <p className="text-sm text-red-400 mt-1">{artistNameStatus.reason}</p>
-              )}
-            </div>
+                <h3 className="text-2xl font-bold text-white">Account Created!</h3>
+                <p className="text-gray-400">Redirecting to verification...</p>
+              </motion.div>
+            ) : (
+              <motion.form
+                key="form"
+                variants={motionVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                onSubmit={handleSubmit}
+                className="space-y-6"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName" className="text-lime-400 font-medium">First Name *</Label>
+                    <Input
+                      id="firstName"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="bg-zinc-900 border-zinc-800 focus:border-lime-400/50 transition-all text-white"
+                      placeholder="Jane"
+                      required
+                    />
+                  </div>
 
-            {generatedUsernames.length > 0 && (
-              <div>
-                <Label className="text-lime-400">Auto-Generated Username</Label>
-                <div className="flex gap-2 mt-1">
-                  {generatedUsernames.map((username, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setSelectedUsername(username)}
-                      className={`px-3 py-2 rounded border text-sm ${
-                        selectedUsername === username
-                          ? 'bg-lime-400/20 border-lime-400 text-lime-400'
-                          : 'bg-gray-900 border-gray-700 text-gray-300'
-                      }`}
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName" className="text-lime-400 font-medium">Last Name *</Label>
+                    <Input
+                      id="lastName"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      className="bg-zinc-900 border-zinc-800 focus:border-lime-400/50 transition-all text-white"
+                      placeholder="Doe"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="artistName" className="text-lime-400 font-medium">Artist Name *</Label>
+                  <div className="relative">
+                    <Input
+                      id="artistName"
+                      value={artistName}
+                      onChange={(e) => setArtistName(e.target.value)}
+                      className="bg-zinc-900 border-zinc-800 focus:border-lime-400/50 transition-all text-white pr-10"
+                      placeholder="Your DJ/Artist Name"
+                      required
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <AvailabilityIndicator status={artistNameStatus} />
+                    </div>
+                  </div>
+                  {artistNameStatus.reason && (
+                    <p className="text-xs text-red-400 font-medium">{artistNameStatus.reason}</p>
+                  )}
+                </div>
+
+                <AnimatePresence>
+                  {generatedUsernames.length > 0 && (
+                    <motion.div
+                      variants={motionVariants}
+                      initial="initial"
+                      animate="animate"
+                      exit="exit"
+                      className="space-y-2"
                     >
-                      {username}
-                    </button>
+                      <Label className="text-lime-400 font-medium text-xs uppercase tracking-wider">Suggested Handle</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {generatedUsernames.map((username, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setSelectedUsername(username)}
+                            className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${
+                              selectedUsername === username
+                                ? 'bg-lime-400 border-lime-400 text-black shadow-[0_0_15px_rgba(163,230,53,0.3)]'
+                                : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+                            }`}
+                          >
+                            @{username}
+                          </button>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={generateUsernames}
+                          className="p-1.5 rounded-full border border-zinc-800 text-zinc-400 hover:bg-zinc-900 hover:text-white transition-all"
+                          aria-label="Refresh handle suggestions"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-lime-400 font-medium">Email Address *</Label>
+                  <div className="relative">
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="bg-zinc-900 border-zinc-800 focus:border-lime-400/50 transition-all text-white pr-10"
+                      placeholder="jane@example.com"
+                      required
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <AvailabilityIndicator status={emailStatus} />
+                    </div>
+                  </div>
+                  {emailStatus.reason && (
+                    <p className="text-xs text-red-400 font-medium">{emailStatus.reason}</p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label htmlFor="password" className="text-lime-400 font-medium">Password *</Label>
+                      {password && (
+                        <span className={`text-[10px] uppercase font-bold tracking-widest ${strength.color}`}>
+                          {strength.label}
+                        </span>
+                      )}
+                    </div>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="bg-zinc-900 border-zinc-800 focus:border-lime-400/50 transition-all text-white"
+                      placeholder="••••••••••••"
+                      required
+                    />
+                    {password && (
+                      <div className="grid grid-cols-4 gap-1 mt-1.5">
+                        {[1, 2, 3, 4].map((i) => (
+                          <div
+                            key={i}
+                            className={`h-1 rounded-full transition-all duration-500 ${
+                              i <= strength.score ? strength.color.replace('text', 'bg') : 'bg-zinc-800'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    )}
+                    <div className="space-y-1 mt-2">
+                      <p className={`text-[10px] flex items-center gap-1.5 ${strength.requirements.length ? 'text-lime-400' : 'text-zinc-500'}`}>
+                        {strength.requirements.length ? <ShieldCheck className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3" />}
+                        AT LEAST 10 CHARACTERS
+                      </p>
+                      <p className={`text-[10px] flex items-center gap-1.5 ${strength.requirements.upper && strength.requirements.lower ? 'text-lime-400' : 'text-zinc-500'}`}>
+                        {strength.requirements.upper && strength.requirements.lower ? <ShieldCheck className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3" />}
+                        UPPER & LOWER CASE
+                      </p>
+                      <p className={`text-[10px] flex items-center gap-1.5 ${strength.requirements.special ? 'text-lime-400' : 'text-zinc-500'}`}>
+                        {strength.requirements.special ? <ShieldCheck className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3" />}
+                        NUMBER OR SPECIAL CHAR
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword" className="text-lime-400 font-medium">Confirm Password *</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="bg-zinc-900 border-zinc-800 focus:border-lime-400/50 transition-all text-white"
+                      placeholder="••••••••••••"
+                      required
+                    />
+                    {confirmPassword && password !== confirmPassword && (
+                      <p className="text-[10px] text-red-400 font-bold uppercase tracking-wider mt-1">Passwords do not match</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="region" className="text-lime-400 font-medium">Region *</Label>
+                    <Input
+                      id="region"
+                      value={region}
+                      onChange={(e) => setRegion(e.target.value)}
+                      maxLength={60}
+                      className="bg-zinc-900 border-zinc-800 focus:border-lime-400/50 transition-all text-white"
+                      placeholder="e.g., London, UK"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="genre" className="text-lime-400 font-medium">Primary Genre *</Label>
+                    <Input
+                      id="genre"
+                      value={genre}
+                      onChange={(e) => setGenre(e.target.value)}
+                      maxLength={120}
+                      className="bg-zinc-900 border-zinc-800 focus:border-lime-400/50 transition-all text-white"
+                      placeholder="e.g., House / Techno"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-lime-400 font-medium text-xs uppercase tracking-widest">Verification Links (MAX 5)</Label>
+                  {socialLinks.map((link, idx) => (
+                    <motion.div
+                      key={idx}
+                      variants={motionVariants}
+                      initial="initial"
+                      animate="animate"
+                      className="flex gap-2"
+                    >
+                      <Input
+                        value={link}
+                        onChange={(e) => updateSocialLink(idx, e.target.value)}
+                        className="bg-zinc-900 border-zinc-800 focus:border-lime-400/50 transition-all text-white"
+                        placeholder="https://soundcloud.com/yourname"
+                        aria-label={`Social link ${idx + 1}`}
+                      />
+                      {idx > 0 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => removeSocialLink(idx)}
+                          className="text-zinc-500 hover:text-red-400 hover:bg-red-400/10"
+                        >
+                          <XCircle className="w-5 h-5" />
+                        </Button>
+                      )}
+                    </motion.div>
                   ))}
-                  <button
-                    type="button"
-                    onClick={generateUsernames}
-                    className="px-3 py-2 rounded border border-gray-700 text-gray-300 hover:bg-gray-800"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            <div>
-              <Label htmlFor="email" className="text-lime-400">Email *</Label>
-              <div className="relative">
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="bg-gray-900 border-gray-700 text-white pr-10"
-                  required
-                />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <AvailabilityIndicator status={emailStatus} />
-                </div>
-              </div>
-              {emailStatus.reason && (
-                <p className="text-sm text-red-400 mt-1">{emailStatus.reason}</p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="password" className="text-lime-400">Password *</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-gray-900 border-gray-700 text-white"
-                required
-              />
-              <p className="text-xs text-purple-400 mt-1">
-                Min 10 chars, must include letter + number + symbol
-              </p>
-            </div>
-
-            <div>
-              <Label htmlFor="confirmPassword" className="text-lime-400">Confirm Password *</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="bg-gray-900 border-gray-700 text-white"
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="region" className="text-lime-400">Region *</Label>
-                <Input
-                  id="region"
-                  value={region}
-                  onChange={(e) => setRegion(e.target.value)}
-                  maxLength={60}
-                  className="bg-gray-900 border-gray-700 text-white"
-                  placeholder="e.g., London, UK"
-                  required
-                  aria-required="true"
-                  aria-describedby="region-hint"
-                />
-                <p id="region-hint" className="text-xs text-gray-400 mt-1">
-                  City and country where you're based
-                </p>
-              </div>
-
-              <div>
-                <Label htmlFor="genre" className="text-lime-400">Genre *</Label>
-                <Input
-                  id="genre"
-                  value={genre}
-                  onChange={(e) => setGenre(e.target.value)}
-                  maxLength={120}
-                  className="bg-gray-900 border-gray-700 text-white"
-                  placeholder="e.g., House, Techno"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label className="text-lime-400">Social Links (Optional, max 5)</Label>
-              {socialLinks.map((link, idx) => (
-                <div key={idx} className="flex gap-2 mt-2">
-                  <Input
-                    value={link}
-                    onChange={(e) => updateSocialLink(idx, e.target.value)}
-                    className="bg-gray-900 border-gray-700 text-white"
-                    placeholder="https://soundcloud.com/yourname"
-                  />
-                  {idx > 0 && (
+                  {socialLinks.length < 5 && (
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => removeSocialLink(idx)}
-                      className="border-gray-700"
+                      onClick={addSocialLink}
+                      className="w-full border-zinc-800 text-zinc-400 hover:text-lime-400 hover:border-lime-400/30 transition-all text-xs h-8"
                     >
-                      Remove
+                      + ADD VERIFICATION LINK
                     </Button>
                   )}
                 </div>
-              ))}
-              {socialLinks.length < 5 && (
+
+                <AnimatePresence>
+                  {error && (
+                    <motion.div
+                      variants={shakeVariants}
+                      animate="shake"
+                      className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 flex items-center gap-3"
+                    >
+                      <ShieldAlert className="w-5 h-5 text-red-500 shrink-0" />
+                      <p className="text-red-400 text-sm font-medium">{error}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 <Button
-                  type="button"
-                  variant="outline"
-                  onClick={addSocialLink}
-                  className="mt-2 border-lime-400/50 text-lime-400"
+                  type="submit"
+                  disabled={isSubmitting || emailStatus.available === false || artistNameStatus.available === false || strength.score < 4}
+                  className="w-full bg-lime-400 text-black hover:bg-lime-500 disabled:opacity-30 disabled:grayscale transition-all h-12 text-base font-bold shadow-[0_0_20px_rgba(163,230,53,0.2)]"
                 >
-                  + Add Link
+                  {isSubmitting ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>SECURING ACCOUNT...</span>
+                    </div>
+                  ) : (
+                    'FINALIZE SIGN UP'
+                  )}
                 </Button>
-              )}
-            </div>
-
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/20 rounded p-3 text-red-400 text-sm">
-                {error}
-              </div>
+              </motion.form>
             )}
-
-            <Button
-              type="submit"
-              disabled={isSubmitting || !emailStatus.available || !artistNameStatus.available}
-              className="w-full bg-lime-400 text-black hover:bg-lime-500 disabled:opacity-50"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating Account...
-                </>
-              ) : (
-                'Sign Up'
-              )}
-            </Button>
-          </form>
+          </AnimatePresence>
         </DialogContent>
       </Dialog>
+
+      {verificationJobId && (
+        <VerificationModal
+          open={showVerification}
+          onOpenChange={setShowVerification}
+          jobId={verificationJobId}
+        />
+      )}
+    </>
+  );
+}
 
       {verificationJobId && (
         <VerificationModal

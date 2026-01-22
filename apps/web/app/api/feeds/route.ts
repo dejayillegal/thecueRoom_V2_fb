@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDbClient } from '@/lib/db-client';
+import { getDbClient } from '@thecueroom/db/client';
 import { feedsItems as feeds, feedsSources as sources } from '@thecueroom/db/schema';
 import { desc, eq, and, sql, gt } from 'drizzle-orm';
 

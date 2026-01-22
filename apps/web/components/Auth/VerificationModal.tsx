@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Clock, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Clock, AlertCircle, Loader2, ArrowRight, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
 interface VerificationModalProps {
   open: boolean;
@@ -24,6 +25,7 @@ interface JobStatus {
 
 export function VerificationModal({ open, onOpenChange, jobId }: VerificationModalProps) {
   const router = useRouter();
+  const shouldReduceMotion = useReducedMotion();
   const [jobStatus, setJobStatus] = useState<JobStatus | null>(null);
   const [isPolling, setIsPolling] = useState(true);
   const [autoRedirectSeconds, setAutoRedirectSeconds] = useState(3);
@@ -86,188 +88,214 @@ export function VerificationModal({ open, onOpenChange, jobId }: VerificationMod
     { label: 'Complete', progress: 100 },
   ];
 
+  const motionVariants = {
+    initial: { opacity: 0, y: shouldReduceMotion ? 0 : 20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: shouldReduceMotion ? 0 : -20 },
+  };
+
   const renderStatusContent = () => {
     if (!jobStatus) {
       return (
-        <div className="flex flex-col items-center justify-center py-8">
+        <div className="flex flex-col items-center justify-center py-12">
           <Loader2 className="w-12 h-12 animate-spin text-lime-400 mb-4" />
-          <p className="text-gray-400">Loading verification status...</p>
+          <p className="text-zinc-500 font-medium tracking-tight">INITIALIZING VERIFICATION...</p>
         </div>
       );
     }
 
     if (jobStatus.status === 'failed') {
       return (
-        <div className="flex flex-col items-center justify-center py-8">
-          <AlertCircle className="w-16 h-16 text-red-400 mb-4" />
-          <h3 className="text-xl font-bold text-white mb-2">Verification Failed</h3>
-          <p className="text-gray-400 text-center mb-4">
-            There was an error processing your verification. Please try again later.
+        <motion.div
+          variants={motionVariants}
+          initial="initial"
+          animate="animate"
+          className="flex flex-col items-center justify-center py-8 text-center"
+        >
+          <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
+            <ShieldAlert className="w-10 h-10 text-red-500" />
+          </div>
+          <h3 className="text-2xl font-bold text-white mb-2">Verification Error</h3>
+          <p className="text-zinc-400 max-w-sm mb-8">
+            Our security systems encountered an issue processing your request. Please contact support.
           </p>
           <Button
             onClick={() => onOpenChange(false)}
-            className="bg-gray-800 hover:bg-gray-700"
+            className="bg-zinc-800 text-white hover:bg-zinc-700 w-full"
           >
-            Close
+            DISMISS
           </Button>
-        </div>
+        </motion.div>
       );
     }
 
     if (jobStatus.result === 'verified_ai') {
       return (
-        <div className="flex flex-col items-center justify-center py-8">
-          <CheckCircle2 className="w-16 h-16 text-lime-400 mb-4" />
-          <h3 className="text-2xl font-bold text-white mb-2">Profile Verified!</h3>
-          <div className="bg-lime-400/10 border border-lime-400/20 rounded-lg p-4 mb-4">
-            <p className="text-lime-400 font-semibold text-center">
-              Confidence Score: {jobStatus.score}/100
+        <motion.div
+          variants={motionVariants}
+          initial="initial"
+          animate="animate"
+          className="flex flex-col items-center justify-center py-8 text-center"
+        >
+          <div className="w-24 h-24 bg-lime-400/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(163,230,53,0.2)]">
+            <ShieldCheck className="w-12 h-12 text-lime-400" />
+          </div>
+          <h3 className="text-3xl font-bold text-white mb-2">Integrity Verified</h3>
+          <div className="bg-lime-400/10 border border-lime-400/20 rounded-full px-6 py-1.5 mb-6">
+            <p className="text-lime-400 text-xs font-bold tracking-widest">
+              CONFIDENCE SCORE: {jobStatus.score}%
             </p>
           </div>
-          <p className="text-gray-400 text-center mb-4">
-            Welcome to thecueRoom! You now have full access to all features.
+          <p className="text-zinc-400 max-w-sm mb-8">
+            Access granted. Welcome to thecueRoom, {jobStatus.notes || 'Artist'}.
           </p>
-          {jobStatus.notes && (
-            <div className="bg-gray-900 rounded-lg p-4 mb-4 max-w-md">
-              <p className="text-sm text-gray-300 text-center">{jobStatus.notes}</p>
-            </div>
-          )}
           <Button
             onClick={() => router.push('/dashboard')}
-            className="bg-lime-400 text-black hover:bg-lime-500"
+            className="bg-lime-400 text-black hover:bg-lime-500 w-full font-bold h-12 shadow-[0_0_20px_rgba(163,230,53,0.3)]"
           >
-            Go to Dashboard <ArrowRight className="ml-2 w-4 h-4" />
+            ENTER DASHBOARD <ArrowRight className="ml-2 w-4 h-4" />
           </Button>
-          <p className="text-sm text-gray-500 mt-3">
-            Auto-redirecting in {autoRedirectSeconds}s...
+          <p className="text-[10px] text-zinc-500 mt-4 uppercase tracking-widest font-medium">
+            Auto-transition in {autoRedirectSeconds}s
           </p>
-        </div>
+        </motion.div>
       );
     }
 
     if (jobStatus.result === 'pending_admin') {
       return (
-        <div className="flex flex-col items-center justify-center py-8">
-          <Clock className="w-16 h-16 text-yellow-400 mb-4" />
-          <h3 className="text-2xl font-bold text-white mb-2">Verification Pending</h3>
-          <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-lg p-4 mb-4">
-            <p className="text-yellow-400 font-semibold text-center">
-              Manual Review Required
+        <motion.div
+          variants={motionVariants}
+          initial="initial"
+          animate="animate"
+          className="flex flex-col items-center justify-center py-8 text-center"
+        >
+          <div className="w-20 h-20 bg-yellow-400/10 rounded-full flex items-center justify-center mb-6">
+            <Clock className="w-10 h-10 text-yellow-400" />
+          </div>
+          <h3 className="text-2xl font-bold text-white mb-2">Escalated to Review</h3>
+          <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-lg p-4 mb-6">
+            <p className="text-yellow-400 text-xs font-bold tracking-widest uppercase">
+              Manual Authentication Required
             </p>
           </div>
-          <p className="text-gray-400 text-center mb-4 max-w-md">
-            Your profile is being reviewed by our team. You'll receive a notification once the review is complete.
-          </p>
-          {jobStatus.notes && (
-            <div className="bg-gray-900 rounded-lg p-4 mb-4 max-w-md">
-              <p className="text-sm text-gray-300">{jobStatus.notes}</p>
-            </div>
-          )}
-          <p className="text-sm text-gray-500 mb-4">
-            This usually takes 24-48 hours. We've sent a notification to the admin team.
+          <p className="text-zinc-400 max-w-sm mb-8">
+            Your credentials have been flagged for manual verification. This process typically takes 24 hours.
           </p>
           <Button
             onClick={() => router.push('/dashboard')}
-            className="bg-gray-800 hover:bg-gray-700"
+            className="bg-zinc-900 text-zinc-400 border border-zinc-800 hover:bg-zinc-800 w-full h-12"
           >
-            Continue to Dashboard
+            CONTINUE AS RESTRICTED
           </Button>
-        </div>
+        </motion.div>
       );
     }
 
     if (jobStatus.result === 'rejected_ai') {
       return (
-        <div className="flex flex-col items-center justify-center py-8">
-          <AlertCircle className="w-16 h-16 text-red-400 mb-4" />
-          <h3 className="text-2xl font-bold text-white mb-2">Verification Update</h3>
-          <p className="text-gray-400 text-center mb-4 max-w-md">
-            We couldn't automatically verify your profile with the provided information.
+        <motion.div
+          variants={motionVariants}
+          initial="initial"
+          animate="animate"
+          className="flex flex-col items-center justify-center py-8 text-center"
+        >
+          <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
+            <ShieldAlert className="w-10 h-10 text-red-500" />
+          </div>
+          <h3 className="text-2xl font-bold text-white mb-2">Verification Failed</h3>
+          <p className="text-zinc-400 max-w-sm mb-6">
+            {jobStatus.notes || "We couldn't verify your profile authenticity."}
           </p>
-          {jobStatus.notes && (
-            <div className="bg-red-900/20 border border-red-500/20 rounded-lg p-4 mb-4 max-w-md">
-              <p className="text-sm text-red-300">{jobStatus.notes}</p>
-            </div>
-          )}
-          <p className="text-sm text-gray-400 mb-4 text-center max-w-md">
-            Please update your social links and try again, or contact support for assistance.
-          </p>
-          <div className="flex gap-3">
+          <div className="flex gap-3 w-full">
             <Button
               onClick={() => router.push('/dashboard/settings')}
-              className="bg-lime-400 text-black hover:bg-lime-500"
+              className="flex-1 bg-lime-400 text-black hover:bg-lime-500 font-bold"
             >
-              Update Profile
+              RETRY LINKS
             </Button>
             <Button
               onClick={() => onOpenChange(false)}
-              className="bg-gray-800 hover:bg-gray-700"
+              className="flex-1 bg-zinc-900 text-white border border-zinc-800"
             >
-              Close
+              CLOSE
             </Button>
           </div>
-        </div>
+        </motion.div>
       );
     }
 
     // Still processing
     return (
       <div className="py-8">
-        <div className="flex flex-col items-center mb-8">
-          <Loader2 className="w-12 h-12 animate-spin text-lime-400 mb-4" />
-          <h3 className="text-xl font-bold text-white mb-2">Verifying Your Profile</h3>
-          <p className="text-gray-400">This may take a few moments...</p>
+        <div className="flex flex-col items-center mb-10">
+          <div className="relative mb-6">
+            <Loader2 className="w-16 h-16 animate-spin text-lime-400 opacity-20" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <ShieldCheck className="w-8 h-8 text-lime-400" />
+            </div>
+          </div>
+          <h3 className="text-xl font-bold text-white tracking-tight uppercase">Security Audit in Progress</h3>
+          <p className="text-zinc-500 text-sm">Validating artist credentials via AI protocols...</p>
         </div>
 
         {/* Progress bar */}
-        <div className="mb-8">
-          <div className="bg-gray-800 rounded-full h-2 overflow-hidden">
-            <div
-              className="bg-lime-400 h-full transition-all duration-500"
-              style={{ width: `${jobStatus.progress}%` }}
+        <div className="mb-10 px-4">
+          <div className="bg-zinc-900 rounded-full h-1.5 overflow-hidden border border-zinc-800/50">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${jobStatus.progress}%` }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="bg-lime-400 h-full shadow-[0_0_15px_rgba(163,230,53,0.5)]"
             />
           </div>
-          <p className="text-center text-sm text-gray-400 mt-2">
-            {jobStatus.progress}% Complete
-          </p>
+          <div className="flex justify-between mt-3">
+            <span className="text-[10px] text-zinc-500 font-bold tracking-widest uppercase">AUDIT PROGRESS</span>
+            <span className="text-[10px] text-lime-400 font-bold tracking-widest">{jobStatus.progress}%</span>
+          </div>
         </div>
 
         {/* Steps */}
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {steps.map((step, idx) => {
             const status = getStepStatus(step.progress);
             return (
-              <div
+              <motion.div
                 key={idx}
-                className={`flex items-center gap-3 p-3 rounded-lg ${
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                className={`flex items-center gap-4 p-3 rounded-lg border transition-all ${
                   status === 'completed'
-                    ? 'bg-lime-400/10 border border-lime-400/20'
+                    ? 'bg-lime-400/5 border-lime-400/20'
                     : status === 'active'
-                    ? 'bg-yellow-400/10 border border-yellow-400/20'
-                    : 'bg-gray-900 border border-gray-800'
+                    ? 'bg-zinc-900 border-lime-400/30 shadow-[0_0_10px_rgba(163,230,53,0.05)]'
+                    : 'bg-zinc-950/50 border-zinc-900'
                 }`}
               >
-                <div>
+                <div className="shrink-0">
                   {status === 'completed' ? (
-                    <CheckCircle2 className="w-5 h-5 text-lime-400" />
+                    <div className="w-5 h-5 bg-lime-400 rounded-full flex items-center justify-center">
+                      <ShieldCheck className="w-3 h-3 text-black" />
+                    </div>
                   ) : status === 'active' ? (
-                    <Loader2 className="w-5 h-5 text-yellow-400 animate-spin" />
+                    <div className="w-5 h-5 rounded-full border-2 border-lime-400 border-t-transparent animate-spin" />
                   ) : (
-                    <div className="w-5 h-5 rounded-full border-2 border-gray-700" />
+                    <div className="w-5 h-5 rounded-full border border-zinc-800" />
                   )}
                 </div>
                 <span
-                  className={`text-sm ${
+                  className={`text-xs font-bold uppercase tracking-widest ${
                     status === 'completed'
                       ? 'text-lime-400'
                       : status === 'active'
-                      ? 'text-yellow-400'
-                      : 'text-gray-500'
+                      ? 'text-white'
+                      : 'text-zinc-600'
                   }`}
                 >
                   {step.label}
                 </span>
-              </div>
+              </motion.div>
             );
           })}
         </div>
@@ -277,11 +305,13 @@ export function VerificationModal({ open, onOpenChange, jobId }: VerificationMod
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg bg-black border-lime-400/20">
+      <DialogContent className="max-w-lg bg-black border-lime-400/20 shadow-[0_0_50px_rgba(163,230,53,0.1)]">
         <DialogHeader>
-          <DialogTitle className="text-2xl text-lime-400">Profile Verification</DialogTitle>
+          <DialogTitle className="text-sm font-bold text-zinc-500 uppercase tracking-[0.2em]">AUTHENTICATION GATEWAY</DialogTitle>
         </DialogHeader>
-        {renderStatusContent()}
+        <AnimatePresence mode="wait">
+          {renderStatusContent()}
+        </AnimatePresence>
       </DialogContent>
     </Dialog>
   );
