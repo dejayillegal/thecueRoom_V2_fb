@@ -124,10 +124,9 @@ export async function GET(request: Request) {
         image: feeds.thumbnailUrl,
         publishedAt: feeds.publishedAt,
         sourceId: feeds.sourceId,
-        sourceName: feedsSources.name,
+        sourceName: feeds.source, // Uses the source name column from feeds table
       })
       .from(feeds)
-      .leftJoin(feedsSources, eq(feeds.sourceId, feedsSources.id))
       .where(and(...conditions))
       .orderBy(desc(feeds.publishedAt), desc(feeds.id))
       .limit(limit)
