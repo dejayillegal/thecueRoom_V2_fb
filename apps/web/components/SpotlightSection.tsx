@@ -163,35 +163,43 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
                 >
                   <p className="text-xs md:text-sm font-light leading-relaxed line-clamp-3 italic">{currentFeed.summary}</p>
                 </motion.div>
-                <div className="flex flex-wrap items-center gap-8 md:gap-12 pt-4 md:pt-8">
-                  <Link href={currentFeed.url} target="_blank" className="group/link flex items-center gap-6 text-[10px] font-mono uppercase tracking-[0.8em] font-bold text-foreground focus:outline-none">
-                    <span className="border-b border-transparent group-hover:border-[#D1FF3D] transition-all pb-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 focus:border-[#D1FF3D] focus:opacity-100 focus:translate-y-0">Read more →</span>
-                  </Link>
-                  <div className="flex gap-4 relative z-[60]">
-                    <button 
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        goToPrevious();
-                      }} 
-                      className="p-3 border border-white/10 bg-[#0B0B0B]/20 hover:border-[#D1FF3D]/40 transition-all opacity-60 hover:opacity-100 cursor-pointer pointer-events-auto backdrop-blur-sm"
-                      title="Previous Signal"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <button 
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        goToNext();
-                      }} 
-                      className="p-3 border border-white/10 bg-[#0B0B0B]/20 hover:border-[#D1FF3D]/40 transition-all opacity-60 hover:opacity-100 cursor-pointer pointer-events-auto backdrop-blur-sm"
-                      title="Next Signal"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
+                <div className="flex items-center justify-between w-full pt-4 md:pt-8">
+                  <div className="flex items-center gap-8 md:gap-12">
+                    <Link href={currentFeed.url} target="_blank" className="group/link flex items-center gap-6 text-[10px] font-mono uppercase tracking-[0.8em] font-bold text-foreground focus:outline-none">
+                      <span className="border-b border-transparent group-hover:border-[#D1FF3D] transition-all pb-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 focus:border-[#D1FF3D] focus:opacity-100 focus:translate-y-0">Read more →</span>
+                    </Link>
+                    <div className="flex gap-4 relative z-[60]">
+                      <button 
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          goToPrevious();
+                        }} 
+                        className="p-3 border border-white/10 bg-[#0B0B0B]/20 hover:border-[#D1FF3D]/40 transition-all opacity-60 hover:opacity-100 cursor-pointer pointer-events-auto backdrop-blur-sm"
+                        title="Previous Signal"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          goToNext();
+                        }} 
+                        className="p-3 border border-white/10 bg-[#0B0B0B]/20 hover:border-[#D1FF3D]/40 transition-all opacity-60 hover:opacity-100 cursor-pointer pointer-events-auto backdrop-blur-sm"
+                        title="Next Signal"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="absolute bottom-12 right-10 md:static flex flex-col md:flex-row gap-4 z-10 items-end md:items-center">
+                    {currentFeeds.slice(0, 5).map((_, index) => (
+                      <SlideIndicator key={index} index={index} currentIndex={currentIndex} onClick={() => setCurrentIndex(index)} />
+                    ))}
                   </div>
                 </div>
               </div>
@@ -199,10 +207,6 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
           </div>
         </motion.div>
 
-        <div className="absolute bottom-12 right-10 flex flex-col gap-4 z-10 items-end">
-          {currentFeeds.slice(0, 5).map((_, index) => (
-            <SlideIndicator key={index} index={index} currentIndex={currentIndex} onClick={() => setCurrentIndex(index)} />
-          ))}
         </div>
       </section>
     </div>
