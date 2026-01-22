@@ -1,115 +1,82 @@
-/*
- * PATH: apps/web/app/page.tsx
- * DESCRIPTION: Central hub for music news and creative AI tools. 
- */
+'use client';
 
-import { Suspense } from 'react';
-import Link from 'next/link';
-import { AuthButton } from '@/components/auth/AuthButton';
+import { Suspense, lazy } from 'react';
 import SpotlightSection from '@/components/SpotlightSection';
-import NewsSection from '@/components/NewsSection';
 import { Logo } from '@/components/Logo';
-import LandingClientLayout from '@/components/LandingClientLayout';
+import { AuthButton } from '@/components/auth/AuthButton';
 
-export const dynamic = 'force-dynamic';
+// Lazy load feed for performance
+const FeedUX = lazy(() => import('@/components/FeedUX'));
 
-function SectionSkeleton() {
+export default function LandingPage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-8 opacity-20">
-      <div className="w-16 h-px bg-[#D1FF3D]" />
-    </div>
-  );
-}
-
-async function fetchLandingData() {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://0.0.0.0:5000';
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-  try {
-    const [spotlightRes, trendingRes] = await Promise.all([
-      fetch(`${baseUrl}/api/feeds?limit=5`, { 
-        cache: 'no-store',
-        signal: controller.signal 
-      }),
-      fetch(`${baseUrl}/api/feeds?limit=24&offset=0`, { 
-        cache: 'no-store',
-        signal: controller.signal
-      })
-    ]);
-
-    clearTimeout(timeoutId);
-
-    if (!spotlightRes.ok || !trendingRes.ok) {
-      return { spotlightFeeds: [], trendingFeeds: [], error: true };
-    }
-
-    const spotlightData = await spotlightRes.json();
-    const trendingData = await trendingRes.json();
-
-    return { 
-      spotlightFeeds: spotlightData.data || [], 
-      trendingFeeds: trendingData.data || [],
-      status: spotlightData.status || trendingData.status || { isRunning: false, hasFailed: false }
-    };
-  } catch (error: any) {
-    clearTimeout(timeoutId);
-    return { spotlightFeeds: [], trendingFeeds: [], error: true };
-  }
-}
-
-export default async function HomePage() {
-  const data = await fetchLandingData();
-  const { spotlightFeeds, trendingFeeds } = data;
-
-  return (
-    <main className="min-h-screen bg-[#0B0B0B] text-foreground selection:bg-[#D1FF3D] selection:text-[#0B0B0B] font-inter antialiased overflow-x-hidden">
-      <div className="fixed inset-0 pointer-events-none z-50 mix-blend-overlay opacity-[0.03] grain-overlay" />
-      
-      <header className="fixed top-0 w-full z-50 bg-[#0B0B0B]/60 backdrop-blur-2xl border-b border-[#D1FF3D]/10">
-        <div className="max-w-screen-2xl mx-auto px-6 sm:px-10 h-14 sm:h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 sm:gap-4 group">
-            <Logo className="w-8 h-8 sm:w-10 sm:h-10 grayscale opacity-60 group-hover:opacity-100 transition-all duration-1000" />
-            <div className="h-5 sm:h-6 w-[1px] bg-[#D1FF3D]/20 group-hover:bg-[#D1FF3D]/50 transition-all duration-1000" />
-            <span className="text-[12px] sm:text-base font-bold tracking-[0.4em] sm:tracking-[0.6em] uppercase opacity-60 group-hover:opacity-100 transition-all duration-1000 font-mono text-[#D1FF3D] leading-none">
-              thecueRoom
-            </span>
-          </Link>
-
-          <nav className="flex items-center gap-6 sm:gap-12">
+    <main className="min-h-screen bg-[#0B0B0B] text-foreground selection:bg-[#D1FF3D] selection:text-[#0B0B0B]">
+      {/* Editorial Header */}
+      <header className="fixed top-0 left-0 right-0 z-[100] bg-[#0B0B0B]/40 backdrop-blur-3xl border-b border-white/5">
+        <nav className="max-w-screen-2xl mx-auto px-10 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-4 group cursor-pointer">
+            <Logo className="w-8 h-8 transition-transform duration-700 group-hover:rotate-[360deg]" />
+            <span className="text-sm font-light tracking-[0.4em] uppercase">thecueRoom</span>
+          </div>
+          
+          <div className="flex items-center gap-12">
+            <div className="hidden md:flex items-center gap-12 text-[10px] font-mono uppercase tracking-[0.6em] text-foreground/40">
+              <span className="hover:text-[#D1FF3D] cursor-pointer transition-colors">Signals</span>
+              <span className="hover:text-[#D1FF3D] cursor-pointer transition-colors">Vectors</span>
+              <span className="hover:text-[#D1FF3D] cursor-pointer transition-colors">Creative</span>
+            </div>
             <AuthButton />
-          </nav>
-        </div>
+          </div>
+        </nav>
       </header>
 
-      <Suspense fallback={<SectionSkeleton />}>
-        <div className="pt-14 sm:pt-16">
-          <SpotlightSection 
-            initialFeeds={spotlightFeeds} 
-          />
-        </div>
-      </Suspense>
-
-      <div className="max-w-screen-2xl mx-auto px-6 sm:px-10 overflow-hidden py-8 md:py-32">
-        <NewsSection />
+      {/* Hero / Spotlight */}
+      <div className="pt-20">
+        <SpotlightSection initialFeeds={[]} initialTrending={[]} />
       </div>
 
-      <footer className="bg-[#0B0B0B] py-16 md:py-32 border-t border-[#D1FF3D]/5">
-        <div className="max-w-screen-2xl mx-auto px-10">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-16">
-            <div className="flex items-center gap-12">
-              <Logo className="w-6 h-6 grayscale opacity-10" />
-              <div className="h-4 w-[1px] bg-[#D1FF3D]/5" />
-              <p className="text-[9px] sm:text-[10px] leading-loose text-muted-foreground/20 uppercase tracking-[0.4em] sm:tracking-[0.6em] font-mono font-bold">
-                thecueRoom / V2 / {new Date().getFullYear()}
-              </p>
+      {/* Main Feed Content */}
+      <Suspense fallback={<div className="h-[40vh] bg-[#0B0B0B]" />}>
+        <FeedUX />
+      </Suspense>
+
+      {/* Production Footer - Minimalist */}
+      <footer className="border-t border-white/5 py-32 bg-[#080808]">
+        <div className="max-w-screen-2xl mx-auto px-10 flex flex-col md:flex-row justify-between items-start gap-24">
+          <div className="space-y-12 max-w-md">
+            <div className="flex items-center gap-4">
+              <Logo className="w-6 h-6 grayscale opacity-40" />
+              <span className="text-xs font-light tracking-[0.4em] uppercase opacity-40">thecueRoom</span>
             </div>
-            <div className="flex items-center gap-6 sm:gap-8">
-              <p className="text-[9px] sm:text-[10px] text-muted-foreground/10 uppercase tracking-[0.3em] sm:tracking-[0.4em] font-mono">
-                thecueRoom / Production Grade / {new Date().getFullYear()}
-              </p>
+            <p className="text-sm font-light leading-relaxed text-foreground/20 italic">
+              A central hub for music signals, creative tools, and underground discourse. 
+              Built for the technical precision and editorial calm of the modern musician.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-24">
+            <div className="space-y-8">
+              <h4 className="text-[10px] font-mono uppercase tracking-[0.8em] text-[#D1FF3D]/40">Network</h4>
+              <ul className="space-y-4 text-[11px] font-light tracking-widest uppercase text-foreground/40">
+                <li className="hover:text-[#D1FF3D] cursor-pointer transition-colors">About</li>
+                <li className="hover:text-[#D1FF3D] cursor-pointer transition-colors">Terms</li>
+                <li className="hover:text-[#D1FF3D] cursor-pointer transition-colors">Privacy</li>
+              </ul>
+            </div>
+            <div className="space-y-8">
+              <h4 className="text-[10px] font-mono uppercase tracking-[0.8em] text-[#D1FF3D]/40">Connect</h4>
+              <ul className="space-y-4 text-[11px] font-light tracking-widest uppercase text-foreground/40">
+                <li className="hover:text-[#D1FF3D] cursor-pointer transition-colors">Discord</li>
+                <li className="hover:text-[#D1FF3D] cursor-pointer transition-colors">Instagram</li>
+                <li className="hover:text-[#D1FF3D] cursor-pointer transition-colors">Twitter</li>
+              </ul>
             </div>
           </div>
+        </div>
+        
+        <div className="max-w-screen-2xl mx-auto px-10 mt-32 flex justify-between items-center text-[9px] font-mono uppercase tracking-[1em] text-white/5">
+          <span>© 2026 THECUEROOM</span>
+          <span>STABLE_BUILD_V2.0</span>
         </div>
       </footer>
     </main>
