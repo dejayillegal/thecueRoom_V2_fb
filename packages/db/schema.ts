@@ -1,16 +1,18 @@
 import { pgTable, text, timestamp, jsonb, integer, boolean, uuid, index, uniqueIndex } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
-// Users table for references
+// Users table (Standardized Identity)
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   email: text('email').notNull().unique(),
   username: text('username').notNull().unique(),
   passwordHash: text('password_hash'),
-  role: text('role').notNull().default('user'),
+  role: text('role').notNull().default('user'), // 'user' | 'artist' | 'admin'
+  trustLevel: integer('trust_level').notNull().default(0),
+  riskScore: integer('risk_score').notNull().default(0),
   verified: boolean('verified').notNull().default(false),
   verificationStatus: text('verification_status').notNull().default('pending'),
-  verificationJobId: uuid('verification_job_id'),
+  lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
@@ -20,7 +22,6 @@ export const profiles = pgTable('profiles', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   displayName: text('display_name'),
-  artistName: text('artist_name'),
   firstName: text('first_name'),
   lastName: text('last_name'),
   bio: text('bio'),
@@ -33,6 +34,31 @@ export const profiles = pgTable('profiles', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+// Artist Profiles (Foundation for Onboarding)
+export const artistProfiles = pgTable('artist_profiles', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
+  artistName: text('artist_name').notNull(),
+  primarySocialUrl: text('primary_social_url'),
+  verificationStatus: text('verification_status').notNull().default('unverified'), // 'unverified' | 'pending' | 'verified'
+  verifiedAt: timestamp('verified_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Auth Events (Security Audit)
+export const authEvents = pgTable('auth_events', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  eventType: text('event_type').notNull(), // 'login' | 'signup' | 'recovery' | 'risk_challenge'
+  deviceHash: text('device_hash'),
+  metadata: jsonb('metadata').$type<any>(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  userEventsIdx: index('auth_events_user_idx').on(table.userId),
+  typeIdx: index('auth_events_type_idx').on(table.eventType),
+}));
 
 // Authoritative Feed Sources
 export const feedsSources = pgTable('feeds_sources', {
@@ -50,7 +76,7 @@ export const feedsSources = pgTable('feeds_sources', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
-// Authoritative Feeds State (Lease Locking & Scheduling)
+// Authoritative Feeds State
 export const feedsState = pgTable('feeds_state', {
   sourceId: uuid('source_id').primaryKey().references(() => feedsSources.id, { onDelete: 'cascade' }),
   lastPolledAt: timestamp('last_polled_at', { withTimezone: true }),
@@ -68,7 +94,7 @@ export const feedsState = pgTable('feeds_state', {
   leaseExpiryIdx: index('feeds_state_lease_expiry_idx').on(table.leaseExpiresAt),
 }));
 
-// Authoritative Feed Items (Idempotent Storage)
+// Authoritative Feed Items
 export const feedsItems = pgTable('feeds_items', {
   id: uuid('id').primaryKey().defaultRandom(),
   sourceId: uuid('source_id').notNull().references(() => feedsSources.id, { onDelete: 'cascade' }),
