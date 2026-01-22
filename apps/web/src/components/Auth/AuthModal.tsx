@@ -19,6 +19,12 @@ import { useToast } from "@/src/hooks/use-toast";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { motion, AnimatePresence } from "framer-motion";
 
+/**
+ * thecueRoom V2 - Authentication Portal
+ * High-authority editorial design. 
+ * Secure, deliberate, and premium.
+ */
+
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -117,15 +123,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [isArtist, setIsArtist] = useState(false);
   const [artistName, setArtistName] = useState("");
-  const [region, setRegion] = useState("");
-  const [genre, setGenre] = useState("");
-  const [publicProfileUrl, setPublicProfileUrl] = useState("");
-  const [socialLinks, setSocialLinks] = useState<string[]>([""]);
-
   const [generatedUsername, setGeneratedUsername] = useState("");
 
   const artistAvailability = useAvailability("artist", artistName);
@@ -147,14 +145,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const resetForm = () => {
     setEmail("");
     setPassword("");
-    setFirstName("");
-    setLastName("");
-    setIsArtist(false);
     setArtistName("");
-    setRegion("");
-    setGenre("");
-    setPublicProfileUrl("");
-    setSocialLinks([""]);
     setError("");
     setIsLoading(false);
     setActiveTab("signin");
@@ -200,7 +191,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="relative max-h-[90vh] flex flex-col overflow-y-auto"
+              className="relative max-h-[90vh] flex flex-col overflow-y-auto overflow-x-hidden"
             >
               {/* Depth Treatment: Noise & Gradient */}
               <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/[0.02] to-transparent" />
