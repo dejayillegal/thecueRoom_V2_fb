@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, memo } from 'react';
+import { useState, useEffect, useCallback, memo, useRef } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -51,6 +51,9 @@ const FeedCard = memo(({ item, index }: { item: FeedItem; index: number }) => {
           alt={item.title}
           loading="lazy"
           className="absolute inset-0 w-full h-full object-cover grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000 ease-in-out scale-100 group-hover:scale-105"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = 'https://thecueroom.com/images/fallback-vector.png';
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-transparent to-transparent opacity-60" />
       </a>
@@ -80,30 +83,45 @@ const FeedCard = memo(({ item, index }: { item: FeedItem; index: number }) => {
 
 FeedCard.displayName = 'FeedCard';
 
-export default function FeedUX() {
-  const [items, setItems] = useState<FeedItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+interface FeedUXProps {
+  initialItems?: FeedItem[];
+  initialHasMore?: boolean;
+}
+
+export default function FeedUX({ initialItems = [], initialHasMore = true }: FeedUXProps) {
+  const [items, setItems] = useState<FeedItem[]>(initialItems);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(true);
-  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [offset, setOffset] = useState(initialItems.length);
+  const loadingRef = useRef(false);
 
   const fetchFeeds = useCallback(async (currentOffset: number) => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+    setIsLoading(true);
+    
     try {
       const response = await fetch(`/api/feeds?offset=${currentOffset}&limit=12`);
       const result: FeedAPIResponse = await response.json();
       
-      // If we got an error but already have items, just log it. 
-      // If we have no items and got an error, show it.
       if (result.error && currentOffset === 0 && (!result.data || result.data.length === 0)) {
         setError(result.error);
-        setIsLoading(false);
         return;
       }
 
       if (currentOffset === 0) {
         setItems(result.data || []);
+        setOffset(result.data?.length || 0);
       } else {
-        setItems(prev => [...prev, ...(result.data || [])]);
+        setItems(prev => {
+          const newItems = result.data || [];
+          // Filter out duplicates based on URL
+          const existingUrls = new Set(prev.map(i => i.url));
+          const uniqueNewItems = newItems.filter(i => !existingUrls.has(i.url));
+          return [...prev, ...uniqueNewItems];
+        });
+        setOffset(prev => prev + (result.data?.length || 0));
       }
       setHasMore(result.hasMore);
       setError(null);
@@ -114,74 +132,62 @@ export default function FeedUX() {
       }
     } finally {
       setIsLoading(false);
+      loadingRef.current = false;
     }
   }, [items.length]);
 
-  useEffect(() => {
-    fetchFeeds(0);
-    const interval = setInterval(() => fetchFeeds(0), 60 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, [fetchFeeds]);
-
-  const { ref, inView } = useInView({ threshold: 0.1 });
+  const { ref, inView } = useInView({ 
+    threshold: 0.1,
+    rootMargin: '400px', // Trigger slightly before reaching the bottom
+  });
 
   useEffect(() => {
-    if (inView && hasMore && !isLoading && !error) {
-      const nextOffset = offset + 12;
-      setOffset(nextOffset);
-      fetchFeeds(nextOffset);
+    if (inView && hasMore && !isLoading && !error && items.length > 0) {
+      fetchFeeds(offset);
     }
-  }, [inView, hasMore, isLoading, error, offset, fetchFeeds]);
+  }, [inView, hasMore, isLoading, error, offset, fetchFeeds, items.length]);
 
   return (
-    <section className="max-w-screen-2xl mx-auto px-10 py-32">
-      <header className="mb-24 space-y-4">
-        <div className="flex items-center gap-6">
-          <span className="text-[10px] font-mono uppercase tracking-[1em] font-bold text-[#D1FF3D]">Global Transmission</span>
-          <div className="h-px flex-1 bg-[#D1FF3D]/10" />
-        </div>
-        <h2 className="text-6xl md:text-8xl font-extralight tracking-tighter">Latest Signals</h2>
-      </header>
-
-      <AnimatePresence mode="wait">
-        {isLoading && items.length === 0 ? (
-          <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <FeedSkeleton />
-          </motion.div>
-        ) : error && items.length === 0 ? (
-          <motion.div 
-            key="error"
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            className="h-[40vh] flex flex-col items-center justify-center space-y-8 text-center"
+    <AnimatePresence mode="wait">
+      {items.length === 0 && isLoading ? (
+        <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <FeedSkeleton />
+        </motion.div>
+      ) : items.length === 0 && error ? (
+        <motion.div 
+          key="error"
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          className="h-[40vh] flex flex-col items-center justify-center space-y-8 text-center"
+        >
+          <p className="text-sm font-mono uppercase tracking-[0.5em] text-[#D1FF3D] animate-pulse">{error}</p>
+          <button 
+            onClick={() => { fetchFeeds(0); }}
+            className="text-[10px] font-mono uppercase tracking-[0.8em] border border-[#D1FF3D]/20 px-8 py-4 hover:bg-[#D1FF3D] hover:text-[#0B0B0B] transition-all"
           >
-            <p className="text-sm font-mono uppercase tracking-[0.5em] text-[#D1FF3D] animate-pulse">{error}</p>
-            <button 
-              onClick={() => { setIsLoading(true); fetchFeeds(0); }}
-              className="text-[10px] font-mono uppercase tracking-[0.8em] border border-[#D1FF3D]/20 px-8 py-4 hover:bg-[#D1FF3D] hover:text-[#0B0B0B] transition-all"
-            >
-              Retry Connection
-            </button>
-          </motion.div>
-        ) : (
-          <motion.div 
-            key="content"
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16 md:gap-24"
-          >
-            {items.map((item, index) => (
-              <FeedCard key={`${item.id}-${index}`} item={item} index={index} />
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {hasMore && !isLoading && !error && items.length > 0 && (
-        <div ref={ref} className="h-32 flex items-center justify-center mt-24">
-          <span className="text-[10px] font-mono uppercase tracking-[1em] opacity-20 animate-pulse">Syncing Archive</span>
-        </div>
+            Retry Connection
+          </button>
+        </motion.div>
+      ) : (
+        <motion.div 
+          key="content"
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16 md:gap-24"
+        >
+          {items.map((item, index) => (
+            <FeedCard key={`${item.id}-${index}`} item={item} index={index} />
+          ))}
+          {/* Intersection Observer target at the end of the grid */}
+          {hasMore && (
+            <div ref={ref} className="col-span-full h-32 flex items-center justify-center mt-24">
+              <span className="text-[10px] font-mono uppercase tracking-[1em] opacity-20 animate-pulse">
+                {isLoading ? 'Syncing Archive' : 'Transmission Ready'}
+              </span>
+            </div>
+          )}
+        </motion.div>
       )}
-    </section>
+    </AnimatePresence>
   );
 }

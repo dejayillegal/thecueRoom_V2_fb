@@ -1,14 +1,37 @@
-'use client';
-
 import { Suspense, lazy } from 'react';
 import SpotlightSection from '@/components/SpotlightSection';
 import { Logo } from '@/components/Logo';
 import { AuthButton } from '@/components/auth/AuthButton';
+import FeedUX, { FeedItem } from '@/components/FeedUX';
 
-// Lazy load feed for performance
-const FeedUX = lazy(() => import('@/components/FeedUX'));
+// Fallback domain for server-side fetching in Replit environment
+const getBaseUrl = () => {
+  if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
+    return `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
+  }
+  return 'http://localhost:5000';
+};
 
-export default function LandingPage() {
+async function getInitialFeeds(): Promise<{ data: FeedItem[]; hasMore: boolean }> {
+  try {
+    const baseUrl = getBaseUrl();
+    const res = await fetch(`${baseUrl}/api/feeds?limit=12&offset=0`, {
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!res.ok) throw new Error('Failed to fetch initial feeds');
+    return res.json();
+  } catch (error) {
+    console.error('Server-side feed fetch error:', error);
+    return { data: [], hasMore: false };
+  }
+}
+
+export default async function LandingPage() {
+  const initialData = await getInitialFeeds();
+
   return (
     <main className="min-h-screen bg-[#0B0B0B] text-foreground selection:bg-[#D1FF3D] selection:text-[#0B0B0B]">
       {/* Editorial Header */}
@@ -29,13 +52,21 @@ export default function LandingPage() {
 
       {/* Hero / Spotlight */}
       <div className="pt-20">
-        <SpotlightSection initialFeeds={[]} initialTrending={[]} />
+        <SpotlightSection initialFeeds={initialData.data.slice(0, 5)} initialTrending={[]} />
       </div>
 
       {/* Main Feed Content */}
-      <Suspense fallback={<div className="h-[40vh] bg-[#0B0B0B]" />}>
-        <FeedUX />
-      </Suspense>
+      <section className="max-w-screen-2xl mx-auto px-10 py-32">
+        <header className="mb-24 space-y-4">
+          <div className="flex items-center gap-6">
+            <span className="text-[10px] font-mono uppercase tracking-[1em] font-bold text-[#D1FF3D]">Global Transmission</span>
+            <div className="h-px flex-1 bg-[#D1FF3D]/10" />
+          </div>
+          <h2 className="text-6xl md:text-8xl font-extralight tracking-tighter">Latest Signals</h2>
+        </header>
+
+        <FeedUX initialItems={initialData.data} initialHasMore={initialData.hasMore} />
+      </section>
 
       {/* Production Footer - Minimalist */}
       <footer className="border-t border-white/5 py-32 bg-[#080808]">
