@@ -12,7 +12,7 @@ export const db = getDbClient();
  * This ensures that system activity drives the ingestion without external cron.
  * Using a dynamic import to avoid circular dependency / initialization issues.
  */
-if (typeof window === 'undefined') {
+if (typeof window === 'undefined' || (typeof process !== 'undefined' && process.env.NODE_ENV === 'test')) {
   // Use a slight delay to ensure DB client and schema are fully ready in the module cache
   setTimeout(async () => {
     try {
