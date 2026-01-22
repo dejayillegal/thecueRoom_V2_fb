@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
-import { feedsItems as feeds, feedsSources as sources } from '@thecueroom/db/schema';
+import { feedsItems, feedsSources } from '@thecueroom/db/schema';
 import { desc, eq, and, sql, gt } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
@@ -20,51 +20,47 @@ export async function GET(request: Request) {
     const offset = isNaN(offsetParam) ? 0 : Math.max(0, offsetParam);
 
     const db = getDbClient();
+    if (!db) {
+       return NextResponse.json({ data: [], hasMore: false }, { status: 200 });
+    }
     
     const twoWeeksAgo = new Date();
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
     const conditions: any[] = [
-      gt(feeds.publishedAt, twoWeeksAgo)
+      gt(feedsItems.publishedAt, twoWeeksAgo)
     ];
 
     if (sourceId) {
-      conditions.push(eq(feeds.sourceId, sourceId));
+      conditions.push(eq(feedsItems.sourceId, sourceId));
     }
 
     if (category) {
-      conditions.push(sql`${feeds.tags} @> ARRAY[${category}]::text[]`);
-    }
-
-    // Defensive check before database query
-    if (!db) {
-       return NextResponse.json({ data: [], hasMore: false }, { status: 200 });
+      conditions.push(sql`${feedsItems.tags} @> ARRAY[${category}]::text[]`);
     }
 
     const results = await db
       .select({
-        id: feeds.id,
-        title: feeds.title,
-        summary: feeds.summary,
-        link: feeds.link,
-        image: feeds.image,
-        tags: feeds.tags,
-        publishedAt: feeds.publishedAt,
-        sourceId: feeds.sourceId,
-        sourceName: sources.name,
+        id: feedsItems.id,
+        title: feedsItems.title,
+        summary: feedsItems.summary,
+        link: feedsItems.link,
+        image: feedsItems.image,
+        tags: feedsItems.tags,
+        publishedAt: feedsItems.publishedAt,
+        sourceId: feedsItems.sourceId,
+        sourceName: feedsSources.name,
       })
-      .from(feeds)
-      .leftJoin(sources, eq(feeds.sourceId, sources.id))
+      .from(feedsItems)
+      .leftJoin(feedsSources, eq(feedsItems.sourceId, feedsSources.id))
       .where(and(...conditions))
-      .orderBy(desc(feeds.publishedAt), desc(feeds.id))
+      .orderBy(desc(feedsItems.publishedAt), desc(feedsItems.id))
       .limit(limit)
       .offset(offset);
 
-    // Hard Safety: Ensure results is an array
     const safeResults = Array.isArray(results) ? results : [];
 
     const sanitizedItems = safeResults.map(item => {
-      // Defensive property access
       if (!item) return null;
       
       return {
@@ -91,12 +87,11 @@ export async function GET(request: Request) {
       },
     });
   } catch (error: any) {
-    // Fail Silently with valid structure as per requirement
     console.error('Feed API error (Safety Patch):', error);
     return NextResponse.json(
       { error: 'Failed to fetch feeds', data: [], hasMore: false },
       { 
-        status: 200, // Return 200 to prevent breaking frontend logic that expects data
+        status: 200,
         headers: { 'Content-Type': 'application/json' }
       }
     );

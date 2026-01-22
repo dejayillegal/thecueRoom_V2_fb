@@ -109,7 +109,7 @@ export default memo(function SpotlightSection({ initialFeeds }: { initialFeeds: 
   const titleY = useTransform(scrollY, [0, 500], [0, 50]);
   const contentOpacity = useTransform(scrollY, [0, 300], [1, 0]);
 
-  if (!currentFeeds || currentFeeds.length === 0 || !currentFeed) {
+  if (!currentFeeds || !Array.isArray(currentFeeds) || currentFeeds.length === 0 || !currentFeed) {
     return null;
   }
 
