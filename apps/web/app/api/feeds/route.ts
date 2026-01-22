@@ -9,7 +9,22 @@ export const runtime = 'nodejs';
 
 const ITEMS_PER_PAGE = 24;
 const INGEST_THRESHOLD_MS = 60 * 60 * 1000; // 60 minutes
-const FALLBACK_IMAGE = '/images/fallback/feed-default.png';
+const FALLBACK_IMAGES = [
+  '/fallbacks/fallback_1.png',
+  '/fallbacks/fallback_2.png',
+  '/fallbacks/fallback_3.png',
+  '/fallbacks/fallback_4.png'
+];
+
+function getDeterministicFallback(title: string): string {
+  let hash = 0;
+  for (let i = 0; i < title.length; i++) {
+    hash = ((hash << 5) - hash) + title.charCodeAt(i);
+    hash |= 0; // Convert to 32bit integer
+  }
+  const index = Math.abs(hash) % FALLBACK_IMAGES.length;
+  return FALLBACK_IMAGES[index];
+}
 
 const AUTHORITATIVE_SOURCES = [
   { name: 'Resident Advisor', url: 'https://ra.co/xml/rss/news.xml' },
@@ -175,7 +190,7 @@ export async function GET(request: Request) {
     const sanitizedItems = rows.map((item: any) => {
       if (!item.title || !item.url) return null;
 
-      let imageUrl = FALLBACK_IMAGE;
+      let imageUrl = getDeterministicFallback(item.title);
       if (item.thumbnail_url && typeof item.thumbnail_url === 'string' && item.thumbnail_url.trim() !== '' && item.thumbnail_url.trim() !== 'null') {
         const trimmedUrl = item.thumbnail_url.trim();
         if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
