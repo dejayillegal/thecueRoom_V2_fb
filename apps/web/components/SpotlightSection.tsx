@@ -123,7 +123,7 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
   return (
     <div className="relative">
       <section 
-        className="relative h-[85vh] group bg-[#0B0B0B] overflow-hidden cursor-pointer" 
+        className="relative h-[65vh] md:h-[85vh] group bg-[#0B0B0B] overflow-hidden cursor-pointer" 
         onMouseEnter={() => setIsPaused(true)} 
         onMouseLeave={() => setIsPaused(false)}
         onClick={() => {
@@ -138,10 +138,10 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
 
         <motion.div 
           style={{ y: titleY, opacity: contentOpacity }}
-          className="absolute inset-0 flex flex-col justify-end pb-12 md:pb-24"
+          className="absolute inset-0 flex flex-col justify-end pb-8 md:pb-24"
         >
-          <div className="max-w-screen-2xl mx-auto px-10 w-full">
-            <div className="grid grid-cols-1 lg:grid-cols-1 gap-8 md:gap-12 items-end">
+          <div className="max-w-screen-2xl mx-auto px-6 md:px-10 w-full">
+            <div className="grid grid-cols-1 lg:grid-cols-1 gap-6 md:gap-12 items-end">
               <div className="space-y-6 md:space-y-12 w-full">
                 <motion.div key={`meta-${currentIndex}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
                   <div className="flex items-center gap-6 text-[10px] font-mono uppercase tracking-[0.6em] text-[#D1FF3D] font-bold">
