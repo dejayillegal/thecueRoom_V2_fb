@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@thecueroom/db/client';
-import { feedsItems as feeds, feedsSources as sources } from '@thecueroom/db/schema';
+import { feeds, feedsSources as sources } from '@thecueroom/db/schema';
 import { desc, eq, and, sql, gt } from 'drizzle-orm';
 import { IngestionService } from '@thecueroom/db/ingestion';
 
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     }
 
     if (category) {
-      conditions.push(sql`${feeds.tags} @> ARRAY[${category}]::text[]`);
+      conditions.push(sql`${feeds.tags} @> ARRAY[${category}]::jsonb`);
     }
 
     const results = await db
@@ -42,8 +42,8 @@ export async function GET(request: Request) {
         id: feeds.id,
         title: feeds.title,
         summary: feeds.summary,
-        link: feeds.link,
-        image: feeds.image,
+        link: feeds.url,
+        image: feeds.thumbnailUrl,
         tags: feeds.tags,
         publishedAt: feeds.publishedAt,
         sourceId: feeds.sourceId,
@@ -56,7 +56,7 @@ export async function GET(request: Request) {
       .limit(limit)
       .offset(offset);
 
-    const sanitizedItems = results.map(item => ({
+    const sanitizedItems = results.map((item: any) => ({
       id: item.id,
       title: item.title,
       summary: item.summary,

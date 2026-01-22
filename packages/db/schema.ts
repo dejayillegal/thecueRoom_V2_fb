@@ -74,6 +74,31 @@ export const authEvents = pgTable('auth_events', {
   typeIdx: index('auth_events_type_idx').on(table.eventType),
 }));
 
+// Authoritative Feeds (Phase 2 Aligned)
+export const feeds = pgTable('feeds', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  sourceId: uuid('source_id').notNull().references(() => feedsSources.id, { onDelete: 'cascade' }),
+  source: text('source').notNull(), // Source name/identifier
+  title: text('title').notNull(),
+  summary: text('summary').notNull().default(''),
+  url: text('url').notNull(),
+  thumbnailUrl: text('thumbnail_url').notNull().default(''),
+  rawData: jsonb('raw_data').$type<any>().notNull().default(sql`'{}'::jsonb`),
+  publishedAt: timestamp('published_at', { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  contentHash: text('content_hash').notNull().unique(),
+}, (table) => ({
+  publishedAtIdx: index('feeds_published_at_idx').on(table.publishedAt),
+  contentHashIdx: uniqueIndex('feeds_content_hash_idx').on(table.contentHash),
+}));
+
+// Global Feed State (Singleton row - Phase 2 Aligned)
+export const feedState = pgTable('feed_state', {
+  id: integer('id').primaryKey().default(1),
+  lastIngestedAt: timestamp('last_ingested_at', { withTimezone: true }),
+  ingestLockUntil: timestamp('ingest_lock_until', { withTimezone: true }),
+});
+
 // Authoritative Feed Sources
 export const feedsSources = pgTable('feeds_sources', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -90,7 +115,7 @@ export const feedsSources = pgTable('feeds_sources', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
-// Authoritative Feeds State
+// Per-Source State (Internal scheduling)
 export const feedsState = pgTable('feeds_state', {
   sourceId: uuid('source_id').primaryKey().references(() => feedsSources.id, { onDelete: 'cascade' }),
   lastPolledAt: timestamp('last_polled_at', { withTimezone: true }),
@@ -107,56 +132,6 @@ export const feedsState = pgTable('feeds_state', {
   nextPollIdx: index('feeds_state_next_poll_idx').on(table.nextPollAt),
   leaseExpiryIdx: index('feeds_state_lease_expiry_idx').on(table.leaseExpiresAt),
 }));
-
-// Authoritative Feed Items
-export const feedsItems = pgTable('feeds_items', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  sourceId: uuid('source_id').notNull().references(() => feedsSources.id, { onDelete: 'cascade' }),
-  externalId: text('external_id').notNull(),
-  title: text('title').notNull(),
-  summary: text('summary').notNull().default(''),
-  content: text('content').notNull().default(''),
-  link: text('link').notNull(),
-  image: text('image').notNull().default(''),
-  tags: jsonb('tags').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-  rawData: jsonb('raw_data').$type<any>().notNull().default(sql`'{}'::jsonb`),
-  publishedAt: timestamp('published_at', { withTimezone: true }).notNull().defaultNow(),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  contentHash: text('content_hash').notNull().unique(),
-}, (table) => ({
-  sourceExternalIdx: uniqueIndex('feeds_items_source_external_idx').on(table.sourceId, table.externalId),
-  publishedAtIdx: index('feeds_items_published_at_idx').on(table.publishedAt),
-  contentHashIdx: uniqueIndex('feeds_items_content_hash_idx').on(table.contentHash),
-}));
-
-// Verification Jobs
-export const verificationJobs = pgTable('verification_jobs', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  profileUrl: text('profile_url').notNull(),
-  status: text('status').notNull().default('queued'),
-  progress: integer('progress').notNull().default(0),
-  decision: text('decision'),
-  score: integer('score'),
-  evidence: jsonb('evidence'),
-  error: text('error'),
-  reviewNotes: text('review_notes'),
-  completedAt: timestamp('completed_at', { withTimezone: true }),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-});
-
-// Notifications
-export const notifications = pgTable('notifications', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  type: text('type').notNull(),
-  title: text('title').notNull(),
-  message: text('message').notNull(),
-  link: text('link'),
-  read: boolean('read').notNull().default(false),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-});
 
 // Feed Ingestion Logs
 export const feedsIngestionLog = pgTable('feeds_ingestion_log', {

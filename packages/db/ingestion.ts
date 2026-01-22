@@ -1,5 +1,5 @@
 import { db } from './index';
-import { feedsSources, feedsState, feedsItems, feedsIngestionLog } from './schema';
+import { feedsSources, feedsState, feeds, feedsIngestionLog, feedState as globalFeedState } from './schema';
 import { eq, and, lt, or, sql, desc, gt } from 'drizzle-orm';
 import Parser from 'rss-parser';
 
@@ -33,12 +33,13 @@ export class IngestionService {
         .orderBy(desc(feedsIngestionLog.startedAt))
         .limit(10);
       
-      const activeLeases = await db
+      const status = await db
         .select()
-        .from(feedsState)
-        .where(gt(feedsState.leaseExpiresAt, new Date()));
+        .from(globalFeedState)
+        .where(eq(globalFeedState.id, 1))
+        .limit(1);
 
-      const isRunning = activeLeases.length > 0;
+      const isRunning = status[0]?.ingestLockUntil ? status[0].ingestLockUntil > new Date() : false;
       const latestLog = logs[0];
       const hasFailed = latestLog?.status === 'failed';
 
@@ -61,6 +62,20 @@ export class IngestionService {
   }
 
   static async run() {
+    // Acquire global lock
+    const now = new Date();
+    const status = await db.select().from(globalFeedState).where(eq(globalFeedState.id, 1)).limit(1);
+    
+    if (status[0]?.ingestLockUntil && status[0].ingestLockUntil > now) {
+      return { status: 'locked' };
+    }
+
+    await db.insert(globalFeedState).values({ id: 1, ingestLockUntil: new Date(Date.now() + this.LEASE_DURATION_MS) })
+      .onConflictDoUpdate({ 
+        target: globalFeedState.id, 
+        set: { ingestLockUntil: new Date(Date.now() + this.LEASE_DURATION_MS) } 
+      });
+
     const workerId = `worker-${Math.random().toString(36).substring(2, 15)}`;
     
     const eligibleSources = await db
@@ -86,6 +101,11 @@ export class IngestionService {
     for (const { source, state } of eligibleSources) {
       results.push(await this.processSource(source, state, workerId));
     }
+
+    await db.update(globalFeedState)
+      .set({ lastIngestedAt: new Date(), ingestLockUntil: null })
+      .where(eq(globalFeedState.id, 1));
+
     return results;
   }
 
@@ -133,21 +153,20 @@ export class IngestionService {
           const contentHash = Buffer.from(`${item.title}|${item.link}`).toString('base64');
 
           const result = await db
-            .insert(feedsItems)
+            .insert(feeds)
             .values({
               sourceId: source.id,
-              externalId: String(externalId),
+              source: source.name,
               title: item.title,
-              link: item.link,
+              url: item.link,
               summary: item.contentSnippet || '',
-              content: item.content || '',
-              image: item.enclosure?.url || '',
+              thumbnailUrl: item.enclosure?.url || '',
               publishedAt: isNaN(publishedAt.getTime()) ? new Date() : publishedAt,
               rawData: item,
               tags: item.categories || source.tags || [],
               contentHash,
             })
-            .onConflictDoNothing({ target: [feedsItems.contentHash] });
+            .onConflictDoNothing({ target: [feeds.contentHash] });
           
           if (result.rowCount && result.rowCount > 0) itemsNew++;
         } catch (itemErr) {

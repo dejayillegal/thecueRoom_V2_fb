@@ -1,4 +1,4 @@
-modules = ["nodejs-18", "web", "bash"]
+modules = ["nodejs-18", "web", "bash", "postgresql-16"]
 [agent]
 expertMode = true
 integrations = ["javascript_openai:1.0.0"]
