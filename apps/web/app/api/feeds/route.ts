@@ -31,73 +31,6 @@ export async function GET(request: Request) {
        }, { status: 200 });
     }
 
-    // PHASE 2 — SCHEMA GUARANTEE (IDEMPOTENT)
-    try {
-      await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS feeds (
-          id uuid primary key default gen_random_uuid(),
-          source_id uuid not null,
-          source text not null,
-          title text not null,
-          summary text default '',
-          url text not null,
-          thumbnail_url text default '',
-          published_at timestamptz default now(),
-          created_at timestamptz default now(),
-          content_hash text unique,
-          raw_data jsonb default '{}'::jsonb
-        );
-      `);
-
-      await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS feed_state (
-          id int primary key default 1,
-          last_ingested_at timestamptz
-        );
-      `);
-
-      await db.execute(sql`
-        INSERT INTO feed_state (id, last_ingested_at)
-        VALUES (1, NULL)
-        ON CONFLICT (id) DO NOTHING;
-      `);
-    } catch (schemaError) {
-      console.error('Schema guarantee failed:', schemaError);
-    }
-
-    // PHASE 3 — SAFE INGESTION LOGIC
-    const now = new Date();
-    let state;
-    try {
-      const stateResults = await db.select().from(feedState).where(eq(feedState.id, 1)).limit(1);
-      state = stateResults[0] || { id: 1, lastIngestedAt: null };
-    } catch (e) {
-      state = { id: 1, lastIngestedAt: null };
-    }
-
-    const feedCountResult = await db.select({ count: sql`count(*)` }).from(feeds);
-    const feedCount = Number(feedCountResult[0]?.count || 0);
-
-    const shouldIngest = feedCount === 0 || 
-                         !state.lastIngestedAt || 
-                         (now.getTime() - new Date(state.lastIngestedAt).getTime() > INGEST_THRESHOLD_MS);
-
-    if (shouldIngest) {
-      try {
-        console.log('Self-triggered ingestion started...');
-        // Update timestamp FIRST to prevent concurrent triggers
-        await db.update(feedState)
-          .set({ lastIngestedAt: now })
-          .where(eq(feedState.id, 1));
-          
-        await IngestionService.run();
-        console.log('Ingestion completed successfully.');
-      } catch (ingestError) {
-        console.error('Ingestion failed during request:', ingestError);
-        // We continue to serve what we have, or return a friendly error if truly empty
-      }
-    }
-    
     const twoWeeksAgo = new Date();
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
@@ -105,13 +38,11 @@ export async function GET(request: Request) {
       gt(feeds.publishedAt, twoWeeksAgo)
     ];
 
-    if (sourceId) {
-      conditions.push(eq(feeds.sourceId, sourceId));
-    }
-
     if (category) {
-      conditions.push(sql`${feeds.sourceId} IN (
-        SELECT id FROM feeds_sources WHERE tags ? ${category}
+      conditions.push(sql`EXISTS (
+        SELECT 1 FROM feeds_sources 
+        WHERE feeds_sources.name = ${feeds.source} 
+        AND feeds_sources.tags ? ${category}
       )`);
     }
 
@@ -123,8 +54,7 @@ export async function GET(request: Request) {
         link: feeds.url,
         image: feeds.thumbnailUrl,
         publishedAt: feeds.publishedAt,
-        sourceId: feeds.sourceId,
-        sourceName: feeds.source, // Uses the source name column from feeds table
+        sourceName: feeds.source,
       })
       .from(feeds)
       .where(and(...conditions))

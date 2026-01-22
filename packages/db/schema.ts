@@ -77,7 +77,6 @@ export const authEvents = pgTable('auth_events', {
 // Authoritative Feeds (Phase 2 Aligned)
 export const feeds = pgTable('feeds', {
   id: uuid('id').primaryKey().defaultRandom(),
-  sourceId: uuid('source_id').notNull().references(() => feedsSources.id, { onDelete: 'cascade' }),
   source: text('source').notNull(), // Source name/identifier
   title: text('title').notNull(),
   summary: text('summary').notNull().default(''),
@@ -116,7 +115,7 @@ export const feedsSources = pgTable('feeds_sources', {
 
 // Per-Source State (Internal scheduling)
 export const feedsState = pgTable('feeds_state', {
-  sourceId: uuid('source_id').primaryKey().references(() => feedsSources.id, { onDelete: 'cascade' }),
+  sourceName: text('source_name').primaryKey(), // Using name instead of ID
   lastPolledAt: timestamp('last_polled_at', { withTimezone: true }),
   nextPollAt: timestamp('next_poll_at', { withTimezone: true }).notNull().defaultNow(),
   leaseOwner: text('lease_owner'),
@@ -135,7 +134,7 @@ export const feedsState = pgTable('feeds_state', {
 // Feed Ingestion Logs
 export const feedsIngestionLog = pgTable('feeds_ingestion_log', {
   id: uuid('id').primaryKey().defaultRandom(),
-  sourceId: uuid('source_id').references(() => feedsSources.id, { onDelete: 'cascade' }),
+  sourceName: text('source_name'), // Using name instead of ID
   startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
   finishedAt: timestamp('finished_at', { withTimezone: true }),
   status: text('status').notNull(),
