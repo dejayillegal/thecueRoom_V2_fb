@@ -15,8 +15,9 @@ export interface FeedItem {
 }
 
 interface FeedAPIResponse {
-  data: FeedItem[];
-  hasMore: boolean;
+  items: FeedItem[];
+  total: number;
+  hydrated: boolean;
   error?: string;
 }
 
@@ -116,24 +117,24 @@ export default function FeedUX({ initialItems = [], initialHasMore = true }: Fee
       const response = await fetch(`/api/feeds?offset=${currentOffset}&limit=12`);
       const result: FeedAPIResponse = await response.json();
       
-      if (result.error && currentOffset === 0 && (!result.data || result.data.length === 0)) {
+      if (result.error && currentOffset === 0 && (!result.items || result.items.length === 0)) {
         setError(result.error);
         return;
       }
 
       if (currentOffset === 0) {
-        setItems(result.data || []);
-        setOffset(result.data?.length || 0);
+        setItems(result.items || []);
+        setOffset(result.items?.length || 0);
       } else {
         setItems(prev => {
-          const newItems = result.data || [];
+          const newItems = result.items || [];
           const existingIds = new Set(prev.map(i => i.id));
           const uniqueNewItems = newItems.filter(i => !existingIds.has(i.id));
           return [...prev, ...uniqueNewItems];
         });
-        setOffset(prev => prev + (result.data?.length || 0));
+        setOffset(prev => prev + (result.items?.length || 0));
       }
-      setHasMore(result.hasMore);
+      setHasMore(result.items?.length === 12);
       setError(null);
     } catch (err) {
       console.error('Feed fetch error:', err);

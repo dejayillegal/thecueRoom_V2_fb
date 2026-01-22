@@ -247,6 +247,7 @@ export async function GET(request: Request) {
     const sanitizedItems = rows.map((item: any) => {
       if (!item.title || !item.url) return null;
 
+      // Deterministic resolution order: item.thumbnail_url -> getDeterministicFallback
       let imageUrl = getDeterministicFallback(item.title);
       const thumb = item.thumbnail_url;
       if (thumb && typeof thumb === 'string' && thumb.trim() !== '' && thumb.trim() !== 'null') {
@@ -272,8 +273,9 @@ export async function GET(request: Request) {
     }).filter(Boolean);
 
     return NextResponse.json({
-      data: sanitizedItems,
-      hasMore: sanitizedItems.length === limit,
+      items: sanitizedItems,
+      total: count,
+      hydrated: count > 0 && !!state.lastIngestedAt,
     }, {
       headers: {
         'Content-Type': 'application/json',
@@ -283,6 +285,11 @@ export async function GET(request: Request) {
 
   } catch (error: any) {
     console.error('Feed API fatal error:', error);
-    return NextResponse.json({ error: 'Signal failure', data: [], hasMore: false }, { status: 200 });
+    return NextResponse.json({ 
+      items: [], 
+      total: 0, 
+      hydrated: false, 
+      error: 'Signal failure' 
+    }, { status: 200 });
   }
 }
