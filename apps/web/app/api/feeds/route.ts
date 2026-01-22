@@ -75,7 +75,7 @@ export async function GET(request: Request) {
       title: item.title,
       summary: item.summary,
       url: item.link || '',
-      image: item.image,
+      image: item.image || '/images/fallback-editorial.png',
       tags: item.tags || [],
       publishedAt: typeof item.publishedAt === 'string' ? item.publishedAt : item.publishedAt?.toISOString(),
       source: item.sourceName || 'Unknown',

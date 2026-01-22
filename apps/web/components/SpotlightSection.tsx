@@ -3,97 +3,23 @@
 import { useEffect, useState, useCallback, useRef, memo, useMemo } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { FeedItem } from './TrendingCarousel';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-
-/**
- * CINEMATIC VECTOR LAYER
- */
-const SpotlightImage = memo(({ feed }: { feed: FeedItem }) => {
-  const [resolvedSrcState, setResolvedSrcState] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    setResolvedSrcState(feed.image || null);
-    setIsLoading(true);
-  }, [feed.image]);
-
-  const resolvedSrc = resolvedSrcState || (feed.title ? `/api/og-fallback?title=${encodeURIComponent(feed.title)}` : null);
-
-  if (!resolvedSrc) return (
-    <div className="absolute inset-0 bg-[#0B0B0B] flex items-center justify-center">
-      <div className="w-16 h-px bg-[#D1FF3D]/10" />
-    </div>
-  );
-
-  return (
-    <motion.div 
-      initial={{ scale: 1.05, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      exit={{ scale: 1.02, opacity: 0 }}
-      transition={{ duration: 2, ease: [0.22, 1, 0.36, 1] }}
-      className="absolute inset-0 bg-[#0B0B0B] overflow-hidden"
-    >
-      {isLoading && (
-        <div className="absolute inset-0 bg-[#111111] animate-pulse" />
-      )}
-      <img
-        src={resolvedSrc}
-        alt={feed.title}
-        className="absolute inset-0 w-full h-full object-cover opacity-[0.25] filter grayscale contrast-150 brightness-110"
-        onLoad={() => setIsLoading(false)}
-        onError={() => {
-          const fallback = feed.title ? `/api/og-fallback?title=${encodeURIComponent(feed.title)}` : null;
-          if (resolvedSrcState !== fallback) {
-            setResolvedSrcState(fallback);
-          }
-          setIsLoading(false);
-        }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/20 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#0B0B0B]/60 via-transparent to-transparent" />
-    </motion.div>
-  );
-});
-
-SpotlightImage.displayName = 'SpotlightImage';
-
-const SlideIndicator = memo(({ 
-  index, 
-  currentIndex, 
-  onClick 
-}: { 
-  index: number; 
-  currentIndex: number; 
-  onClick: () => void;
-}) => (
-  <button
-    onClick={onClick}
-    className={`h-[1px] transition-all duration-700 relative overflow-hidden ${
-      index === currentIndex ? 'w-24 bg-[#D1FF3D]' : 'w-6 bg-[#D1FF3D]/10 hover:bg-[#D1FF3D]/30'
-    }`}
-    aria-label={`Entry ${index + 1}`}
-  >
-    {index === currentIndex && (
-      <motion.div 
-        layoutId="indicator"
-        className="absolute inset-0 bg-[#D1FF3D]"
-        initial={{ x: "-100%" }}
-        animate={{ x: "0%" }}
-        transition={{ duration: 12, ease: "linear" }}
-      />
-    )}
-  </button>
-));
-
-SlideIndicator.displayName = 'SlideIndicator';
+interface SpotlightFeedItem {
+  id: string;
+  title: string;
+  summary: string | null;
+  url: string;
+  image: string | null;
+  tags: string[] | null;
+  publishedAt: string | Date;
+  source: string;
+}
 
 export default memo(function SpotlightSection({
   initialFeeds,
 }: {
-  initialFeeds: FeedItem[];
+  initialFeeds: SpotlightFeedItem[];
 }) {
-  const [currentFeeds] = useState<FeedItem[]>(initialFeeds || []);
+  const [currentFeeds] = useState<SpotlightFeedItem[]>(initialFeeds || []);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const autoPlayRef = useRef<NodeJS.Timeout | undefined>(undefined);

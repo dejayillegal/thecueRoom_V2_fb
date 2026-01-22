@@ -26,44 +26,40 @@ interface FeedItem {
 const FeedCard = memo(({ feed, formatDate, index }: { feed: FeedItem; formatDate: (date: string | Date) => string; index: number }) => {
   if (!feed || !feed.title || !feed.url) return null;
   
-  const initialImg = feed.image || `/api/fallback-thumb/${encodeURIComponent(feed.id || 'default')}`;
+  const initialImg = feed.image || '/images/fallback-editorial.png';
   const [imgSrc, setImgSrc] = useState<string | null>(initialImg);
   
   return (
     <motion.article 
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.8, delay: (index % 3) * 0.1, ease: [0.22, 1, 0.36, 1] }}
-      className="group relative border-b border-[#D1FF3D]/5 pb-20 last:border-0 transition-all hover:bg-[#111111]/40 p-10 -mx-10"
+      viewport={{ once: true, margin: "-10% 0px -10% 0px" }}
+      transition={{ duration: 1.2, delay: (index % 3) * 0.15, ease: [0.22, 1, 0.36, 1] }}
+      className="group relative border-b border-[#D1FF3D]/5 pb-16 md:pb-24 last:border-0 transition-all hover:bg-white/[0.02] px-6 md:px-12 -mx-6 md:-mx-12 py-12 md:py-20"
     >
-      <Link href={feed.url} target="_blank" rel="noopener noreferrer" className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-12 md:gap-24 items-start">
-        <div className="space-y-8 md:space-y-10 order-2 xl:order-1">
-          <div className="flex items-center gap-4 md:gap-8 text-[9px] font-mono uppercase tracking-[0.4em] md:tracking-[0.5em] text-muted-foreground/30 font-bold">
+      <Link href={feed.url} target="_blank" rel="noopener noreferrer" className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-12 md:gap-24 items-start">
+        <div className="space-y-8 md:space-y-12 order-2 lg:order-1">
+          <div className="flex items-center gap-6 md:gap-10 text-[9px] font-mono uppercase tracking-[0.5em] text-[#D1FF3D]/40 font-bold">
             <span className="text-[#D1FF3D]">{feed.source}</span>
-            <span className="w-8 md:w-12 h-[1px] bg-[#D1FF3D]/10" />
-            <span>{formatDate(feed.publishedAt)}</span>
+            <span className="w-12 md:w-16 h-[1px] bg-[#D1FF3D]/10" />
+            <span className="opacity-60">{formatDate(feed.publishedAt)}</span>
           </div>
 
-          <motion.h3 
-            initial={{ opacity: 0.8 }}
-            whileHover={{ opacity: 1, x: 5 }}
-            className="text-[clamp(1.25rem,4vw,3.5rem)] font-extralight tracking-tighter leading-[1.05] group-hover:text-[#D1FF3D] transition-all duration-700 text-balance line-clamp-2 md:line-clamp-3"
-          >
+          <h3 className="text-[clamp(1.5rem,5vw,3.5rem)] font-light tracking-tight leading-[1.05] group-hover:text-white transition-all duration-700 text-balance line-clamp-2 md:line-clamp-3">
             {feed.title}
-          </motion.h3>
+          </h3>
 
           {feed.summary && (
-            <p className="text-sm leading-relaxed text-muted-foreground/60 font-light line-clamp-3 max-w-2xl text-balance">
+            <p className="text-sm md:text-base leading-relaxed text-white/40 font-light line-clamp-3 max-w-3xl text-balance group-hover:text-white/60 transition-colors duration-700">
               {feed.summary}
             </p>
           )}
 
-          <div className="flex flex-wrap gap-8 pt-4">
+          <div className="flex flex-wrap gap-10 pt-6">
             {feed.tags?.slice(0, 3).map((tag, idx) => (
               <span
                 key={idx}
-                className="text-[8px] font-mono uppercase tracking-[0.6em] text-muted-foreground/20 font-bold group-hover:text-[#D1FF3D]/30 transition-colors"
+                className="text-[9px] font-mono uppercase tracking-[0.6em] text-[#D1FF3D]/20 font-bold group-hover:text-[#D1FF3D]/50 transition-colors"
               >
                 #{tag}
               </span>
@@ -71,30 +67,19 @@ const FeedCard = memo(({ feed, formatDate, index }: { feed: FeedItem; formatDate
           </div>
         </div>
 
-        <div className="relative aspect-[16/9] overflow-hidden bg-[#111111]/40 order-1 xl:order-2 grayscale transition-all duration-1000 opacity-20 group-hover:opacity-60 group-hover:grayscale-0">
-          {imgSrc ? (
-            <img
-              src={imgSrc}
-              alt={feed.title}
-              className="w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-105"
-              onError={() => {
-                const fallback = `/api/fallback-thumb/${encodeURIComponent(feed.id || 'default')}`;
-                if (imgSrc !== fallback) {
-                  setImgSrc(fallback);
-                } else {
-                  setImgSrc(null);
-                }
-              }}
-              loading="lazy"
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-8 h-px bg-[#D1FF3D]/10" />
-            </div>
-          )}
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-[#0B0B0B]/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="absolute top-8 right-8 p-3 bg-white/5 backdrop-blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700">
-            <ArrowUpRight className="w-4 h-4 text-[#D1FF3D]" />
+        <div className="relative aspect-[4/3] lg:aspect-[3/2] overflow-hidden bg-[#0B0B0B] order-1 lg:order-2 border border-white/5 grayscale group-hover:grayscale-0 transition-all duration-1000 opacity-40 group-hover:opacity-100">
+          <img
+            src={imgSrc || '/images/fallback-editorial.png'}
+            alt={feed.title}
+            className="w-full h-full object-cover transition-transform duration-[3000ms] ease-out group-hover:scale-105"
+            onError={() => {
+              setImgSrc('/images/fallback-editorial.png');
+            }}
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B]/80 via-transparent to-transparent opacity-60" />
+          <div className="absolute top-6 right-6 p-4 bg-black/60 backdrop-blur-3xl border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-700 translate-x-4 group-hover:translate-x-0">
+            <ArrowUpRight className="w-5 h-5 text-[#D1FF3D]" />
           </div>
         </div>
       </Link>
@@ -275,9 +260,13 @@ export default function NewsSection() {
 
       <div ref={observerTarget} className="h-64 flex flex-col items-center justify-center gap-6">
         {isLoadingMore && (
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-16 h-px bg-[#D1FF3D]" />
-          </div>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex flex-col items-center gap-4"
+          >
+            <div className="w-16 h-px bg-[#D1FF3D] animate-pulse" />
+          </motion.div>
         )}
       </div>
     </div>
