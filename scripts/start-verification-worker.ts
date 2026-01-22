@@ -1,4 +1,4 @@
-import { getDbClient } from '../packages/db/client';
+import { db } from '../packages/db/index';
 import { verificationJobs, users } from '../packages/db/schema';
 import { eq } from 'drizzle-orm';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
@@ -52,8 +52,6 @@ async function fetchProfileData(url: string) {
 }
 
 async function processJob(jobId: string) {
-  const db = getDbClient();
-  
   try {
     console.log(`[Worker] Processing job ${jobId}`);
     
@@ -232,7 +230,6 @@ async function run() {
     await processQueue();
     
     // Check for pending jobs in DB
-    const db = getDbClient();
     const pendingJobs = await db.select()
       .from(verificationJobs)
       .where(eq(verificationJobs.status, 'queued'))

@@ -1,6 +1,6 @@
-import { getDbClient } from '../packages/db/client';
-import { sql, eq, and, lt, or, desc } from 'drizzle-orm';
+import { db } from '../packages/db/index';
 import { feedsItems, feedsSources, feedsState, feedsIngestionLog } from '../packages/db/schema';
+import { sql, eq, and, lt, or } from 'drizzle-orm';
 import Parser from 'rss-parser';
 import pLimit from 'p-limit';
 import crypto from 'crypto';
@@ -18,7 +18,6 @@ function generateHash(title: string, link: string): string {
 }
 
 async function processSource(source: any, state: any, workerId: string) {
-  const db = getDbClient();
   const startedAt = new Date();
   
   let itemsProcessed = 0;
@@ -97,7 +96,6 @@ async function processSource(source: any, state: any, workerId: string) {
 }
 
 async function run() {
-  const db = getDbClient();
   const workerId = `worker-${Math.random().toString(36).substring(2, 15)}`;
   
   console.log('🚀 Starting thecueRoom Background Feed Worker cycle...');
