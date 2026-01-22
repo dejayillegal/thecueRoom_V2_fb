@@ -5,10 +5,6 @@ import '../src/styles/performance.css';
 import FooterLinks from '@/components/FooterLinks';
 import { Toaster } from '@/components/ui/toaster';
 import AppShell from '@/components/AppShell';
-import { initScheduler } from '@/lib/init-scheduler';
-
-// Initialize the background ingestion scheduler
-initScheduler();
 
 const inter = Inter({ 
   subsets: ['latin'],

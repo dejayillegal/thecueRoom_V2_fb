@@ -54,14 +54,13 @@ export async function GET(request: Request) {
                          (now.getTime() - new Date(lastIngested).getTime() > INGEST_THRESHOLD_MS);
 
     if (shouldIngest) {
-      // PHASE 4: Await completion for first-run guarantee
-      // Using the actual IngestionService to fulfill the guarantee
       try {
         console.log('Self-triggered ingestion started (Awaiting completion)...');
         await IngestionService.run();
         console.log('Ingestion completed successfully.');
       } catch (ingestError) {
         console.error('Ingestion failed during request:', ingestError);
+        // Fallback: If we have zero items, let the user know we're syncing
         if (feedCount === 0) {
           return NextResponse.json({
             error: 'Synchronizing network signal... please refresh in a moment.',
