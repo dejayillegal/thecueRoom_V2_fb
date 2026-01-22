@@ -29,7 +29,12 @@ function getDeterministicFallback(title: string): string {
 const AUTHORITATIVE_SOURCES = [
   { name: 'Resident Advisor', url: 'https://ra.co/xml/rss/news.xml' },
   { name: 'Pitchfork', url: 'https://pitchfork.com/rss/news/' },
-  { name: 'FACT Magazine', url: 'https://www.factmag.com/feed/' }
+  { name: 'FACT Magazine', url: 'https://www.factmag.com/feed/' },
+  { name: 'Mixmag', url: 'https://mixmag.net/rss/news' },
+  { name: 'DJ Mag', url: 'https://djmag.com/news/feed' },
+  { name: 'MusicRadar', url: 'https://www.musicradar.com/rss/news' },
+  { name: 'XLR8R', url: 'https://xlr8r.com/feed/' },
+  { name: 'Stereogum', url: 'https://www.stereogum.com/feed/' }
 ];
 
 function normalizeUrl(url: string): string {

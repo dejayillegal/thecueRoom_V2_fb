@@ -39,43 +39,53 @@ const FeedSkeleton = () => (
 const FeedCard = memo(({ item, formatDate }: { item: FeedItem; formatDate: (d: string) => string }) => {
   return (
     <motion.article
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] } as any}
-      className="group flex flex-col gap-6"
+      initial={{ opacity: 0, y: 40, scale: 0.98, filter: 'blur(10px)' }}
+      whileInView={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+      viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] } as any}
+      className="group relative flex flex-col gap-8 p-6 transition-all duration-700 hover:bg-white/[0.02]"
     >
-      <a href={item.url} target="_blank" rel="noopener noreferrer" className="relative aspect-video overflow-hidden bg-[#0B0B0B]">
+      <a href={item.url} target="_blank" rel="noopener noreferrer" className="relative aspect-[16/10] overflow-hidden bg-[#0B0B0B] ring-1 ring-white/5 transition-all duration-700 group-hover:ring-white/10 group-hover:shadow-[0_0_80px_-20px_rgba(209,255,61,0.15)]">
         <img
           src={item.image}
           alt={item.title}
           loading="lazy"
-          className="absolute inset-0 w-full h-full object-cover grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000 ease-in-out scale-100 group-hover:scale-105"
+          className="absolute inset-0 w-full h-full object-cover grayscale opacity-60 mix-blend-luminosity group-hover:grayscale-0 group-hover:opacity-100 group-hover:mix-blend-normal transition-all duration-1000 ease-out scale-110 group-hover:scale-100"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = 'https://thecueroom.com/images/fallback-vector.png';
+            (e.target as HTMLImageElement).src = '/fallbacks/fallback_1.png';
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-transparent to-transparent opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/20 to-transparent opacity-80" />
+        
+        {/* Hover Accent Line */}
+        <motion.div 
+          initial={{ scaleX: 0 }}
+          whileHover={{ scaleX: 1 }}
+          className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#D1FF3D] origin-left transition-transform duration-700"
+        />
       </a>
       
-      <div className="space-y-4">
-        <div className="flex items-center gap-4 text-[9px] font-mono uppercase tracking-[0.4em] text-[#D1FF3D]/60">
-          <span>{item.source}</span>
-          <span>/</span>
+      <div className="space-y-6 relative">
+        <div className="flex items-center gap-4 text-[9px] font-mono uppercase tracking-[0.5em] text-[#D1FF3D]/40 group-hover:text-[#D1FF3D]/80 transition-colors duration-500">
+          <span className="px-2 py-0.5 border border-[#D1FF3D]/20 rounded-sm">{item.source}</span>
+          <span className="w-1 h-1 rounded-full bg-[#D1FF3D]/20" />
           <time dateTime={item.publishedAt}>
             {formatDate(item.publishedAt)}
           </time>
         </div>
         
         <a href={item.url} target="_blank" rel="noopener noreferrer" className="block group/title">
-          <h3 className="text-2xl md:text-3xl font-extralight tracking-tight leading-tight transition-colors group-hover/title:text-[#D1FF3D] decoration-[#D1FF3D]/30 underline-offset-8 group-hover/title:underline">
+          <h3 className="text-3xl md:text-4xl font-extralight tracking-tight leading-[1.1] transition-all duration-700 group-hover/title:text-[#D1FF3D] group-hover/title:translate-x-1">
             {item.title}
           </h3>
         </a>
         
-        <p className="text-sm font-light leading-relaxed text-foreground/40 line-clamp-2 italic">
+        <p className="text-sm font-light leading-relaxed text-foreground/30 line-clamp-3 italic transition-colors duration-700 group-hover:text-foreground/60">
           {item.summary}
         </p>
+
+        {/* Dynamic Shadow Element */}
+        <div className="absolute -inset-10 bg-[#D1FF3D]/[0.02] opacity-0 blur-3xl rounded-full transition-opacity duration-1000 group-hover:opacity-100 pointer-events-none" />
       </div>
     </motion.article>
   );
