@@ -110,7 +110,11 @@ export default function FeedUX({ initialItems = [], initialHasMore = true }: Fee
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    // Only fetch if we don't have initial items to avoid double loading on mount
+    if (initialItems.length === 0) {
+      fetchFeeds(0);
+    }
+  }, [fetchFeeds, initialItems.length]);
 
   const fetchFeeds = useCallback(async (currentOffset: number) => {
     if (loadingRef.current) return;
