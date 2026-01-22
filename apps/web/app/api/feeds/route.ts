@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/lib/db-client';
-import { feedsItems, feedsSources } from '@thecueroom/db/schema';
+import { feeds, feedsSources } from '@thecueroom/db/schema';
 import { desc, eq, and, sql, gt } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
@@ -28,33 +28,39 @@ export async function GET(request: Request) {
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
     const conditions: any[] = [
-      gt(feedsItems.publishedAt, twoWeeksAgo)
+      gt(feeds.publishedAt, twoWeeksAgo)
     ];
 
     if (sourceId) {
-      conditions.push(eq(feedsItems.sourceId, sourceId));
+      conditions.push(eq(feeds.sourceId, sourceId));
     }
 
     if (category) {
-      conditions.push(sql`${feedsItems.tags} @> ARRAY[${category}]::text[]`);
+      // Corrected: feedsSources tags check if filtering by category
+      // or check rawData/tags if present on feeds. 
+      // Based on schema, feedsSources has tags. feeds has sourceId.
+      const sourceSubquery = db.select({ id: feedsSources.id })
+        .from(feedsSources)
+        .where(sql`${feedsSources.tags} ? ${category}`);
+      
+      conditions.push(sql`${feeds.sourceId} IN (${sourceSubquery})`);
     }
 
     const results = await db
       .select({
-        id: feedsItems.id,
-        title: feedsItems.title,
-        summary: feedsItems.summary,
-        link: feedsItems.link,
-        image: feedsItems.image,
-        tags: feedsItems.tags,
-        publishedAt: feedsItems.publishedAt,
-        sourceId: feedsItems.sourceId,
+        id: feeds.id,
+        title: feeds.title,
+        summary: feeds.summary,
+        link: feeds.url,
+        image: feeds.thumbnailUrl,
+        publishedAt: feeds.publishedAt,
+        sourceId: feeds.sourceId,
         sourceName: feedsSources.name,
       })
-      .from(feedsItems)
-      .leftJoin(feedsSources, eq(feedsItems.sourceId, feedsSources.id))
+      .from(feeds)
+      .leftJoin(feedsSources, eq(feeds.sourceId, feedsSources.id))
       .where(and(...conditions))
-      .orderBy(desc(feedsItems.publishedAt), desc(feedsItems.id))
+      .orderBy(desc(feeds.publishedAt), desc(feeds.id))
       .limit(limit)
       .offset(offset);
 
@@ -69,7 +75,7 @@ export async function GET(request: Request) {
         summary: item.summary ?? '',
         url: item.link ?? '',
         image: item.image ?? '',
-        tags: Array.isArray(item.tags) ? item.tags : [],
+        tags: [],
         publishedAt: item.publishedAt instanceof Date 
           ? item.publishedAt.toISOString() 
           : (typeof item.publishedAt === 'string' ? item.publishedAt : new Date().toISOString()),
