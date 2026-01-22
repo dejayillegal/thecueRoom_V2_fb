@@ -58,20 +58,6 @@ const FEED_SOURCES = [
 
 const AUTHORITATIVE_SOURCES = FEED_SOURCES;
 
-function normalizeUrl(url: string): string {
-  try {
-    const u = new URL(url);
-    const params = u.searchParams;
-    const toDelete = Array.from(params.keys()).filter(k => 
-      k.startsWith('utm_') || k === 'ref' || k === 'source' || k === 'fbclid'
-    );
-    toDelete.forEach(k => params.delete(k));
-    return (u.origin + u.pathname + u.search).toLowerCase().trim();
-  } catch (e) {
-    return url.toLowerCase().trim();
-  }
-}
-
 function normalizeTitle(title: string): string {
   return title.toLowerCase()
     .trim()
@@ -79,73 +65,110 @@ function normalizeTitle(title: string): string {
     .replace(/\s+/g, ' ');
 }
 
+function normalizeUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    // Standardize protocol and hostname
+    u.protocol = 'https:';
+    u.hostname = u.hostname.replace(/^www\./, '');
+    
+    // Strip common tracking parameters
+    const params = u.searchParams;
+    const toDelete = Array.from(params.keys()).filter(k => 
+      k.startsWith('utm_') || 
+      ['ref', 'source', 'fbclid', 'gclid', 'mc_cid', 'mc_eid', 's'].includes(k.toLowerCase())
+    );
+    toDelete.forEach(k => params.delete(k));
+    
+    // Remove trailing slash and normalize case
+    let path = u.pathname.replace(/\/$/, '');
+    return (u.origin + path + u.search).toLowerCase().trim();
+  } catch (e) {
+    return url.toLowerCase().trim();
+  }
+}
+
+function generateCanonicalKey(item: any): string {
+  const normUrl = normalizeUrl(item.link || item.url || '');
+  if (normUrl && normUrl !== 'http:' && normUrl !== 'https:') {
+    return normUrl;
+  }
+  
+  // Fallback: normalized title + date
+  const normTitle = normalizeTitle(item.title || '');
+  const dateStr = item.isoDate || (item.publishedAt instanceof Date ? item.publishedAt.toISOString() : '');
+  const datePart = dateStr.split('T')[0] || 'no-date';
+  return `fallback:${normTitle}:${datePart}`;
+}
+
 async function ingestFeeds(db: any) {
   const parser = new Parser({ 
-    timeout: 10000,
-    headers: { 'User-Agent': 'thecueRoom-V2-Ingest/1.0' }
+    timeout: 8000,
+    headers: { 'User-Agent': 'thecueRoom-V2-Ingest/1.1' }
   });
   
-  const allItems: any[] = [];
-
-  for (const source of AUTHORITATIVE_SOURCES) {
+  // Process each source independently and concurrently
+  const sourcePromises = AUTHORITATIVE_SOURCES.map(async (source) => {
     try {
       const feed = await parser.parseURL(source.url);
-      const sourceItems = Array.isArray(feed.items) ? feed.items : [];
-      
-      for (const item of sourceItems.slice(0, 30)) {
-        if (!item.link || !item.title) continue;
-        
-        const normUrl = normalizeUrl(item.link);
-        const normTitle = normalizeTitle(item.title);
-        const publishedAt = item.isoDate ? new Date(item.isoDate) : new Date();
-
-        let thumbnailUrl = '';
-        if (item.enclosure?.url) {
-          thumbnailUrl = item.enclosure.url;
-        } else if (item.content) {
-          const imgMatch = item.content.match(/<img[^>]+src="([^">]+)"/);
-          if (imgMatch) thumbnailUrl = imgMatch[1];
-        } else if (item['media:content']?.['$']?.url) {
-          thumbnailUrl = item['media:content']['$'].url;
-        }
-
-        allItems.push({
-          canonicalKey: normUrl,
-          normTitle,
-          title: item.title,
-          summary: item.contentSnippet || '',
-          url: normUrl,
-          thumbnail_url: thumbnailUrl,
-          published_at: publishedAt,
-          source: source.name,
-          hasImage: !!thumbnailUrl && (thumbnailUrl.startsWith('http://') || thumbnailUrl.startsWith('https://'))
-        });
-      }
+      return (feed.items || []).map(item => ({ ...item, sourceName: source.name }));
     } catch (err) {
-      console.error(`Failed to ingest ${source.name}:`, err);
+      console.error(`Source failure [${source.name}]:`, err.message);
+      return [];
     }
-  }
+  });
 
+  const results = await Promise.allSettled(sourcePromises);
+  const rawItems = results.flatMap(r => r.status === 'fulfilled' ? r.value : []);
+
+  // Phase 3: Advanced Deduplication
   const dedupedMap = new Map<string, any>();
-  for (const item of allItems) {
-    const existing = dedupedMap.get(item.canonicalKey);
+
+  for (const item of rawItems) {
+    const key = generateCanonicalKey(item);
+    if (!key) continue;
+
+    const publishedAt = item.isoDate ? new Date(item.isoDate) : new Date();
+    const thumbnailUrl = (item as any).enclosure?.url || 
+                        (item as any)['media:content']?.['$']?.url || 
+                        (item as any).content?.match(/<img[^>]+src="([^">]+)"/)?.[1] || '';
+    
+    const current = {
+      key,
+      title: item.title?.trim(),
+      summary: (item.contentSnippet || item.content || '').trim(),
+      url: (item as any).link || (item as any).url,
+      thumbnail_url: thumbnailUrl,
+      published_at: publishedAt,
+      source: (item as any).sourceName,
+      hasThumbnail: !!thumbnailUrl && thumbnailUrl.startsWith('http'),
+      summaryLength: (item.contentSnippet || '').length
+    };
+
+    const existing = dedupedMap.get(key);
     if (!existing) {
-      dedupedMap.set(item.canonicalKey, item);
+      dedupedMap.set(key, current);
       continue;
     }
 
-    let replace = false;
-    if (!existing.hasImage && item.hasImage) {
-      replace = true;
-    } else if (existing.hasImage === item.hasImage) {
-      if (item.published_at.getTime() < existing.published_at.getTime()) {
-        replace = true;
+    // Rules: Prefer thumbnail > Richer summary > Newest
+    let shouldReplace = false;
+    if (!existing.hasThumbnail && current.hasThumbnail) {
+      shouldReplace = true;
+    } else if (existing.hasThumbnail === current.hasThumbnail) {
+      if (current.summaryLength > existing.summaryLength + 50) {
+        shouldReplace = true;
+      } else if (Math.abs(current.summaryLength - existing.summaryLength) < 50) {
+        if (current.published_at > existing.published_at) {
+          shouldReplace = true;
+        }
       }
     }
 
-    if (replace) dedupedMap.set(item.canonicalKey, item);
+    if (shouldReplace) dedupedMap.set(key, current);
   }
 
+  // Atomic persistence
   for (const item of dedupedMap.values()) {
     try {
       await db.execute(sql`
@@ -157,12 +180,12 @@ async function ingestFeeds(db: any) {
             ELSE feeds.thumbnail_url 
           END,
           summary = CASE 
-            WHEN feeds.summary IS NULL OR feeds.summary = '' THEN EXCLUDED.summary 
+            WHEN length(EXCLUDED.summary) > length(feeds.summary) + 20 THEN EXCLUDED.summary 
             ELSE feeds.summary 
           END;
       `);
     } catch (err) {
-      console.error('Insert error:', err);
+      // Ignore unique violations or minor insert errors to keep engine moving
     }
   }
 }
@@ -186,12 +209,20 @@ export async function GET(request: Request) {
     const shouldIngest = count === 0 || !state.lastIngestedAt || (now.getTime() - new Date(state.lastIngestedAt).getTime() > INGEST_THRESHOLD_MS);
 
     if (shouldIngest) {
-      await db.execute(sql`
-        INSERT INTO feed_state (id, last_ingested_at)
-        VALUES (1, ${now})
-        ON CONFLICT (id) DO UPDATE SET last_ingested_at = ${now};
-      `);
-      await ingestFeeds(db);
+      // NON-BLOCKING TRIGGER
+      (async () => {
+        try {
+          const innerDb = getDbClient();
+          await innerDb.execute(sql`
+            INSERT INTO feed_state (id, last_ingested_at)
+            VALUES (1, ${now})
+            ON CONFLICT (id) DO UPDATE SET last_ingested_at = ${now};
+          `);
+          await ingestFeeds(innerDb);
+        } catch (e) {
+          console.error('Background ingestion failed:', e);
+        }
+      })();
     }
 
     const twoWeeksAgo = new Date();
@@ -217,8 +248,9 @@ export async function GET(request: Request) {
       if (!item.title || !item.url) return null;
 
       let imageUrl = getDeterministicFallback(item.title);
-      if (item.thumbnail_url && typeof item.thumbnail_url === 'string' && item.thumbnail_url.trim() !== '' && item.thumbnail_url.trim() !== 'null') {
-        const trimmedUrl = item.thumbnail_url.trim();
+      const thumb = item.thumbnail_url;
+      if (thumb && typeof thumb === 'string' && thumb.trim() !== '' && thumb.trim() !== 'null') {
+        const trimmedUrl = thumb.trim();
         if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
           imageUrl = trimmedUrl;
         }

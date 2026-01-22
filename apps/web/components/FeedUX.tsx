@@ -173,7 +173,6 @@ export default function FeedUX({ initialItems = [], initialHasMore = true }: Fee
   }, [fetchFeeds, hasMore, isLoading, error, items.length, offset]);
 
   const formatDate = (dateStr: string) => {
-    if (!mounted) return ""; // Prevent hydration mismatch
     try {
       return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     } catch (e) {
