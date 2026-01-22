@@ -43,6 +43,7 @@ const FeedCard = memo(({ item, formatDate }: { item: FeedItem; formatDate: (d: s
       whileInView={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
       viewport={{ once: true, margin: "-100px" }}
       transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] } as any}
+      style={{}}
       className="group relative flex flex-col gap-8 p-6 transition-all duration-700 hover:bg-white/[0.02]"
     >
       <a href={item.url} target="_blank" rel="noopener noreferrer" className="relative aspect-[16/10] overflow-hidden bg-[#0B0B0B] ring-1 ring-white/5 transition-all duration-700 group-hover:ring-white/10 group-hover:shadow-[0_0_80px_-20px_rgba(209,255,61,0.15)]">
@@ -61,6 +62,7 @@ const FeedCard = memo(({ item, formatDate }: { item: FeedItem; formatDate: (d: s
         <motion.div 
           initial={{ scaleX: 0 }}
           whileHover={{ scaleX: 1 }}
+          style={{}}
           className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#D1FF3D] origin-left transition-transform duration-700"
         />
       </a>
@@ -106,15 +108,10 @@ export default function FeedUX({ initialItems = [], initialHasMore = true }: Fee
   const [offset, setOffset] = useState(initialItems.length);
   const loadingRef = useRef(false);
 
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    // Only fetch if we don't have initial items to avoid double loading on mount
-    if (initialItems.length === 0) {
-      fetchFeeds(0);
-    }
-  }, [fetchFeeds, initialItems.length]);
+  const { ref, inView } = useInView({ 
+    threshold: 0.1,
+    rootMargin: '400px',
+  });
 
   const fetchFeeds = useCallback(async (currentOffset: number) => {
     if (loadingRef.current) return;
@@ -155,10 +152,7 @@ export default function FeedUX({ initialItems = [], initialHasMore = true }: Fee
     }
   }, [items.length]);
 
-  const { ref, inView } = useInView({ 
-    threshold: 0.1,
-    rootMargin: '400px',
-  });
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     if (inView && hasMore && !isLoading && !error && items.length > 0) {
@@ -182,6 +176,7 @@ export default function FeedUX({ initialItems = [], initialHasMore = true }: Fee
           key="error"
           initial={{ opacity: 0 }} 
           animate={{ opacity: 1 }} 
+          style={{}}
           className="h-[40vh] flex flex-col items-center justify-center space-y-8 text-center"
         >
           <p className="text-sm font-mono uppercase tracking-[0.5em] text-[#D1FF3D]">{error}</p>
@@ -191,6 +186,7 @@ export default function FeedUX({ initialItems = [], initialHasMore = true }: Fee
           key="content"
           initial={{ opacity: 0 }} 
           animate={{ opacity: 1 }}
+          style={{}}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16 md:gap-24"
         >
           {items.map((item) => (
