@@ -120,7 +120,7 @@ export async function GET(request: Request) {
       )`);
     }
 
-    const results = await db
+    const rawResults = await db
       .select({
         id: feeds.id,
         title: feeds.title,
@@ -138,13 +138,13 @@ export async function GET(request: Request) {
       .limit(limit)
       .offset(offset);
 
-    const safeResults = Array.isArray(results) ? results : [];
+    // 🛡 PHASE 4 — NULL-SAFE API OUTPUT (MANDATORY)
+    const rows = Array.isArray(rawResults) ? rawResults : [];
 
-    // PHASE 5: Server-side Thumbnail Fallback Enforcement
-    const sanitizedItems = safeResults.map(item => {
+    const sanitizedItems = rows.map(item => {
       if (!item) return null;
       
-      const imageUrl = (item.image && item.image.trim() !== '' && item.image.trim() !== 'null') 
+      const imageUrl = (item.image && typeof item.image === 'string' && item.image.trim() !== '' && item.image.trim() !== 'null') 
         ? item.image 
         : FALLBACK_IMAGE;
 
