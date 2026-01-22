@@ -1,15 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Loader2,
-  ChevronRight,
-  X,
-} from "lucide-react";
+import { Loader2, ChevronRight, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { useToast } from "@/src/hooks/use-toast";
@@ -32,6 +28,7 @@ type ActiveTab = "signin" | "signup" | "forgot";
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const router = useRouter();
   const { toast } = useToast();
+
   const [activeTab, setActiveTab] = useState<ActiveTab>("signin");
 
   // Form state
@@ -48,9 +45,17 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   const [isLoading, setIsLoading] = useState(false);
 
+  // ✅ Added: error state (you referenced it in actual file)
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!isOpen) resetForm();
   }, [isOpen]);
+
+  // Clear error when tab switches or modal reopens
+  useEffect(() => {
+    if (isOpen) setError(null);
+  }, [activeTab, isOpen]);
 
   const resetForm = () => {
     setEmail("");
@@ -64,39 +69,61 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setGenre("");
     setPublicProfileUrl("");
     setIsLoading(false);
+    setError(null);
     setActiveTab("signin");
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
+
     try {
       const response = await fetch("/api/auth/signin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          email, 
+        body: JSON.stringify({
+          email,
           password,
-          deviceHash: typeof window !== 'undefined' ? btoa(window.navigator.userAgent) : 'unknown'
+          deviceHash:
+            typeof window !== "undefined"
+              ? btoa(window.navigator.userAgent)
+              : "unknown",
         }),
       });
+
       const data = await response.json();
+
       if (!response.ok) {
-        toast({ variant: "destructive", title: "Authentication Failed", description: data.error || "Invalid credentials" });
+        const msg = data?.error || "Invalid credentials";
+        setError(msg);
+        toast({
+          variant: "destructive",
+          title: "Authentication Failed",
+          description: msg,
+        });
         return;
       }
 
-      if (data.challengeRequired) {
-        toast({ title: "Verification Required", description: "A code has been sent to your email for secure access." });
-        // In a real app, transition to OTP view
+      if (data?.challengeRequired) {
+        toast({
+          title: "Verification Required",
+          description: "A code has been sent to your email for secure access.",
+        });
         return;
       }
 
       onClose();
       router.push("/dashboard");
       router.refresh();
-    } catch (err) {
-      toast({ variant: "destructive", title: "Error", description: "Connection error. Please try again." });
+    } catch {
+      const msg = "Connection error. Please try again.";
+      setError(msg);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: msg,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -104,11 +131,22 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    setError(null);
+
     if (password !== confirmPassword) {
-      toast({ variant: "destructive", title: "Password Mismatch", description: "Passwords do not match." });
+      const msg = "Passwords do not match.";
+      setError(msg);
+      toast({
+        variant: "destructive",
+        title: "Password Mismatch",
+        description: msg,
+      });
       return;
     }
+
     setIsLoading(true);
+
     try {
       const payload = {
         email,
@@ -128,17 +166,31 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       });
 
       const data = await response.json();
+
       if (!response.ok) {
-        toast({ variant: "destructive", title: "Registration Failed", description: data.error || "Check your details and try again." });
+        const msg = data?.error || "Check your details and try again.";
+        setError(msg);
+        toast({
+          variant: "destructive",
+          title: "Registration Failed",
+          description: msg,
+        });
         return;
       }
 
       toast({ title: "Welcome", description: "Account created successfully." });
+
       onClose();
       router.push("/dashboard");
       router.refresh();
-    } catch (err) {
-      toast({ variant: "destructive", title: "Error", description: "An error occurred during registration." });
+    } catch {
+      const msg = "An error occurred during registration.";
+      setError(msg);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: msg,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -146,32 +198,59 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+
     setIsLoading(true);
+    setError(null);
+
     try {
       const response = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
+
       const data = await response.json();
+
       if (!response.ok) {
-        toast({ variant: "destructive", title: "Request Failed", description: data.error || "Unable to process request." });
+        const msg = data?.error || "Unable to process request.";
+        setError(msg);
+        toast({
+          variant: "destructive",
+          title: "Request Failed",
+          description: msg,
+        });
         return;
       }
-      toast({ title: "Check Email", description: "Recovery instructions sent if account exists." });
+
+      toast({
+        title: "Check Email",
+        description: "Recovery instructions sent if account exists.",
+      });
+
       setActiveTab("signin");
-    } catch (err) {
-      toast({ variant: "destructive", title: "Error", description: "System unavailable." });
+    } catch {
+      const msg = "System unavailable.";
+      setError(msg);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: msg,
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
       <AnimatePresence>
         {isOpen && (
-          <DialogContent 
+          <DialogContent
             forceMount
             className="w-[95vw] max-w-[480px] bg-[#0B0B0B] border-none text-white p-0 shadow-2xl rounded-none outline-none sm:w-full overflow-hidden flex flex-col max-h-[90vh]"
           >
@@ -183,37 +262,59 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               transition={{ duration: 0.3 }}
             >
               <DialogTitle className="sr-only">Authentication</DialogTitle>
-              
+
               <DialogPrimitive.Close className="absolute right-6 top-6 rounded-sm opacity-40 transition-opacity hover:opacity-100 focus:outline-none z-50">
                 <X className="h-5 w-5" />
                 <span className="sr-only">Close</span>
               </DialogPrimitive.Close>
 
+              {/* Header */}
               <div className="px-6 pt-12 pb-8 sm:px-10 flex flex-col items-center flex-shrink-0">
                 <div className="flex flex-col items-center gap-4 mb-2 group">
                   <Logo className="w-16 h-16 text-[#D7FF3C] brightness-110" />
-                  <span className="text-3xl font-bold tracking-tight text-white">thecueRoom</span>
+                  <span className="text-3xl font-bold tracking-tight text-white">
+                    thecueRoom
+                  </span>
                 </div>
-                <p className="text-[11px] font-mono tracking-[0.3em] uppercase text-gray-500">Music News & Creative AI</p>
+                <p className="text-[11px] font-mono tracking-[0.3em] uppercase text-gray-500">
+                  Music News & Creative AI
+                </p>
               </div>
 
+              {/* Tabs */}
               <div className="flex px-6 sm:px-10 border-b border-white/[0.05] flex-shrink-0 bg-black/20 backdrop-blur-sm">
                 {(["signin", "signup", "forgot"] as const).map((tab) => (
                   <button
                     key={tab}
+                    type="button"
                     onClick={() => setActiveTab(tab)}
-                    className={`flex-1 py-5 text-[11px] font-mono uppercase tracking-widest transition-all duration-300 relative focus:outline-none group`}
+                    className="flex-1 py-5 text-[11px] font-mono uppercase tracking-widest transition-all duration-300 relative focus:outline-none group"
                   >
-                    <span className={`transition-colors duration-300 ${activeTab === tab ? "text-[#D7FF3C]" : "text-gray-600 group-hover:text-gray-400"}`}>
-                      {tab === "signin" ? "Entrance" : tab === "signup" ? "Registry" : "Recovery"}
+                    <span
+                      className={`transition-colors duration-300 ${
+                        activeTab === tab
+                          ? "text-[#D7FF3C]"
+                          : "text-gray-600 group-hover:text-gray-400"
+                      }`}
+                    >
+                      {tab === "signin"
+                        ? "Entrance"
+                        : tab === "signup"
+                          ? "Registry"
+                          : "Recovery"}
                     </span>
+
                     {activeTab === tab && (
-                      <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#D7FF3C]" />
+                      <motion.div
+                        layoutId="activeTab"
+                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#D7FF3C]"
+                      />
                     )}
                   </button>
                 ))}
               </div>
 
+              {/* Body */}
               <div className="px-6 py-10 sm:px-10 overflow-y-auto flex-grow scrollbar-hide">
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -236,6 +337,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                               required
                             />
                           </FieldGroup>
+
                           <FieldGroup label="Password">
                             <Input
                               type="password"
@@ -246,8 +348,25 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                               required
                             />
                           </FieldGroup>
+
+                          <AnimatePresence>
+                            {error && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="flex items-center gap-3 text-red-400 text-[10px] bg-red-400/5 p-4 border border-red-400/10 font-mono uppercase tracking-wider"
+                              >
+                                {error}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
-                        <ActionZone activeTab={activeTab} isLoading={isLoading} />
+
+                        <ActionZone
+                          activeTab={activeTab}
+                          isLoading={isLoading}
+                        />
                       </form>
                     )}
 
@@ -263,6 +382,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                               required
                             />
                           </FieldGroup>
+
                           <FieldGroup label="Last Name">
                             <Input
                               value={lastName}
@@ -273,6 +393,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                             />
                           </FieldGroup>
                         </div>
+
                         <FieldGroup label="Email">
                           <Input
                             type="email"
@@ -283,6 +404,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                             required
                           />
                         </FieldGroup>
+
                         <div className="grid grid-cols-2 gap-8">
                           <FieldGroup label="Password">
                             <Input
@@ -294,11 +416,14 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                               required
                             />
                           </FieldGroup>
+
                           <FieldGroup label="Confirm">
                             <Input
                               type="password"
                               value={confirmPassword}
-                              onChange={(e) => setConfirmPassword(e.target.value)}
+                              onChange={(e) =>
+                                setConfirmPassword(e.target.value)
+                              }
                               placeholder="Confirm password"
                               className="bg-transparent border-white/[0.1] border-x-0 border-t-0 border-b rounded-none px-0 h-11 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] placeholder:text-gray-800 transition-all duration-300"
                               required
@@ -315,22 +440,38 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                                 onChange={(e) => setIsArtist(e.target.checked)}
                                 className="sr-only"
                               />
-                              {isArtist && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-4 h-4 bg-[#D7FF3C]" />}
+                              {isArtist && (
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  className="w-4 h-4 bg-[#D7FF3C]"
+                                />
+                              )}
                             </div>
-                            <span className="text-[11px] font-mono uppercase tracking-widest text-gray-500 group-hover:text-white transition-colors">Register as Professional Artist</span>
+                            <span className="text-[11px] font-mono uppercase tracking-widest text-gray-500 group-hover:text-white transition-colors">
+                              Register as Professional Artist
+                            </span>
                           </label>
 
                           {isArtist && (
-                            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-8 pt-4 border-t border-white/[0.05]">
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="space-y-8 pt-4 border-t border-white/[0.05]"
+                            >
                               <FieldGroup label="Artist Name">
                                 <Input
                                   value={artistName}
-                                  onChange={(e) => setArtistName(e.target.value)}
+                                  onChange={(e) =>
+                                    setArtistName(e.target.value)
+                                  }
                                   placeholder="Alias"
                                   className="bg-transparent border-white/[0.1] border-x-0 border-t-0 border-b rounded-none px-0 h-11 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] placeholder:text-gray-800"
                                   required={isArtist}
                                 />
                               </FieldGroup>
+
                               <div className="grid grid-cols-2 gap-8">
                                 <FieldGroup label="Region">
                                   <Input
@@ -341,6 +482,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                                     required={isArtist}
                                   />
                                 </FieldGroup>
+
                                 <FieldGroup label="Genre">
                                   <Input
                                     value={genre}
@@ -351,10 +493,13 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                                   />
                                 </FieldGroup>
                               </div>
+
                               <FieldGroup label="Portfolio URL">
                                 <Input
                                   value={publicProfileUrl}
-                                  onChange={(e) => setPublicProfileUrl(e.target.value)}
+                                  onChange={(e) =>
+                                    setPublicProfileUrl(e.target.value)
+                                  }
                                   placeholder="Primary Social Link"
                                   className="bg-transparent border-white/[0.1] border-x-0 border-t-0 border-b rounded-none px-0 h-11 text-sm focus-visible:ring-0 focus-visible:border-[#D7FF3C] placeholder:text-gray-800"
                                   required={isArtist}
@@ -363,17 +508,39 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                             </motion.div>
                           )}
                         </div>
-                        <ActionZone activeTab={activeTab} isLoading={isLoading} />
+
+                        <AnimatePresence>
+                          {error && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="flex items-center gap-3 text-red-400 text-[10px] bg-red-400/5 p-4 border border-red-400/10 font-mono uppercase tracking-wider"
+                            >
+                              {error}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
+                        <ActionZone
+                          activeTab={activeTab}
+                          isLoading={isLoading}
+                        />
                       </form>
                     )}
 
                     {activeTab === "forgot" && (
-                      <form onSubmit={handleForgotPassword} className="space-y-10">
+                      <form
+                        onSubmit={handleForgotPassword}
+                        className="space-y-10"
+                      >
                         <div className="p-6 bg-white/[0.03] border border-white/[0.05]">
                           <p className="text-[11px] font-mono leading-relaxed text-gray-400 uppercase tracking-widest">
-                            Identity Recovery initiated. Enter your registered email to receive access instructions.
+                            Identity Recovery initiated. Enter your registered
+                            email to receive access instructions.
                           </p>
                         </div>
+
                         <FieldGroup label="Email">
                           <Input
                             type="email"
@@ -384,16 +551,38 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                             required
                           />
                         </FieldGroup>
-                        <ActionZone activeTab={activeTab} isLoading={isLoading} />
+
+                        <AnimatePresence>
+                          {error && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="flex items-center gap-3 text-red-400 text-[10px] bg-red-400/5 p-4 border border-red-400/10 font-mono uppercase tracking-wider"
+                            >
+                              {error}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
+                        <ActionZone
+                          activeTab={activeTab}
+                          isLoading={isLoading}
+                        />
                       </form>
                     )}
                   </motion.div>
                 </AnimatePresence>
               </div>
 
+              {/* Footer */}
               <div className="bg-[#050505] px-6 py-4 sm:px-10 border-t border-white/[0.05] flex justify-between items-center flex-shrink-0">
-                <span className="text-[9px] font-mono text-gray-700 uppercase tracking-widest">© 2026 thecueRoom</span>
-                <span className="text-[9px] font-mono text-gray-700 uppercase tracking-widest">Authorized Access</span>
+                <span className="text-[9px] font-mono text-gray-700 uppercase tracking-widest">
+                  © 2026 thecueRoom
+                </span>
+                <span className="text-[9px] font-mono text-gray-700 uppercase tracking-widest">
+                  Authorized Access
+                </span>
               </div>
             </motion.div>
           </DialogContent>
@@ -403,7 +592,13 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   );
 }
 
-function FieldGroup({ label, children }: { label: string, children: React.ReactNode }) {
+function FieldGroup({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="relative group/field">
       <Label className="text-[11px] font-mono uppercase tracking-[0.2em] text-gray-700 group-focus-within/field:text-white transition-colors duration-300 block mb-4">
@@ -414,7 +609,13 @@ function FieldGroup({ label, children }: { label: string, children: React.ReactN
   );
 }
 
-function ActionZone({ activeTab, isLoading }: { activeTab: string, isLoading: boolean }) {
+function ActionZone({
+  activeTab,
+  isLoading,
+}: {
+  activeTab: ActiveTab;
+  isLoading: boolean;
+}) {
   return (
     <div className="pt-6">
       <Button
@@ -422,9 +623,15 @@ function ActionZone({ activeTab, isLoading }: { activeTab: string, isLoading: bo
         disabled={isLoading}
         className="w-full h-16 bg-[#0B0B0B] border border-white/10 hover:bg-[#D7FF3C] hover:border-[#D7FF3C] text-white hover:text-black font-mono uppercase tracking-[0.2em] text-[11px] transition-all duration-500 rounded-none group"
       >
-        {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+        {isLoading ? (
+          <Loader2 className="w-5 h-5 animate-spin" />
+        ) : (
           <span className="flex items-center gap-3">
-            {activeTab === 'signin' ? 'Initiate Entrance' : activeTab === 'signup' ? 'Complete Registry' : 'Send Instructions'} 
+            {activeTab === "signin"
+              ? "Initiate Entrance"
+              : activeTab === "signup"
+                ? "Complete Registry"
+                : "Send Instructions"}
             <ChevronRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform" />
           </span>
         )}
