@@ -17,6 +17,33 @@ const AUTHORITATIVE_SOURCES = [
   { name: 'FACT Magazine', url: 'https://www.factmag.com/feed/' }
 ];
 
+/**
+ * Normalizes a URL by removing tracking parameters and lowercasing
+ */
+function normalizeUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    const params = u.searchParams;
+    const toDelete = Array.from(params.keys()).filter(k => 
+      k.startsWith('utm_') || k === 'ref' || k === 'source' || k === 'fbclid'
+    );
+    toDelete.forEach(k => params.delete(k));
+    return u.origin + u.pathname + u.search;
+  } catch (e) {
+    return url.toLowerCase().trim();
+  }
+}
+
+/**
+ * Normalizes a title for matching
+ */
+function normalizeTitle(title: string): string {
+  return title.toLowerCase()
+    .trim()
+    .replace(/[^\w\s]/g, '')
+    .replace(/\s+/g, ' ');
+}
+
 async function ingestFeeds(db: any) {
   const parser = new Parser({ 
     timeout: 10000,
@@ -25,18 +52,22 @@ async function ingestFeeds(db: any) {
     }
   });
   
+  const allItems: any[] = [];
+
+  // PHASE 1: Collect from all sources safely
   for (const source of AUTHORITATIVE_SOURCES) {
     try {
-      console.log(`Scanning source: ${source.name}`);
       const feed = await parser.parseURL(source.url);
-      const items = Array.isArray(feed.items) ? feed.items : [];
+      const sourceItems = Array.isArray(feed.items) ? feed.items : [];
       
-      for (const item of items.slice(0, 20)) {
+      for (const item of sourceItems.slice(0, 30)) {
         if (!item.link || !item.title) continue;
         
+        const normUrl = normalizeUrl(item.link);
+        const normTitle = normalizeTitle(item.title);
         const publishedAt = item.isoDate ? new Date(item.isoDate) : new Date();
-        
-        // Deterministic thumbnail extraction
+
+        // Extract thumbnail
         let thumbnailUrl = '';
         if (item.enclosure?.url) {
           thumbnailUrl = item.enclosure.url;
@@ -47,15 +78,69 @@ async function ingestFeeds(db: any) {
           thumbnailUrl = item['media:content']['$'].url;
         }
 
-        await db.execute(sql`
-          INSERT INTO feeds (source, title, summary, url, thumbnail_url, published_at)
-          VALUES (${source.name}, ${item.title}, ${item.contentSnippet || ''}, ${item.link}, ${thumbnailUrl}, ${publishedAt})
-          ON CONFLICT (url) DO NOTHING;
-        `);
+        allItems.push({
+          canonicalKey: normUrl, // Primary identity is normalized URL
+          normTitle,
+          title: item.title,
+          summary: item.contentSnippet || '',
+          url: normUrl,
+          thumbnail_url: thumbnailUrl,
+          published_at: publishedAt,
+          source: source.name,
+          hasImage: !!thumbnailUrl && thumbnailUrl.startsWith('http')
+        });
       }
     } catch (err) {
       console.error(`Failed to ingest ${source.name}:`, err);
-      // Continue to next source even if one fails
+    }
+  }
+
+  // PHASE 2: Deduplicate in-memory before DB insert
+  // Strategy: Group by canonicalKey (URL) or normTitle+Date
+  const dedupedMap = new Map<string, any>();
+
+  for (const item of allItems) {
+    const existing = dedupedMap.get(item.canonicalKey);
+    
+    if (!existing) {
+      dedupedMap.set(item.canonicalKey, item);
+      continue;
+    }
+
+    // PHASE 3: Conflict Resolution
+    // Priority: Richer metadata (has image) > Earliest publish date
+    let replace = false;
+    if (!existing.hasImage && item.hasImage) {
+      replace = true;
+    } else if (existing.hasImage === item.hasImage) {
+      if (item.published_at.getTime() < existing.published_at.getTime()) {
+        replace = true;
+      }
+    }
+
+    if (replace) {
+      dedupedMap.set(item.canonicalKey, item);
+    }
+  }
+
+  // PHASE 4: Safe Batch Insertion
+  for (const item of dedupedMap.values()) {
+    try {
+      await db.execute(sql`
+        INSERT INTO feeds (source, title, summary, url, thumbnail_url, published_at)
+        VALUES (${item.source}, ${item.title}, ${item.summary}, ${item.url}, ${item.thumbnail_url}, ${item.published_at})
+        ON CONFLICT (url) DO UPDATE SET
+          thumbnail_url = CASE 
+            WHEN feeds.thumbnail_url IS NULL OR feeds.thumbnail_url = '' THEN EXCLUDED.thumbnail_url 
+            ELSE feeds.thumbnail_url 
+          END,
+          summary = CASE 
+            WHEN feeds.summary IS NULL OR feeds.summary = '' THEN EXCLUDED.summary 
+            ELSE feeds.summary 
+          END;
+      `);
+    } catch (err) {
+      console.error('Insert error:', err);
     }
   }
 }
@@ -74,7 +159,6 @@ export async function GET(request: Request) {
        return NextResponse.json({ error: 'Database connection failed', data: [], hasMore: false }, { status: 200 });
     }
 
-    // Ensure schema and triggers
     const now = new Date();
     const stateResult = await db.select().from(feedState).where(eq(feedState.id, 1)).limit(1);
     const state = stateResult[0] || { id: 1, lastIngestedAt: null };
@@ -87,7 +171,6 @@ export async function GET(request: Request) {
                          (now.getTime() - new Date(state.lastIngestedAt).getTime() > INGEST_THRESHOLD_MS);
 
     if (shouldIngest) {
-      // Immediate lock to prevent race conditions
       await db.execute(sql`
         INSERT INTO feed_state (id, last_ingested_at)
         VALUES (1, ${now})
