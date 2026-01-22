@@ -168,7 +168,7 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
                     <Link href={currentFeed.url} target="_blank" className="group/link flex items-center gap-6 text-[10px] font-mono uppercase tracking-[0.8em] font-bold text-foreground focus:outline-none">
                       <span className="border-b border-transparent group-hover:border-[#D1FF3D] transition-all pb-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 focus:border-[#D1FF3D] focus:opacity-100 focus:translate-y-0">Read more →</span>
                     </Link>
-                    <div className="flex gap-4 relative z-[60]">
+                    <div className="hidden md:flex gap-4 relative z-[60]">
                       <button 
                         type="button"
                         onClick={(e) => {
@@ -196,7 +196,7 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
                     </div>
                   </div>
 
-                  <div className="absolute bottom-12 right-10 md:static flex flex-col md:flex-row gap-4 z-10 items-end md:items-center">
+                  <div className="absolute bottom-12 right-10 md:static flex flex-row gap-4 z-10 items-center">
                     {currentFeeds.slice(0, 5).map((_, index) => (
                       <SlideIndicator key={index} index={index} currentIndex={currentIndex} onClick={() => setCurrentIndex(index)} />
                     ))}
