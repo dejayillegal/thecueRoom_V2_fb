@@ -6,7 +6,7 @@ import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CheckCircle2, XCircle, Loader2, AlertCircle, X } from 'lucide-react';
+import { CheckCircle2, XCircle, Loader2, AlertCircle, X, ChevronRight } from 'lucide-react';
 import { VerificationModal } from '../Auth/VerificationModal';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
