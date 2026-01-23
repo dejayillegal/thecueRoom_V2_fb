@@ -1,0 +1,56 @@
+## Error Type
+Recoverable Error
+
+## Error Message
+Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <LandingPage>
+      <main className="min-h-scre...">
+        <header>
+        ...
+          <div className="relative">
+            <section className="relative h..." onMouseEnter={function onMouseEnter} onMouseLeave={function onMouseLeave} ...>
+              <AnimatePresence>
+              <MotionComponent style={{...}} className="absolute i...">
+                <div className="absolute i..." style={{opacity:1, ...}} ref={function}>
+                  <div className="max-w-scre...">
+                    <div className="grid grid-...">
+                      <div className="space-y-6 ...">
+                        <MotionComponent initial={{opacity:0}} animate={{opacity:1}} transition={{duration:0.2}}>
+                          <div style={{opacity:0, ...}} ref={function}>
+                            <div className="flex items...">
+                              <span>
+                              <span>
+                              <span>
++                               JAN 23
+-                               JAN 22
+                        ...
+        ...
+
+
+
+    at span (<anonymous>:null:null)
+    at SpotlightSection (components/SpotlightSection.tsx:150:21)
+    at LandingPage (app/page.tsx:61:9)
+
+## Code Frame
+  148 |                     <span>{currentFeed.source}</span>
+  149 |                     <span className="w-8 h-px bg-[#D1FF3D]/20" />
+> 150 |                     <span>{new Date(currentFeed.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}</span>
+      |                     ^
+  151 |                   </div>
+  152 |                 </motion.div>
+  153 |                 <motion.h1 
+
+Next.js version: 15.5.6 (Webpack)
