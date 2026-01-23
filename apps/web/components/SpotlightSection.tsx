@@ -147,7 +147,7 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
                   <div className="flex items-center gap-6 text-[10px] font-mono uppercase tracking-[0.6em] text-[#D1FF3D] font-bold">
                     <span>{currentFeed.source}</span>
                     <span className="w-8 h-px bg-[#D1FF3D]/20" />
-                    <span>{new Date(currentFeed.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}</span>
+                    <span suppressHydrationWarning>{new Date(currentFeed.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}</span>
                   </div>
                 </motion.div>
                 <motion.h1 

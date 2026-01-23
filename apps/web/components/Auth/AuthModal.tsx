@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { SignupModal } from "./SignupModal";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -94,15 +95,13 @@ export default function AuthModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[480px] w-[95vw] bg-[#0B0B0B] border border-white/5 p-0 overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] rounded-none ring-0 focus:ring-0 sm:rounded-none">
-        <button
-          onClick={onClose}
-          className="absolute right-6 top-6 text-zinc-600 hover:text-white transition-all duration-300 z-50 p-2"
-          aria-label="Close"
-          type="button"
-        >
-          <X size={18} strokeWidth={1.5} />
-        </button>
+      <DialogContent 
+        hideClose
+        className="max-w-[480px] w-[95vw] bg-[#0B0B0B] border border-white/5 p-0 overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] rounded-none ring-0 focus:ring-0 sm:rounded-none"
+      >
+        <VisuallyHidden.Root>
+          <DialogTitle>Authentication Portal</DialogTitle>
+        </VisuallyHidden.Root>
 
         <div className="flex flex-col h-full max-h-[90vh]">
           {/* Header Section */}

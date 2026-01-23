@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -227,14 +228,13 @@ export function SignupModal({ open, onOpenChange, onSwitchToSignin, isEmbedded =
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto bg-[#0B0B0B] border-white/10 p-0 shadow-2xl rounded-none ring-0 focus:ring-0">
-          <button 
-            onClick={() => onOpenChange(false)}
-            className="absolute right-6 top-6 text-zinc-600 hover:text-white transition-colors z-50"
-            aria-label="Close"
-          >
-            <X size={18} />
-          </button>
+        <DialogContent 
+          hideClose
+          className="max-w-2xl max-h-[95vh] overflow-y-auto bg-[#0B0B0B] border-white/10 p-0 shadow-2xl rounded-none ring-0 focus:ring-0"
+        >
+          <VisuallyHidden.Root>
+            <DialogTitle>Create Account</DialogTitle>
+          </VisuallyHidden.Root>
           {content}
         </DialogContent>
       </Dialog>
