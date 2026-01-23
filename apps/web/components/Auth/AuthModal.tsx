@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import { SignupModal } from "./SignupModal";
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -95,7 +95,7 @@ export default function AuthModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent 
+      <DialogContent
         hideClose
         className="max-w-[480px] w-[95vw] bg-[#0B0B0B] border border-white/5 p-0 overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] rounded-none ring-0 focus:ring-0 sm:rounded-none"
       >
@@ -351,7 +351,7 @@ export default function AuthModal({
                   )}
                 </motion.div>
               </AnimatePresence>
-            </motion.div>
+            </div>
           </div>
         </div>
       </DialogContent>
