@@ -9,10 +9,16 @@ const WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW || '60', 10) * 1000; //
 const BLOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 async function checkRateLimit(identifier: string): Promise<{ allowed: boolean; retryAfter?: number }> {
-  const db = getDbClient();
   const now = new Date();
   
   try {
+    const db = getDbClient();
+    if (!db) {
+      console.warn('DB client not available for rate limiting, failing open');
+      return { allowed: true };
+    }
+
+    // Get or create rate limit record
     const [record] = await db
       .select()
       .from(loginAttempts)
@@ -20,6 +26,7 @@ async function checkRateLimit(identifier: string): Promise<{ allowed: boolean; r
       .limit(1);
 
     if (!record) {
+      // First attempt
       await db.insert(loginAttempts).values({
         identifier,
         attempts: 1,
@@ -28,20 +35,24 @@ async function checkRateLimit(identifier: string): Promise<{ allowed: boolean; r
       return { allowed: true };
     }
 
+    // Check if blocked
     if (record.blockedUntil && record.blockedUntil > now) {
       const retryAfter = Math.ceil((record.blockedUntil.getTime() - now.getTime()) / 1000);
       return { allowed: false, retryAfter };
     }
 
+    // Check if window expired
     const windowExpired = now.getTime() - record.lastAttemptAt.getTime() > WINDOW_MS;
     
     if (windowExpired) {
+      // Reset counter
       await db.update(loginAttempts)
         .set({ attempts: 1, lastAttemptAt: now, blockedUntil: null })
         .where(eq(loginAttempts.identifier, identifier));
       return { allowed: true };
     }
 
+    // Check if max attempts exceeded
     if (record.attempts >= MAX_ATTEMPTS) {
       const blockedUntil = new Date(now.getTime() + BLOCK_DURATION_MS);
       await db.update(loginAttempts)
@@ -50,6 +61,7 @@ async function checkRateLimit(identifier: string): Promise<{ allowed: boolean; r
       return { allowed: false, retryAfter: Math.ceil(BLOCK_DURATION_MS / 1000) };
     }
 
+    // Increment attempts
     await db.update(loginAttempts)
       .set({ 
         attempts: record.attempts + 1,
@@ -65,9 +77,13 @@ async function checkRateLimit(identifier: string): Promise<{ allowed: boolean; r
 }
 
 async function recordSuccessfulLogin(identifier: string, userId: string): Promise<void> {
-  const db = getDbClient();
   try {
+    const db = getDbClient();
+    if (!db) return;
+    
+    // Clear rate limit on successful login
     await db.delete(loginAttempts).where(eq(loginAttempts.identifier, identifier));
+    // Update last login timestamp
     await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, userId));
   } catch (err) {
     console.error('Failed to record successful login:', err);
