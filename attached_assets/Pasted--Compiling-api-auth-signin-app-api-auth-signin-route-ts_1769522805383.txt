@@ -1,0 +1,104 @@
+ ○ Compiling /api/auth/signin ...
+ ⚠ ./app/api/auth/signin/route.ts
+Attempted import error: 'loginAttempts' is not exported from '@thecueroom/db/schema' (imported as 'loginAttempts').
+
+Import trace for requested module:
+./app/api/auth/signin/route.ts
+
+./app/api/auth/signin/route.ts
+Attempted import error: 'loginAttempts' is not exported from '@thecueroom/db/schema' (imported as 'loginAttempts').
+
+Import trace for requested module:
+./app/api/auth/signin/route.ts
+
+./app/api/auth/signin/route.ts
+Attempted import error: 'loginAttempts' is not exported from '@thecueroom/db/schema' (imported as 'loginAttempts').
+
+Import trace for requested module:
+./app/api/auth/signin/route.ts
+
+./app/api/auth/signin/route.ts
+Attempted import error: 'loginAttempts' is not exported from '@thecueroom/db/schema' (imported as 'loginAttempts').
+
+Import trace for requested module:
+./app/api/auth/signin/route.ts
+
+./app/api/auth/signin/route.ts
+Attempted import error: 'loginAttempts' is not exported from '@thecueroom/db/schema' (imported as 'loginAttempts').
+
+Import trace for requested module:
+./app/api/auth/signin/route.ts
+
+./app/api/auth/signin/route.ts
+Attempted import error: 'loginAttempts' is not exported from '@thecueroom/db/schema' (imported as 'loginAttempts').
+
+Import trace for requested module:
+./app/api/auth/signin/route.ts
+
+./app/api/auth/signin/route.ts
+Attempted import error: 'loginAttempts' is not exported from '@thecueroom/db/schema' (imported as 'loginAttempts').
+
+Import trace for requested module:
+./app/api/auth/signin/route.ts
+
+./app/api/auth/signin/route.ts
+Attempted import error: 'loginAttempts' is not exported from '@thecueroom/db/schema' (imported as 'loginAttempts').
+
+Import trace for requested module:
+./app/api/auth/signin/route.ts
+
+./app/api/auth/signin/route.ts
+Attempted import error: 'loginAttempts' is not exported from '@thecueroom/db/schema' (imported as 'loginAttempts').
+
+Import trace for requested module:
+./app/api/auth/signin/route.ts
+
+./app/api/auth/signin/route.ts
+Attempted import error: 'loginAttempts' is not exported from '@thecueroom/db/schema' (imported as 'loginAttempts').
+
+Import trace for requested module:
+./app/api/auth/signin/route.ts
+
+./app/api/auth/signin/route.ts
+Attempted import error: 'loginAttempts' is not exported from '@thecueroom/db/schema' (imported as 'loginAttempts').
+
+Import trace for requested module:
+./app/api/auth/signin/route.ts
+
+./app/api/auth/signin/route.ts
+Attempted import error: 'users' is not exported from '@thecueroom/db/schema' (imported as 'users').
+
+Import trace for requested module:
+./app/api/auth/signin/route.ts
+
+./app/api/auth/signin/route.ts
+Attempted import error: 'users' is not exported from '@thecueroom/db/schema' (imported as 'users').
+
+Import trace for requested module:
+./app/api/auth/signin/route.ts
+
+./lib/auth.ts
+Attempted import error: 'users' is not exported from '@thecueroom/db/schema' (imported as 'users').
+
+Import trace for requested module:
+./lib/auth.ts
+./app/api/auth/signin/route.ts
+
+./lib/auth.ts
+Attempted import error: 'users' is not exported from '@thecueroom/db/schema' (imported as 'users').
+
+Import trace for requested module:
+./lib/auth.ts
+./app/api/auth/signin/route.ts
+✅ Database client initialized using supabase provider
+Sign in error: TypeError: Cannot read properties of undefined (reading 'Symbol(drizzle:Columns)')
+    at checkRateLimit (app/api/auth/signin/route.ts:18:6)
+    at POST (app/api/auth/signin/route.ts:110:30)
+  16 |   const [record] = await db
+  17 |     .select()
+> 18 |     .from(loginAttempts)
+     |      ^
+  19 |     .where(eq(loginAttempts.identifier, identifier))
+  20 |     .limit(1);
+  21 |
+ POST /api/auth/signin 500 in 1495ms
