@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { getDbClient } from '../packages/db';
+import { getDbClient } from '../packages/db/client';
 import { users, profiles } from '../packages/db/schema';
 import { eq } from 'drizzle-orm';
 import * as bcrypt from 'bcryptjs';
