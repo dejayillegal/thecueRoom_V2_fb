@@ -1,0 +1,96 @@
+You must execute the following steps exactly and sequentially.
+This is an implementation task, not a design discussion.
+
+GOAL:
+Fix authentication by force-creating missing database tables,
+hardening the sign-in API, and seeding admin + test accounts.
+
+–––––––––––––––––––––
+STEP 1: FORCE DATABASE SCHEMA INTO POSTGRES
+–––––––––––––––––––––
+1. Verify drizzle.config.ts points to the schema file that defines:
+   users, profiles, login_attempts.
+2. Generate Drizzle migrations for all missing tables.
+3. Apply migrations to the connected Postgres database.
+4. Fail loudly if any migration cannot be applied.
+5. Log confirmation that the following tables exist:
+   - users
+   - profiles
+   - login_attempts
+
+Verification:
+Run a database table listing command and confirm the tables exist.
+
+–––––––––––––––––––––
+STEP 2: HARDEN SIGN-IN API (NO 500 ERRORS)
+–––––––––––––––––––––
+1. Update checkRateLimit() in app/api/auth/signin/route.ts.
+2. It must:
+   - Safely handle missing records
+   - Never throw uncaught errors
+   - Return structured error responses
+3. All Drizzle queries must be guarded.
+4. Do not remove rate limiting logic.
+5. Maintain the existing API response shape.
+
+Verification:
+Calling /api/auth/signin with an empty or partial database
+must never return HTTP 500.
+
+–––––––––––––––––––––
+STEP 3: IDEMPOTENT ADMIN SEED
+–––––––––––––––––––––
+Create a seed script that guarantees this admin account exists:
+
+Email: dejayillegal@gmail.com
+Password: Closer@82
+Role: admin
+Verified: true
+
+Rules:
+- Hash password securely
+- If user exists, enforce admin + verified
+- If user does not exist, create user + profile
+- Script must be safe to run multiple times
+- No duplicate users
+
+–––––––––––––––––––––
+STEP 4: TEST ACCOUNT SEEDING
+–––––––––––––––––––––
+Create test accounts if missing:
+
+Emails:
+- test1@thecue.room
+- test2@thecue.room
+Password: Test@123
+Role: user
+
+Rules:
+- Idempotent
+- No admin privileges
+- Create profiles
+
+–––––––––––––––––––––
+STEP 5: VERIFY LOGIN FLOW
+–––––––––––––––––––––
+1. Admin must be able to log in successfully.
+2. Admin must reach dashboard.
+3. Test users must be able to log in successfully.
+4. No runtime crashes.
+5. No redirect loops.
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Applied migration files
+- Updated signin route
+- Seed script file
+- Console logs proving:
+  - Tables exist
+  - Admin created or updated
+  - Test users created or confirmed
+- Confirmation that login → dashboard works
+
+Do not explain.
+Do not ask questions.
+Implement directly.

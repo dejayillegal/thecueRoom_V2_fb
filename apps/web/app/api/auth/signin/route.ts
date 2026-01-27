@@ -9,21 +9,21 @@ const WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW || '60', 10) * 1000; //
 const BLOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 async function checkRateLimit(identifier: string): Promise<{ allowed: boolean; retryAfter?: number }> {
-  const now = new Date();
-  
   try {
+    const now = new Date();
     const db = getDbClient();
-    if (!db) {
-      console.warn('DB client not available for rate limiting, failing open');
+    if (!db || !loginAttempts) {
+      console.warn('Rate limit check: DB or table missing, failing open');
       return { allowed: true };
     }
 
     // Get or create rate limit record
-    const [record] = await db
+    const record = await db
       .select()
       .from(loginAttempts)
       .where(eq(loginAttempts.identifier, identifier))
-      .limit(1);
+      .limit(1)
+      .then(res => res[0]);
 
     if (!record) {
       // First attempt
@@ -31,7 +31,7 @@ async function checkRateLimit(identifier: string): Promise<{ allowed: boolean; r
         identifier,
         attempts: 1,
         lastAttemptAt: now,
-      });
+      }).catch(err => console.error('Failed to insert login attempt:', err));
       return { allowed: true };
     }
 
@@ -42,13 +42,15 @@ async function checkRateLimit(identifier: string): Promise<{ allowed: boolean; r
     }
 
     // Check if window expired
-    const windowExpired = now.getTime() - record.lastAttemptAt.getTime() > WINDOW_MS;
+    const lastAttemptAt = record.lastAttemptAt instanceof Date ? record.lastAttemptAt : new Date(record.lastAttemptAt);
+    const windowExpired = now.getTime() - lastAttemptAt.getTime() > WINDOW_MS;
     
     if (windowExpired) {
       // Reset counter
       await db.update(loginAttempts)
         .set({ attempts: 1, lastAttemptAt: now, blockedUntil: null })
-        .where(eq(loginAttempts.identifier, identifier));
+        .where(eq(loginAttempts.identifier, identifier))
+        .catch(err => console.error('Failed to reset login attempts:', err));
       return { allowed: true };
     }
 
@@ -57,7 +59,8 @@ async function checkRateLimit(identifier: string): Promise<{ allowed: boolean; r
       const blockedUntil = new Date(now.getTime() + BLOCK_DURATION_MS);
       await db.update(loginAttempts)
         .set({ blockedUntil })
-        .where(eq(loginAttempts.identifier, identifier));
+        .where(eq(loginAttempts.identifier, identifier))
+        .catch(err => console.error('Failed to block user:', err));
       return { allowed: false, retryAfter: Math.ceil(BLOCK_DURATION_MS / 1000) };
     }
 
@@ -67,26 +70,27 @@ async function checkRateLimit(identifier: string): Promise<{ allowed: boolean; r
         attempts: record.attempts + 1,
         lastAttemptAt: now,
       })
-      .where(eq(loginAttempts.identifier, identifier));
+      .where(eq(loginAttempts.identifier, identifier))
+      .catch(err => console.error('Failed to increment login attempts:', err));
 
     return { allowed: true };
   } catch (err) {
-    console.error('Rate limit error, failing open:', err);
-    return { allowed: true };
+    console.error('checkRateLimit runtime error:', err);
+    return { allowed: true }; // Fail open
   }
 }
 
 async function recordSuccessfulLogin(identifier: string, userId: string): Promise<void> {
   try {
     const db = getDbClient();
-    if (!db) return;
+    if (!db || !loginAttempts || !users) return;
     
     // Clear rate limit on successful login
-    await db.delete(loginAttempts).where(eq(loginAttempts.identifier, identifier));
+    await db.delete(loginAttempts).where(eq(loginAttempts.identifier, identifier)).catch(() => {});
     // Update last login timestamp
-    await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, userId));
+    await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, userId)).catch(() => {});
   } catch (err) {
-    console.error('Failed to record successful login:', err);
+    console.error('recordSuccessfulLogin error:', err);
   }
 }
 
