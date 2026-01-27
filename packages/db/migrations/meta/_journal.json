@@ -8,6 +8,13 @@
       "when": 1761651486431,
       "tag": "0000_clumsy_zarda",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1769523897858,
+      "tag": "0001_mean_rhodey",
+      "breakpoints": true
     }
   ]
 }
