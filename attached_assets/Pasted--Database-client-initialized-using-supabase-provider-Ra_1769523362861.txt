@@ -1,0 +1,86 @@
+✅ Database client initialized using supabase provider
+Rate limit error, failing open: error: relation "login_attempts" does not exist
+    at async checkRateLimit (app/api/auth/signin/route.ts:16:22)
+    at async POST (app/api/auth/signin/route.ts:110:24)
+  14 |   
+  15 |   try {
+> 16 |     const [record] = await db
+     |                      ^
+  17 |       .select()
+  18 |       .from(loginAttempts)
+  19 |       .where(eq(loginAttempts.identifier, identifier)) {
+  length: 113,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '80',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1452',
+  routine: 'parserOpenTable'
+}
+Rate limit error, failing open: error: relation "login_attempts" does not exist
+    at async checkRateLimit (app/api/auth/signin/route.ts:16:22)
+    at async POST (app/api/auth/signin/route.ts:111:21)
+  14 |   
+  15 |   try {
+> 16 |     const [record] = await db
+     |                      ^
+  17 |       .select()
+  18 |       .from(loginAttempts)
+  19 |       .where(eq(loginAttempts.identifier, identifier)) {
+  length: 113,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '80',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1452',
+  routine: 'parserOpenTable'
+}
+Authentication error: error: relation "users" does not exist
+    at async authenticateUser (lib/auth.ts:40:25)
+    at async POST (app/api/auth/signin/route.ts:145:18)
+  38 |   try {
+  39 |     const db = getDbClient();
+> 40 |     const userRecords = await db.select().from(users).where(eq(users.email, email));
+     |                         ^
+  41 |     
+  42 |     if (userRecords.length === 0) {
+  43 |       return null; {
+  length: 105,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '144',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1452',
+  routine: 'parserOpenTable'
+}
+ POST /api/auth/signin 401 in 2661ms
