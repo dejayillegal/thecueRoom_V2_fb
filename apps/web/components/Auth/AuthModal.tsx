@@ -143,17 +143,21 @@ export default function AuthModal({
                   </span>
 
                   {tab === t && (
-                    <motion.div
-                      layoutId="activeRail"
-                      className="absolute inset-0 bg-white/[0.03]"
-                      style={{
-                        boxShadow: "inset 0 0 15px rgba(209,255,61,0.05)",
-                      }}
-                      transition={{
-                        duration: 0.2,
-                        ease: [0.23, 1, 0.32, 1],
-                      }}
-                    />
+                    <div className="absolute inset-0">
+                      <motion.div
+                        layoutId="activeRail"
+                        style={{
+                          boxShadow: "inset 0 0 15px rgba(209,255,61,0.05)",
+                          position: "absolute",
+                          inset: 0,
+                          backgroundColor: "rgba(255, 255, 255, 0.03)"
+                        }}
+                        transition={{
+                          duration: 0.2,
+                          ease: [0.23, 1, 0.32, 1],
+                        }}
+                      />
+                    </div>
                   )}
                 </button>
               ))}
@@ -163,14 +167,14 @@ export default function AuthModal({
           <div className="flex-grow overflow-y-auto scrollbar-hide">
             <div className="overflow-hidden min-h-[400px]">
               <AnimatePresence mode="wait">
-                <motion.div
-                  key={tab}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
-                  className="px-8 pb-12 sm:px-12 sm:pb-16 pt-6"
-                >
+                <div className="px-8 pb-12 sm:px-12 sm:pb-16 pt-6">
+                  <motion.div
+                    key={tab}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+                  >
                   {tab === "signup" ? (
                     <SignupModal
                       open={true}
@@ -211,15 +215,17 @@ export default function AuthModal({
 
                         <AnimatePresence>
                           {error && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                              className="flex items-center gap-3 text-red-400 text-[10px] bg-red-400/5 p-4 border border-red-400/10 font-mono uppercase tracking-wider"
-                            >
-                              <AlertCircle size={12} />
-                              <span>{error}</span>
-                            </motion.div>
+                            <div className="flex items-center gap-3 text-red-400 text-[10px] bg-red-400/5 p-4 border border-red-400/10 font-mono uppercase tracking-wider">
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="flex items-center gap-3 w-full"
+                              >
+                                <AlertCircle size={12} />
+                                <span>{error}</span>
+                              </motion.div>
+                            </div>
                           )}
                         </AnimatePresence>
 
@@ -307,15 +313,17 @@ export default function AuthModal({
 
                         <AnimatePresence>
                           {error && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                              className="flex items-center gap-3 text-red-400 text-[10px] bg-red-400/5 p-4 border border-red-400/10 font-mono uppercase tracking-wider"
-                            >
-                              <AlertCircle size={12} />
-                              <span>{error}</span>
-                            </motion.div>
+                            <div className="flex items-center gap-3 text-red-400 text-[10px] bg-red-400/5 p-4 border border-red-400/10 font-mono uppercase tracking-wider">
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="flex items-center gap-3 w-full"
+                              >
+                                <AlertCircle size={12} />
+                                <span>{error}</span>
+                              </motion.div>
+                            </div>
                           )}
                         </AnimatePresence>
 
