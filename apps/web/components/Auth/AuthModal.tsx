@@ -251,7 +251,6 @@ export default function AuthModal({
                       </div>
 
                       <form onSubmit={handleSignIn} className="space-y-8">
-                        {/* ✅ FIXED: Only one Email field + Password field */}
                         <div className="space-y-6">
                           <div className="space-y-3">
                             <Label

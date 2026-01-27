@@ -35,8 +35,10 @@ const FeedCard = memo(({ item, index }: { item: FeedItem; index: number }) => (
       />
     </a>
     <div className="space-y-4">
-      <div className="text-[10px] font-mono text-[#D1FF3D]/60 uppercase tracking-widest flex items-center gap-2">
-        {item.source}
+      <div className="text-[10px] font-mono text-[#D1FF3D]/60 uppercase tracking-widest flex items-center gap-4">
+        <span>{item.source}</span>
+        <span className="text-zinc-800">/</span>
+        <span className="text-zinc-500">{new Date(item.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}</span>
       </div>
       <a href={item.url} target="_blank" className="inline-block">
         <h3 className="text-2xl font-light transition-all duration-300 relative">
