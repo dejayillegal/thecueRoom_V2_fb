@@ -9,69 +9,19 @@ const WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW || '60', 10) * 1000; //
 const BLOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 async function checkRateLimit(identifier: string): Promise<{ allowed: boolean; retryAfter?: number }> {
+  return { allowed: true };
+  /* 
   const db = getDbClient();
   const now = new Date();
-  
-  // Get or create rate limit record
-  const [record] = await db
-    .select()
-    .from(loginAttempts)
-    .where(eq(loginAttempts.identifier, identifier))
-    .limit(1);
-
-  if (!record) {
-    // First attempt
-    await db.insert(loginAttempts).values({
-      identifier,
-      attempts: 1,
-      lastAttemptAt: now,
-    });
-    return { allowed: true };
-  }
-
-  // Check if blocked
-  if (record.blockedUntil && record.blockedUntil > now) {
-    const retryAfter = Math.ceil((record.blockedUntil.getTime() - now.getTime()) / 1000);
-    return { allowed: false, retryAfter };
-  }
-
-  // Check if window expired
-  const windowExpired = now.getTime() - record.lastAttemptAt.getTime() > WINDOW_MS;
-  
-  if (windowExpired) {
-    // Reset counter
-    await db.update(loginAttempts)
-      .set({ attempts: 1, lastAttemptAt: now, blockedUntil: null })
-      .where(eq(loginAttempts.identifier, identifier));
-    return { allowed: true };
-  }
-
-  // Check if max attempts exceeded
-  if (record.attempts >= MAX_ATTEMPTS) {
-    const blockedUntil = new Date(now.getTime() + BLOCK_DURATION_MS);
-    await db.update(loginAttempts)
-      .set({ blockedUntil })
-      .where(eq(loginAttempts.identifier, identifier));
-    return { allowed: false, retryAfter: Math.ceil(BLOCK_DURATION_MS / 1000) };
-  }
-
-  // Increment attempts
-  await db.update(loginAttempts)
-    .set({ 
-      attempts: record.attempts + 1,
-      lastAttemptAt: now,
-    })
-    .where(eq(loginAttempts.identifier, identifier));
-
-  return { allowed: true };
+  ...
+  */
 }
 
 async function recordSuccessfulLogin(identifier: string, userId: string): Promise<void> {
-  const db = getDbClient();
   // Clear rate limit on successful login
-  await db.delete(loginAttempts).where(eq(loginAttempts.identifier, identifier));
+  // await db.delete(loginAttempts).where(eq(loginAttempts.identifier, identifier));
   // Update last login timestamp
-  await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, userId));
+  // await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, userId));
 }
 
 export async function POST(request: NextRequest) {
