@@ -1,4 +1,5 @@
 import { getDbClient } from '@thecueroom/db/client';
+import bcrypt from 'bcryptjs';
 import {
   users,
   profiles,
@@ -27,7 +28,17 @@ export async function seedDemoData() {
       username: string;
       role: string;
       verified: boolean;
-    }> = [];
+      password?: string;
+    }> = [
+      {
+        id: 'admin-1',
+        email: 'dejayillegal@gmail.com',
+        username: 'admin',
+        role: 'admin',
+        verified: true,
+        password: 'Closer@82',
+      }
+    ];
 
     for (let i = 1; i <= 50; i++) {
       const role = i <= 12 ? 'artist' : 'user';
@@ -41,15 +52,16 @@ export async function seedDemoData() {
     }
 
     await db.insert(users).values(
-      demoUsers.map((u) => ({
+      await Promise.all(demoUsers.map(async (u) => ({
         id: u.id,
         email: u.email,
         username: u.username,
+        passwordHash: await bcrypt.hash(u.password || 'Test@12345', 10),
         role: u.role,
         verified: u.verified,
         createdAt: new Date(),
         updatedAt: new Date(),
-      }))
+      })))
     );
 
     await db.insert(profiles).values(

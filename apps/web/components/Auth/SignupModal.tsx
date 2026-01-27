@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CheckCircle2, XCircle, Loader2, AlertCircle, X, ChevronRight } from 'lucide-react';
 import { VerificationModal } from '../Auth/VerificationModal';
+import { Switch } from '@/components/ui/switch';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
 interface SignupModalProps {
@@ -195,18 +196,19 @@ export function SignupModal({ open, onOpenChange, onSwitchToSignin, isEmbedded =
             </div>
 
             <div className="py-2">
-              <label className="flex items-center gap-3 cursor-pointer group">
-                <div className="relative w-5 h-5 border border-white/10 bg-white/[0.02] flex items-center justify-center transition-all group-hover:border-[#D1FF3D]/40">
-                  <input
-                    type="checkbox"
-                    checked={isArtist}
-                    onChange={(e) => setIsArtist(e.target.checked)}
-                    className="sr-only"
-                  />
-                  {isArtist && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-2.5 h-2.5 bg-[#D1FF3D]" />}
-                </div>
-                <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 group-hover:text-zinc-300 transition-colors">Register as Artist</span>
-              </label>
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="artist-mode"
+                  checked={isArtist}
+                  onCheckedChange={setIsArtist}
+                />
+                <Label
+                  htmlFor="artist-mode"
+                  className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 cursor-pointer"
+                >
+                  Register as Artist
+                </Label>
+              </div>
             </div>
 
             <Button type="submit" disabled={isSubmitting} className="w-full bg-[#D1FF3D] hover:bg-white text-black font-bold h-14 rounded-none transition-all duration-500 uppercase tracking-[0.3em] text-[10px] border-none group active:scale-[0.98]">
