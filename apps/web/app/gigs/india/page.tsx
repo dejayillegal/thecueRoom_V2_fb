@@ -21,6 +21,8 @@ interface Gig {
   freeTicket: boolean;
   imageUrl?: string;
   description?: string;
+  sourceName?: string;
+  category?: string;
 }
 
 export default function IndiaGigsPage() {
@@ -34,25 +36,9 @@ export default function IndiaGigsPage() {
     fetchGigs();
   }, []);
 
-  useEffect(() => {
-    filterGigs();
-  }, [searchQuery, selectedCity, gigs]);
-
   const fetchGigs = async () => {
     try {
       const response = await fetch('/api/gigs/india');
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const text = await response.text();
-        console.error('Non-JSON response:', text.substring(0, 200));
-        throw new Error('Server returned non-JSON response');
-      }
-      
       const data = await response.json();
       setGigs(data.gigs || []);
       setFilteredGigs(data.gigs || []);
@@ -217,78 +203,68 @@ export default function IndiaGigsPage() {
               return (
                 <Card
                   key={gig.id}
-                  className="bg-[#111] border-[#222] overflow-hidden group hover:border-[#D7FF3C]/30 transition-all duration-300"
+                  className="bg-[#111] border-[#222] overflow-hidden group hover:border-[#D7FF3C]/30 transition-all duration-300 transform hover:-translate-y-1"
                 >
-                  <div className="relative aspect-video bg-gradient-to-br from-[#9B5CFF]/10 to-[#D7FF3C]/10 overflow-hidden">
+                  <div className="relative aspect-video bg-[#0b0b0b] overflow-hidden">
                     {gig.imageUrl ? (
                       <img
                         src={gig.imageUrl}
                         alt={gig.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Music2 className="w-16 h-16 text-gray-700" />
+                      <div className="w-full h-full flex items-center justify-center bg-[#1a1a1a]">
+                        <Music2 className="w-16 h-16 text-gray-800" />
                       </div>
                     )}
-                    {gig.freeTicket && (
-                      <Badge className="absolute top-3 right-3 bg-[#D7FF3C] text-black border-0 font-semibold">
-                        <Sparkles className="w-3 h-3 mr-1" />
-                        FREE
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
+                    {gig.category && (
+                      <Badge className="absolute top-3 right-3 bg-black/60 text-[#D7FF3C] border border-[#D7FF3C]/30 backdrop-blur-md font-mono text-[9px] tracking-widest uppercase">
+                        {gig.category}
                       </Badge>
                     )}
                     {timeLabel && (
-                      <Badge className="absolute top-3 left-3 bg-[#9B5CFF] text-white border-0">
-                        <Clock className="w-3 h-3 mr-1" />
+                      <Badge className="absolute top-3 left-3 bg-[#9B5CFF] text-white border-0 font-mono text-[9px] tracking-widest">
                         {timeLabel}
                       </Badge>
                     )}
                   </div>
 
-                  <div className="p-5">
-                    <h3 className="text-lg font-semibold text-white mb-3 line-clamp-2 group-hover:text-[#D7FF3C] transition-colors">
+                  <div className="p-6 relative">
+                    <div className="mb-2 flex items-center justify-between">
+                       <span className="font-mono text-[9px] text-gray-500 uppercase tracking-widest">{gig.sourceName || 'TCR FEED'}</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-4 line-clamp-2 leading-tight group-hover:text-[#D1FF3D] transition-colors">
                       {gig.title}
                     </h3>
 
-                    <div className="space-y-2 text-sm text-gray-400 mb-4">
-                      <div className="flex items-start gap-2">
+                    <div className="space-y-3 text-sm text-gray-400 mb-6">
+                      <div className="flex items-start gap-3">
                         <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#9B5CFF]" />
                         <div>
-                          <p className="text-gray-300">{gig.venue}</p>
-                          <p className="text-gray-500">{gig.city}</p>
+                          <p className="text-gray-300 font-medium">{gig.venue}</p>
+                          <p className="text-gray-500 text-xs">{gig.city}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         <Calendar className="w-4 h-4 text-[#D7FF3C]" />
-                        <span>{formatted}</span>
+                        <span className="font-mono text-xs">{formatted}</span>
                       </div>
                     </div>
 
-                    {gig.description && (
-                      <p className="text-xs text-gray-500 mb-4 line-clamp-2">{gig.description}</p>
-                    )}
-
                     <Button
-                      className={`w-full ${
-                        gig.freeTicket
-                          ? 'bg-[#D7FF3C] text-black hover:bg-[#D7FF3C]/90'
-                          : 'bg-[#9B5CFF] text-white hover:bg-[#9B5CFF]/90'
-                      }`}
-                      asChild={!!gig.ticketUrl}
+                      className="w-full bg-transparent border border-white/10 text-white hover:bg-[#D1FF3D] hover:text-black hover:border-[#D1FF3D] transition-all duration-300 font-mono text-[10px] tracking-[0.2em] uppercase h-12"
+                      asChild
                     >
-                      {gig.ticketUrl ? (
-                        <a
-                          href={gig.ticketUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center gap-2"
-                        >
-                          {gig.freeTicket ? 'Get Free Ticket' : 'Buy Tickets'}
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
-                      ) : (
-                        <span>{gig.freeTicket ? 'Free Entry' : 'Info Coming Soon'}</span>
-                      )}
+                      <a
+                        href={gig.ticketUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-3"
+                      >
+                        Source Intelligence
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
                     </Button>
                   </div>
                 </Card>

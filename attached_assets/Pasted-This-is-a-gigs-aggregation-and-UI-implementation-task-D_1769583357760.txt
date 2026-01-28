@@ -1,0 +1,121 @@
+This is a gigs aggregation and UI implementation task.
+Do NOT scrape proprietary websites or violate any ToS.
+
+GOAL:
+Populate the Gigs page with real India-based music and scene events
+and redesign it to look and behave like a modern events page,
+with creative but performant UI motion and clear source attribution.
+
+–––––––––––––––––––––
+STEP 1: LEGAL EVENT DATA SOURCING (NON-NEGOTIABLE)
+–––––––––––––––––––––
+Rules:
+- Do NOT scrape Zomato, Skillbox, Dice, or other proprietary sites.
+- Do NOT bypass robots.txt or private APIs.
+
+Allowed data sources:
+1. Public RSS feeds (where available)
+2. Public event APIs (Eventbrite, Meetup, Songkick, Bandsintown, etc.)
+3. Manually curated source URLs with metadata
+4. Existing feeds table if it contains event-type items
+
+Actions:
+1. Aggregate India-related music / gig / club / electronic events using:
+   - public APIs
+   - RSS feeds
+   - permitted endpoints
+2. Normalize event fields:
+   - title
+   - date & time
+   - venue
+   - city (India only)
+   - category / scene
+   - source name
+   - source URL (mandatory)
+
+Verification:
+Every event must have a clickable source link.
+
+–––––––––––––––––––––
+STEP 2: FILTER FOR INDIA MUSIC SCENE
+–––––––––––––––––––––
+Actions:
+1. Filter events to India only.
+2. Prioritize:
+   - electronic music
+   - underground / club shows
+   - live gigs
+   - festivals
+   - workshops / showcases
+3. Exclude non-music or unrelated corporate events.
+
+Verification:
+Gigs page shows only relevant India-based music events.
+
+–––––––––––––––––––––
+STEP 3: UPDATE GIGS PAGE DATA FLOW
+–––––––––––––––––––––
+Actions:
+1. Wire the Gigs page to the aggregated event source.
+2. Do NOT hardcode events.
+3. Ensure pagination or lazy loading for large lists.
+4. Handle empty states gracefully.
+
+Verification:
+Gigs page loads real events dynamically.
+
+–––––––––––––––––––––
+STEP 4: REDESIGN GIGS PAGE AS EVENTS EXPERIENCE
+–––––––––––––––––––––
+UI / UX Requirements:
+1. Gigs page must visually read as an “Events” page.
+2. Keep existing brand colors, fonts, and tone.
+3. Introduce:
+   - event cards
+   - date emphasis (calendar-style)
+   - venue & city visibility
+4. Layout must be scannable and fast.
+
+Motion & Graphics:
+1. Add subtle motion only:
+   - staggered card entry
+   - hover emphasis
+   - smooth transitions
+2. Respect prefers-reduced-motion.
+3. No heavy animations or performance regressions.
+
+–––––––––––––––––––––
+STEP 5: SOURCE ATTRIBUTION & SAFETY
+–––––––––––––––––––––
+Actions:
+1. Each event card must include:
+   - source name
+   - external link to original listing
+2. Clicking an event opens the source URL.
+3. No misleading branding (do not impersonate sources).
+
+Verification:
+All events clearly show their origin and link out correctly.
+
+–––––––––––––––––––––
+STEP 6: SAFETY & REGRESSION CHECK
+–––––––––––––––––––––
+1. No console errors.
+2. No ToS violations.
+3. No scraping logic.
+4. Dashboard, News, Landing pages unchanged.
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Updated Gigs page UI
+- Event aggregation logic using permitted sources
+- Confirmation that:
+  - Events are India-based
+  - All events have source links
+  - Gigs page feels like a real events page
+  - UI is creative but performant
+
+Do not explain.
+Do not ask questions.
+Implement directly.
