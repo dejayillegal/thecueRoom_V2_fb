@@ -111,9 +111,17 @@ export function AuthModal({ isOpen, onClose, initialTab = 'signin' }: AuthModalP
           <div className="p-6 sm:p-10">
             <motion.div {...motionProps} key={tab}>
               <DialogHeader className="mb-6 sm:mb-8 text-left">
-                <div className="flex items-center gap-4 mb-6 sm:mb-8">
-                  <Logo className="w-8 h-8 sm:w-10 sm:h-10" />
-                  <span className="text-[11px] sm:text-[13px] font-light tracking-[0.4em] uppercase text-white/40">thecueRoom</span>
+                <div className="flex items-center justify-between mb-6 sm:mb-8">
+                  <div className="flex items-center gap-4">
+                    <Logo className="w-8 h-8 sm:w-10 sm:h-10" />
+                    <span className="text-[11px] sm:text-[13px] font-light tracking-[0.4em] uppercase text-white/40">thecueRoom</span>
+                  </div>
+                  <button 
+                    onClick={onClose}
+                    className="text-zinc-500 hover:text-white transition-colors p-1"
+                  >
+                    <X size={20} />
+                  </button>
                 </div>
 
                 <div className="flex flex-wrap gap-4 sm:gap-6 mb-6 sm:mb-8 border-b border-white/10 pb-4">
