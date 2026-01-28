@@ -217,7 +217,7 @@ export function SignupModal({ open, onOpenChange, onSwitchToSignin, isEmbedded =
                   id="artist-mode"
                   checked={isArtist}
                   onCheckedChange={setIsArtist}
-                  className="data-[state=checked]:bg-[#D1FF3D] scale-90 sm:scale-100 border border-white/40 shadow-[0_0_10px_rgba(255,255,255,0.1)]"
+                  className="data-[state=checked]:bg-[#D1FF3D] scale-90 sm:scale-100 border border-white/20 shadow-[0_0_10px_rgba(209,255,61,0.05)]"
                 />
                 <Label
                   htmlFor="artist-mode"
