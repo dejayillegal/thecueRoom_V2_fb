@@ -171,9 +171,23 @@ export async function GET(request: Request) {
       .orderBy(desc(feeds.publishedAt))
       .limit(limit)
       .offset(offset);
+
+    // Filter spotlight feeds (e.g., top 5 latest)
+    const spotlightRows = await db.select().from(feeds)
+      .orderBy(desc(feeds.publishedAt))
+      .limit(5);
     
     return NextResponse.json({
       items: rows.map((r: any) => ({
+        id: r.id,
+        title: r.title,
+        summary: r.summary || '',
+        url: r.url,
+        image: r.thumbnail && r.thumbnail.startsWith('http') ? r.thumbnail : getDeterministicFallback(r.title),
+        publishedAt: (r.publishedAt instanceof Date ? r.publishedAt : new Date(r.publishedAt)).toISOString(),
+        source: r.source || 'Unknown',
+      })),
+      spotlight: spotlightRows.map((r: any) => ({
         id: r.id,
         title: r.title,
         summary: r.summary || '',

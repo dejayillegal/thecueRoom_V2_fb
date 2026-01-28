@@ -12,7 +12,7 @@ const getBaseUrl = () => {
   return 'http://localhost:5000';
 };
 
-async function getInitialFeeds(): Promise<{ items: FeedItem[]; total: number; hydrated: boolean }> {
+async function getInitialFeeds(): Promise<{ items: FeedItem[]; spotlight: FeedItem[]; total: number; hydrated: boolean }> {
   try {
     const baseUrl = getBaseUrl();
     const res = await fetch(`${baseUrl}/api/feeds?limit=12&offset=0`, {
@@ -25,13 +25,13 @@ async function getInitialFeeds(): Promise<{ items: FeedItem[]; total: number; hy
     
     if (!res.ok) {
       console.error(`Fetch failed with status: ${res.status}`);
-      return { items: [], total: 0, hydrated: false };
+      return { items: [], spotlight: [], total: 0, hydrated: false };
     }
     
     return res.json();
   } catch (error) {
     console.error('Server-side feed fetch error:', error);
-    return { items: [], total: 0, hydrated: false };
+    return { items: [], spotlight: [], total: 0, hydrated: false };
   }
 }
 
@@ -58,7 +58,7 @@ export default async function LandingPage() {
 
       {/* Hero / Spotlight */}
       <div className="pt-24 px-6 md:px-10">
-        <SpotlightSection initialFeeds={initialData.items.slice(0, 5)} initialTrending={[]} />
+        <SpotlightSection initialFeeds={initialData.spotlight} initialTrending={[]} />
       </div>
 
       {/* Main Feed Content */}
@@ -74,7 +74,7 @@ export default async function LandingPage() {
           <h2 className="text-6xl md:text-8xl font-extralight tracking-tighter">Latest Signals</h2>
         </header>
 
-        <FeedUX initialItems={initialData.items} initialHasMore={initialData.items.length === 12} />
+        <FeedUX initialItems={initialData.items} />
       </section>
 
       {/* Production Footer - Minimalist */}

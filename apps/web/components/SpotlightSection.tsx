@@ -112,8 +112,16 @@ export default memo(function SpotlightSection({ initialFeeds = [], initialTrendi
 
   if (!currentFeed && currentFeeds.length === 0) {
     return (
-      <div className="h-[85vh] bg-[#0B0B0B] flex items-center justify-center">
-        <span className="text-[10px] font-mono uppercase tracking-[1em] text-[#D1FF3D]/20 animate-pulse">Syncing Network</span>
+      <div className="h-[85vh] bg-[#0B0B0B] flex items-center justify-center border border-white/5 relative overflow-hidden">
+        {/* Decorative background grid */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
+             style={{ backgroundImage: 'linear-gradient(#D1FF3D 1px, transparent 1px), linear-gradient(90deg, #D1FF3D 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        
+        <div className="relative z-10 flex flex-col items-center gap-6">
+          <div className="w-12 h-px bg-[#D1FF3D]/20 animate-pulse" />
+          <span className="text-[10px] font-mono uppercase tracking-[1em] text-[#D1FF3D]/40 animate-pulse">No signals detected</span>
+          <div className="w-12 h-px bg-[#D1FF3D]/20 animate-pulse" />
+        </div>
       </div>
     );
   }

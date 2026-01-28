@@ -1,0 +1,70 @@
+This is an implementation task. Do not redesign the system architecture.
+
+GOAL:
+Fix the News page so latest feeds and spotlight content always render correctly,
+with enhanced UI motion and graphical polish, while keeping existing visual style.
+
+–––––––––––––––––––––
+STEP 1: FIX DATA FLOW (NON-NEGOTIABLE)
+–––––––––––––––––––––
+1. Ensure the News page fetches data from the existing feeds source.
+2. The page must display:
+   - Latest feeds (chronological, newest first)
+   - Spotlight feeds (featured / highlighted items)
+3. If the feed list is empty, show a clean “No signals detected” state.
+4. No hardcoded mock data.
+
+Verification:
+News page must render real feed items from the database/API.
+
+–––––––––––––––––––––
+STEP 2: FIX BROKEN OR EMPTY SECTIONS
+–––––––––––––––––––––
+1. Audit SpotlightSection and Feed components.
+2. Ensure they receive valid props and render correctly.
+3. Prevent silent failures when data is undefined or empty.
+4. Replace blank screens with graceful fallback UI.
+
+Verification:
+No empty containers or silent render failures.
+
+–––––––––––––––––––––
+STEP 3: ENHANCE UI / UX (WITHOUT CHANGING STYLE)
+–––––––––––––––––––––
+1. Keep existing colors, typography, spacing, and theme.
+2. Add subtle motion:
+   - Fade-in on feed load
+   - Slide-up or stagger animation for feed cards
+3. Add lightweight graphical elements:
+   - Dividers
+   - Accent lines
+   - Hover states
+4. Respect prefers-reduced-motion.
+
+Rules:
+- No new design system
+- No neon / cosmic changes
+- No breaking layout changes
+
+–––––––––––––––––––––
+STEP 4: PERFORMANCE & STABILITY
+–––––––––––––––––––––
+1. Avoid layout shifts.
+2. Ensure animations are GPU-safe.
+3. No console errors or warnings.
+4. Page must load even if feeds are slow or empty.
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Updated News page component(s)
+- Updated Spotlight / Feed components if needed
+- Confirmation that:
+  - Latest feeds render
+  - Spotlight feeds render
+  - Empty state renders correctly
+  - Motion works without breaking layout
+
+Do not explain.
+Do not ask questions.
+Implement directly.
