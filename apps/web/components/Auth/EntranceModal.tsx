@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronRight, Loader2, Sparkles, Shield, User } from 'lucide-react';
-import AuthModal from './Auth/AuthModal';
+import { AuthModal } from './AuthModal';
 
-export default function EntranceModal() {
+export function EntranceModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
@@ -34,10 +34,10 @@ export default function EntranceModal() {
         {isOpen && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/80 backdrop-blur-md">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-[#0B0B0B] border border-white/5 p-12 overflow-hidden"
+              initial={{ opacity: 0, scale: 0.95, y: 20 } as any}
+              animate={{ opacity: 1, scale: 1, y: 0 } as any}
+              exit={{ opacity: 0, scale: 0.95, y: 20 } as any}
+              className="relative w-full max-w-lg bg-[#0B0B0B] border border-white/5 p-8 sm:p-12 overflow-hidden"
             >
               {/* Abstract Background Decoration */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-[#D1FF3D]/5 blur-[100px] -mr-32 -mt-32 rounded-full" />

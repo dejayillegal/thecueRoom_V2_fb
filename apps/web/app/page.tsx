@@ -3,7 +3,7 @@ import SpotlightSection from '@/components/SpotlightSection';
 import { Logo } from '@/components/Logo';
 import { AuthButton } from '@/components/auth/AuthButton';
 import FeedUX, { FeedItem } from '@/components/FeedUX';
-import EntranceModal from '@/components/EntranceModal';
+import { EntranceModal } from '@/components/Auth/EntranceModal';
 
 // Authority function for SSR domain retrieval
 const getBaseUrl = () => {
