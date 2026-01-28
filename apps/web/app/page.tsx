@@ -3,6 +3,7 @@ import SpotlightSection from '@/components/SpotlightSection';
 import { Logo } from '@/components/Logo';
 import { AuthButton } from '@/components/auth/AuthButton';
 import FeedUX, { FeedItem } from '@/components/FeedUX';
+import EntranceModal from '@/components/EntranceModal';
 
 // Authority function for SSR domain retrieval
 const getBaseUrl = () => {
@@ -40,6 +41,7 @@ export default async function LandingPage() {
 
   return (
     <main className="min-h-screen bg-[#0B0B0B] text-foreground selection:bg-[#D1FF3D] selection:text-[#0B0B0B]">
+      <EntranceModal />
       {/* Editorial Header */}
       <header className="fixed top-0 left-0 right-0 z-[100] bg-[#0B0B0B]/40 backdrop-blur-3xl border-b border-white/5">
         <nav className="max-w-screen-2xl mx-auto px-6 md:px-10 h-20 flex items-center justify-between">

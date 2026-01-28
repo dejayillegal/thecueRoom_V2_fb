@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { SignupModal } from './SignupModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -86,6 +87,10 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-md bg-[#0B0B0B] border-white/10 p-0 overflow-hidden shadow-2xl rounded-none ring-0 focus:ring-0">
+        <VisuallyHidden.Root>
+          <DialogTitle>{tab === 'signin' ? 'Entrance' : 'Recovery'}</DialogTitle>
+          <DialogDescription>Identity Gateway</DialogDescription>
+        </VisuallyHidden.Root>
         <button 
           onClick={onClose}
           className="absolute right-6 top-6 text-zinc-600 hover:text-white transition-colors z-50"
@@ -117,12 +122,12 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
                   Recovery
                 </button>
               </div>
-              <DialogTitle className="text-3xl font-bold text-white tracking-tight mb-3">
+              <div className="text-3xl font-bold text-white tracking-tight mb-3">
                 {tab === 'signin' ? 'Entrance' : 'Recovery'}
-              </DialogTitle>
-              <DialogDescription className="text-[#9B5CFF] text-[10px] font-bold uppercase tracking-[0.3em] font-mono opacity-80">
+              </div>
+              <div className="text-[#9B5CFF] text-[10px] font-bold uppercase tracking-[0.3em] font-mono opacity-80">
                 Identity Gateway
-              </DialogDescription>
+              </div>
             </DialogHeader>
 
             <form onSubmit={tab === 'signin' ? handleSignIn : handleForgot} className="space-y-8">
