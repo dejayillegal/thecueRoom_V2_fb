@@ -49,7 +49,7 @@ export default function AuthModal({
       });
 
       const data = await res.json();
-      if (data.ok) {
+      if (data.success) {
         window.location.href = "/dashboard";
       } else {
         setError(data.error || "Invalid credentials");
