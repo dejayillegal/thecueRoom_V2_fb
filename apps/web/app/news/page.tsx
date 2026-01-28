@@ -43,6 +43,15 @@ interface NewsItem {
   link: string;
 }
 
+// --- Utils ---
+const calculateReadTime = (title: string, excerpt: string) => {
+  const wordsPerMinute = 200;
+  const content = `${title} ${excerpt}`;
+  const wordCount = content.trim().split(/\s+/).length;
+  const minutes = Math.ceil(wordCount / wordsPerMinute);
+  return `${minutes} min read`;
+};
+
 // --- Components ---
 
 /**
@@ -66,7 +75,7 @@ const SignalLead = ({ item }: { item: NewsItem }) => {
         className="absolute inset-0 transition-transform duration-[2000ms] group-hover:scale-105"
       >
          <Image 
-          src={item.imageUrl} 
+          src={item.imageUrl || '/fallbacks/fallback_1.png'} 
           alt={item.title}
           fill
           className="object-cover opacity-50 contrast-125 saturate-[0.8]"
@@ -93,7 +102,7 @@ const SignalLead = ({ item }: { item: NewsItem }) => {
             </div>
             <div className="h-[1px] w-12 bg-white/20" />
             <span className="font-mono text-[10px] tracking-[0.1em] text-gray-500 uppercase">
-              Synced 04:00 Zulu
+              {calculateReadTime(item.title, item.excerpt)}
             </span>
           </motion.div>
           
@@ -231,7 +240,7 @@ const CuratedRail = ({ items }: { items: NewsItem[] }) => {
                   <div className="w-8 h-8 rounded-full bg-[#111111] border border-white/5 flex items-center justify-center">
                     <Clock size={12} className="text-gray-500" />
                   </div>
-                  <span className="font-mono text-[10px] text-gray-500 uppercase tracking-widest">{item.readTime} Read</span>
+                  <span className="font-mono text-[10px] text-gray-500 uppercase tracking-widest">{calculateReadTime(item.title, item.excerpt)}</span>
                 </div>
                 <Link 
                   href={item.link} 
@@ -267,11 +276,6 @@ const CommunityUnderground = ({ items }: { items: NewsItem[] }) => (
           <h2 className="text-5xl font-bold text-white tracking-tighter mb-6 underline decoration-[#D1FF3D] decoration-2 underline-offset-8">The Underground</h2>
           <p className="text-gray-400 text-xl leading-relaxed font-light">High-frequency community signals decrypted in real-time. This is the raw pulse of the electronic music collective.</p>
         </motion.div>
-        <motion.div variants={fADE_IN_UP}>
-          <Link href="/news" className="font-mono text-[10px] text-[#D1FF3D] uppercase tracking-[0.5em] flex items-center gap-3 hover:gap-5 transition-all">
-            Access Nodes <ChevronRight size={14} />
-          </Link>
-        </motion.div>
       </motion.div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-16 gap-y-24">
@@ -285,11 +289,19 @@ const CommunityUnderground = ({ items }: { items: NewsItem[] }) => (
             className="group cursor-pointer"
             onClick={() => window.open(item.link, '_blank', 'noopener,noreferrer')}
           >
+            <div className="relative aspect-video overflow-hidden mb-8 border border-white/5">
+              <Image 
+                src={item.imageUrl || '/fallbacks/fallback_4.png'} 
+                alt={item.title}
+                fill
+                className="object-cover grayscale hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
+              />
+            </div>
             <div className="mb-8 space-y-4">
               <div className="flex items-center gap-4">
                 <span className="font-mono text-[9px] text-[#873BBF] tracking-[0.3em] uppercase">{item.category}</span>
                 <div className="flex-1 h-[1px] bg-white/5" />
-                <span className="font-mono text-[9px] text-gray-600">ID: {item.id.slice(0, 8)}</span>
+                <span className="font-mono text-[9px] text-gray-600">{calculateReadTime(item.title, item.excerpt)}</span>
               </div>
               <h3 className="text-2xl font-bold text-white leading-snug group-hover:text-[#D1FF3D] transition-colors">
                 {item.title}
@@ -371,12 +383,12 @@ const DeepDive = ({ items }: { items: NewsItem[] }) => (
                 {item.excerpt}
               </p>
               <div className="flex items-center gap-12">
-                <Link href={item.link} className="font-mono text-[11px] uppercase tracking-[0.4em] text-white hover:text-[#D1FF3D] underline underline-offset-[12px] decoration-white/20 hover:decoration-[#D1FF3D]">
+                <Link href={item.link} target="_blank" rel="noopener noreferrer" className="font-mono text-[11px] uppercase tracking-[0.4em] text-white hover:text-[#D1FF3D] underline underline-offset-[12px] decoration-white/20 hover:decoration-[#D1FF3D]">
                   Decrypt File
                 </Link>
                 <div className="flex items-center gap-3">
                    <Clock size={14} className="text-gray-600" />
-                   <span className="font-mono text-[10px] text-gray-600 uppercase tracking-widest">{item.readTime} decrypt time</span>
+                   <span className="font-mono text-[10px] text-gray-600 uppercase tracking-widest">{calculateReadTime(item.title, item.excerpt)}</span>
                 </div>
               </div>
             </motion.div>
@@ -409,7 +421,6 @@ export default function NewsPage() {
           category: item.tags?.[0] || 'EDITORIAL',
           author: 'TCR Editorial',
           publishedAt: item.publishedAt ? new Date(item.publishedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          readTime: '12 min',
           source: item.source || 'Editorial',
           link: item.url || '#'
         }));

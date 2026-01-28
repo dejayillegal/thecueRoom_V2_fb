@@ -1,0 +1,97 @@
+This is a UI and data rendering fix.
+Do not redesign components. Do not add new APIs or tables.
+
+GOAL:
+Fix News page feed presentation so Underground feeds have thumbnails,
+remove Access Nodes button, compute real read time, and ensure layout
+works correctly with sidebar expand/collapse.
+
+–––––––––––––––––––––
+STEP 1: FIX UNDERGROUND FEED THUMBNAILS
+–––––––––––––––––––––
+Problem:
+Underground feed cards are rendering without thumbnails.
+
+Actions:
+1. Ensure Underground feeds use the SAME card component
+   and thumbnail logic as:
+   - Landing page feeds
+   - Main News feeds
+2. If a feed item has a thumbnail:
+   - Always render it.
+3. If a feed item has NO thumbnail:
+   - Use the existing abstract fallback image
+     (same as landing/news fallback).
+4. No empty media containers.
+
+Verification:
+All Underground feed cards display a thumbnail image.
+
+–––––––––––––––––––––
+STEP 2: REMOVE “ACCESS NODES” BUTTON
+–––––––––––––––––––––
+Problem:
+“Access Nodes” button is not required on News page.
+
+Actions:
+1. Remove the Access Nodes button from News page UI.
+2. Do NOT remove any routes or shared components.
+3. News page must have no dead or unused calls-to-action.
+
+Verification:
+No “Access Nodes” button appears on News page.
+
+–––––––––––––––––––––
+STEP 3: REAL READ-TIME CALCULATION (NO HARDCODED 12 MIN)
+–––––––––––––––––––––
+Problem:
+Feeds display static “12 min read”.
+
+Actions:
+1. Calculate read time dynamically for ALL feeds:
+   - Editorial feeds
+   - Underground feeds
+   - Regular news feeds
+2. Use content length (words or characters).
+3. Display read time as:
+   “X min read”
+4. Remove all hardcoded read-time values.
+
+Verification:
+Read time varies per article and reflects content length.
+
+–––––––––––––––––––––
+STEP 4: SIDEBAR EXPAND / COLLAPSE ALIGNMENT (CONFIRM)
+–––––––––––––––––––––
+Actions:
+1. Ensure News page content container dynamically adjusts
+   when sidebar is expanded or collapsed.
+2. No static margin-left or padding-left values.
+3. Layout must smoothly reflow without empty space.
+
+Verification:
+- Expanded sidebar → content aligned
+- Collapsed sidebar → no empty space
+
+–––––––––––––––––––––
+STEP 5: SAFETY CHECK
+–––––––––––––––––––––
+1. No console errors.
+2. No layout shift.
+3. No broken imports.
+4. Landing page and Dashboard remain unchanged.
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Updated News page feed rendering
+- Updated read-time logic
+- Confirmation that:
+  - Underground feeds show thumbnails
+  - Access Nodes button is removed
+  - Read times are dynamic
+  - Sidebar expand/collapse works correctly
+
+Do not explain.
+Do not ask questions.
+Implement directly.
