@@ -38,7 +38,7 @@ async function seedAdmin() {
           role: 'admin',
           verified: true,
           verificationStatus: 'approved'
-        })
+        } as any)
         .where(eq(users.email, ADMIN_EMAIL));
 
       console.log('✅ Admin role and verification status updated');
@@ -56,7 +56,7 @@ async function seedAdmin() {
           role: 'admin',
           verified: true,
           verificationStatus: 'approved'
-        })
+        } as any)
         .returning();
 
       if (!newUser) {
@@ -87,7 +87,7 @@ async function seedAdmin() {
         showPhone: false,
         publicReleases: true,
         allowContactRequests: true,
-      });
+      } as any);
       console.log('✅ Admin profile created');
     } else {
       // Update existing profile with complete info
@@ -98,27 +98,12 @@ async function seedAdmin() {
           artistName: ADMIN_ARTIST_NAME,
           bio: 'thecueRoom Owner & Administrator',
           aiCredits: 10000,
-        })
+        } as any)
         .where(eq(profiles.userId, userId));
       console.log('✅ Admin profile updated');
     }
 
     console.log('\n✨ Admin setup complete!');
-    console.log('─'.repeat(50));
-    console.log('📋 Admin User Information:');
-    console.log(`   Username: ${ADMIN_USERNAME}`);
-    console.log(`   Email: ${ADMIN_EMAIL}`);
-    console.log(`   Artist Name: ${ADMIN_ARTIST_NAME}`);
-    console.log(`   Display Name: ${ADMIN_DISPLAY_NAME}`);
-    console.log(`   Verification Status: Approved`);
-    console.log(`   Account Role: Admin, Owner`);
-    console.log('─'.repeat(50));
-    console.log('🔑 Login credentials:');
-    console.log(`   Email: ${ADMIN_EMAIL}`);
-    console.log(`   Password: ${ADMIN_PASSWORD}`);
-    console.log('─'.repeat(50));
-    console.log('\n🚀 You can now sign in at /dashboard');
-
     process.exit(0);
   } catch (error) {
     console.error('❌ Error seeding admin user:', error);
