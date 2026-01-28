@@ -1,0 +1,98 @@
+This is a concrete bug-fix and cleanup task.
+Do not redesign architecture. Do not invent new tables.
+
+GOAL:
+Fix News and Dashboard pages so feeds render correctly
+using the existing feeds table, without Drizzle runtime errors.
+
+–––––––––––––––––––––
+STEP 1: REMOVE INVALID SCHEMA IMPORTS (CRITICAL)
+–––––––––––––––––––––
+In app/api/dashboard/overview/route.ts:
+
+1. Remove all imports that do NOT exist in @thecueroom/db/schema:
+   - gigs
+   - playlists
+   - aiJobs
+   - memes
+   - spotlightItems
+   - forumThreads (if not present)
+
+2. These tables are NOT defined and must not be referenced.
+3. Do not attempt to recreate them.
+
+Verification:
+No “Attempted import error” messages during build.
+
+–––––––––––––––––––––
+STEP 2: REWRITE DASHBOARD OVERVIEW QUERY (SAFE MODE)
+–––––––––––––––––––––
+Replace broken queries with queries that ONLY use existing tables:
+
+Allowed tables:
+- users
+- profiles
+- feeds
+- login_attempts
+
+Dashboard overview must return:
+- totalUsers → count(users)
+- totalArtists → count(users where role = 'artist')
+- latestFeeds → latest 5 rows from feeds
+- spotlightFeeds → latest 5 feeds (reuse feeds table)
+
+Rules:
+- No undefined tables
+- No aliases from missing schema
+- No Drizzle Symbol errors
+- Keep existing response shape as much as possible
+
+Verification:
+GET /api/dashboard/overview returns real data, no fallback.
+
+–––––––––––––––––––––
+STEP 3: UNIFY FEEDS SOURCE (NEWS + DASHBOARD)
+–––––––––––––––––––––
+1. Ensure News page, Dashboard, and Landing page
+   all consume feeds from the same source:
+   /api/feeds
+
+2. Do NOT duplicate feed logic.
+3. Do NOT introduce mock/demo data.
+4. Ensure pagination and limits are respected.
+
+Verification:
+- News page shows latest feeds
+- Dashboard shows latest feeds
+- Landing page remains unchanged
+
+–––––––––––––––––––––
+STEP 4: HARDEN RENDERING (NO SILENT FAILURES)
+–––––––––––––––––––––
+1. Guard all feed rendering components against empty arrays.
+2. Replace blank sections with a clean empty-state message.
+3. No console errors.
+4. No runtime crashes.
+
+–––––––––––––––––––––
+STEP 5: OPTIONAL UI POLISH (NON-BREAKING)
+–––––––––––––––––––––
+1. Add subtle motion (fade-in / stagger) to feed cards only.
+2. Do NOT change colors, layout, or typography.
+3. Respect prefers-reduced-motion.
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Updated app/api/dashboard/overview/route.ts
+- Updated News page feed wiring (if needed)
+- Confirmation that:
+  - News page renders feeds
+  - Dashboard renders feeds
+  - No Drizzle Symbol errors
+  - No invalid schema imports
+  - No demo fallback triggered
+
+Do not explain.
+Do not ask questions.
+Implement directly.

@@ -378,42 +378,23 @@ export default function NewsPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/dashboard/overview", { cache: 'no-store' });
+        const response = await fetch("/api/feeds?limit=24", { cache: 'no-store' });
         if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         
-        const combinedItems: NewsItem[] = [];
+        const combinedItems: NewsItem[] = (data.items || []).map((item: any) => ({
+          id: String(item.id),
+          title: item.title,
+          excerpt: item.summary || '',
+          imageUrl: item.image || '',
+          category: item.tags?.[0] || 'EDITORIAL',
+          author: 'TCR Editorial',
+          publishedAt: item.publishedAt ? new Date(item.publishedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          readTime: '12 min',
+          source: 'Editorial',
+          link: item.url || '#'
+        }));
         
-        if (data.spotlight && data.spotlight.length > 0) {
-          combinedItems.push(...data.spotlight.map((item: any) => ({
-            id: item.id,
-            title: item.title,
-            excerpt: item.subtitle || '',
-            imageUrl: item.imageUrl,
-            category: item.tag || 'EDITORIAL',
-            author: 'TCR Editorial',
-            publishedAt: new Date().toISOString().split('T')[0],
-            readTime: '12 min',
-            source: 'Editorial',
-            link: `/news/${item.id}`
-          })));
-        }
-        
-        if (data.trendingThreads && data.trendingThreads.length > 0) {
-          combinedItems.push(...data.trendingThreads.map((thread: any) => ({
-            id: thread.id,
-            title: thread.title,
-            excerpt: `Community intelligence decrypted from the underground node. High frequency engagement detected.`,
-            imageUrl: "/api/og-fallback?title=" + encodeURIComponent(thread.title),
-            category: thread.category || 'COMMUNITY',
-            author: thread.author,
-            publishedAt: thread.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
-            readTime: '6 min',
-            source: 'Community',
-            link: `/news/${thread.id}`
-          })));
-        }
-
         if (combinedItems.length === 0) {
           setError('empty');
         } else {
@@ -478,13 +459,13 @@ export default function NewsPage() {
       ) : (
         <motion.div 
           key="content"
-          initial={ { opacity: 0 } }
-          animate={ { opacity: 1 } }
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           className="min-h-screen bg-[#0B0B0B] text-white selection:bg-[#D1FF3D] selection:text-black"
         >
           {/* 1. SIGNAL LEAD */}
-          {newsItems.filter(item => item.source === 'Editorial').length > 0 ? (
-            <SignalLead item={newsItems.filter(item => item.source === 'Editorial')[0]} />
+          {newsItems.length > 0 ? (
+            <SignalLead item={newsItems[0]} />
           ) : (
              <div className="pt-32 px-6 max-w-[1400px] mx-auto">
                <SilenceInTheWire />
@@ -492,16 +473,18 @@ export default function NewsPage() {
           )}
           
           {/* 2. INTELLIGENCE RAIL */}
-          {newsItems.filter(item => item.source === 'Editorial').length > 1 && (
-            <CuratedRail items={newsItems.filter(item => item.source === 'Editorial').slice(1)} />
+          {newsItems.length > 1 && (
+            <CuratedRail items={newsItems.slice(1, 6)} />
           )}
           
           {/* 3. THE UNDERGROUND */}
-          <CommunityUnderground items={newsItems.filter(item => item.source === 'Community')} />
+          {newsItems.length > 6 && (
+            <CommunityUnderground items={newsItems.slice(6, 12)} />
+          )}
           
           {/* 4. DEEP INVESTIGATIONS */}
-          {newsItems.filter(item => item.source === 'Editorial').length > 0 && (
-            <DeepDive items={newsItems.filter(item => item.source === 'Editorial').slice(0, 3)} />
+          {newsItems.length > 12 && (
+            <DeepDive items={newsItems.slice(12, 15)} />
           )}
           
           {/* Footer */}
