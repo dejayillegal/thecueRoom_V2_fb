@@ -147,10 +147,12 @@ export function SignupModal({ open, onOpenChange, onSwitchToSignin, isEmbedded =
 
   const content = (
     <div className={isEmbedded ? '' : 'p-10 sm:p-14'}>
-      <div className="mb-10">
-        <h3 className="text-3xl font-extralight tracking-tighter text-white mb-2">Create Account</h3>
-        <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#9B5CFF]/60 font-bold">Registry Access</p>
-      </div>
+      {!isEmbedded && (
+        <div className="mb-10">
+          <h3 className="text-3xl font-extralight tracking-tighter text-white mb-2">Create Account</h3>
+          <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#9B5CFF]/60 font-bold">Registry Access</p>
+        </div>
+      )}
 
       <AnimatePresence mode="wait">
         {success ? (
@@ -167,31 +169,31 @@ export function SignupModal({ open, onOpenChange, onSwitchToSignin, isEmbedded =
           <form onSubmit={handleSubmit} className="space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
               <div className="space-y-3">
-                <Label className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold">First Name</Label>
-                <Input value={firstName} onChange={e => setFirstName(e.target.value)} className="bg-white/[0.02] border-white/10 text-white h-12 rounded-none px-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-sm" placeholder="First" required />
+                <Label className="text-[10px] uppercase tracking-[0.2em] text-[#D1FF3D] font-bold opacity-90">First Name</Label>
+                <Input value={firstName} onChange={e => setFirstName(e.target.value)} className="bg-[#111111] border-white/5 text-white h-12 rounded-none px-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-sm" placeholder="First" required />
               </div>
               <div className="space-y-3">
-                <Label className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold">Last Name</Label>
-                <Input value={lastName} onChange={e => setLastName(e.target.value)} className="bg-white/[0.02] border-white/10 text-white h-12 rounded-none px-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-sm" placeholder="Last" required />
+                <Label className="text-[10px] uppercase tracking-[0.2em] text-[#D1FF3D] font-bold opacity-90">Last Name</Label>
+                <Input value={lastName} onChange={e => setLastName(e.target.value)} className="bg-[#111111] border-white/5 text-white h-12 rounded-none px-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-sm" placeholder="Last" required />
               </div>
             </div>
 
             <div className="space-y-3">
-              <Label className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold">Email</Label>
+              <Label className="text-[10px] uppercase tracking-[0.2em] text-[#D1FF3D] font-bold opacity-90">Email Address</Label>
               <div className="relative">
-                <Input type="email" value={email} onChange={e => setEmail(e.target.value)} className="bg-white/[0.02] border-white/10 text-white h-12 pr-10 rounded-none px-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-sm" placeholder="identity@network.com" required />
+                <Input type="email" value={email} onChange={e => setEmail(e.target.value)} className="bg-[#111111] border-white/5 text-white h-12 pr-10 rounded-none px-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-sm" placeholder="identity@network.com" required />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2"><AvailabilityIndicator status={emailStatus} /></div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
               <div className="space-y-3">
-                <Label className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold">Password</Label>
-                <Input type="password" value={password} onChange={e => setPassword(e.target.value)} className="bg-white/[0.02] border-white/10 text-white h-12 rounded-none px-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-sm" placeholder="10+ characters" required />
+                <Label className="text-[10px] uppercase tracking-[0.2em] text-[#D1FF3D] font-bold opacity-90">Security Pass</Label>
+                <Input type="password" value={password} onChange={e => setPassword(e.target.value)} className="bg-[#111111] border-white/5 text-white h-12 rounded-none px-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-sm" placeholder="10+ characters" required />
               </div>
               <div className="space-y-3">
-                <Label className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold">Confirm</Label>
-                <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="bg-white/[0.02] border-white/10 text-white h-12 rounded-none px-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-sm" placeholder="Confirm" required />
+                <Label className="text-[10px] uppercase tracking-[0.2em] text-[#D1FF3D] font-bold opacity-90">Confirm Pass</Label>
+                <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="bg-[#111111] border-white/5 text-white h-12 rounded-none px-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-sm" placeholder="Confirm" required />
               </div>
             </div>
 
@@ -201,10 +203,11 @@ export function SignupModal({ open, onOpenChange, onSwitchToSignin, isEmbedded =
                   id="artist-mode"
                   checked={isArtist}
                   onCheckedChange={setIsArtist}
+                  className="data-[state=checked]:bg-[#D1FF3D]"
                 />
                 <Label
                   htmlFor="artist-mode"
-                  className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 cursor-pointer"
+                  className="text-[10px] font-mono uppercase tracking-widest text-[#D1FF3D] cursor-pointer"
                 >
                   Register as Artist
                 </Label>
@@ -214,7 +217,7 @@ export function SignupModal({ open, onOpenChange, onSwitchToSignin, isEmbedded =
             <Button type="submit" disabled={isSubmitting} className="w-full bg-[#D1FF3D] hover:bg-white text-black font-bold h-14 rounded-none transition-all duration-500 uppercase tracking-[0.3em] text-[10px] border-none group active:scale-[0.98]">
               {isSubmitting ? <Loader2 className="animate-spin w-4 h-4" /> : (
                 <div className="flex items-center justify-center gap-2">
-                  <span>Create Account</span>
+                  <span>Create Identity</span>
                   <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               )}
