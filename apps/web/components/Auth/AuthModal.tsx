@@ -119,13 +119,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
 
                 {tab === 'signup' ? (
                   <div className="space-y-3">
-                    <div className="text-2xl sm:text-3xl font-bold text-white tracking-tighter">
-                      Registry
-                    </div>
-                    <div className="text-[#9B5CFF] text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.3em] font-mono opacity-80">
-                      Create Identity
-                    </div>
-                    <div className="mt-6 sm:mt-8">
+                    <div className="mt-2 sm:mt-4">
                       <SignupModal 
                         open={isOpen} 
                         onOpenChange={(open) => !open && onClose()} 
@@ -146,14 +140,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
                   </div>
                 ) : (
                   <>
-                    <div className="text-2xl sm:text-3xl font-bold text-white tracking-tighter">
-                      {tab === 'signin' ? 'Entrance' : 'Recovery'}
-                    </div>
-                    <div className="text-[#9B5CFF] text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.3em] font-mono opacity-80">
-                      Identity Gateway
-                    </div>
-
-                    <form onSubmit={tab === 'signin' ? handleSignIn : handleForgot} className="mt-8 sm:mt-10 space-y-6 sm:space-y-8">
+                    <form onSubmit={tab === 'signin' ? handleSignIn : handleForgot} className="mt-4 sm:mt-6 space-y-6 sm:space-y-8">
                       <div className="space-y-3">
                         <Label htmlFor="email" className="text-[8px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Email Address</Label>
                         <Input
