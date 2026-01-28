@@ -346,11 +346,17 @@ const CommunityUnderground = ({ items }: { items: NewsItem[] }) => (
  */
 const DeepDive = ({ items }: { items: NewsItem[] }) => {
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
-  const categories = ['ALL', ...Array.from(new Set(items.map(i => i.category)))];
+  const categories = ['ALL', 'GEAR', 'EDITORIAL', 'INDUSTRY'];
   
   const filteredItems = activeCategory === 'ALL' 
     ? items 
-    : items.filter(i => i.category === activeCategory);
+    : items.filter(i => {
+        const category = (i.category || '').toUpperCase();
+        if (activeCategory === 'EDITORIAL') {
+          return category === 'EDITORIAL' || i.source.toLowerCase().includes('editorial');
+        }
+        return category === activeCategory;
+      });
 
   return (
     <section className="bg-[#111111] py-48 border-t border-white/5">
