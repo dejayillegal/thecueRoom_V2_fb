@@ -84,7 +84,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, password } = body;
 
+    console.log('[Signin] Attempt for:', email);
+
     if (!email || !password) {
+      console.log('[Signin] Missing email or password');
       return NextResponse.json({ success: false, error: 'Email and password are required' }, { status: 400 });
     }
 
@@ -93,24 +96,30 @@ export async function POST(request: NextRequest) {
     
     const emailLimit = await checkRateLimit(`email:${normalizedEmail}`);
     if (!emailLimit.allowed) {
+      console.log('[Signin] Rate limited:', normalizedEmail);
       return NextResponse.json({ success: false, error: `Too many attempts. Try again in ${emailLimit.retryAfter}s.` }, { status: 429 });
     }
 
     const user = await authenticateUser(normalizedEmail, password);
 
     if (!user) {
+      console.log('[Signin] Authentication failed for:', normalizedEmail);
       return NextResponse.json({ success: false, error: 'Invalid email or password' }, { status: 401 });
     }
 
+    console.log('[Signin] User authenticated:', user.uid, user.email, user.role);
+
     await recordSuccessfulLogin(`email:${normalizedEmail}`, user.uid);
     await setSession(user);
+
+    console.log('[Signin] Session set, returning success');
 
     return NextResponse.json({
       success: true,
       user: { uid: user.uid, email: user.email, role: user.role }
     });
   } catch (error: any) {
-    console.error('Sign in error:', error);
+    console.error('[Signin] Error:', error);
     return NextResponse.json({ success: false, error: 'Authentication failed' }, { status: 500 });
   }
 }
