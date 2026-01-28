@@ -98,7 +98,7 @@ const SignalLead = ({ item }: { item: NewsItem }) => {
           
           <motion.h1 
             variants={fADE_IN_UP}
-            className="text-6xl md:text-[10rem] font-bold text-white tracking-tighter leading-[0.85] max-w-6xl mb-12 group-hover:text-[#D1FF3D] transition-colors duration-700"
+            className="text-6xl md:text-[9rem] font-bold text-white tracking-tighter leading-[0.85] max-w-6xl mb-12 group-hover:text-[#D1FF3D] transition-colors duration-700"
           >
             {item.title}
           </motion.h1>
