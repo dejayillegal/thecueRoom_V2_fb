@@ -134,24 +134,7 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
     };
   }, [isMobile, isOpen]);
 
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const sidebarWidth = expanded ? 'w-[240px]' : 'w-[64px]';
-
-  if (!mounted) {
-    return (
-      <aside
-        className={cn(
-          'fixed left-0 top-0 h-screen bg-black flex flex-col z-40 border-r border-[#1a1a1a]',
-          'w-[64px]'
-        )}
-      />
-    );
-  }
 
   return (
     <>
@@ -193,15 +176,7 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
             </div>
           )}
 
-          {isMobile && isOpen && (
-            <button
-              onClick={onToggle}
-              className="text-gray-400 hover:text-white lg:hidden"
-              aria-label="Close menu"
-            >
-              <X size={20} />
-            </button>
-          )}
+          {/* Close button removed for mobile/tablet as per requirements */}
         </div>
 
         {/* Navigation */}

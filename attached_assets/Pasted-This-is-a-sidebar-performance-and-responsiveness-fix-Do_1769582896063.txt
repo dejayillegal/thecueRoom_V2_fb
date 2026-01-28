@@ -1,0 +1,112 @@
+This is a sidebar performance and responsiveness fix.
+Do NOT redesign navigation structure.
+Do NOT change desktop sidebar behavior.
+
+GOAL:
+Make the sidebar load instantly, remove the unwanted close (✕) icon
+ONLY on mobile and tablet screens, and improve clarity, contrast,
+and usability for mobile and tablet users.
+
+–––––––––––––––––––––
+STEP 1: FIX SIDEBAR LOAD DELAY (CRITICAL)
+–––––––––––––––––––––
+Problem:
+Sidebar takes noticeable time to appear, showing a blank state.
+
+Actions:
+1. Remove any lazy-loading or delayed mounting of the sidebar.
+2. Ensure sidebar renders immediately with the page layout.
+3. Avoid async effects or transitions that block initial render.
+4. Sidebar must never show an empty or “loading” state.
+
+Verification:
+Sidebar appears instantly on page load.
+
+–––––––––––––––––––––
+STEP 2: REMOVE UNWANTED CLOSE (✕) ICON — MOBILE/TABLET ONLY
+–––––––––––––––––––––
+Problem:
+A close (✕) icon appears in the sidebar on mobile/tablet and is unnecessary.
+Desktop behavior is already correct.
+
+Actions:
+1. Identify the sidebar close (✕) icon component.
+2. Hide or disable the close icon ONLY for:
+   - mobile breakpoints
+   - tablet breakpoints
+3. Desktop breakpoint must remain unchanged.
+4. Sidebar should continue to be controlled via:
+   - hamburger / toggle button
+   - responsive breakpoint behavior
+
+Rules:
+- Do NOT remove the icon globally
+- Do NOT affect desktop layout
+- Use responsive logic (CSS media queries or viewport checks)
+
+Verification:
+- Mobile: ✕ icon not visible
+- Tablet: ✕ icon not visible
+- Desktop: sidebar unchanged
+
+–––––––––––––––––––––
+STEP 3: IMPROVE SIDEBAR ICON CLARITY & VISIBILITY
+–––––––––––––––––––––
+Problem:
+Sidebar icons look dull, low-contrast, and not sharp.
+
+Actions:
+1. Increase icon contrast against background.
+2. Ensure icons render at correct resolution (no blur).
+3. Normalize icon size and alignment.
+4. Improve active and hover states for clarity.
+
+Rules:
+- Keep existing icon set
+- Do not change brand colors
+
+Verification:
+Icons are sharp, legible, and clearly visible.
+
+–––––––––––––––––––––
+STEP 4: MOBILE & TABLET FRIENDLINESS
+–––––––––––––––––––––
+Actions:
+1. Optimize sidebar layout for:
+   - mobile
+   - tablet
+2. Ensure:
+   - touch-friendly spacing
+   - readable labels
+   - no overlapping content
+3. Sidebar should feel solid and present, not transparent or hidden.
+
+Rules:
+- Desktop layout must remain unchanged
+
+Verification:
+Sidebar is usable and readable on mobile and tablet screens.
+
+–––––––––––––––––––––
+STEP 5: SAFETY CHECK
+–––––––––––––––––––––
+1. No console errors.
+2. No layout shift.
+3. Desktop layout unchanged.
+4. Sidebar collapse/expand still works.
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Updated sidebar rendering logic
+- Updated responsive rules for mobile/tablet
+- Confirmation that:
+  - Sidebar loads instantly
+  - ✕ icon is removed on mobile/tablet only
+  - Desktop sidebar is unchanged
+  - Icons are sharp and visible
+  - Mobile and tablet UX is improved
+
+Do not explain.
+Do not ask questions.
+Implement directly.

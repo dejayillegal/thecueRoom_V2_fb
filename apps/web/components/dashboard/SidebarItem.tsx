@@ -39,10 +39,10 @@ export const SidebarItem = React.forwardRef<HTMLAnchorElement, SidebarItemProps>
       >
         <Icon 
           size={20} 
-          strokeWidth={active ? 2.5 : 2} 
+          strokeWidth={active ? 2.5 : 2.2} 
           className={cn(
             "transition-all duration-300 group-hover:scale-110",
-            active ? "text-[var(--tcr-accent)] drop-shadow-[0_0_8px_rgba(215,255,60,0.5)]" : "text-gray-500"
+            active ? "text-[var(--tcr-accent)] drop-shadow-[0_0_8px_rgba(215,255,60,0.5)]" : "text-gray-200 group-hover:text-white"
           )} 
           aria-hidden="true" 
         />
