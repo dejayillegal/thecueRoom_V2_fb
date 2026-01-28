@@ -7,9 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { 
   Calendar, MapPin, ExternalLink, Search, Filter, 
-  Music2, Loader2, Sparkles, Clock, Info 
+  Music2, Loader2, Sparkles, Clock, Info, ArrowRight 
 } from 'lucide-react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 interface Gig {
   id: string;
@@ -38,10 +39,19 @@ export default function IndiaGigsPage() {
 
   const fetchGigs = async () => {
     try {
-      const response = await fetch('/api/gigs/india');
+      const response = await fetch('/api/gigs/india', { cache: 'no-store' });
       const data = await response.json();
-      setGigs(data.gigs || []);
-      setFilteredGigs(data.gigs || []);
+      
+      // Ensure we handle both 'gigs' and 'events' keys if API changes
+      const rawGigs = data.gigs || data.events || [];
+      
+      // Sort by date ascending
+      const sortedGigs = [...rawGigs].sort((a, b) => 
+        new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
+
+      setGigs(sortedGigs);
+      setFilteredGigs(sortedGigs);
     } catch (error) {
       console.error('Failed to fetch gigs:', error);
     } finally {
@@ -197,77 +207,100 @@ export default function IndiaGigsPage() {
             </div>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredGigs.map((gig) => {
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredGigs.map((gig, idx) => {
               const { formatted, timeLabel } = formatDate(gig.date);
               return (
-                <Card
+                <motion.div
                   key={gig.id}
-                  className="bg-[#111] border-[#222] overflow-hidden group hover:border-[#D7FF3C]/30 transition-all duration-300 transform hover:-translate-y-1"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: idx * 0.05 }}
                 >
-                  <div className="relative aspect-video bg-[#0b0b0b] overflow-hidden">
-                    {gig.imageUrl ? (
-                      <img
-                        src={gig.imageUrl}
-                        alt={gig.title}
-                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-[#1a1a1a]">
-                        <Music2 className="w-16 h-16 text-gray-800" />
+                  <Card
+                    className="bg-[#111] border-[#222] overflow-hidden group hover:border-[#D7FF3C]/30 transition-all duration-500 transform hover:-translate-y-2 h-full flex flex-col shadow-2xl"
+                  >
+                    <div className="relative aspect-[16/10] bg-[#0b0b0b] overflow-hidden">
+                      {gig.imageUrl ? (
+                        <img
+                          src={gig.imageUrl}
+                          alt={gig.title}
+                          className="w-full h-full object-cover grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 group-hover:scale-110"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-[#1a1a1a]">
+                          <Music2 className="w-16 h-16 text-gray-800" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-80" />
+                      
+                      {/* Date Overlay */}
+                      <div className="absolute top-4 left-4 flex flex-col items-center justify-center bg-black/80 backdrop-blur-md border border-white/10 w-12 h-14 rounded-lg">
+                        <span className="text-[10px] font-mono text-[#D7FF3C] uppercase tracking-tighter">
+                          {new Date(gig.date).toLocaleDateString('en-IN', { month: 'short' })}
+                        </span>
+                        <span className="text-xl font-bold text-white leading-none">
+                          {new Date(gig.date).getDate()}
+                        </span>
                       </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
-                    {gig.category && (
-                      <Badge className="absolute top-3 right-3 bg-black/60 text-[#D7FF3C] border border-[#D7FF3C]/30 backdrop-blur-md font-mono text-[9px] tracking-widest uppercase">
-                        {gig.category}
-                      </Badge>
-                    )}
-                    {timeLabel && (
-                      <Badge className="absolute top-3 left-3 bg-[#9B5CFF] text-white border-0 font-mono text-[9px] tracking-widest">
-                        {timeLabel}
-                      </Badge>
-                    )}
-                  </div>
 
-                  <div className="p-6 relative">
-                    <div className="mb-2 flex items-center justify-between">
-                       <span className="font-mono text-[9px] text-gray-500 uppercase tracking-widest">{gig.sourceName || 'TCR FEED'}</span>
+                      {gig.category && (
+                        <Badge className="absolute top-4 right-4 bg-[#D7FF3C] text-black border-0 font-mono text-[9px] tracking-[0.2em] uppercase px-3 py-1">
+                          {gig.category}
+                        </Badge>
+                      )}
+                      
+                      {timeLabel && (
+                        <div className="absolute bottom-4 left-4 flex items-center gap-2">
+                           <div className="w-2 h-2 rounded-full bg-[#9B5CFF] animate-pulse" />
+                           <span className="font-mono text-[10px] text-white/80 uppercase tracking-widest">{timeLabel}</span>
+                        </div>
+                      )}
                     </div>
-                    <h3 className="text-xl font-bold text-white mb-4 line-clamp-2 leading-tight group-hover:text-[#D1FF3D] transition-colors">
-                      {gig.title}
-                    </h3>
 
-                    <div className="space-y-3 text-sm text-gray-400 mb-6">
-                      <div className="flex items-start gap-3">
-                        <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#9B5CFF]" />
-                        <div>
-                          <p className="text-gray-300 font-medium">{gig.venue}</p>
-                          <p className="text-gray-500 text-xs">{gig.city}</p>
+                    <div className="p-8 flex-1 flex flex-col relative bg-gradient-to-b from-transparent to-black/20">
+                      <div className="mb-4 flex items-center justify-between">
+                         <span className="font-mono text-[10px] text-[#9B5CFF] uppercase tracking-[0.3em] font-semibold">{gig.sourceName || 'TCR INTELLIGENCE'}</span>
+                      </div>
+                      
+                      <h3 className="text-2xl font-bold text-white mb-6 line-clamp-2 leading-tight group-hover:text-[#D1FF3D] transition-colors duration-300">
+                        {gig.title}
+                      </h3>
+
+                      <div className="space-y-4 text-sm text-gray-400 mb-8 mt-auto">
+                        <div className="flex items-start gap-4">
+                          <MapPin className="w-5 h-5 flex-shrink-0 text-[#9B5CFF]" />
+                          <div>
+                            <p className="text-gray-200 font-bold tracking-tight text-base">{gig.venue}</p>
+                            <p className="text-gray-500 text-xs font-mono uppercase tracking-widest mt-1">{gig.city}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <Calendar className="w-5 h-5 text-[#D7FF3C]" />
+                          <span className="font-mono text-xs text-gray-300 tracking-wider uppercase">{formatted}</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <Calendar className="w-4 h-4 text-[#D7FF3C]" />
-                        <span className="font-mono text-xs">{formatted}</span>
-                      </div>
-                    </div>
 
-                    <Button
-                      className="w-full bg-transparent border border-white/10 text-white hover:bg-[#D1FF3D] hover:text-black hover:border-[#D1FF3D] transition-all duration-300 font-mono text-[10px] tracking-[0.2em] uppercase h-12"
-                      asChild
-                    >
-                      <a
-                        href={gig.ticketUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center gap-3"
+                      <Button
+                        className="w-full bg-transparent border border-white/10 text-white hover:bg-[#D1FF3D] hover:text-black hover:border-[#D1FF3D] transition-all duration-500 font-mono text-[11px] tracking-[0.3em] uppercase h-14 group/btn"
+                        asChild
                       >
-                        Source Intelligence
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    </Button>
-                  </div>
-                </Card>
+                        <a
+                          href={gig.ticketUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center gap-3"
+                        >
+                          Source Intelligence
+                          <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                        </a>
+                      </Button>
+                    </div>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
               );
             })}
           </div>
