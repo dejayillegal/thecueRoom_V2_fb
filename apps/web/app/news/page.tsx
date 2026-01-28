@@ -488,6 +488,8 @@ export default function NewsPage() {
     window.location.href = '/login';
   };
 
+  const isLoggedIn = true;
+
   const [timeRemaining, setTimeRemaining] = useState("04:00:00");
 
   useEffect(() => {
