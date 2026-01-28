@@ -390,6 +390,7 @@ const DeepDive = ({ items }: { items: NewsItem[] }) => (
 export default function NewsPage() {
   const [undergroundItems, setUndergroundItems] = useState<NewsItem[]>([]);
   const [curatedItems, setCuratedItems] = useState<NewsItem[]>([]);
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<'none' | 'offline' | 'partial' | 'empty'>('none');
 
