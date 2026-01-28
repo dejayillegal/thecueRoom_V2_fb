@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { ThumbsUp, MessageSquare, Share2, Flag, Eye, Clock, Pin, Lock, CheckCircle2, ArrowLeft, Bookmark, Bell } from 'lucide-react';
+import { ThumbsUp, MessageSquare, Share2, Flag, Eye, Clock, Pin, Lock, CheckCircle2, ArrowLeft, Bookmark, Bell, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { UserProfileCard } from './UserProfileCard';
 import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
 
 interface ThreadData {
   id: string;
@@ -98,285 +99,234 @@ export function ThreadView({ threadId }: { threadId: string }) {
   const [replyText, setReplyText] = useState('');
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="max-w-[1200px] mx-auto px-4 py-6">
+    <div className="min-h-screen bg-[#0B0B0B] text-white">
+      <div className="fixed inset-0 pointer-events-none -z-10">
+        <div className="absolute top-[-10%] left-[20%] w-[800px] h-[800px] bg-[#9B5CFF]/5 rounded-full blur-[140px]" />
+        <div className="absolute bottom-[20%] right-[10%] w-[600px] h-[600px] bg-[#D1FF3D]/5 rounded-full blur-[120px]" />
+      </div>
+
+      <div className="max-w-[1400px] mx-auto px-6 py-10 relative z-10">
         <Link
           href="/community/forum"
-          className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-[#D7FF3C] mb-6 transition-colors"
+          className="group inline-flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 hover:text-[#D1FF3D] mb-12 transition-all"
         >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Forum
+          <div className="p-2 rounded-full bg-white/5 border border-white/5 group-hover:border-[#D1FF3D]/20">
+            <ArrowLeft className="w-3 h-3" />
+          </div>
+          Return to Hub
         </Link>
 
-        <div className="grid grid-cols-12 gap-6">
-          <div className="col-span-8">
-            <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg overflow-hidden">
-              <div className="p-6 border-b border-[#1a1a1a]">
-                <div className="flex items-start gap-3 mb-4">
-                  {thread.isPinned && (
-                    <Pin className="w-5 h-5 text-[#D7FF3C] flex-shrink-0 mt-1" />
-                  )}
-                  <h1 className="text-2xl font-bold text-white flex-1">
-                    {thread.title}
-                  </h1>
-                  {thread.isLocked && (
-                    <Lock className="w-5 h-5 text-gray-500 flex-shrink-0 mt-1" />
-                  )}
-                </div>
-
-                <div className="flex items-center gap-4 text-sm text-gray-400">
-                  <span className="px-2 py-1 bg-[#1a1a1a] text-[#9B5CFF] rounded text-xs font-medium">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          <div className="lg:col-span-8 space-y-8">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-[#111111]/40 border border-white/5 rounded-[40px] overflow-hidden backdrop-blur-xl shadow-2xl"
+            >
+              <div className="p-10 border-b border-white/5">
+                <div className="flex items-center gap-4 mb-6">
+                  <span className="px-3 py-1 bg-[#9B5CFF]/10 text-[#9B5CFF] rounded-full text-[9px] font-black uppercase tracking-widest border border-[#9B5CFF]/20">
                     {thread.category}
                   </span>
-                  <div className="flex items-center gap-1">
-                    <Eye className="w-4 h-4" />
-                    <span>{thread.views} views</span>
+                  <div className="h-px w-12 bg-white/5" />
+                  <div className="flex items-center gap-4 text-[9px] font-mono text-zinc-500 uppercase tracking-widest">
+                    <div className="flex items-center gap-2">
+                      <Eye className="w-3 h-3" />
+                      <span>{thread.views} SIGS</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-3 h-3" />
+                      <span>{formatTimeAgo(thread.createdAt)}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    <span>{formatTimeAgo(thread.createdAt)}</span>
-                  </div>
+                </div>
+
+                <div className="flex items-start gap-4 mb-8">
+                  {thread.isPinned && (
+                    <Pin className="w-6 h-6 text-[#D1FF3D] flex-shrink-0 mt-1" />
+                  )}
+                  <h1 className="text-4xl md:text-5xl font-black text-white italic tracking-tighter leading-[0.9] text-pretty">
+                    {thread.title}
+                  </h1>
+                </div>
+
+                <div className="flex items-center justify-between pt-4">
+                   <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#D1FF3D] to-[#9B5CFF] p-[1px]">
+                        <div className="w-full h-full rounded-full bg-black flex items-center justify-center text-sm font-black text-white">
+                          {thread.author.displayName[0]}
+                        </div>
+                      </div>
+                      <div className="flex flex-col">
+                        <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
+                          {thread.author.displayName}
+                          {thread.author.verified && <CheckCircle2 className="w-3.5 h-3.5 text-[#D1FF3D]" />}
+                        </h3>
+                        <p className="text-[10px] text-zinc-600 font-mono tracking-widest uppercase">NODE: {thread.author.username}</p>
+                      </div>
+                   </div>
+                   <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => setIsLiked(!isLiked)}
+                        className={`p-4 rounded-2xl border transition-all ${isLiked ? 'bg-[#D1FF3D]/10 border-[#D1FF3D]/30 text-[#D1FF3D]' : 'bg-white/5 border-white/5 text-zinc-500 hover:text-white'}`}
+                      >
+                        <ThumbsUp className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
+                      </button>
+                      <button className="p-4 rounded-2xl bg-white/5 border border-white/5 text-zinc-500 hover:text-white transition-all">
+                        <Bookmark className="w-4 h-4" />
+                      </button>
+                      <button className="p-4 rounded-2xl bg-white/5 border border-white/5 text-zinc-500 hover:text-white transition-all">
+                        <Share2 className="w-4 h-4" />
+                      </button>
+                   </div>
                 </div>
               </div>
 
-              <div className="p-6">
-                <div className="flex gap-4 mb-6">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#D7FF3C] to-[#9B5CFF] flex items-center justify-center text-black text-lg font-bold relative">
-                      {thread.author.displayName[0]}
-                      {thread.author.verified && (
-                        <CheckCircle2 className="absolute -bottom-1 -right-1 w-4 h-4 text-green-500 bg-[#0a0a0a] rounded-full" />
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-base font-semibold text-white">
-                        {thread.author.displayName}
-                      </h3>
-                      {thread.author.verified && (
-                        <span className="text-xs px-2 py-0.5 bg-green-500/10 text-green-500 border border-green-500/30 rounded font-medium">
-                          VERIFIED ARTIST
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-400">@{thread.author.username}</p>
-                  </div>
-                </div>
-
-                <div className="prose prose-invert max-w-none mb-6">
-                  <p className="text-gray-300 whitespace-pre-wrap leading-relaxed">
+              <div className="p-10">
+                <div className="prose prose-invert max-w-none mb-10">
+                  <p className="text-lg text-zinc-400 font-light whitespace-pre-wrap leading-relaxed italic border-l-2 border-[#D1FF3D]/10 pl-10">
                     {thread.body}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 mb-6">
+                <div className="flex flex-wrap gap-3 mb-10">
                   {thread.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="text-xs px-3 py-1.5 bg-[#1a1a1a] border border-[#2a2a2a] text-gray-400 rounded-full hover:border-[#D7FF3C] hover:text-[#D7FF3C] transition-colors cursor-pointer"
+                      className="text-[10px] font-mono px-4 py-2 bg-white/5 border border-white/5 text-zinc-500 rounded-full hover:border-[#D1FF3D]/20 hover:text-white transition-all cursor-pointer"
                     >
-                      #{tag}
+                      #{tag.toUpperCase()}
                     </span>
                   ))}
                 </div>
-
-                <div className="flex items-center gap-3 pt-4 border-t border-[#1a1a1a]">
-                  <button
-                    onClick={() => setIsLiked(!isLiked)}
-                    className={`
-                      flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all
-                      ${isLiked
-                        ? 'bg-[#D7FF3C]/10 text-[#D7FF3C] border border-[#D7FF3C]/30'
-                        : 'bg-[#1a1a1a] text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
-                      }
-                    `}
-                  >
-                    <ThumbsUp className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-                    {thread.likes + (isLiked ? 1 : 0)}
-                  </button>
-
-                  <button className="flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-400 hover:text-white rounded-lg font-medium text-sm transition-all">
-                    <MessageSquare className="w-4 h-4" />
-                    Reply
-                  </button>
-
-                  <button className="flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-400 hover:text-white rounded-lg font-medium text-sm transition-all">
-                    <Share2 className="w-4 h-4" />
-                    Share
-                  </button>
-
-                  <button className="flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-400 hover:text-white rounded-lg font-medium text-sm transition-all ml-auto">
-                    <Flag className="w-4 h-4" />
-                    Report
-                  </button>
-                </div>
               </div>
 
-              <div className="border-t border-[#1a1a1a]">
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">
-                    {thread.replies.length} Replies
-                  </h3>
-
-                  <div className="space-y-6">
-                    {thread.replies.map((reply) => (
-                      <div key={reply.id} className="flex gap-4">
-                        <div className="flex-shrink-0">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#D7FF3C] to-[#9B5CFF] flex items-center justify-center text-black text-sm font-bold relative">
-                            {reply.author.displayName[0]}
-                            {reply.author.verified && (
-                              <CheckCircle2 className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 text-green-500 bg-[#0a0a0a] rounded-full" />
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="text-sm font-semibold text-white">
-                              {reply.author.displayName}
-                            </h4>
-                            {reply.author.verified && (
-                              <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                            )}
-                            <span className="text-xs text-gray-500">
-                              {formatTimeAgo(reply.createdAt)}
-                            </span>
-                          </div>
-
-                          <p className="text-sm text-gray-300 mb-3">
-                            {reply.body}
-                          </p>
-
-                          <div className="flex items-center gap-3">
-                            <button className={`
-                              flex items-center gap-1.5 text-xs font-medium transition-colors
-                              ${reply.isLiked ? 'text-[#D7FF3C]' : 'text-gray-400 hover:text-gray-300'}
-                            `}>
-                              <ThumbsUp className={`w-3.5 h-3.5 ${reply.isLiked ? 'fill-current' : ''}`} />
-                              {reply.likes}
-                            </button>
-                            <button className="text-xs text-gray-400 hover:text-gray-300 font-medium transition-colors">
-                              Reply
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {!thread.isLocked && (
-                    <div className="mt-8 pt-6 border-t border-[#1a1a1a]">
-                      <h4 className="text-sm font-semibold text-white mb-3">Post a Reply</h4>
-                      <textarea
-                        value={replyText}
-                        onChange={(e) => setReplyText(e.target.value)}
-                        placeholder="Share your thoughts..."
-                        className="w-full px-4 py-3 bg-[#111111] border border-[#1a1a1a] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#D7FF3C] resize-none"
-                        rows={4}
-                      />
-                      <div className="flex items-center justify-between mt-3">
-                        <span className="text-xs text-gray-500">
-                          {replyText.length} / 10,000 characters
-                        </span>
-                        <Button className="bg-[#D7FF3C] hover:bg-[#e7ff6f] text-black font-semibold">
-                          Post Reply
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-span-4">
-            <div className="sticky top-6 space-y-4">
-              <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg p-4">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wide mb-4">
-                  Thread Info
-                </h3>
-
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Created</span>
-                    <span className="text-white">{formatTimeAgo(thread.createdAt)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Replies</span>
-                    <span className="text-white">{thread.replies.length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Views</span>
-                    <span className="text-white">{thread.views}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Likes</span>
-                    <span className="text-white">{thread.likes}</span>
+              <div className="bg-white/[0.02] p-10 border-t border-white/5">
+                <div className="flex items-center justify-between mb-10">
+                  <div className="flex items-center gap-3">
+                    <MessageSquare className="w-4 h-4 text-[#D1FF3D]" />
+                    <h3 className="text-sm font-black text-white uppercase tracking-[0.3em]">
+                      {thread.replies.length} Responses Detected
+                    </h3>
                   </div>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-[#1a1a1a] space-y-2">
-                  <button
-                    onClick={() => setIsBookmarked(!isBookmarked)}
-                    className={`
-                      w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all
-                      ${isBookmarked
-                        ? 'bg-[#D7FF3C]/10 text-[#D7FF3C] border border-[#D7FF3C]/30'
-                        : 'bg-[#1a1a1a] text-gray-400 hover:bg-[#2a2a2a]'
-                      }
-                    `}
-                  >
-                    <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
-                    {isBookmarked ? 'Bookmarked' : 'Bookmark'}
-                  </button>
-
-                  <button
-                    onClick={() => setIsFollowing(!isFollowing)}
-                    className={`
-                      w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all
-                      ${isFollowing
-                        ? 'bg-[#9B5CFF]/10 text-[#9B5CFF] border border-[#9B5CFF]/30'
-                        : 'bg-[#1a1a1a] text-gray-400 hover:bg-[#2a2a2a]'
-                      }
-                    `}
-                  >
-                    <Bell className={`w-4 h-4 ${isFollowing ? 'fill-current' : ''}`} />
-                    {isFollowing ? 'Following' : 'Follow Thread'}
-                  </button>
-                </div>
-              </div>
-
-              <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg p-4">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wide mb-4">
-                  Thread Author
-                </h3>
-                <UserProfileCard user={thread.author} variant="compact" />
-              </div>
-
-              <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg p-4">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wide mb-4">
-                  Similar Threads
-                </h3>
-                <div className="space-y-3">
-                  {[1, 2, 3].map((i) => (
-                    <Link
-                      key={i}
-                      href={`/community/forum/thread/${i}`}
-                      className="block hover:bg-[#111111] rounded p-2 -mx-2 transition-colors"
+                <div className="space-y-8">
+                  {thread.replies.map((reply, idx) => (
+                    <motion.div 
+                      key={reply.id} 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="group flex gap-6"
                     >
-                      <h4 className="text-sm font-medium text-white mb-1 line-clamp-2">
-                        Another thread about synthesizers
-                      </h4>
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <span>{12 + i} replies</span>
-                        <span>•</span>
-                        <span>{150 * i} views</span>
+                      <div className="flex-shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-zinc-900 border border-white/5 flex items-center justify-center text-[10px] font-black text-zinc-500">
+                          {reply.author.displayName[0]}
+                        </div>
                       </div>
-                    </Link>
+
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-center gap-3">
+                          <h4 className="text-xs font-black text-white uppercase tracking-widest">
+                            {reply.author.displayName}
+                          </h4>
+                          {reply.author.verified && <CheckCircle2 className="w-3 h-3 text-[#D1FF3D]" />}
+                          <span className="text-[9px] text-zinc-600 font-mono">
+                            {formatTimeAgo(reply.createdAt)}
+                          </span>
+                        </div>
+
+                        <p className="text-sm text-zinc-400 font-light leading-relaxed group-hover:text-zinc-200 transition-colors">
+                          {reply.body}
+                        </p>
+
+                        <div className="flex items-center gap-6 pt-2">
+                          <button className="flex items-center gap-2 text-[9px] font-black text-zinc-600 hover:text-[#D1FF3D] transition-all uppercase tracking-widest">
+                            <ThumbsUp className="w-3 h-3" />
+                            {reply.likes} UPVOTES
+                          </button>
+                          <button className="text-[9px] font-black text-zinc-600 hover:text-white transition-all uppercase tracking-widest">
+                            REPLY
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
                   ))}
                 </div>
+
+                {!thread.isLocked && (
+                  <div className="mt-16 pt-10 border-t border-white/5 space-y-6">
+                    <div className="flex items-center gap-3 mb-2">
+                       <Sparkles className="w-4 h-4 text-[#9B5CFF]" />
+                       <h4 className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Broadcast Response</h4>
+                    </div>
+                    <textarea
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      placeholder="Input frequency..."
+                      className="w-full px-8 py-6 bg-black/40 border border-white/5 rounded-[32px] text-white placeholder-zinc-700 focus:outline-none focus:border-[#D1FF3D]/30 resize-none font-light italic text-lg shadow-inner"
+                      rows={4}
+                    />
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9px] font-mono text-zinc-700 uppercase tracking-widest">
+                        Ready for synthesis: {replyText.length} bytes
+                      </span>
+                      <Button className="bg-[#D1FF3D] hover:bg-white text-black font-black uppercase tracking-widest h-12 px-8 rounded-full shadow-lg shadow-[#D1FF3D]/10">
+                        Post Transmission
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+
+          <div className="lg:col-span-4">
+            <div className="sticky top-12 space-y-8">
+              <div className="bg-[#111111]/40 border border-white/5 rounded-[40px] p-10 backdrop-blur-xl space-y-10">
+                <div className="space-y-6">
+                  <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">Signal Metadata</h3>
+                  <div className="space-y-4 font-mono text-[10px] uppercase tracking-widest">
+                    <div className="flex justify-between items-center group">
+                      <span className="text-zinc-600 group-hover:text-zinc-400 transition-colors">Detected</span>
+                      <span className="text-white">{formatTimeAgo(thread.createdAt)}</span>
+                    </div>
+                    <div className="flex justify-between items-center group">
+                      <span className="text-zinc-600 group-hover:text-zinc-400 transition-colors">Echoes</span>
+                      <span className="text-white">{thread.replies.length}</span>
+                    </div>
+                    <div className="flex justify-between items-center group">
+                      <span className="text-zinc-600 group-hover:text-zinc-400 transition-colors">Intensity</span>
+                      <span className="text-[#D1FF3D]">{thread.likes} AMP</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-8 border-t border-white/5">
+                   <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em] mb-6">Origin Node</h3>
+                   <UserProfileCard user={thread.author as any} variant="compact" />
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-[#9B5CFF]/10 to-transparent border border-[#9B5CFF]/20 rounded-[40px] p-10 backdrop-blur-xl">
+                 <h3 className="text-[10px] font-black text-white uppercase tracking-[0.3em] mb-4">Frequency Match</h3>
+                 <p className="text-[10px] text-zinc-500 font-light leading-relaxed italic mb-8">
+                   Identified similar signals within the local Mesh network.
+                 </p>
+                 <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <Link key={i} href={`/community/forum/thread/${i}`} className="block group">
+                         <h4 className="text-xs font-bold text-zinc-400 group-hover:text-[#D1FF3D] transition-all line-clamp-1 mb-1 italic">
+                           Hardware modular synthesis vs VST workflows...
+                         </h4>
+                         <div className="flex items-center gap-3 text-[9px] font-mono text-zinc-700 uppercase tracking-widest">
+                            <span>{12 + i} Echoes</span>
+                            <span>{150 * i} Sigs</span>
+                         </div>
+                      </Link>
+                    ))}
+                 </div>
               </div>
             </div>
           </div>
@@ -388,11 +338,9 @@ export function ThreadView({ threadId }: { threadId: string }) {
 
 function formatTimeAgo(date: Date): string {
   const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-
   if (seconds < 60) return 'just now';
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
   if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
-
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }

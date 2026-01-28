@@ -1,0 +1,148 @@
+This is a Forum UI/UX and interaction-layer enhancement task.
+Do NOT redesign backend architecture.
+Do NOT add new realtime infrastructure or databases.
+
+GOAL:
+Redesign the /community/forum page into a highly creative,
+modern, music-culture-driven forum experience that feels
+alive, expressive, and social—while preserving existing forum functionality.
+
+–––––––––––––––––––––
+STEP 1: FORUM VISUAL IDENTITY RESET
+–––––––––––––––––––––
+Problem:
+Current forum UI feels static and utilitarian.
+
+Actions:
+1. Redesign forum layout to feel like a modern music community space:
+   - expressive typography hierarchy
+   - rhythm-based spacing
+   - strong visual identity per section
+2. Keep forum structure:
+   - categories
+   - thread list
+   - filters
+3. Introduce visual depth:
+   - layered panels
+   - soft gradients
+   - subtle glow accents
+
+Rules:
+- No new routes
+- No backend changes
+
+Verification:
+Forum feels like a music platform, not a generic forum.
+
+–––––––––––––––––––––
+STEP 2: THREAD LIST → SOCIAL FEED FEEL
+–––––––––––––––––––––
+Actions:
+1. Redesign thread list to feel more like a social feed:
+   - clearer author identity
+   - activity indicators
+   - engagement emphasis
+2. Improve readability and scanning speed.
+3. Highlight active or trending threads visually.
+
+Rules:
+- Preserve existing data
+- Visual changes only
+
+Verification:
+Threads feel alive and socially engaging.
+
+–––––––––––––––––––––
+STEP 3: ADVANCED GRAPHICAL ELEMENTS
+–––––––––––––––––––––
+Actions:
+1. Add subtle, high-quality graphical elements:
+   - waveform-like separators
+   - pulse or signal-style accents
+   - section markers inspired by music hardware
+2. Use brand colors only.
+3. Avoid decorative clutter.
+
+Verification:
+Graphics feel intentional, underground, and premium.
+
+–––––––––––––––––––––
+STEP 4: MOTION & MICRO-INTERACTIONS
+–––––––––––––––––––––
+Actions:
+1. Add modern motion:
+   - staggered thread entry
+   - hover elevation
+   - soft glow on interaction
+2. Animate only opacity and transform.
+3. Respect prefers-reduced-motion.
+4. No heavy or continuous animations.
+
+Verification:
+Motion feels smooth, expressive, and performant.
+
+–––––––––––––––––––––
+STEP 5: REPLY & COMMENT EXPERIENCE (UI-ONLY)
+–––––––––––––––––––––
+Actions:
+1. Improve comment and reply UI:
+   - clearer nesting
+   - visual reply affordances
+   - better focus states
+2. Add visual cues for mentions (UI only).
+3. Do NOT implement new mention logic.
+
+Verification:
+Conversations feel readable and modern.
+
+–––––––––––––––––––––
+STEP 6: REALTIME PERCEPTION (WITHOUT NEW INFRA)
+–––––––––––––––––––––
+Problem:
+Forum feels static even when data updates.
+
+Actions:
+1. Add UI feedback that enhances realtime perception:
+   - animated insert when new threads appear
+   - subtle refresh indicators
+2. Reuse existing polling or data refresh logic.
+3. Do NOT add websockets or new services.
+
+Verification:
+Forum feels responsive and alive without new backend.
+
+–––––––––––––––––––––
+STEP 7: EMPTY & EDGE STATES
+–––––––––––––––––––––
+Actions:
+1. Redesign empty states to feel intentional:
+   - expressive messaging
+   - subtle graphics
+2. Avoid “no data” dead screens.
+
+Verification:
+Empty forum states feel curated.
+
+–––––––––––––––––––––
+STEP 8: SAFETY & PERFORMANCE
+–––––––––––––––––––––
+1. No console errors.
+2. No backend changes.
+3. Existing forum functionality preserved.
+4. Mobile and tablet layouts remain usable.
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Redesigned /community/forum UI
+- Advanced graphical accents
+- Modern motion and interaction polish
+- Confirmation that:
+  - Forum feels creative and music-driven
+  - No backend systems were changed
+  - Performance remains smooth
+  - Existing features still work
+
+Do not explain.
+Do not ask questions.
+Implement directly.
