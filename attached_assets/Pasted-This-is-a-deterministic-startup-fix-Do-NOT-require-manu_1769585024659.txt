@@ -1,0 +1,128 @@
+This is a deterministic startup fix.
+Do NOT require manual intervention.
+Do NOT switch modes.
+
+GOAL:
+Ensure admin and test accounts are automatically created,
+verified, and able to log in on project initialization,
+and fix News feeds so they load correctly.
+
+–––––––––––––––––––––
+STEP 1: FIX DATABASE SCHEMA MISMATCH (CRITICAL)
+–––––––––––––––––––––
+Problem:
+Admin seeding and auth fail due to schema mismatch
+(users, profiles, login_attempts not aligned or missing).
+
+Actions:
+1. Verify the Drizzle schema matches the actual database tables:
+   - users
+   - profiles
+   - login_attempts
+2. Ensure column names match exactly:
+   - email
+   - password_hash
+   - role
+   - verified
+   - verification_status
+3. Apply migrations if tables or columns are missing.
+4. Fail loudly if schema cannot be aligned.
+
+Verification:
+Database tables exist and match Drizzle schema exactly.
+
+–––––––––––––––––––––
+STEP 2: AUTOMATIC ADMIN & TEST ACCOUNT SEEDING (ON INIT)
+–––––––––––––––––––––
+Admin account (MANDATORY):
+- Email: dejayillegal@gmail.com
+- Password: Closer@82
+- Role: admin
+- Verified: true
+
+Test accounts:
+- test1@thecueroom.dev
+- test2@thecueroom.dev
+- Password: Test@123
+- Role: user
+- Verified: true
+
+Actions:
+1. Implement an idempotent seed script that runs on project startup.
+2. If admin exists:
+   - enforce role = admin
+   - enforce verified = true
+3. If admin does NOT exist:
+   - hash password securely
+   - create user + profile
+4. Repeat same logic for test users.
+5. Script must be safe to run multiple times.
+
+Verification:
+- Admin and test users always exist after startup
+- No duplicate users created
+
+–––––––––––––––––––––
+STEP 3: FIX AUTH LOGIN FLOW
+–––––––––––––––––––––
+Problem:
+Login fails with “Invalid email or password”.
+
+Actions:
+1. Ensure login uses the same password hashing
+   as the seed script.
+2. Ensure auth queries reference correct schema fields.
+3. Remove any hardcoded or legacy auth logic.
+4. Return clear auth errors, not silent failures.
+
+Verification:
+- Admin can log in with:
+  email: dejayillegal@gmail.com
+  password: Closer@82
+- Test users can log in successfully.
+
+–––––––––––––––––––––
+STEP 4: FIX NEWS FEEDS HYDRATION
+–––––––––––––––––––––
+Problem:
+News feeds do not load or hydrate correctly.
+
+Actions:
+1. Ensure News page fetches feeds from the existing feeds API/table.
+2. Verify feeds table exists and contains data.
+3. Remove any demo or fallback-only logic.
+4. Ensure News page renders feeds consistently.
+
+Verification:
+News page shows real feeds on load.
+
+–––––––––––––––––––––
+STEP 5: STARTUP GUARANTEE
+–––––––––––––––––––––
+Actions:
+1. Ensure seeding runs automatically on:
+   - first project start
+   - cold restart
+2. Do NOT require manual commands.
+3. Log successful init clearly.
+
+–––––––––––––––––––––
+SAFETY & REGRESSION CHECK
+–––––––––––––––––––––
+1. No console errors.
+2. No auth regressions.
+3. No duplicate users.
+4. Dashboard, News, and Landing pages work.
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Verified schema alignment
+- Auto-seeding logic on startup
+- Admin & test accounts created and verified
+- Auth login confirmed working
+- News feeds loading correctly
+
+Do not explain.
+Do not ask questions.
+Implement directly.
