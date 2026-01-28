@@ -344,74 +344,99 @@ const CommunityUnderground = ({ items }: { items: NewsItem[] }) => (
 /**
  * STRATUM 4: DEEP INVESTIGATIONS
  */
-const DeepDive = ({ items }: { items: NewsItem[] }) => (
-  <section className="bg-[#111111] py-48 border-t border-white/5">
-    <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-      <motion.div 
-        initial={ { opacity: 0, scale: 0.95 } }
-        whileInView={ { opacity: 1, scale: 1 } }
-        viewport={ { once: true } }
-        transition={ { duration: 1, ease: [0.16, 1, 0.3, 1] } }
-        className="max-w-4xl mx-auto text-center mb-32"
-      >
-        <h2 className="text-6xl md:text-8xl font-bold text-white tracking-tighter mb-8 leading-none">Deep Investigations</h2>
-        <div className="h-[2px] w-24 bg-[#D1FF3D] mx-auto mb-8" />
-        <p className="font-mono text-[11px] text-gray-500 uppercase tracking-[0.6em]">Longform editorial archives</p>
-      </motion.div>
-      
-      <div className="max-w-5xl mx-auto space-y-48">
-        {items.map((item, idx) => (
-          <div key={item.id} className={cn(
-            "flex flex-col gap-20 group",
-            idx % 2 === 1 ? "md:flex-row-reverse" : "md:flex-row"
-          )}>
-            <motion.div 
-              initial={ { opacity: 0, scale: 1.1 } }
-              whileInView={ { opacity: 1, scale: 1 } }
-              viewport={ { once: true } }
-              transition={ { duration: 1.2 } }
-              className="w-full md:w-1/2 aspect-[4/5] relative overflow-hidden"
-            >
-              <Image 
-                src={item.imageUrl} 
-                alt={item.title}
-                fill
-                className="object-cover saturate-0 group-hover:saturate-100 transition-all duration-[1500ms]"
-              />
-              <div className="absolute inset-0 bg-[#0B0B0B]/20 mix-blend-overlay" />
-            </motion.div>
-            <motion.div 
-              initial={ { opacity: 0, x: idx % 2 === 1 ? -50 : 50 } }
-              whileInView={ { opacity: 1, x: 0 } }
-              viewport={ { once: true } }
-              transition={ { duration: 1, delay: 0.2 } }
-              className="w-full md:w-1/2 flex flex-col justify-center"
-            >
-              <span className="font-mono text-[11px] text-[#873BBF] mb-10 uppercase tracking-[0.4em] block">
-                Investigative Report
-              </span>
-              <h3 className="text-4xl md:text-6xl font-bold text-white mb-10 tracking-tight leading-[0.95] group-hover:text-[#D1FF3D] transition-colors">
-                {item.title}
-              </h3>
-              <p className="text-gray-400 text-xl md:text-2xl leading-relaxed mb-12 font-light italic border-l-2 border-white/10 pl-8">
-                {item.excerpt}
-              </p>
-              <div className="flex items-center gap-12">
-                <Link href={item.link} target="_blank" rel="noopener noreferrer" className="font-mono text-[11px] uppercase tracking-[0.4em] text-white hover:text-[#D1FF3D] underline underline-offset-[12px] decoration-white/20 hover:decoration-[#D1FF3D]">
-                  Decrypt File
-                </Link>
-                <div className="flex items-center gap-3">
-                   <Clock size={14} className="text-gray-600" />
-                   <span className="font-mono text-[10px] text-gray-600 uppercase tracking-widest">{calculateReadTime(item.title, item.excerpt)}</span>
-                </div>
-              </div>
-            </motion.div>
+const DeepDive = ({ items }: { items: NewsItem[] }) => {
+  const [activeCategory, setActiveCategory] = useState<string>('ALL');
+  const categories = ['ALL', ...Array.from(new Set(items.map(i => i.category)))];
+  
+  const filteredItems = activeCategory === 'ALL' 
+    ? items 
+    : items.filter(i => i.category === activeCategory);
+
+  return (
+    <section className="bg-[#111111] py-48 border-t border-white/5">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12">
+        <motion.div 
+          initial={ { opacity: 0, scale: 0.95 } }
+          whileInView={ { opacity: 1, scale: 1 } }
+          viewport={ { once: true } }
+          transition={ { duration: 1, ease: [0.16, 1, 0.3, 1] } }
+          className="max-w-4xl mx-auto text-center mb-24"
+        >
+          <h2 className="text-6xl md:text-8xl font-bold text-white tracking-tighter mb-8 leading-none">Deep Investigations</h2>
+          <div className="h-[2px] w-24 bg-[#D1FF3D] mx-auto mb-12" />
+          
+          <div className="flex flex-wrap justify-center gap-4 mb-16">
+            {categories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={cn(
+                  "font-mono text-[10px] tracking-[0.2em] px-6 py-2 border transition-all uppercase",
+                  activeCategory === cat 
+                    ? "bg-[#D1FF3D] border-[#D1FF3D] text-black" 
+                    : "bg-transparent border-white/10 text-gray-500 hover:border-white/30"
+                )}
+              >
+                {cat}
+              </button>
+            ))}
           </div>
-        ))}
+        </motion.div>
+        
+        <div className="max-w-5xl mx-auto space-y-48">
+          {filteredItems.map((item, idx) => (
+            <div key={item.id} className={cn(
+              "flex flex-col gap-20 group",
+              idx % 2 === 1 ? "md:flex-row-reverse" : "md:flex-row"
+            )}>
+              <motion.div 
+                initial={ { opacity: 0, scale: 1.1 } }
+                whileInView={ { opacity: 1, scale: 1 } }
+                viewport={ { once: true } }
+                transition={ { duration: 1.2 } }
+                className="w-full md:w-1/2 aspect-[4/5] relative overflow-hidden"
+              >
+                <Image 
+                  src={item.imageUrl || '/fallbacks/fallback_1.png'} 
+                  alt={item.title}
+                  fill
+                  className="object-cover saturate-0 group-hover:saturate-100 transition-all duration-[1500ms]"
+                />
+                <div className="absolute inset-0 bg-[#0B0B0B]/20 mix-blend-overlay" />
+              </motion.div>
+              <motion.div 
+                initial={ { opacity: 0, x: idx % 2 === 1 ? -50 : 50 } }
+                whileInView={ { opacity: 1, x: 0 } }
+                viewport={ { once: true } }
+                transition={ { duration: 1, delay: 0.2 } }
+                className="w-full md:w-1/2 flex flex-col justify-center"
+              >
+                <span className="font-mono text-[11px] text-[#873BBF] mb-10 uppercase tracking-[0.4em] block">
+                  {item.category} REPORT
+                </span>
+                <h3 className="text-4xl md:text-6xl font-bold text-white mb-10 tracking-tight leading-[0.95] group-hover:text-[#D1FF3D] transition-colors">
+                  {item.title}
+                </h3>
+                <p className="text-gray-400 text-xl md:text-2xl leading-relaxed mb-12 font-light italic border-l-2 border-white/10 pl-8">
+                  {item.excerpt}
+                </p>
+                <div className="flex items-center gap-12">
+                  <Link href={item.link} target="_blank" rel="noopener noreferrer" className="font-mono text-[11px] uppercase tracking-[0.4em] text-white hover:text-[#D1FF3D] underline underline-offset-[12px] decoration-white/20 hover:decoration-[#D1FF3D]">
+                    Decrypt File
+                  </Link>
+                  <div className="flex items-center gap-3">
+                     <Clock size={14} className="text-gray-600" />
+                     <span className="font-mono text-[10px] text-gray-600 uppercase tracking-widest">{calculateReadTime(item.title, item.excerpt)}</span>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 export default function NewsPage() {
   const [undergroundItems, setUndergroundItems] = useState<NewsItem[]>([]);
@@ -588,8 +613,8 @@ export default function NewsPage() {
             )}
             
             {/* 4. DEEP INVESTIGATIONS */}
-            {newsItems.length > 12 && (
-              <DeepDive items={newsItems.slice(12, 15)} />
+            {newsItems.length > 0 && (
+              <DeepDive items={newsItems} />
             )}
             
             {/* Footer */}
