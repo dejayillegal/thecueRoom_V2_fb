@@ -1,131 +1,38 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { Music, Calendar, ExternalLink } from 'lucide-react';
-import { UnifiedEmbedPlayer } from '@/components/Player/UnifiedEmbedPlayer';
-
-interface Playlist {
-  id: string;
-  title: string;
-  description?: string;
-  platform: string;
-  platformId?: string;
-  embedUrl?: string;
-  coverImage?: string;
-  status: string;
-  publishedAt?: string;
-  monthOf?: string;
-  trackCount: number;
-  curatorName: string;
-}
+import { Music, PlayCircle, Radio } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 export function MonthlyPlaylistWidget() {
-  const [playlists, setPlaylists] = useState<Playlist[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchPlaylists();
-  }, []);
-
-  const fetchPlaylists = async () => {
-    try {
-      const res = await fetch('/api/playlists/monthly/latest');
-      const data = await res.json();
-
-      if (data.ok && data.playlists) {
-        setPlaylists(data.playlists);
-      } else {
-        setError(data.error || 'No playlists available');
-      }
-    } catch (err) {
-      console.error('Error fetching playlists:', err);
-      setError('Failed to load playlists');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="bg-neutral-900 rounded-lg p-6 animate-pulse">
-        <div className="h-8 bg-neutral-800 rounded w-48 mb-4"></div>
-        <div className="h-96 bg-neutral-800 rounded"></div>
-      </div>
-    );
-  }
-
-  if (error || playlists.length === 0) {
-    return (
-      <div className="bg-neutral-900 rounded-lg p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Music className="text-lime-500" size={24} />
-          <h2 className="text-xl font-semibold">Monthly Playlists</h2>
-        </div>
-        <p className="text-neutral-400">{error || 'No playlists available yet.'}</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      {playlists.map((playlist) => (
-        <div key={playlist.id} className="bg-neutral-900 rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Music className="text-lime-500" size={24} />
-              <h2 className="text-xl font-semibold">{playlist.title}</h2>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs px-2 py-1 bg-neutral-800 rounded capitalize text-neutral-300">
-                {playlist.platform}
-              </span>
-              {playlist.monthOf && (
-                <div className="flex items-center gap-1 text-sm text-neutral-400">
-                  <Calendar size={16} />
-                  <span>
-                    {new Date(playlist.monthOf).toLocaleDateString('en-US', {
-                      month: 'long',
-                      year: 'numeric',
-                    })}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {playlist.description && (
-            <p className="text-neutral-300 mb-4 text-sm">{playlist.description}</p>
-          )}
-
-          <div className="mb-4">
-            <UnifiedEmbedPlayer
-              platform={playlist.platform as 'spotify' | 'soundcloud' | 'mixcloud'}
-              playlistId={playlist.platformId || ''}
-              embedUrl={playlist.embedUrl || ''}
-              title={playlist.title}
-            />
-          </div>
-
-          <div className="flex items-center justify-between text-sm text-neutral-400">
-            <div className="flex items-center gap-4">
-              <span>{playlist.trackCount || 0} tracks</span>
-              <span>Curated by {playlist.curatorName}</span>
-            </div>
-            {playlist.embedUrl && (
-              <a
-                href={playlist.embedUrl.replace('/embed/', '/')}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-lime-500 hover:text-lime-400 transition-colors"
-              >
-                <span>Open in {playlist.platform}</span>
-                <ExternalLink size={14} />
-              </a>
-            )}
-          </div>
+    <Card className="bg-[#111111]/40 border-white/5 rounded-[32px] overflow-hidden backdrop-blur-md h-full min-h-[400px] group transition-all duration-500 hover:border-[#D7FF3C]/20">
+      <div className="p-8 border-b border-white/5 flex justify-between items-center bg-gradient-to-r from-transparent to-white/[0.02]">
+        <div className="space-y-1">
+          <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Sonic Selection</h3>
+          <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest">Curated Frequency</p>
         </div>
-      ))}
-    </div>
+        <div className="p-2 rounded-lg bg-white/5 border border-white/5 group-hover:border-[#D7FF3C]/30 transition-all">
+          <Radio className="w-4 h-4 text-[#D7FF3C] animate-pulse" />
+        </div>
+      </div>
+
+      <div className="flex flex-col items-center justify-center p-12 text-center h-[300px] space-y-8">
+        <div className="relative p-10 rounded-[48px] bg-gradient-to-br from-[#9B5CFF]/10 via-[#9B5CFF]/5 to-transparent border border-white/5 overflow-hidden group/icon">
+           <div className="absolute inset-0 bg-[#9B5CFF]/20 opacity-0 group-hover/icon:opacity-100 transition-opacity blur-3xl" />
+           <div className="absolute -inset-1 bg-gradient-to-tr from-[#9B5CFF]/20 to-transparent opacity-50 blur-xl" />
+           <PlayCircle className="w-16 h-16 text-[#9B5CFF] relative z-10 transition-transform duration-700 group-hover/icon:scale-110" />
+        </div>
+        <div className="space-y-3">
+          <h4 className="text-white font-bold tracking-tight text-lg italic">Upcoming Selection</h4>
+          <p className="text-xs text-zinc-500 max-w-[220px] font-light leading-relaxed">
+            Identity registry confirmed. Curators are currently selecting high-fidelity signals for this cycle.
+          </p>
+        </div>
+      </div>
+      
+      <div className="px-8 pb-8">
+        <div className="h-px w-full bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+      </div>
+    </Card>
   );
 }

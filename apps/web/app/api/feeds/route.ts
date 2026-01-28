@@ -167,14 +167,14 @@ export async function GET(request: Request) {
     }
 
     // Standard path for existing data
-    const rows = await db.select().from(feeds)
-      .orderBy(desc(feeds.publishedAt))
+    const rows = await db.select().from(feeds as any)
+      .orderBy(desc((feeds as any).publishedAt))
       .limit(limit)
       .offset(offset);
 
     // Filter spotlight feeds (e.g., top 5 latest)
-    const spotlightRows = await db.select().from(feeds)
-      .orderBy(desc(feeds.publishedAt))
+    const spotlightRows = await db.select().from(feeds as any)
+      .orderBy(desc((feeds as any).publishedAt))
       .limit(5);
     
     return NextResponse.json({
