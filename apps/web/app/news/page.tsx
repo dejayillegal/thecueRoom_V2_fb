@@ -517,90 +517,91 @@ export default function NewsPage() {
     updateCountdown();
     return () => clearInterval(timer);
   }, []);
-    <AnimatePresence mode="wait">
-      {isLoading ? (
-        <motion.div 
-          key="loader"
-          initial={ { opacity: 1 } }
-          exit={ { opacity: 0 } }
-          className="min-h-screen bg-[#0B0B0B] flex items-center justify-center"
-        >
-          <div className="flex flex-col items-center gap-6">
-            <div className="w-16 h-[1px] bg-[#D1FF3D] animate-pulse" />
-            <p className="font-mono text-[10px] tracking-[0.5em] text-[#D1FF3D] animate-pulse uppercase">Syncing Signals</p>
-          </div>
-        </motion.div>
-      ) : error === 'offline' ? (
-        <motion.div key="offline" initial={ { opacity: 0 } } animate={ { opacity: 1 } } className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6">
-          <div className="max-w-2xl w-full">
-            <SignalLost onRetry={handleRetry} />
-          </div>
-        </motion.div>
-      ) : error === 'empty' ? (
-        <motion.div key="empty" initial={ { opacity: 0 } } animate={ { opacity: 1 } } className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6">
-          <div className="max-w-2xl w-full">
-            <SilenceInTheWire />
-          </div>
-        </motion.div>
-      ) : !isLoggedIn ? (
-        <motion.div key="unauthorized" initial={ { opacity: 0 } } animate={ { opacity: 1 } } className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6">
-          <div className="max-w-2xl w-full">
-            <AccessRestricted onLogin={handleLogin} />
-          </div>
-        </motion.div>
-      ) : (
-        <motion.div 
-          key="content"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="min-h-screen bg-[#0B0B0B] text-white selection:bg-[#D1FF3D] selection:text-black overflow-x-hidden"
-        >
-          {/* 1. SIGNAL LEAD */}
-          {curatedItems.length > 0 ? (
-            <SignalLead item={curatedItems[0]} />
-          ) : newsItems.length > 0 ? (
-            <SignalLead item={newsItems[0]} />
-          ) : (
-             <div className="pt-32 px-6 max-w-[1400px] mx-auto">
-               <SilenceInTheWire />
-             </div>
-          )}
-          
-          {/* 2. INTELLIGENCE RAIL */}
-          {curatedItems.length > 1 ? (
-            <CuratedRail items={curatedItems.slice(1, 6)} />
-          ) : newsItems.length > 1 && (
-            <CuratedRail items={newsItems.slice(1, 6)} />
-          )}
-          
-          {/* 3. THE UNDERGROUND */}
-          {undergroundItems.length > 0 ? (
-            <CommunityUnderground items={undergroundItems.slice(0, 6)} />
-          ) : (
-            <section className="bg-[#0B0B0B] py-32">
-              <div className="max-w-[1400px] mx-auto px-6 md:px-12 text-center">
-                <p className="text-gray-500 font-mono text-[10px] tracking-widest uppercase">No underground signals detected</p>
-              </div>
-            </section>
-          )}
-          
-          {/* 4. DEEP INVESTIGATIONS */}
-          {newsItems.length > 12 && (
-            <DeepDive items={newsItems.slice(12, 15)} />
-          )}
-          
-          {/* Footer */}
-          <footer className="py-32 text-center border-t border-white/5 bg-[#0B0B0B]">
-            <div className="max-w-lg mx-auto space-y-8">
-              <div className="w-8 h-[2px] bg-white/20 mx-auto" />
-              <p className="font-mono text-[10px] text-gray-600 uppercase tracking-[0.5em] leading-loose">
-                End of current intelligence cycle.<br />
-                Next signal synchronization in {timeRemaining}.
-              </p>
+    return (
+      <AnimatePresence mode="wait">
+        {isLoading ? (
+          <motion.div 
+            key="loader"
+            initial={ { opacity: 1 } }
+            exit={ { opacity: 0 } }
+            className="min-h-screen bg-[#0B0B0B] flex items-center justify-center"
+          >
+            <div className="flex flex-col items-center gap-6">
+              <div className="w-16 h-[1px] bg-[#D1FF3D] animate-pulse" />
+              <p className="font-mono text-[10px] tracking-[0.5em] text-[#D1FF3D] animate-pulse uppercase">Syncing Signals</p>
             </div>
-          </footer>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
+          </motion.div>
+        ) : error === 'offline' ? (
+          <motion.div key="offline" initial={ { opacity: 0 } } animate={ { opacity: 1 } } className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6">
+            <div className="max-w-2xl w-full">
+              <SignalLost onRetry={handleRetry} />
+            </div>
+          </motion.div>
+        ) : error === 'empty' ? (
+          <motion.div key="empty" initial={ { opacity: 0 } } animate={ { opacity: 1 } } className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6">
+            <div className="max-w-2xl w-full">
+              <SilenceInTheWire />
+            </div>
+          </motion.div>
+        ) : !isLoggedIn ? (
+          <motion.div key="unauthorized" initial={ { opacity: 0 } } animate={ { opacity: 1 } } className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6">
+            <div className="max-w-2xl w-full">
+              <AccessRestricted onLogin={handleLogin} />
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div 
+            key="content"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="min-h-screen bg-[#0B0B0B] text-white selection:bg-[#D1FF3D] selection:text-black overflow-x-hidden"
+          >
+            {/* 1. SIGNAL LEAD */}
+            {curatedItems.length > 0 ? (
+              <SignalLead item={curatedItems[0]} />
+            ) : newsItems.length > 0 ? (
+              <SignalLead item={newsItems[0]} />
+            ) : (
+               <div className="pt-32 px-6 max-w-[1400px] mx-auto">
+                 <SilenceInTheWire />
+               </div>
+            )}
+            
+            {/* 2. INTELLIGENCE RAIL */}
+            {curatedItems.length > 1 ? (
+              <CuratedRail items={curatedItems.slice(1, 6)} />
+            ) : newsItems.length > 1 && (
+              <CuratedRail items={newsItems.slice(1, 6)} />
+            )}
+            
+            {/* 3. THE UNDERGROUND */}
+            {undergroundItems.length > 0 ? (
+              <CommunityUnderground items={undergroundItems.slice(0, 6)} />
+            ) : (
+              <section className="bg-[#0B0B0B] py-32">
+                <div className="max-w-[1400px] mx-auto px-6 md:px-12 text-center">
+                  <p className="text-gray-500 font-mono text-[10px] tracking-widest uppercase">No underground signals detected</p>
+                </div>
+              </section>
+            )}
+            
+            {/* 4. DEEP INVESTIGATIONS */}
+            {newsItems.length > 12 && (
+              <DeepDive items={newsItems.slice(12, 15)} />
+            )}
+            
+            {/* Footer */}
+            <footer className="py-32 text-center border-t border-white/5 bg-[#0B0B0B]">
+              <div className="max-w-lg mx-auto space-y-8">
+                <div className="w-8 h-[2px] bg-white/20 mx-auto" />
+                <p className="font-mono text-[10px] text-gray-600 uppercase tracking-[0.5em] leading-loose">
+                  End of current intelligence cycle.<br />
+                  Next signal synchronization in {timeRemaining}.
+                </p>
+              </div>
+            </footer>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  }
