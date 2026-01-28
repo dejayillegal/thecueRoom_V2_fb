@@ -87,14 +87,6 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
           <DialogDescription>Identity Gateway</DialogDescription>
         </VisuallyHidden.Root>
         
-        <button 
-          onClick={onClose}
-          className="absolute right-6 top-6 text-zinc-600 hover:text-white transition-colors z-[100]"
-          aria-label="Close"
-        >
-          <X size={18} />
-        </button>
-        
         <div className="p-10 sm:p-12">
           <motion.div {...motionProps} key={tab}>
             <DialogHeader className="mb-12 text-left">
@@ -160,28 +152,28 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
                     Identity Gateway
                   </div>
 
-                  <form onSubmit={tab === 'signin' ? handleSignIn : handleForgot} className="mt-12 space-y-8">
-                    <div className="space-y-3">
-                      <Label htmlFor="email" className="text-[10px] uppercase tracking-[0.2em] text-[#D1FF3D] font-bold opacity-90">Email Address</Label>
+                  <form onSubmit={tab === 'signin' ? handleSignIn : handleForgot} className="mt-12 space-y-10">
+                    <div className="space-y-4">
+                      <Label htmlFor="email" className="text-[11px] uppercase tracking-[0.3em] text-[#D1FF3D] font-bold opacity-90">Email Address</Label>
                       <Input
                         id="email"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="bg-[#111111] border-white/5 focus:border-[#D1FF3D]/40 text-white h-12 rounded-none transition-all placeholder:text-zinc-800 focus:bg-[#151515]"
+                        className="bg-[#111111] border-white/5 focus:border-[#D1FF3D]/40 text-white h-14 rounded-none transition-all duration-500 placeholder:text-zinc-800 focus:bg-[#151515] px-6 text-base font-light"
                         placeholder="Enter email"
                         required
                       />
                     </div>
 
                     {tab === 'signin' && (
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         <div className="flex justify-between items-center">
-                          <Label htmlFor="password" className="text-[10px] uppercase tracking-[0.2em] text-[#D1FF3D] font-bold opacity-90">Security Pass</Label>
+                          <Label htmlFor="password" className="text-[11px] uppercase tracking-[0.3em] text-[#D1FF3D] font-bold opacity-90">Security Pass</Label>
                           <button
                             type="button"
                             onClick={() => setTab('forgot')}
-                            className="text-[9px] uppercase tracking-widest text-zinc-600 hover:text-[#D1FF3D] transition-colors font-mono"
+                            className="text-[10px] uppercase tracking-[0.4em] text-zinc-600 hover:text-[#D1FF3D] transition-colors font-mono font-bold"
                           >
                             Lost Pass?
                           </button>
@@ -191,7 +183,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
                           type="password"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          className="bg-[#111111] border-white/5 focus:border-[#D1FF3D]/40 text-white h-12 rounded-none transition-all placeholder:text-zinc-800 focus:bg-[#151515]"
+                          className="bg-[#111111] border-white/5 focus:border-[#D1FF3D]/40 text-white h-14 rounded-none transition-all duration-500 placeholder:text-zinc-800 focus:bg-[#151515] px-6 text-base font-light"
                           placeholder="••••••••••••"
                           required
                         />
@@ -204,9 +196,9 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: 'auto' }}
                           exit={{ opacity: 0, height: 0 }}
-                          className="flex items-center gap-3 text-red-500 text-[10px] bg-red-500/5 p-4 border border-red-500/10 font-mono uppercase tracking-wider"
+                          className="flex items-center gap-4 text-red-500 text-[11px] bg-red-500/5 p-5 border border-red-500/10 font-mono uppercase tracking-[0.2em] font-bold"
                         >
-                          <AlertCircle size={12} />
+                          <AlertCircle size={14} />
                           <span>{error}</span>
                         </motion.div>
                       )}
@@ -215,9 +207,9 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full bg-[#D1FF3D] hover:bg-white text-black font-bold h-14 rounded-none transition-all duration-300 uppercase tracking-[0.4em] text-[10px]"
+                      className="w-full bg-[#D1FF3D] hover:bg-white text-black font-bold h-16 rounded-none transition-all duration-700 uppercase tracking-[0.5em] text-[11px] shadow-[0_0_30px_rgba(209,255,61,0.1)] active:scale-[0.98]"
                     >
-                      {isSubmitting ? <Loader2 className="animate-spin w-4 h-4" /> : 'Proceed'}
+                      {isSubmitting ? <Loader2 className="animate-spin w-5 h-5" /> : 'Proceed'}
                     </Button>
                   </form>
 

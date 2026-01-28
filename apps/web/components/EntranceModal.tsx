@@ -42,13 +42,6 @@ export default function EntranceModal() {
               {/* Abstract Background Decoration */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-[#D1FF3D]/5 blur-[100px] -mr-32 -mt-32 rounded-full" />
               
-              <button 
-                onClick={handleClose}
-                className="absolute right-8 top-8 text-white/20 hover:text-white transition-colors"
-              >
-                <X size={20} />
-              </button>
-
               <div className="relative space-y-12">
                 <div className="space-y-4">
                   <div className="flex items-center gap-4">
