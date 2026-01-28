@@ -424,6 +424,8 @@ export default function NewsPage() {
     window.location.href = '/login';
   };
 
+  const isLoggedIn = true; // Temporary bypass for rendering hardening as per instructions
+
   return (
     <AnimatePresence mode="wait">
       {isLoading ? (
