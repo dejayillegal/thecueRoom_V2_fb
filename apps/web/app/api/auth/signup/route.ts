@@ -4,6 +4,7 @@ import { users, profiles, verificationJobs, notifications } from '@thecueroom/db
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
+import { validateEmail, normalizeEmail } from '@/lib/validation/email';
 
 const ALLOWED_PROFILE_DOMAINS = [
   'soundcloud.com',
@@ -55,6 +56,15 @@ const signupSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    
+    const emailValidation = validateEmail(body.email);
+    if (!emailValidation.valid) {
+      return NextResponse.json(
+        { ok: false, error: emailValidation.error },
+        { status: 400 }
+      );
+    }
+    
     const validatedData = signupSchema.parse(body);
 
     const db = getDbClient();
@@ -73,8 +83,6 @@ export async function POST(request: NextRequest) {
         );
       }
     }
-
-    const db = getDbClient();
 
     // Check if email already exists
     const existingEmail = await db
@@ -133,8 +141,6 @@ export async function POST(request: NextRequest) {
 
     // Hash password
     const hashedPassword = await bcrypt.hash(validatedData.password, 10);
-
-    const db = getDbClient();
 
     // Create user with appropriate role
     const [newUser] = await db

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/src/lib/db';
 import { users, artistProfiles, authEvents } from '@/packages/db/schema';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
+import { validateEmail } from '@/lib/validation/email';
 import { eq } from 'drizzle-orm';
 
 /**

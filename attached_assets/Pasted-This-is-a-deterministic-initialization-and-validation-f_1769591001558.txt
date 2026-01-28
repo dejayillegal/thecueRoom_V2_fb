@@ -1,0 +1,138 @@
+This is a deterministic initialization and validation fix.
+Do NOT require manual scripts.
+Do NOT change authentication provider.
+Do NOT add new backend services.
+
+GOAL:
+Guarantee admin and test accounts are created and verified
+on every cold start / project initialization,
+and fix email validation logic across Entrance, Registry,
+and Recovery flows so no invalid or inconsistent states occur.
+
+–––––––––––––––––––––
+STEP 1: FORCE ADMIN & TEST ACCOUNT CREATION ON COLD START
+–––––––––––––––––––––
+Problem:
+Admin and test users are not reliably created on cold start.
+
+Actions:
+1. Move user seeding logic into a guaranteed initialization path:
+   - app startup
+   - server boot
+   - first request bootstrap
+2. Seeding must run automatically on:
+   - cold start
+   - redeploy
+   - environment restart
+3. Do NOT rely on manual script execution.
+
+Admin account (MANDATORY):
+- email: dejayillegal@gmail.com
+- password: Closer@82
+- role: admin
+- verified: true
+
+Test accounts:
+- test1@thecueroom.dev
+- test2@thecueroom.dev
+- password: Test@123
+- role: user
+- verified: true
+
+Rules:
+- Idempotent logic only (no duplicates)
+- If user exists → enforce role + verified
+- If user does not exist → create user + profile
+
+Verification:
+After cold start, all accounts exist and are login-ready.
+
+–––––––––––––––––––––
+STEP 2: ENFORCE PASSWORD HASH CONSISTENCY
+–––––––––––––––––––––
+Problem:
+Seeded passwords and login validation do not match.
+
+Actions:
+1. Ensure seeding and login use the SAME hashing function.
+2. Remove any legacy or duplicate password logic.
+3. Verify bcrypt (or equivalent) configuration is identical.
+
+Verification:
+Admin and test users can log in successfully.
+
+–––––––––––––––––––––
+STEP 3: FIX EMAIL VALIDATION (ENTRANCE / REGISTRY / RECOVERY)
+–––––––––––––––––––––
+Problem:
+Email validation behaves inconsistently across flows.
+
+Actions:
+1. Centralize email validation logic.
+2. Use a single, strict email validation rule everywhere.
+3. Ensure validation occurs:
+   - before submit (UI)
+   - on submit (API)
+4. Remove conflicting or duplicated regex logic.
+
+Rules:
+- Same validation rules for:
+  - login
+  - registration
+  - password recovery
+- No false negatives
+- No false positives
+
+Verification:
+Valid emails always pass.
+Invalid emails always fail with clear feedback.
+
+–––––––––––––––––––––
+STEP 4: FIX REALTIME / CROSS-FLOW EMAIL STATE BUGS
+–––––––––––––––––––––
+Problem:
+Email state becomes invalid across tabs or flows.
+
+Actions:
+1. Reset validation state correctly on tab switch.
+2. Prevent stale or cached validation errors.
+3. Ensure each flow validates independently.
+
+Verification:
+Switching between Entrance / Registry / Recovery
+does not cause validation errors.
+
+–––––––––––––––––––––
+STEP 5: STARTUP LOGGING (NON-OPTIONAL)
+–––––––––––––––––––––
+Actions:
+1. Log when seeding runs.
+2. Log admin and test account enforcement.
+3. Log success or failure clearly.
+
+Rules:
+- No silent failures
+
+–––––––––––––––––––––
+STEP 6: SAFETY & REGRESSION CHECK
+–––––––––––––––––––––
+1. No console errors.
+2. No auth regressions.
+3. No duplicate users.
+4. News, Forum, Dashboard unaffected.
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Forced cold-start seeding logic
+- Admin & test accounts always present
+- Verified login success
+- Unified email validation logic
+- Confirmation that:
+  - Cold start always creates users
+  - Login works immediately
+  - Email validation is consistent and correct
+
+Do not explain.
+Do not ask questions.
+Implement directly.

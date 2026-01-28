@@ -41,14 +41,17 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email } = body;
 
-    if (!email || typeof email !== 'string' || !email.includes('@')) {
+    const { validateEmail } = await import('@/lib/validation/email');
+    const emailValidation = validateEmail(email);
+    
+    if (!emailValidation.valid) {
       return NextResponse.json(
-        { error: 'Valid email address is required' },
+        { error: emailValidation.error },
         { status: 400 }
       );
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
+    const normalizedEmail = emailValidation.normalized!;
 
     const db = getDbClient();
 

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/src/lib/db';
 import { users, authEvents } from '@/packages/db/schema';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
+import { validateEmail } from '@/lib/validation/email';
 import { eq } from 'drizzle-orm';
 
 /**
@@ -34,7 +35,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Identity required' }, { status: 400 });
     }
 
-    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.valid) {
+      return NextResponse.json({ error: emailValidation.error }, { status: 400 });
+    }
+
+    const normalizedEmail = emailValidation.normalized!;
+
+    const [user] = await db.select().from(users).where(eq(users.email, normalizedEmail)).limit(1);
 
     if (!user || !user.passwordHash) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });

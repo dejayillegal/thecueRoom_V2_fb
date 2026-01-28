@@ -65,6 +65,18 @@ The project utilizes a pnpm monorepo structure with `apps/web` for the Next.js f
   - **Bug Fix (October 31, 2025):** Fixed InfoModal auto-showing on page load - added conditional rendering to prevent Terms modal from appearing when not triggered by user action
   - **Username Generation (October 31, 2025):** Enhanced with 60+ underground music-themed suffixes across categories: underground culture (.mastercue, .vinylhead, .selector), genres (.subsonic, .bassline, .breakbeat), production (.beatsmith, .layerking), DJ culture (.waveform, .platter), modern styles (.trap808, .bassface). Varied format patterns for uniqueness.
   - **Password Complexity (October 31, 2025):** Minimum 8 characters with visual strength indicator (red=Bad <8 chars, yellow=Weak 8-11 chars, green=Strong 12+ with variety). Progressive scoring based on length and character types.
+  - **Cold Start Account Seeding (January 2026):** Deterministic initialization system for guaranteed account creation:
+    * Bootstrap runs automatically on Next.js server startup via instrumentation hook
+    * Admin account (dejayillegal@gmail.com) + 2 test accounts created on every cold start
+    * Idempotent logic: creates if missing, updates role/verified status if needed
+    * Password hashes refreshed on each boot for consistency
+    * Graceful handling when database tables don't exist yet
+    * Located at `apps/web/lib/bootstrap/seed-accounts.ts`
+  - **Centralized Email Validation (January 2026):** Unified email validation across all auth flows:
+    * Single source of truth at `apps/web/lib/validation/email.ts`
+    * Consistent validation in login, registration, and password recovery
+    * RFC-compliant email regex with proper normalization
+    * Updated auth routes to use bcryptjs consistently
   - TODO: Email service integration for password reset and verification emails
 - **Profile Settings (October 31, 2025):**
   - Comprehensive profile management page at `/settings`

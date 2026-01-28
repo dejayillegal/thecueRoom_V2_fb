@@ -7,11 +7,13 @@ export function sanitizeInput(input: string): string {
     .slice(0, 1000);
 }
 
+import { validateEmail as validateEmailCentral, isValidEmail as isValidEmailCentral } from './email';
+
 export function validateEmail(email: string): boolean {
-  if (!email || email.length > 255) return false;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+  return isValidEmailCentral(email);
 }
+
+export { validateEmailCentral as validateEmailFull, isValidEmailCentral as isValidEmail };
 
 export function validateUrl(url: string): boolean {
   try {
