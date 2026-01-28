@@ -60,7 +60,7 @@ const SignalLead = ({ item }: { item: NewsItem }) => {
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
   return (
-    <section ref={ref} className="relative w-full min-h-[85vh] flex flex-col justify-center items-center bg-[#0B0B0B] overflow-hidden group">
+    <section ref={ref} className="relative w-full min-h-[85vh] flex flex-col justify-end bg-[#0B0B0B] overflow-hidden group">
       <motion.div 
         style={ { y, opacity } }
         className="absolute inset-0 transition-transform duration-[2000ms] group-hover:scale-105"
@@ -72,17 +72,17 @@ const SignalLead = ({ item }: { item: NewsItem }) => {
           className="object-cover opacity-50 contrast-125 saturate-[0.8]"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/40 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#0B0B0B] via-transparent to-transparent opacity-60" />
       </motion.div>
       
-      <div className="relative z-10 max-w-[1400px] mx-auto px-6 md:px-12 w-full text-center">
+      <div className="relative z-10 max-w-[1400px] mx-auto px-6 md:px-12 pb-20 md:pb-32 w-full text-left">
         <motion.div 
           initial="initial"
           whileInView="animate"
           viewport={ { once: true } }
           variants={sTAGGER_CONTAINER}
-          className="flex flex-col items-center"
+          className="flex flex-col items-start"
         >
           <motion.div variants={fADE_IN_UP} className="flex items-center gap-4 mb-8">
             <div className="flex items-center gap-2">
@@ -99,14 +99,15 @@ const SignalLead = ({ item }: { item: NewsItem }) => {
           
           <motion.h1 
             variants={fADE_IN_UP}
-            className="text-5xl md:text-[8.5rem] font-bold text-white tracking-tighter leading-[0.85] max-w-6xl mb-12 group-hover:text-[#D1FF3D] transition-colors duration-700"
+            className="text-4xl md:text-[6rem] font-bold text-white tracking-tighter leading-[0.85] max-w-7xl mb-12 group-hover:text-[#D1FF3D] transition-colors duration-700 break-words"
+            style={{ minWidth: 'min-content', textWrap: 'balance' }}
           >
             {item.title}
           </motion.h1>
           
           <motion.div 
             variants={fADE_IN_UP}
-            className="flex flex-col items-center justify-center gap-12"
+            className="flex flex-col md:flex-row md:items-end justify-between gap-12 w-full"
           >
             <p className="text-xl md:text-3xl text-gray-400 font-light max-w-3xl leading-tight">
               {item.excerpt}
