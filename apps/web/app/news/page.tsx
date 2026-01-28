@@ -388,7 +388,8 @@ const DeepDive = ({ items }: { items: NewsItem[] }) => (
 );
 
 export default function NewsPage() {
-  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
+  const [undergroundItems, setUndergroundItems] = useState<NewsItem[]>([]);
+  const [curatedItems, setCuratedItems] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<'none' | 'offline' | 'partial' | 'empty'>('none');
 
@@ -412,22 +413,29 @@ export default function NewsPage() {
           link: item.url || '#'
         }));
 
-        // TCR Editorial: Filter for specific keywords or high-relevance sources
-        const editorialKeywords = ['electronic', 'techno', 'house', 'ambient', 'experimental', 'underground', 'club'];
-        const curatedEditorial = allItems.filter(item => 
-          editorialKeywords.some(kw => 
-            item.title.toLowerCase().includes(kw) || 
-            item.excerpt.toLowerCase().includes(kw)
-          )
-        );
-
-        // The Underground: Community & Artist movements (remaining items or specific sources)
-        const undergroundItems = allItems.filter(item => !curatedEditorial.includes(item));
-        
         if (allItems.length === 0) {
           setError('empty');
         } else {
-          // Fill based on what we have, fallback to allItems if filters are too restrictive
+          // TCR Editorial: Filter for specific keywords or high-relevance sources
+          const editorialKeywords = ['electronic', 'techno', 'house', 'ambient', 'experimental', 'underground', 'club'];
+          const undergroundKeywords = ['underground', 'club', 'experimental', 'indie', 'gear', 'ai'];
+
+          const curated = allItems.filter(item => 
+            editorialKeywords.some(kw => 
+              item.title.toLowerCase().includes(kw) || 
+              item.excerpt.toLowerCase().includes(kw)
+            )
+          );
+
+          const underground = allItems.filter(item => 
+            undergroundKeywords.some(kw => 
+              item.title.toLowerCase().includes(kw) || 
+              item.excerpt.toLowerCase().includes(kw)
+            )
+          );
+
+          setCuratedItems(curated.length > 0 ? curated : allItems.slice(0, 10));
+          setUndergroundItems(underground.length > 0 ? underground : allItems.slice(10, 20));
           setNewsItems(allItems); 
         }
       } catch (err) {
@@ -463,7 +471,7 @@ export default function NewsPage() {
           key="loader"
           initial={ { opacity: 1 } }
           exit={ { opacity: 0 } }
-          className="min-h-screen bg-[#0B0B0B] flex items-center justify-center pl-[280px]"
+          className="min-h-screen bg-[#0B0B0B] flex items-center justify-center"
         >
           <div className="flex flex-col items-center gap-6">
             <div className="w-16 h-[1px] bg-[#D1FF3D] animate-pulse" />
@@ -471,19 +479,19 @@ export default function NewsPage() {
           </div>
         </motion.div>
       ) : error === 'offline' ? (
-        <motion.div key="offline" initial={ { opacity: 0 } } animate={ { opacity: 1 } } className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6 pl-[280px]">
+        <motion.div key="offline" initial={ { opacity: 0 } } animate={ { opacity: 1 } } className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6">
           <div className="max-w-2xl w-full">
             <SignalLost onRetry={handleRetry} />
           </div>
         </motion.div>
       ) : error === 'empty' ? (
-        <motion.div key="empty" initial={ { opacity: 0 } } animate={ { opacity: 1 } } className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6 pl-[280px]">
+        <motion.div key="empty" initial={ { opacity: 0 } } animate={ { opacity: 1 } } className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6">
           <div className="max-w-2xl w-full">
             <SilenceInTheWire />
           </div>
         </motion.div>
       ) : !isLoggedIn ? (
-        <motion.div key="unauthorized" initial={ { opacity: 0 } } animate={ { opacity: 1 } } className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6 pl-[280px]">
+        <motion.div key="unauthorized" initial={ { opacity: 0 } } animate={ { opacity: 1 } } className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6">
           <div className="max-w-2xl w-full">
             <AccessRestricted onLogin={handleLogin} />
           </div>
@@ -493,10 +501,12 @@ export default function NewsPage() {
           key="content"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="min-h-screen bg-[#0B0B0B] text-white selection:bg-[#D1FF3D] selection:text-black md:pl-[280px] overflow-x-hidden"
+          className="min-h-screen bg-[#0B0B0B] text-white selection:bg-[#D1FF3D] selection:text-black overflow-x-hidden"
         >
           {/* 1. SIGNAL LEAD */}
-          {newsItems.length > 0 ? (
+          {curatedItems.length > 0 ? (
+            <SignalLead item={curatedItems[0]} />
+          ) : newsItems.length > 0 ? (
             <SignalLead item={newsItems[0]} />
           ) : (
              <div className="pt-32 px-6 max-w-[1400px] mx-auto">
@@ -505,13 +515,21 @@ export default function NewsPage() {
           )}
           
           {/* 2. INTELLIGENCE RAIL */}
-          {newsItems.length > 1 && (
+          {curatedItems.length > 1 ? (
+            <CuratedRail items={curatedItems.slice(1, 6)} />
+          ) : newsItems.length > 1 && (
             <CuratedRail items={newsItems.slice(1, 6)} />
           )}
           
           {/* 3. THE UNDERGROUND */}
-          {newsItems.length > 6 && (
-            <CommunityUnderground items={newsItems.slice(6, 12)} />
+          {undergroundItems.length > 0 ? (
+            <CommunityUnderground items={undergroundItems.slice(0, 6)} />
+          ) : (
+            <section className="bg-[#0B0B0B] py-32">
+              <div className="max-w-[1400px] mx-auto px-6 md:px-12 text-center">
+                <p className="text-gray-500 font-mono text-[10px] tracking-widest uppercase">No underground signals detected</p>
+              </div>
+            </section>
           )}
           
           {/* 4. DEEP INVESTIGATIONS */}

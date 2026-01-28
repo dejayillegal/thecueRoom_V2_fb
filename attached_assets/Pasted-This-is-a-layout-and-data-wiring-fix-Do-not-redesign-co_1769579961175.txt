@@ -1,0 +1,96 @@
+This is a layout and data wiring fix.
+Do not redesign components. Do not add new schemas or APIs.
+
+GOAL:
+Fix the News page so it dynamically aligns with the sidebar
+(expanded or collapsed) and replace placeholder Underground feeds
+with real curated news from the existing feeds source.
+
+–––––––––––––––––––––
+STEP 1: FIX NEWS PAGE LAYOUT OFFSET (CRITICAL)
+–––––––––––––––––––––
+Problem:
+When the sidebar is collapsed, the News page still reserves sidebar width,
+causing empty space on the left.
+
+Actions:
+1. Make the News page content container responsive to sidebar state.
+2. When sidebar is expanded:
+   - Apply left offset equal to sidebar width.
+3. When sidebar is collapsed:
+   - Remove extra left spacing completely.
+4. Prevent horizontal overflow and clipping.
+5. Ensure headings and grids realign smoothly.
+
+Rules:
+- Do NOT modify the sidebar component itself
+- Fix only layout logic / styles in News page
+
+Verification:
+No empty space when sidebar is collapsed.
+Content always aligns correctly.
+
+–––––––––––––––––––––
+STEP 2: ENSURE DYNAMIC REALIGNMENT (NO STATIC CSS)
+–––––––––––––––––––––
+Actions:
+1. Remove any hardcoded margin-left or padding-left values.
+2. Use shared layout state, CSS variables, or layout wrapper logic
+   already used by other pages (Dashboard / Landing).
+3. Ensure layout updates instantly on toggle.
+
+Verification:
+Toggling sidebar expand/collapse reflows News page correctly.
+
+–––––––––––––––––––––
+STEP 3: REPLACE UNDERGROUND PLACEHOLDER FEEDS
+–––––––––––––––––––––
+Problem:
+“The Underground” section is still using placeholder or incomplete data.
+
+Actions:
+1. Populate “The Underground” using the SAME feeds source as:
+   - Landing page
+   - Main News feed
+2. Filter feeds to underground-relevant content:
+   - electronic / underground music
+   - club culture
+   - experimental / indie
+   - AI + music + gear
+3. Do NOT use mock data.
+4. Reuse existing feed card components.
+
+Verification:
+“The Underground” always shows real news items.
+
+–––––––––––––––––––––
+STEP 4: FALLBACK HANDLING
+–––––––––––––––––––––
+Actions:
+1. If filtered feeds are empty:
+   - Show a clean “No underground signals detected” message.
+2. No blank grids.
+3. No silent failures.
+
+–––––––––––––––––––––
+STEP 5: SAFETY CHECK
+–––––––––––––––––––––
+1. No console errors.
+2. No layout shifts.
+3. No Drizzle errors.
+4. Landing page and Dashboard remain unchanged.
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Updated News page layout logic
+- Updated Underground feed wiring
+- Confirmation that:
+  - Sidebar expand/collapse causes correct reflow
+  - No empty space remains
+  - Underground section shows real feeds
+  - No placeholders remain
+
+Do not explain.
+Do not ask questions.
+Implement directly.
