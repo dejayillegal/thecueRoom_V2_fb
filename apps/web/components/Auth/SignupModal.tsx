@@ -291,7 +291,7 @@ export function SignupModal({ open, onOpenChange, onSwitchToSignin, isEmbedded =
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent 
-          hideClose={false}
+          hideClose={true}
           className="w-[95vw] sm:max-w-2xl max-h-[95vh] overflow-y-auto bg-[#0B0B0B] border-white/10 p-0 shadow-2xl rounded-none ring-0 focus:ring-0"
         >
           <VisuallyHidden.Root>
