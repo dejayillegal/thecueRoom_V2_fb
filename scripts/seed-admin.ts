@@ -37,7 +37,7 @@ async function seedAdmin() {
         .set({ 
           role: 'admin',
           verified: true,
-          verificationStatus: 'verified_admin'
+          verificationStatus: 'approved'
         })
         .where(eq(users.email, ADMIN_EMAIL));
 

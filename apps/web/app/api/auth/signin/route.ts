@@ -31,7 +31,7 @@ async function checkRateLimit(identifier: string): Promise<{ allowed: boolean; r
         identifier,
         attempts: 1,
         lastAttemptAt: now,
-      }).catch(err => console.error('Failed to insert login attempt:', err));
+      } as any).catch(err => console.error('Failed to insert login attempt:', err));
       return { allowed: true };
     }
 

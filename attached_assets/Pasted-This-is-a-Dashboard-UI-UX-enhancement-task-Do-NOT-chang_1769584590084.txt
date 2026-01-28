@@ -1,0 +1,153 @@
+This is a Dashboard UI/UX enhancement task.
+Do NOT change brand colors, typography, or navigation structure.
+Do NOT add new backend features or schemas.
+
+GOAL:
+Redesign the Dashboard page with a modern, immersive, creatively unique
+UI/UX flow using advanced graphical elements and motion,
+while preserving the existing dark underground aesthetic.
+
+–––––––––––––––––––––
+STEP 1: DASHBOARD VISUAL HIERARCHY RESET
+–––––––––––––––––––––
+Problem:
+Dashboard sections feel flat and list-like, lacking hierarchy and flow.
+
+Actions:
+1. Rework Dashboard layout to feel like a continuous experience:
+   - Welcome → Spotlight → Creative Tools → Gig Radar → Threads
+2. Introduce clear visual section separation using:
+   - depth (shadows, gradients)
+   - soft borders
+   - spacing rhythm
+3. Improve headline emphasis and section headers.
+
+Rules:
+- Keep existing content and order
+- No new sections added
+
+Verification:
+Dashboard reads as a guided experience, not stacked cards.
+
+–––––––––––––––––––––
+STEP 2: ADVANCED GRAPHICAL ELEMENTS (NON-INTRUSIVE)
+–––––––––––––––––––––
+Actions:
+1. Add subtle graphical accents:
+   - gradient glows
+   - light noise / grain
+   - accent lines or markers
+2. Use brand colors only.
+3. No decorative clutter.
+4. Graphics must enhance depth and focus.
+
+Verification:
+Dashboard feels premium and dimensional, not busy.
+
+–––––––––––––––––––––
+STEP 3: MOTION & MICRO-INTERACTIONS
+–––––––––––––––––––––
+Actions:
+1. Add tasteful motion:
+   - staggered section reveal on load
+   - card hover lift and glow
+   - soft fade/slide transitions
+2. Animate only opacity and transform.
+3. Respect prefers-reduced-motion.
+4. No heavy or distracting animations.
+
+Verification:
+Motion feels smooth, intentional, and modern.
+
+–––––––––––––––––––––
+STEP 4: SPOTLIGHT AUTO-SCROLL (DASHBOARD-SAFE)
+–––––––––––––––––––––
+Problem:
+Spotlight feeds should feel alive like the landing page,
+but must not break the dashboard layout or mobile experience.
+
+Actions:
+1. Enable auto-scrolling behavior for Spotlight feeds
+   similar to the Landing page.
+2. Auto-scroll must:
+   - be slow and subtle
+   - pause on hover or interaction
+   - never hide content or overflow containers
+3. Spotlight container must remain fully visible:
+   - no clipping
+   - no overlap
+   - no horizontal overflow
+4. Mobile behavior:
+   - auto-scroll disabled or reduced
+   - swipe interaction supported
+5. Respect prefers-reduced-motion.
+
+Rules:
+- Do NOT reuse landing layout directly
+- Adapt motion to dashboard constraints
+- No breaking layout on any screen size
+
+Verification:
+Spotlight feels dynamic but never disrupts layout or usability.
+
+–––––––––––––––––––––
+STEP 5: CREATIVE SUITE CARD ENHANCEMENT
+–––––––––––––––––––––
+Problem:
+Creative Suite cards feel static.
+
+Actions:
+1. Improve Creative Suite cards with:
+   - clearer focus state
+   - hover motion
+   - visual affordance for “START”
+2. Highlight “NEW” indicators more elegantly.
+3. Improve readability of descriptions.
+
+Rules:
+- Do NOT change functionality
+- Visual enhancement only
+
+Verification:
+Cards feel interactive and inviting.
+
+–––––––––––––––––––––
+STEP 6: GIG RADAR & EMPTY STATE DESIGN
+–––––––––––––––––––––
+Problem:
+Gig Radar empty state feels dead.
+
+Actions:
+1. Redesign empty state to feel intentional:
+   - subtle graphic
+   - clear messaging
+2. Avoid placeholders that look broken.
+3. Keep tone underground and minimal.
+
+Verification:
+Empty states feel designed, not missing.
+
+–––––––––––––––––––––
+STEP 7: PERFORMANCE & SAFETY
+–––––––––––––––––––––
+1. No layout shift.
+2. No console errors.
+3. No performance regressions.
+4. Sidebar, routing, and data unchanged.
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Updated Dashboard layout and styles
+- Added graphical accents and motion
+- Spotlight auto-scroll implemented safely
+- Confirmation that:
+  - Brand style is preserved
+  - Spotlight auto-scroll does not break layout
+  - Mobile layout remains intact
+  - Dashboard feels modern and immersive
+  - No backend logic was changed
+
+Do not explain.
+Do not ask questions.
+Implement directly.

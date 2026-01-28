@@ -82,7 +82,7 @@ async function ingestFeeds(db: any) {
           url: item.link || '',
           thumbnail: thumb || getDeterministicFallback(item.title || ''),
           publishedAt: item.isoDate ? new Date(item.isoDate) : new Date(),
-        }).onConflictDoNothing();
+        } as any).onConflictDoNothing();
       }
     } catch (e) {
       console.error(`Ingest failed for ${source.name}:`, (e as any).message);
@@ -108,7 +108,7 @@ export async function GET(request: Request) {
     // Check reality - derive state from feeds table
     let count = 0;
     try {
-      const feedsCountResult = await db.select({ count: sql<number>`count(*)` }).from(feeds);
+      const feedsCountResult = await db.select({ count: sql<number>`count(*)` }).from(feeds as any);
       count = Number(feedsCountResult[0]?.count || 0);
     } catch (countErr) {
       console.error('Count query failed, table might be transitioning:', (countErr as any).message);
@@ -116,9 +116,9 @@ export async function GET(request: Request) {
     
     let lastFeedDate: Date | null = null;
     try {
-      const lastFeed = await db.select({ date: feeds.publishedAt })
-        .from(feeds)
-        .orderBy(desc(feeds.publishedAt))
+      const lastFeed = await db.select({ date: (feeds as any).publishedAt })
+        .from(feeds as any)
+        .orderBy(desc((feeds as any).publishedAt))
         .limit(1);
       lastFeedDate = lastFeed[0]?.date ? new Date(lastFeed[0].date) : null;
     } catch (lastFeedErr) {
