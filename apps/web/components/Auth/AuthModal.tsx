@@ -162,7 +162,7 @@ export function AuthModal({ isOpen, onClose, initialTab = 'signin' }: AuthModalP
                   <>
                     <form onSubmit={tab === 'signin' ? handleSignIn : handleForgot} className="mt-4 sm:mt-6 space-y-6 sm:space-y-8">
                       <div className="space-y-3 text-left">
-                        <Label htmlFor="email" className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Email Address</Label>
+                        <Label htmlFor="email" className="text-[8px] sm:text-[11px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Email Address</Label>
                         <div className="relative">
                           <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-700" />
                           <Input
@@ -185,7 +185,7 @@ export function AuthModal({ isOpen, onClose, initialTab = 'signin' }: AuthModalP
                       {tab === 'signin' && (
                         <div className="space-y-3 text-left">
                           <div className="flex justify-between items-center">
-                            <Label htmlFor="password" className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Security Pass</Label>
+                            <Label htmlFor="password" className="text-[8px] sm:text-[11px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Security Pass</Label>
                             <button
                               type="button"
                               onClick={() => setTab('forgot')}
