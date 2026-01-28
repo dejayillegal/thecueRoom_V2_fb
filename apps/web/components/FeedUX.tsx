@@ -1,5 +1,5 @@
 'use client';
-import { useState, useCallback, memo } from 'react';
+import { useState, useCallback, memo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 export interface FeedItem {
@@ -39,7 +39,9 @@ const FeedCard = memo(({ item, index }: { item: FeedItem; index: number }) => (
         <div className="text-[10px] font-mono text-[#D1FF3D]/60 uppercase tracking-widest flex items-center gap-4">
           <span>{item.source}</span>
           <span className="text-zinc-800">/</span>
-          <span className="text-zinc-500">{new Date(item.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}</span>
+          <span suppressHydrationWarning className="text-zinc-500">
+            {new Date(item.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}
+          </span>
         </div>
         <a href={item.url} target="_blank" className="inline-block">
           <h3 className="text-2xl font-light transition-all duration-300 relative">
@@ -78,6 +80,43 @@ export default function FeedUX({ initialItems = [] }: { initialItems: FeedItem[]
       setIsLoading(false);
     }
   }, [items.length]);
+
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return (
+      <div className="flex flex-col">
+        {initialItems.map((item, index) => (
+          <div key={item.id} className="group grid grid-cols-1 md:grid-cols-[280px_1fr] gap-8 py-8 border-b border-white/5">
+            <div className="contents">
+              <div className="aspect-[16/10] bg-white/5 overflow-hidden relative block shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)] rounded-sm">
+                <img src={item.image} alt="" className="w-full h-full object-cover filter grayscale opacity-60 contrast-[1.05]" />
+              </div>
+              <div className="space-y-4">
+                <div className="text-[10px] font-mono text-[#D1FF3D]/60 uppercase tracking-widest flex items-center gap-4">
+                  <span>{item.source}</span>
+                  <span className="text-zinc-800">/</span>
+                  <span suppressHydrationWarning className="text-zinc-500">
+                    {new Date(item.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}
+                  </span>
+                </div>
+                <div className="inline-block">
+                  <h3 className="text-2xl font-light">
+                    <span className="relative z-10">{item.title}</span>
+                  </h3>
+                </div>
+                <p className="text-sm text-foreground/40 line-clamp-2">{item.summary}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col">
