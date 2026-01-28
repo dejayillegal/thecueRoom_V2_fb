@@ -301,9 +301,6 @@ export default function IndiaGigsPage() {
               );
             })}
           </div>
-              );
-            })}
-          </div>
         )}
 
         <div className="mt-12 p-6 bg-[#111] border border-[#222] rounded-xl">
