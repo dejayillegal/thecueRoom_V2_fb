@@ -109,15 +109,17 @@ const SignalLead = ({ item }: { item: NewsItem }) => {
             variants={fADE_IN_UP}
             className="flex flex-col md:flex-row md:items-end justify-between gap-12 w-full"
           >
-            <p className="text-xl md:text-3xl text-gray-400 font-light max-w-3xl leading-tight">
+            <p className="text-lg md:text-2xl text-gray-400 font-light max-w-3xl leading-tight">
               {item.excerpt}
             </p>
             
             <Link 
               href={item.link}
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex-shrink-0 inline-flex items-center gap-6 group/btn"
             >
-              <span className="font-mono text-[11px] uppercase tracking-[0.4em] text-white/60 group-hover/btn:text-[#D1FF3D] transition-colors">
+              <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-white/60 group-hover/btn:text-[#D1FF3D] transition-colors">
                 Decrypt Full Signal
               </span>
               <div className="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center group-hover/btn:border-[#D1FF3D] group-hover/btn:bg-[#D1FF3D] transition-all duration-500">
@@ -211,9 +213,16 @@ const CuratedRail = ({ items }: { items: NewsItem[] }) => {
               </div>
             </div>
             <div className="p-10 flex-1 flex flex-col">
-              <h3 className="text-2xl md:text-4xl font-bold text-white mb-6 leading-[1.1] group-hover:text-[#D1FF3D] transition-colors">
-                {item.title}
-              </h3>
+              <Link 
+                href={item.link} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="group"
+              >
+                <h3 className="text-2xl md:text-4xl font-bold text-white mb-6 leading-[1.1] group-hover:text-[#D1FF3D] transition-colors">
+                  {item.title}
+                </h3>
+              </Link>
               <p className="text-gray-400 text-lg leading-relaxed mb-10 line-clamp-3 font-light">
                 {item.excerpt}
               </p>
@@ -224,7 +233,12 @@ const CuratedRail = ({ items }: { items: NewsItem[] }) => {
                   </div>
                   <span className="font-mono text-[10px] text-gray-500 uppercase tracking-widest">{item.readTime} Read</span>
                 </div>
-                <Link href={item.link} className="text-white hover:text-[#D1FF3D] transition-colors">
+                <Link 
+                  href={item.link} 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white hover:text-[#D1FF3D] transition-colors"
+                >
                   <ArrowRight size={20} />
                 </Link>
               </div>
@@ -269,6 +283,7 @@ const CommunityUnderground = ({ items }: { items: NewsItem[] }) => (
             viewport={ { once: true } }
             transition={ { delay: idx * 0.05, duration: 0.6 } }
             className="group cursor-pointer"
+            onClick={() => window.open(item.link, '_blank', 'noopener,noreferrer')}
           >
             <div className="mb-8 space-y-4">
               <div className="flex items-center gap-4">
