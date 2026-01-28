@@ -166,59 +166,89 @@ export function SignupModal({ open, onOpenChange, onSwitchToSignin, isEmbedded =
             <p className="text-zinc-600 font-mono text-[9px] uppercase tracking-[0.3em]">{isArtist ? 'Identity pending verification...' : 'Redirecting to dashboard...'}</p>
           </motion.div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-12">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
-              <div className="space-y-5">
-                <Label className="text-[9px] uppercase tracking-[0.4em] text-zinc-500 font-bold">First Name</Label>
-                <Input value={firstName} onChange={e => setFirstName(e.target.value)} className="bg-transparent border-white/20 text-white h-16 rounded-none px-8 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-lg font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="Legal First Name" required />
+          <form onSubmit={handleSubmit} className="space-y-8 sm:space-y-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
+              <div className="space-y-4 sm:space-y-5">
+                <Label className="text-[8px] sm:text-[9px] uppercase tracking-[0.3em] sm:tracking-[0.4em] text-zinc-500 font-bold">First Name</Label>
+                <Input value={firstName} onChange={e => setFirstName(e.target.value)} className="bg-transparent border-white/20 text-white h-14 sm:h-16 rounded-none px-6 sm:px-8 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-base sm:text-lg font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="Legal First Name" required />
               </div>
-              <div className="space-y-5">
-                <Label className="text-[9px] uppercase tracking-[0.4em] text-zinc-500 font-bold">Last Name</Label>
-                <Input value={lastName} onChange={e => setLastName(e.target.value)} className="bg-transparent border-white/20 text-white h-16 rounded-none px-8 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-lg font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="Legal Last Name" required />
+              <div className="space-y-4 sm:space-y-5">
+                <Label className="text-[8px] sm:text-[9px] uppercase tracking-[0.3em] sm:tracking-[0.4em] text-zinc-500 font-bold">Last Name</Label>
+                <Input value={lastName} onChange={e => setLastName(e.target.value)} className="bg-transparent border-white/20 text-white h-14 sm:h-16 rounded-none px-6 sm:px-8 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-base sm:text-lg font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="Legal Last Name" required />
               </div>
             </div>
 
-            <div className="space-y-5">
-              <Label className="text-[9px] uppercase tracking-[0.4em] text-zinc-500 font-bold">Email Address</Label>
+            <div className="space-y-4 sm:space-y-5">
+              <Label className="text-[8px] sm:text-[9px] uppercase tracking-[0.3em] sm:tracking-[0.4em] text-zinc-500 font-bold">Email Address</Label>
               <div className="relative">
-                <Input type="email" value={email} onChange={e => setEmail(e.target.value)} className="bg-transparent border-white/20 text-white h-16 pr-14 rounded-none px-8 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-lg font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="communication@network.com" required />
+                <Input type="email" value={email} onChange={e => setEmail(e.target.value)} className="bg-transparent border-white/20 text-white h-14 sm:h-16 pr-14 rounded-none px-6 sm:px-8 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-base sm:text-lg font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="communication@network.com" required />
                 <div className="absolute right-6 top-1/2 -translate-y-1/2"><AvailabilityIndicator status={emailStatus} /></div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-12">
-              <div className="space-y-5">
-                <Label className="text-[9px] uppercase tracking-[0.4em] text-zinc-500 font-bold">Security Pass</Label>
-                <Input type="password" value={password} onChange={e => setPassword(e.target.value)} className="bg-transparent border-white/20 text-white h-16 rounded-none px-8 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-lg font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="Min. 10 characters" required />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-12">
+              <div className="space-y-4 sm:space-y-5">
+                <Label className="text-[8px] sm:text-[9px] uppercase tracking-[0.3em] sm:tracking-[0.4em] text-zinc-500 font-bold">Security Pass</Label>
+                <Input type="password" value={password} onChange={e => setPassword(e.target.value)} className="bg-transparent border-white/20 text-white h-14 sm:h-16 rounded-none px-6 sm:px-8 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-base sm:text-lg font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="Min. 10 characters" required />
               </div>
-              <div className="space-y-5">
-                <Label className="text-[9px] uppercase tracking-[0.4em] text-zinc-500 font-bold">Confirm Pass</Label>
-                <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="bg-transparent border-white/20 text-white h-16 rounded-none px-8 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-lg font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="Verify security pass" required />
+              <div className="space-y-4 sm:space-y-5">
+                <Label className="text-[8px] sm:text-[9px] uppercase tracking-[0.3em] sm:tracking-[0.4em] text-zinc-500 font-bold">Confirm Pass</Label>
+                <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="bg-transparent border-white/20 text-white h-14 sm:h-16 rounded-none px-6 sm:px-8 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-base sm:text-lg font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="Verify security pass" required />
               </div>
             </div>
 
-            <div className="py-6">
-              <div className="flex items-center gap-6">
+            <div className="py-4 sm:py-6">
+              <div className="flex items-center gap-4 sm:gap-6">
                 <Switch
                   id="artist-mode"
                   checked={isArtist}
                   onCheckedChange={setIsArtist}
-                  className="data-[state=checked]:bg-[#D1FF3D] scale-125"
+                  className="data-[state=checked]:bg-[#D1FF3D] scale-110 sm:scale-125"
                 />
                 <Label
                   htmlFor="artist-mode"
-                  className="text-[10px] font-mono uppercase tracking-[0.5em] text-[#D1FF3D] cursor-pointer font-bold"
+                  className="text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.4em] sm:tracking-[0.5em] text-[#D1FF3D] cursor-pointer font-bold"
                 >
                   Register as Artist
                 </Label>
               </div>
             </div>
 
-            <Button type="submit" disabled={isSubmitting} className="w-full bg-[#D1FF3D] hover:bg-white text-black font-bold h-20 rounded-none transition-all duration-700 uppercase tracking-[0.6em] text-[12px] border-none group active:scale-[0.98] shadow-[0_0_40px_rgba(209,255,61,0.15)]">
+            <AnimatePresence>
+              {isArtist && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-8 sm:space-y-10 pt-4"
+                >
+                  <div className="space-y-4 sm:space-y-5">
+                    <Label className="text-[8px] sm:text-[9px] uppercase tracking-[0.3em] sm:tracking-[0.4em] text-zinc-500 font-bold">Artist/Brand Name</Label>
+                    <Input value={artistName} onChange={e => setArtistName(e.target.value)} className="bg-transparent border-white/20 text-white h-14 sm:h-16 rounded-none px-6 sm:px-8 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-base sm:text-lg font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="Stage or Brand Name" required />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
+                    <div className="space-y-4 sm:space-y-5">
+                      <Label className="text-[8px] sm:text-[9px] uppercase tracking-[0.3em] sm:tracking-[0.4em] text-zinc-500 font-bold">Region</Label>
+                      <Input value={region} onChange={e => setRegion(e.target.value)} className="bg-transparent border-white/20 text-white h-14 sm:h-16 rounded-none px-6 sm:px-8 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-base sm:text-lg font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="e.g. London, UK" required />
+                    </div>
+                    <div className="space-y-4 sm:space-y-5">
+                      <Label className="text-[8px] sm:text-[9px] uppercase tracking-[0.3em] sm:tracking-[0.4em] text-zinc-500 font-bold">Genre</Label>
+                      <Input value={genre} onChange={e => setGenre(e.target.value)} className="bg-transparent border-white/20 text-white h-14 sm:h-16 rounded-none px-6 sm:px-8 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-base sm:text-lg font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="e.g. Techno, House" required />
+                    </div>
+                  </div>
+                  <div className="space-y-4 sm:space-y-5">
+                    <Label className="text-[8px] sm:text-[9px] uppercase tracking-[0.3em] sm:tracking-[0.4em] text-zinc-500 font-bold">Primary Social/Music Link</Label>
+                    <Input value={socialLinks[0]} onChange={e => setSocialLinks([e.target.value])} className="bg-transparent border-white/20 text-white h-14 sm:h-16 rounded-none px-6 sm:px-8 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-base sm:text-lg font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="SoundCloud, Spotify, or Instagram" required />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <Button type="submit" disabled={isSubmitting} className="w-full bg-[#D1FF3D] hover:bg-white text-black font-bold h-16 sm:h-20 rounded-none transition-all duration-700 uppercase tracking-[0.4em] sm:tracking-[0.6em] text-[10px] sm:text-[12px] border-none group active:scale-[0.98] shadow-[0_0_40px_rgba(209,255,61,0.15)]">
               {isSubmitting ? <Loader2 className="animate-spin w-6 h-6" /> : (
-                <div className="flex items-center justify-center gap-4">
+                <div className="flex items-center justify-center gap-3 sm:gap-4">
                   <span>Initialize Identity</span>
-                  <ChevronRight className="w-6 h-6 group-hover:translate-x-3 transition-transform" />
+                  <ChevronRight className="w-5 sm:w-6 h-5 sm:h-6 group-hover:translate-x-3 transition-transform" />
                 </div>
               )}
             </Button>
