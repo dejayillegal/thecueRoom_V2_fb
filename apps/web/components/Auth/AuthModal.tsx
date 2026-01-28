@@ -90,27 +90,27 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
         <div className="p-10 sm:p-12">
           <motion.div {...motionProps} key={tab}>
             <DialogHeader className="mb-12 text-left">
-              <div className="flex items-center gap-4 mb-10">
-                <Logo className="w-8 h-8" />
-                <span className="text-[10px] font-light tracking-[0.4em] uppercase text-white/40">thecueRoom</span>
+              <div className="flex items-center gap-6 mb-12">
+                <Logo className="w-12 h-12" />
+                <span className="text-[15px] font-light tracking-[0.5em] uppercase text-white/40">thecueRoom</span>
               </div>
 
-              <div className="flex gap-6 mb-8 border-b border-white/5 pb-4">
+              <div className="flex gap-8 mb-10 border-b border-white/10 pb-5">
                 <button 
                   onClick={() => setTab('signin')}
-                  className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${tab === 'signin' ? 'text-[#D1FF3D]' : 'text-zinc-600 hover:text-white'}`}
+                  className={`text-[11px] uppercase tracking-[0.4em] font-bold transition-all ${tab === 'signin' ? 'text-[#D1FF3D]' : 'text-zinc-600 hover:text-white'}`}
                 >
                   Entrance
                 </button>
                 <button 
                   onClick={() => setTab('signup')}
-                  className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${tab === 'signup' ? 'text-[#D1FF3D]' : 'text-zinc-600 hover:text-white'}`}
+                  className={`text-[11px] uppercase tracking-[0.4em] font-bold transition-all ${tab === 'signup' ? 'text-[#D1FF3D]' : 'text-zinc-600 hover:text-white'}`}
                 >
                   Registry
                 </button>
                 <button 
                   onClick={() => setTab('forgot')}
-                  className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${tab === 'forgot' ? 'text-[#D1FF3D]' : 'text-zinc-600 hover:text-white'}`}
+                  className={`text-[11px] uppercase tracking-[0.4em] font-bold transition-all ${tab === 'forgot' ? 'text-[#D1FF3D]' : 'text-zinc-600 hover:text-white'}`}
                 >
                   Recovery
                 </button>
@@ -118,25 +118,25 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
 
               {tab === 'signup' ? (
                 <div className="space-y-4">
-                  <div className="text-3xl font-bold text-white tracking-tight mb-3">
+                  <div className="text-5xl font-bold text-white tracking-tighter mb-4">
                     Registry
                   </div>
-                  <div className="text-[#9B5CFF] text-[10px] font-bold uppercase tracking-[0.3em] font-mono opacity-80">
+                  <div className="text-[#9B5CFF] text-[11px] font-bold uppercase tracking-[0.4em] font-mono opacity-80">
                     Create Identity
                   </div>
-                  <div className="mt-8">
+                  <div className="mt-12">
                     <SignupModal 
                       open={isOpen} 
                       onOpenChange={(open) => !open && onClose()} 
                       isEmbedded={true}
                     />
                   </div>
-                  <div className="mt-14 pt-8 border-t border-white/5 text-center">
-                    <p className="text-zinc-600 text-[9px] uppercase tracking-[0.3em] font-mono">
+                  <div className="mt-16 pt-10 border-t border-white/10 text-center">
+                    <p className="text-zinc-600 text-[10px] uppercase tracking-[0.4em] font-mono">
                       Already Identified?{' '}
                       <button
                         onClick={() => setTab('signin')}
-                        className="text-[#D1FF3D] hover:text-white transition-colors font-bold ml-3"
+                        className="text-[#D1FF3D] hover:text-white transition-colors font-bold ml-4"
                       >
                         Entrance
                       </button>
@@ -145,31 +145,31 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
                 </div>
               ) : (
                 <>
-                  <div className="text-3xl font-bold text-white tracking-tight mb-3">
+                  <div className="text-5xl font-bold text-white tracking-tighter mb-4">
                     {tab === 'signin' ? 'Entrance' : 'Recovery'}
                   </div>
-                  <div className="text-[#9B5CFF] text-[10px] font-bold uppercase tracking-[0.3em] font-mono opacity-80">
+                  <div className="text-[#9B5CFF] text-[11px] font-bold uppercase tracking-[0.4em] font-mono opacity-80">
                     Identity Gateway
                   </div>
 
-                  <form onSubmit={tab === 'signin' ? handleSignIn : handleForgot} className="mt-12 space-y-10">
-                    <div className="space-y-4">
-                      <Label htmlFor="email" className="text-[11px] uppercase tracking-[0.3em] text-[#D1FF3D] font-bold opacity-90">Email Address</Label>
+                  <form onSubmit={tab === 'signin' ? handleSignIn : handleForgot} className="mt-14 space-y-12">
+                    <div className="space-y-5">
+                      <Label htmlFor="email" className="text-[9px] uppercase tracking-[0.4em] text-zinc-500 font-bold">Email Address</Label>
                       <Input
                         id="email"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="bg-[#111111] border-white/5 focus:border-[#D1FF3D]/40 text-white h-14 rounded-none transition-all duration-500 placeholder:text-zinc-800 focus:bg-[#151515] px-6 text-base font-light"
-                        placeholder="Enter email"
+                        className="bg-transparent border-white/20 focus:border-[#D1FF3D] text-white h-16 rounded-none transition-all duration-500 placeholder:text-zinc-700 focus:bg-[#0F0F0F] px-8 text-lg font-light tracking-tight border-2"
+                        placeholder="Enter your registered email"
                         required
                       />
                     </div>
 
                     {tab === 'signin' && (
-                      <div className="space-y-4">
+                      <div className="space-y-5">
                         <div className="flex justify-between items-center">
-                          <Label htmlFor="password" className="text-[11px] uppercase tracking-[0.3em] text-[#D1FF3D] font-bold opacity-90">Security Pass</Label>
+                          <Label htmlFor="password" className="text-[9px] uppercase tracking-[0.4em] text-zinc-500 font-bold">Security Pass</Label>
                           <button
                             type="button"
                             onClick={() => setTab('forgot')}
@@ -183,8 +183,8 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
                           type="password"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          className="bg-[#111111] border-white/5 focus:border-[#D1FF3D]/40 text-white h-14 rounded-none transition-all duration-500 placeholder:text-zinc-800 focus:bg-[#151515] px-6 text-base font-light"
-                          placeholder="••••••••••••"
+                          className="bg-transparent border-white/20 focus:border-[#D1FF3D] text-white h-16 rounded-none transition-all duration-500 placeholder:text-zinc-700 focus:bg-[#0F0F0F] px-8 text-lg font-light tracking-tight border-2"
+                          placeholder="Enter security credentials"
                           required
                         />
                       </div>
