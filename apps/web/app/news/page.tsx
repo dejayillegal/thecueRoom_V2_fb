@@ -108,7 +108,7 @@ const SignalLead = ({ item }: { item: NewsItem }) => {
           
           <motion.h1 
             variants={fADE_IN_UP}
-            className="text-4xl md:text-[6rem] font-bold text-white tracking-tighter leading-[0.85] max-w-7xl mb-12 group-hover:text-[#D1FF3D] transition-colors duration-700 break-words"
+            className="text-4xl md:text-[5.5rem] font-bold text-white tracking-tighter leading-[0.85] max-w-7xl mb-12 group-hover:text-[#D1FF3D] transition-colors duration-700 break-words"
             style={{ minWidth: 'min-content', textWrap: 'balance' }}
           >
             {item.title}
@@ -352,9 +352,24 @@ const DeepDive = ({ items }: { items: NewsItem[] }) => {
     ? items 
     : items.filter(i => {
         const category = (i.category || '').toUpperCase();
+        const title = i.title.toLowerCase();
+        const excerpt = i.excerpt.toLowerCase();
+        const source = i.source.toLowerCase();
+
         if (activeCategory === 'EDITORIAL') {
-          return category === 'EDITORIAL' || i.source.toLowerCase().includes('editorial');
+          return category === 'EDITORIAL' || source.includes('editorial');
         }
+        
+        if (activeCategory === 'GEAR') {
+          const gearKeywords = ['gear', 'hardware', 'synth', 'modular', 'tech', 'plugin', 'sampler', 'mixer', 'casio', 'reloop'];
+          return category === 'GEAR' || gearKeywords.some(kw => title.includes(kw) || excerpt.includes(kw));
+        }
+
+        if (activeCategory === 'INDUSTRY') {
+          const industryKeywords = ['industry', 'market', 'business', 'scene', 'label', 'streaming', 'royalty', 'festival', 'event'];
+          return category === 'INDUSTRY' || industryKeywords.some(kw => title.includes(kw) || excerpt.includes(kw));
+        }
+
         return category === activeCategory;
       });
 
