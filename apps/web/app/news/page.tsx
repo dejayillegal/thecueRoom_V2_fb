@@ -155,6 +155,20 @@ const SignalLead = ({ item }: { item: NewsItem }) => {
 const CuratedRail = ({ items }: { items: NewsItem[] }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (scrollRef.current) {
+        const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+        if (scrollLeft + clientWidth >= scrollWidth - 10) {
+          scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          scrollRef.current.scrollBy({ left: 400, behavior: 'smooth' });
+        }
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
       const { scrollLeft, clientWidth } = scrollRef.current;
@@ -197,7 +211,7 @@ const CuratedRail = ({ items }: { items: NewsItem[] }) => {
       
       <div 
         ref={scrollRef}
-        className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar gap-12 px-6 md:px-[calc((100vw-1400px)/2+48px)] scroll-smooth"
+        className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar gap-12 px-6 md:px-12 lg:px-24 scroll-smooth"
       >
         {items.map((item, idx) => (
           <motion.div 
@@ -474,9 +488,35 @@ export default function NewsPage() {
     window.location.href = '/login';
   };
 
-  const isLoggedIn = true; // Temporary bypass for rendering hardening as per instructions
+  const [timeRemaining, setTimeRemaining] = useState("04:00:00");
 
-  return (
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date();
+      // Sync to every 4 hours (00:00, 04:00, 08:00, 12:00, 16:00, 20:00)
+      const nextSync = new Date();
+      const currentHour = now.getHours();
+      const nextSyncHour = Math.ceil((currentHour + 1) / 4) * 4;
+      
+      nextSync.setHours(nextSyncHour % 24, 0, 0, 0);
+      if (nextSyncHour >= 24) {
+        nextSync.setDate(nextSync.getDate() + 1);
+      }
+
+      const diff = nextSync.getTime() - now.getTime();
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      setTimeRemaining(
+        `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+      );
+    };
+
+    const timer = setInterval(updateCountdown, 1000);
+    updateCountdown();
+    return () => clearInterval(timer);
+  }, []);
     <AnimatePresence mode="wait">
       {isLoading ? (
         <motion.div 
@@ -555,7 +595,7 @@ export default function NewsPage() {
               <div className="w-8 h-[2px] bg-white/20 mx-auto" />
               <p className="font-mono text-[10px] text-gray-600 uppercase tracking-[0.5em] leading-loose">
                 End of current intelligence cycle.<br />
-                Next signal synchronization in 04:00:00.
+                Next signal synchronization in {timeRemaining}.
               </p>
             </div>
           </footer>
