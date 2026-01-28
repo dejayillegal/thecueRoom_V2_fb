@@ -1,15 +1,15 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CheckCircle2, XCircle, Loader2, AlertCircle, X, ChevronRight } from 'lucide-react';
+import { CheckCircle2, XCircle, Loader2, AlertCircle, X, ChevronRight, User, Mail, Lock, Globe, Music, Link as LinkIcon } from 'lucide-react';
 import { VerificationModal } from '../Auth/VerificationModal';
 import { Switch } from '@/components/ui/switch';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SignupModalProps {
   open: boolean;
@@ -35,7 +35,7 @@ export function SignupModal({ open, onOpenChange, onSwitchToSignin, isEmbedded =
   const [genre, setGenre] = useState('');
   const [socialLinks, setSocialLinks] = useState<string[]>(['']);
   const [selectedUsername, setSelectedUsername] = useState('');
-  const [isArtist, setIsArtist] = useState(true);
+  const [isArtist, setIsArtist] = useState(false);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -43,7 +43,6 @@ export function SignupModal({ open, onOpenChange, onSwitchToSignin, isEmbedded =
   const [verificationJobId, setVerificationJobId] = useState<string | null>(null);
   const [showVerification, setShowVerification] = useState(false);
   
-  const prefersReducedMotion = useReducedMotion();
   const [emailStatus, setEmailStatus] = useState<AvailabilityStatus>({ checking: false, available: null });
   const [artistNameStatus, setArtistNameStatus] = useState<AvailabilityStatus>({ checking: false, available: null });
 
@@ -53,6 +52,7 @@ export function SignupModal({ open, onOpenChange, onSwitchToSignin, isEmbedded =
   };
 
   const strength = getPasswordStrength(password);
+  const passwordsMatch = password && confirmPassword ? password === confirmPassword : null;
 
   useEffect(() => {
     if (!email) return setEmailStatus({ checking: false, available: null });
@@ -140,8 +140,8 @@ export function SignupModal({ open, onOpenChange, onSwitchToSignin, isEmbedded =
 
   const AvailabilityIndicator = ({ status }: { status: AvailabilityStatus }) => {
     if (status.checking) return <Loader2 className="w-3 h-3 animate-spin text-zinc-700" />;
-    if (status.available === true) return <CheckCircle2 className="w-3 h-3 text-[#D1FF3D]" />;
-    if (status.available === false) return <XCircle className="w-3 h-3 text-red-500" />;
+    if (status.available === true) return <span className="text-[#D1FF3D] text-[12px] font-bold">✓</span>;
+    if (status.available === false) return <span className="text-red-500 text-[12px] font-bold">✕</span>;
     return null;
   };
 
@@ -152,45 +152,66 @@ export function SignupModal({ open, onOpenChange, onSwitchToSignin, isEmbedded =
           <motion.div 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
-            className="flex flex-col items-center justify-center py-12 text-center"
           >
-            <CheckCircle2 className="w-12 h-12 text-[#D1FF3D] mb-4" />
-            <h3 className="text-2xl font-bold text-white mb-1 tracking-tight">Success</h3>
-            <p className="text-zinc-600 font-mono text-[8px] uppercase tracking-[0.3em]">{isArtist ? 'Identity pending verification...' : 'Redirecting to dashboard...'}</p>
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <CheckCircle2 className="w-12 h-12 text-[#D1FF3D] mb-4" />
+              <h3 className="text-2xl font-bold text-white mb-1 tracking-tight">Success</h3>
+              <p className="text-zinc-600 font-mono text-[8px] uppercase tracking-[0.3em]">{isArtist ? 'Identity pending verification...' : 'Redirecting to dashboard...'}</p>
+            </div>
           </motion.div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-              <div className="space-y-2">
-                <Label className="text-[7px] uppercase tracking-[0.3em] text-zinc-500 font-bold">First Name</Label>
-                <Input value={firstName} onChange={e => setFirstName(e.target.value)} className="bg-transparent border-white/20 text-white h-11 sm:h-12 rounded-none px-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-xs sm:text-sm font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="First Name" required />
+              <div className="space-y-2 text-left">
+                <Label className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-zinc-500 font-bold">First Name</Label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-700" />
+                  <Input value={firstName} onChange={e => setFirstName(e.target.value)} className="bg-transparent border-white/20 text-white h-11 sm:h-12 rounded-none pl-11 pr-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-xs sm:text-sm font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="Legal First Name" required />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label className="text-[7px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Last Name</Label>
-                <Input value={lastName} onChange={e => setLastName(e.target.value)} className="bg-transparent border-white/20 text-white h-11 sm:h-12 rounded-none px-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-xs sm:text-sm font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="Last Name" required />
+              <div className="space-y-2 text-left">
+                <Label className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Last Name</Label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-700" />
+                  <Input value={lastName} onChange={e => setLastName(e.target.value)} className="bg-transparent border-white/20 text-white h-11 sm:h-12 rounded-none pl-11 pr-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-xs sm:text-sm font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="Legal Last Name" required />
+                </div>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-[7px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Email Address</Label>
+            <div className="space-y-2 text-left">
+              <Label className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Email Address</Label>
               <div className="relative">
-                <Input type="email" value={email} onChange={e => setEmail(e.target.value)} className="bg-transparent border-white/20 text-white h-11 sm:h-12 pr-10 rounded-none px-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-xs sm:text-sm font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="email@network.com" required />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-700" />
+                <Input type="email" value={email} onChange={e => setEmail(e.target.value)} className="bg-transparent border-white/20 text-white h-11 sm:h-12 pl-11 pr-10 rounded-none transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-xs sm:text-sm font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="email@network.com" required />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2"><AvailabilityIndicator status={emailStatus} /></div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-              <div className="space-y-2">
-                <Label className="text-[7px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Security Pass</Label>
-                <Input type="password" value={password} onChange={e => setPassword(e.target.value)} className="bg-transparent border-white/20 text-white h-11 sm:h-12 rounded-none px-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-xs sm:text-sm font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="Min. 10 chars" required />
+              <div className="space-y-2 text-left">
+                <Label className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Security Pass</Label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-700" />
+                  <Input type="password" value={password} onChange={e => setPassword(e.target.value)} className="bg-transparent border-white/20 text-white h-11 sm:h-12 rounded-none pl-11 pr-10 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-xs sm:text-sm font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="Min. 10 chars" required />
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                    {password && <span className={`text-[12px] font-bold ${strength.color}`}>✓</span>}
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label className="text-[7px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Confirm Pass</Label>
-                <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="bg-transparent border-white/20 text-white h-11 sm:h-12 rounded-none px-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-xs sm:text-sm font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="Verify pass" required />
+              <div className="space-y-2 text-left">
+                <Label className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Confirm Pass</Label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-700" />
+                  <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="bg-transparent border-white/20 text-white h-11 sm:h-12 rounded-none pl-11 pr-10 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-xs sm:text-sm font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="Verify pass" required />
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                    {passwordsMatch === true && <span className="text-[#D1FF3D] text-[12px] font-bold">✓</span>}
+                    {passwordsMatch === false && <span className="text-red-500 text-[12px] font-bold">✕</span>}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="py-1 sm:py-2">
+            <div className="py-1 sm:py-2 text-left">
               <div className="flex items-center gap-3 sm:gap-4">
                 <Switch
                   id="artist-mode"
@@ -200,7 +221,7 @@ export function SignupModal({ open, onOpenChange, onSwitchToSignin, isEmbedded =
                 />
                 <Label
                   htmlFor="artist-mode"
-                  className="text-[7px] sm:text-[8px] font-mono uppercase tracking-[0.4em] text-[#D1FF3D] cursor-pointer font-bold"
+                  className="text-[10px] sm:text-[11px] font-mono uppercase tracking-[0.4em] text-[#D1FF3D] cursor-pointer font-bold"
                 >
                   Register as Artist
                 </Label>
@@ -213,25 +234,38 @@ export function SignupModal({ open, onOpenChange, onSwitchToSignin, isEmbedded =
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="space-y-4 sm:space-y-6 pt-1"
                 >
-                  <div className="space-y-2">
-                    <Label className="text-[7px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Artist/Brand Name</Label>
-                    <Input value={artistName} onChange={e => setArtistName(e.target.value)} className="bg-transparent border-white/20 text-white h-11 sm:h-12 rounded-none px-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-xs sm:text-sm font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="Stage Name" required />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-[7px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Region</Label>
-                      <Input value={region} onChange={e => setRegion(e.target.value)} className="bg-transparent border-white/20 text-white h-11 sm:h-12 rounded-none px-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-xs sm:text-sm font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="e.g. London" required />
+                  <div className="space-y-4 sm:space-y-6 pt-1">
+                    <div className="space-y-2 text-left">
+                      <Label className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Artist/Brand Name</Label>
+                      <div className="relative">
+                        <Music className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-700" />
+                        <Input value={artistName} onChange={e => setArtistName(e.target.value)} className="bg-transparent border-white/20 text-white h-11 sm:h-12 rounded-none pl-11 pr-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-xs sm:text-sm font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="Stage Name" required />
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-[7px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Genre</Label>
-                      <Input value={genre} onChange={e => setGenre(e.target.value)} className="bg-transparent border-white/20 text-white h-11 sm:h-12 rounded-none px-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-xs sm:text-sm font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="e.g. Techno" required />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                      <div className="space-y-2 text-left">
+                        <Label className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Region</Label>
+                        <div className="relative">
+                          <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-700" />
+                          <Input value={region} onChange={e => setRegion(e.target.value)} className="bg-transparent border-white/20 text-white h-11 sm:h-12 rounded-none pl-11 pr-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-xs sm:text-sm font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="e.g. London" required />
+                        </div>
+                      </div>
+                      <div className="space-y-2 text-left">
+                        <Label className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Genre</Label>
+                        <div className="relative">
+                          <Music className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-700" />
+                          <Input value={genre} onChange={e => setGenre(e.target.value)} className="bg-transparent border-white/20 text-white h-11 sm:h-12 rounded-none pl-11 pr-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-xs sm:text-sm font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="e.g. Techno" required />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[7px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Social/Music Link</Label>
-                    <Input value={socialLinks[0]} onChange={e => setSocialLinks([e.target.value])} className="bg-transparent border-white/20 text-white h-11 sm:h-12 rounded-none px-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-xs sm:text-sm font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="Link" required />
+                    <div className="space-y-2 text-left">
+                      <Label className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Social/Music Link</Label>
+                      <div className="relative">
+                        <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-700" />
+                        <Input value={socialLinks[0]} onChange={e => setSocialLinks([e.target.value])} className="bg-transparent border-white/20 text-white h-11 sm:h-12 rounded-none pl-11 pr-4 transition-all duration-500 focus:border-[#D1FF3D] focus:ring-0 text-xs sm:text-sm font-light tracking-tight border-2 placeholder:text-zinc-700" placeholder="SoundCloud/Spotify link" required />
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -257,7 +291,7 @@ export function SignupModal({ open, onOpenChange, onSwitchToSignin, isEmbedded =
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent 
-          hideClose
+          hideClose={false}
           className="w-[95vw] sm:max-w-2xl max-h-[95vh] overflow-y-auto bg-[#0B0B0B] border-white/10 p-0 shadow-2xl rounded-none ring-0 focus:ring-0"
         >
           <VisuallyHidden.Root>

@@ -1,15 +1,13 @@
-'use client';
-
-import { useState } from 'react';
-import { SignupModal } from './SignupModal';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { AlertCircle, Loader2, X } from 'lucide-react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { Logo } from '@/components/Logo';
+import { Logo } from '../Logo';
+import { SignupModal } from './SignupModal';
+import { AlertCircle, Loader2, X, Mail, Lock } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -17,34 +15,53 @@ interface AuthModalProps {
   initialTab?: 'signin' | 'signup' | 'forgot';
 }
 
-export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: AuthModalProps) {
-  const [tab, setTab] = useState<'signin' | 'signup' | 'forgot'>(initialTab);
+export function AuthModal({ isOpen, onClose, initialTab = 'signin' }: AuthModalProps) {
+  const [tab, setTab] = useState(initialTab);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const prefersReducedMotion = useReducedMotion();
+  const [emailStatus, setEmailStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
+
+  useEffect(() => {
+    setTab(initialTab);
+  }, [initialTab, isOpen]);
+
+  useEffect(() => {
+    if (!email) return setEmailStatus('idle');
+    const timer = setTimeout(async () => {
+      setEmailStatus('checking');
+      try {
+        const res = await fetch('/api/auth/check-availability', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'email', value: email })
+        });
+        const data = await res.json();
+        setEmailStatus(data.available ? 'valid' : 'invalid');
+      } catch { setEmailStatus('idle'); }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [email]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError('');
-
     try {
       const res = await fetch('/api/auth/signin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-
       const data = await res.json();
-      if (data.success) {
+      if (data.ok) {
         window.location.href = '/dashboard';
       } else {
-        setError(data.error || 'Invalid credentials');
+        setError(data.error || 'Authentication failed');
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError('Connection error');
     } finally {
       setIsSubmitting(false);
     }
@@ -62,26 +79,29 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
       });
       const data = await res.json();
       if (data.ok) {
-        setTab('signin');
+        setError('Recovery link dispatched to ' + email);
       } else {
-        setError(data.error || 'Failed to send recovery link');
+        setError(data.error || 'Recovery failed');
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError('Connection error');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const motionProps = {
-    initial: { opacity: 0, y: prefersReducedMotion ? 0 : 4 },
+    initial: { opacity: 0, y: 10 },
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.2, ease: "easeOut" }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[95vw] sm:max-w-[480px] bg-[#0B0B0B] border-white/10 p-0 overflow-hidden shadow-2xl rounded-none ring-0 focus:ring-0 max-h-[85vh] flex flex-col my-auto top-1/2 -translate-y-1/2 transition-all duration-500 ease-in-out">
+      <DialogContent 
+        hideClose={false}
+        className="w-[95vw] sm:max-w-[480px] bg-[#0B0B0B] border-white/10 p-0 overflow-hidden shadow-2xl rounded-none ring-0 focus:ring-0 max-h-[85vh] flex flex-col my-auto top-1/2 -translate-y-1/2 transition-all duration-500 ease-in-out"
+      >
         <VisuallyHidden.Root>
           <DialogTitle>{tab === 'signin' ? 'Entrance' : tab === 'signup' ? 'Registry' : 'Recovery'}</DialogTitle>
           <DialogDescription>Identity Gateway</DialogDescription>
@@ -141,23 +161,31 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
                 ) : (
                   <>
                     <form onSubmit={tab === 'signin' ? handleSignIn : handleForgot} className="mt-4 sm:mt-6 space-y-6 sm:space-y-8">
-                      <div className="space-y-3">
-                        <Label htmlFor="email" className="text-[8px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Email Address</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className="bg-transparent border-white/20 focus:border-[#D1FF3D] text-white h-12 sm:h-14 rounded-none transition-all duration-500 placeholder:text-zinc-700 focus:bg-[#0F0F0F] px-5 text-sm sm:text-base font-light tracking-tight border-2"
-                          placeholder="Registered email"
-                          required
-                        />
+                      <div className="space-y-3 text-left">
+                        <Label htmlFor="email" className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Email Address</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-700" />
+                          <Input
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="bg-transparent border-white/20 focus:border-[#D1FF3D] text-white h-12 sm:h-14 rounded-none transition-all duration-500 placeholder:text-zinc-700 focus:bg-[#0F0F0F] pl-11 pr-10 text-sm sm:text-base font-light tracking-tight border-2"
+                            placeholder="Registered email"
+                            required
+                          />
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                            {emailStatus === 'checking' && <Loader2 className="w-3 h-3 animate-spin text-zinc-700" />}
+                            {emailStatus === 'valid' && <span className="text-[#D1FF3D] text-[12px] font-bold">✓</span>}
+                            {emailStatus === 'invalid' && <span className="text-red-500 text-[12px] font-bold">✕</span>}
+                          </div>
+                        </div>
                       </div>
 
                       {tab === 'signin' && (
-                        <div className="space-y-3">
+                        <div className="space-y-3 text-left">
                           <div className="flex justify-between items-center">
-                            <Label htmlFor="password" className="text-[8px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Security Pass</Label>
+                            <Label htmlFor="password" className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Security Pass</Label>
                             <button
                               type="button"
                               onClick={() => setTab('forgot')}
@@ -166,15 +194,18 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
                               Lost Pass?
                             </button>
                           </div>
-                          <Input
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="bg-transparent border-white/20 focus:border-[#D1FF3D] text-white h-12 sm:h-14 rounded-none transition-all duration-500 placeholder:text-zinc-700 focus:bg-[#0F0F0F] px-5 text-sm sm:text-base font-light tracking-tight border-2"
-                            placeholder="Credentials"
-                            required
-                          />
+                          <div className="relative">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-700" />
+                            <Input
+                              id="password"
+                              type="password"
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
+                              className="bg-transparent border-white/20 focus:border-[#D1FF3D] text-white h-12 sm:h-14 rounded-none transition-all duration-500 placeholder:text-zinc-700 focus:bg-[#0F0F0F] pl-11 text-sm sm:text-base font-light tracking-tight border-2"
+                              placeholder="Credentials"
+                              required
+                            />
+                          </div>
                         </div>
                       )}
 
@@ -184,10 +215,11 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="flex items-center gap-3 text-red-500 text-[9px] sm:text-[10px] bg-red-500/5 p-3 sm:p-4 border border-red-500/10 font-mono uppercase tracking-[0.1em] font-bold"
                           >
-                            <AlertCircle size={12} />
-                            <span>{error}</span>
+                            <div className="flex items-center gap-3 text-red-500 text-[9px] sm:text-[10px] bg-red-500/5 p-3 sm:p-4 border border-red-500/10 font-mono uppercase tracking-[0.1em] font-bold">
+                              <AlertCircle size={12} />
+                              <span>{error}</span>
+                            </div>
                           </motion.div>
                         )}
                       </AnimatePresence>
