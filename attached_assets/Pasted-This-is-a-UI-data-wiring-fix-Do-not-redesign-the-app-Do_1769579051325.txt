@@ -1,0 +1,108 @@
+This is a UI + data wiring fix. Do not redesign the app.
+Do not introduce new schemas or routes.
+
+GOAL:
+Fix the News page layout, routing, and content so it renders correctly,
+is not hidden behind the sidebar, and shows real curated underground feeds.
+
+–––––––––––––––––––––
+STEP 1: FIX NEWS PAGE LAYOUT (CRITICAL)
+–––––––––––––––––––––
+Problem:
+News content is partially hidden behind the left sidebar navigation.
+
+Actions:
+1. Ensure the News page main container respects the sidebar width.
+2. Apply correct left padding or margin so content starts AFTER the sidebar.
+3. Prevent horizontal overflow and clipped headlines.
+4. Ensure layout works for desktop and wide screens.
+
+Rules:
+- Do not modify sidebar component
+- Fix only News page layout/container styles
+
+Verification:
+No News content is hidden behind the sidebar.
+
+–––––––––––––––––––––
+STEP 2: FIX "ACCESS NODES" 404 ERROR
+–––––––––––––––––––––
+Problem:
+Clicking “Access Nodes” results in a 404.
+
+Actions:
+1. Identify the route linked to “Access Nodes”.
+2. If route exists, fix the link path.
+3. If route does NOT exist:
+   - Replace link with a working destination (News or Feeds section).
+4. Ensure no navigation action leads to 404.
+
+Verification:
+Clicking “Access Nodes” always navigates to a valid page.
+
+–––––––––––––––––––––
+STEP 3: FIX TCR EDITORIAL CONTENT (NO PLACEHOLDERS)
+–––––––––––––––––––––
+Problem:
+“TCR Editorial” is rendering empty or placeholder content.
+
+Actions:
+1. Wire TCR Editorial to use the SAME feeds source as Landing page.
+2. Filter feeds by underground/editorial relevance:
+   - electronic music
+   - underground
+   - experimental
+   - club / techno / ambient
+3. Do NOT introduce mock data.
+4. Do NOT hardcode articles.
+
+Rules:
+- Use existing feeds table / API
+- Apply filtering in code, not schema
+
+Verification:
+TCR Editorial displays real news items like Landing page.
+
+–––––––––––––––––––––
+STEP 4: CURATE "THE UNDERGROUND" SECTION
+–––––––––––––––––––––
+Text must remain:
+“The Underground
+High-frequency community signals decrypted in real-time…”
+
+Actions:
+1. Populate this section with filtered feeds:
+   - underground music
+   - artist movements
+   - labels, gear, AI + music, club culture
+2. Use same feed cards as News / Landing.
+3. Ensure section never renders empty without a fallback message.
+
+Verification:
+“The Underground” always shows real, relevant feeds.
+
+–––––––––––––––––––––
+STEP 5: SAFETY & STABILITY
+–––––––––––––––––––––
+1. No console errors.
+2. No Drizzle errors.
+3. No broken imports.
+4. No layout shifts.
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Updated News page layout styles
+- Fixed Access Nodes navigation
+- Updated feed filtering logic for:
+  - TCR Editorial
+  - The Underground
+- Confirmation that:
+  - News page is fully visible
+  - Sidebar no longer overlaps content
+  - Real feeds are displayed
+  - No 404s occur
+
+Do not explain.
+Do not ask questions.
+Implement directly.

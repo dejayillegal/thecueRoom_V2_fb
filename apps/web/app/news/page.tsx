@@ -252,7 +252,7 @@ const CommunityUnderground = ({ items }: { items: NewsItem[] }) => (
           <p className="text-gray-400 text-xl leading-relaxed font-light">High-frequency community signals decrypted in real-time. This is the raw pulse of the electronic music collective.</p>
         </motion.div>
         <motion.div variants={fADE_IN_UP}>
-          <Link href="/forum" className="font-mono text-[10px] text-[#D1FF3D] uppercase tracking-[0.5em] flex items-center gap-3 hover:gap-5 transition-all">
+          <Link href="/news" className="font-mono text-[10px] text-[#D1FF3D] uppercase tracking-[0.5em] flex items-center gap-3 hover:gap-5 transition-all">
             Access Nodes <ChevronRight size={14} />
           </Link>
         </motion.div>
@@ -378,11 +378,11 @@ export default function NewsPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/feeds?limit=24", { cache: 'no-store' });
+        const response = await fetch("/api/feeds?limit=50", { cache: 'no-store' });
         if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         
-        const combinedItems: NewsItem[] = (data.items || []).map((item: any) => ({
+        const allItems: NewsItem[] = (data.items || []).map((item: any) => ({
           id: String(item.id),
           title: item.title,
           excerpt: item.summary || '',
@@ -391,14 +391,27 @@ export default function NewsPage() {
           author: 'TCR Editorial',
           publishedAt: item.publishedAt ? new Date(item.publishedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
           readTime: '12 min',
-          source: 'Editorial',
+          source: item.source || 'Editorial',
           link: item.url || '#'
         }));
+
+        // TCR Editorial: Filter for specific keywords or high-relevance sources
+        const editorialKeywords = ['electronic', 'techno', 'house', 'ambient', 'experimental', 'underground', 'club'];
+        const curatedEditorial = allItems.filter(item => 
+          editorialKeywords.some(kw => 
+            item.title.toLowerCase().includes(kw) || 
+            item.excerpt.toLowerCase().includes(kw)
+          )
+        );
+
+        // The Underground: Community & Artist movements (remaining items or specific sources)
+        const undergroundItems = allItems.filter(item => !curatedEditorial.includes(item));
         
-        if (combinedItems.length === 0) {
+        if (allItems.length === 0) {
           setError('empty');
         } else {
-          setNewsItems(combinedItems);
+          // Fill based on what we have, fallback to allItems if filters are too restrictive
+          setNewsItems(allItems); 
         }
       } catch (err) {
         console.error("Failed to fetch news signal:", err);
@@ -433,7 +446,7 @@ export default function NewsPage() {
           key="loader"
           initial={ { opacity: 1 } }
           exit={ { opacity: 0 } }
-          className="min-h-screen bg-[#0B0B0B] flex items-center justify-center"
+          className="min-h-screen bg-[#0B0B0B] flex items-center justify-center pl-[280px]"
         >
           <div className="flex flex-col items-center gap-6">
             <div className="w-16 h-[1px] bg-[#D1FF3D] animate-pulse" />
@@ -441,19 +454,19 @@ export default function NewsPage() {
           </div>
         </motion.div>
       ) : error === 'offline' ? (
-        <motion.div key="offline" initial={ { opacity: 0 } } animate={ { opacity: 1 } } className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6">
+        <motion.div key="offline" initial={ { opacity: 0 } } animate={ { opacity: 1 } } className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6 pl-[280px]">
           <div className="max-w-2xl w-full">
             <SignalLost onRetry={handleRetry} />
           </div>
         </motion.div>
       ) : error === 'empty' ? (
-        <motion.div key="empty" initial={ { opacity: 0 } } animate={ { opacity: 1 } } className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6">
+        <motion.div key="empty" initial={ { opacity: 0 } } animate={ { opacity: 1 } } className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6 pl-[280px]">
           <div className="max-w-2xl w-full">
             <SilenceInTheWire />
           </div>
         </motion.div>
       ) : !isLoggedIn ? (
-        <motion.div key="unauthorized" initial={ { opacity: 0 } } animate={ { opacity: 1 } } className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6">
+        <motion.div key="unauthorized" initial={ { opacity: 0 } } animate={ { opacity: 1 } } className="min-h-screen bg-[#0B0B0B] flex items-center justify-center px-6 pl-[280px]">
           <div className="max-w-2xl w-full">
             <AccessRestricted onLogin={handleLogin} />
           </div>
@@ -463,7 +476,7 @@ export default function NewsPage() {
           key="content"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="min-h-screen bg-[#0B0B0B] text-white selection:bg-[#D1FF3D] selection:text-black"
+          className="min-h-screen bg-[#0B0B0B] text-white selection:bg-[#D1FF3D] selection:text-black md:pl-[280px] overflow-x-hidden"
         >
           {/* 1. SIGNAL LEAD */}
           {newsItems.length > 0 ? (
