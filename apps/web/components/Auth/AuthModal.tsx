@@ -81,7 +81,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'signin' }: Au
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[95vw] sm:max-w-[480px] bg-[#0B0B0B] border-white/10 p-0 overflow-hidden shadow-2xl rounded-none ring-0 focus:ring-0 max-h-[90vh] flex flex-col transition-all duration-500 ease-in-out">
+      <DialogContent className="w-[95vw] sm:max-w-[480px] bg-[#0B0B0B] border-white/10 p-0 overflow-hidden shadow-2xl rounded-none ring-0 focus:ring-0 max-h-[85vh] flex flex-col my-auto top-1/2 -translate-y-1/2 transition-all duration-500 ease-in-out">
         <VisuallyHidden.Root>
           <DialogTitle>{tab === 'signin' ? 'Entrance' : tab === 'signup' ? 'Registry' : 'Recovery'}</DialogTitle>
           <DialogDescription>Identity Gateway</DialogDescription>
