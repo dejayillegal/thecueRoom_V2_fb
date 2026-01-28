@@ -108,8 +108,13 @@ const SignalLead = ({ item }: { item: NewsItem }) => {
           
           <motion.h1 
             variants={fADE_IN_UP}
-            className="text-4xl md:text-[5.5rem] font-bold text-white tracking-tighter leading-[0.85] max-w-7xl mb-12 group-hover:text-[#D1FF3D] transition-colors duration-700 break-words"
-            style={{ minWidth: 'min-content', textWrap: 'balance' }}
+            className="text-4xl md:text-[clamp(3rem,8vw,5.2rem)] font-bold text-white tracking-tighter leading-[0.85] max-w-7xl mb-12 group-hover:text-[#D1FF3D] transition-colors duration-700 break-words"
+            style={{ 
+              minWidth: 'min-content', 
+              textWrap: 'balance',
+              wordBreak: 'keep-all',
+              hyphens: 'none'
+            }}
           >
             {item.title}
           </motion.h1>
