@@ -1,0 +1,254 @@
+This is an Artist-only social layer enhancement.
+Do NOT add new backend services.
+Do NOT add new database schemas.
+Do NOT change authentication provider.
+
+GOAL:
+Implement a smart, robust Artist-only social experience
+with strong identity, presence, and credibility systems
+by reusing existing profiles, forum activity, and session data.
+
+This must work fully in Fast mode.
+
+–––––––––––––––––––––
+CORE STRATEGY (IMPORTANT)
+–––––––––––––––––––––
+This implementation must:
+- Reuse existing users, profiles, forumThreads, comments
+- Simulate “social” and “live” behavior via existing data
+- Be UI-driven, not infrastructure-driven
+- Be artist-only (role = "artist")
+
+–––––––––––––––––––––
+STEP 1: ARTIST ROLE GATING (NON-NEGOTIABLE)
+–––––––––––––––––––––
+Actions:
+1. Identify users with role = "artist".
+2. Artist social features must be:
+   - visible ONLY to artists
+   - readable by admin users
+3. Normal users must not see Artist social UI.
+
+Verification:
+Non-artists cannot access Artist profiles or activity views.
+
+–––––––––––––––––––––
+STEP 2: UNDERGROUND USERNAME GENERATOR (DETERMINISTIC)
+–––––––––––––––––––––
+Problem:
+Artists need unique, underground-style usernames
+without backend generation.
+
+Actions:
+1. Generate artist usernames client-side using deterministic rules:
+   - music / underground inspired word sets
+   - modular composition (prefix + core + suffix)
+2. Examples of style (do NOT hardcode these):
+   - signalVoid
+   - bassRitual
+   - staticOperator
+   - subfreq_x
+3. Rules:
+   - lowercase
+   - no spaces
+   - no profanity
+   - stable per artist (seeded by user ID)
+4. Username must be:
+   - unique in presentation
+   - editable by artist (optional)
+   - visually distinct from email/login
+
+Verification:
+Each artist has a stable, underground-style username.
+
+–––––––––––––––––––––
+STEP 3: ARTIST PROFILE PAGE (IDENTITY CORE)
+–––––––––––––––––––––
+Actions:
+1. Create Artist profile pages using existing profile + user data.
+2. Display:
+   - artist alias (displayName / artistName)
+   - underground username
+   - AI-style avatar (see STEP 4)
+   - bio
+   - social links (if enabled)
+3. Apply strong visual identity:
+   - layered panels
+   - glow accents
+   - signal / waveform motifs
+
+Rules:
+- No backend AI
+- Visual-only identity
+
+Verification:
+Artist profiles feel intentional, expressive, and unique.
+
+–––––––––––––––––––––
+STEP 4: AVATAR VISUAL LANGUAGE SYSTEM (CLIENT-SIDE)
+–––––––––––––––––––––
+Problem:
+Artists need distinct visual identity without AI backend.
+
+Actions:
+1. Implement a deterministic avatar system:
+   - generated from artist ID or username seed
+2. Visual language must include:
+   - abstract geometry
+   - waveform / noise patterns
+   - masked gradients
+   - techno / underground aesthetic
+3. Avatar traits derived from seed:
+   - shape family
+   - color accent
+   - noise intensity
+4. Avatar must be:
+   - stable across sessions
+   - lightweight
+   - non-photorealistic
+
+Rules:
+- SVG / Canvas / CSS-based only
+- No external AI calls
+
+Verification:
+Every artist has a unique, stable, underground-style avatar.
+
+–––––––––––––––––––––
+STEP 5: ARTIST ACTIVITY FEED (SMART REUSE)
+–––––––––––––––––––––
+Actions:
+1. Show Artist activity by querying:
+   - threads created
+   - comments posted
+2. Present activity as a timeline/feed.
+3. Add subtle reveal animations.
+
+Rules:
+- Read-only for viewers
+- No new activity tables
+
+Verification:
+Profiles show real historical activity.
+
+–––––––––––––––––––––
+STEP 6: ARTIST PRESENCE (SAFE “LIVE” INDICATOR)
+–––––––––––––––––––––
+Actions:
+1. Derive presence using:
+   - last activity timestamp
+   - recent session usage
+2. Display status:
+   - “Live”
+   - “Active recently”
+   - “Offline”
+3. Add subtle animated indicator (pulse / glow).
+
+Rules:
+- No websockets
+- No realtime services
+
+Verification:
+Presence feels alive without realtime infra.
+
+–––––––––––––––––––––
+STEP 7: ARTIST TRUST / TIER BADGES (LOGIC-DRIVEN)
+–––––––––––––––––––––
+Problem:
+Artists need credibility signals without manual moderation.
+
+Actions:
+1. Assign Artist tiers using existing signals:
+   - activity volume
+   - longevity
+   - contributions (threads, replies)
+2. Example tiers (labels may vary):
+   - Signal Initiate
+   - Frequency Builder
+   - Scene Operator
+   - Core Node
+3. Badge logic must be:
+   - deterministic
+   - transparent
+   - recalculated automatically
+4. Display badges subtly on:
+   - profile
+   - activity feed
+   - avatar frame
+
+Rules:
+- No manual admin action required
+- No new tables
+
+Verification:
+Artist trust badges feel earned and meaningful.
+
+–––––––––––––––––––––
+STEP 8: ARTIST INTERACTION (UI-LEVEL ONLY)
+–––––––––––––––––––––
+Actions:
+1. Add Artist-only interaction affordances:
+   - message artist (non-realtime placeholder)
+   - report issue to admin
+2. Admin users can view artist issue submissions.
+3. No chat backend required.
+
+Verification:
+Artists can initiate interactions safely.
+
+–––––––––––––––––––––
+STEP 9: PRIVACY CONTROLS (CLIENT-DRIVEN)
+–––––––––––––––––––––
+Actions:
+1. Allow Artists to toggle:
+   - show/hide activity
+   - show/hide social links
+   - show/hide presence
+   - show/hide trust badge
+2. Persist settings using existing profile metadata
+   or client-side preferences.
+
+Verification:
+Privacy settings immediately affect visibility.
+
+–––––––––––––––––––––
+STEP 10: MOTION & GRAPHICAL EXPRESSION
+–––––––––––––––––––––
+Actions:
+1. Add expressive motion:
+   - profile section reveals
+   - hover pulses
+   - signal-style transitions
+2. Animate only transform and opacity.
+3. Respect prefers-reduced-motion.
+
+Verification:
+Experience feels modern, musical, and performant.
+
+–––––––––––––––––––––
+STEP 11: SAFETY & ROBUSTNESS CHECK
+–––––––––––––––––––––
+1. No console errors.
+2. No schema changes.
+3. No backend regressions.
+4. Normal users unaffected.
+5. Admin access preserved.
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Artist-only profile pages
+- Underground username generator
+- Deterministic avatar system
+- Artist trust / tier badges
+- Activity feeds and presence indicators
+- Privacy toggles
+- Creative UI motion and graphics
+- Confirmation that:
+  - Only artists see this layer
+  - No new backend infra was added
+  - Implementation is robust and stable
+
+Do not explain.
+Do not ask questions.
+Implement directly.

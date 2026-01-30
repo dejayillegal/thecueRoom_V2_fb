@@ -13,6 +13,7 @@ export interface UserData {
   uid: string;
   email: string;
   role: string;
+  username: string;
 }
 
 export async function createToken(userData: UserData): Promise<string> {
@@ -28,7 +29,7 @@ export async function createToken(userData: UserData): Promise<string> {
 export async function verifyToken(token: string): Promise<UserData | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload as UserData;
+    return payload as unknown as UserData;
   } catch (error) {
     return null;
   }
@@ -58,7 +59,8 @@ export async function authenticateUser(email: string, password: string): Promise
     return {
       uid: user.id,
       email: user.email,
-      role: user.role
+      role: user.role,
+      username: user.username
     };
   } catch (error) {
     console.error('Authentication error:', error);
