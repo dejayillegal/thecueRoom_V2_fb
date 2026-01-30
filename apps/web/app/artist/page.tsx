@@ -27,10 +27,14 @@ export default async function ArtistDirectoryPage() {
     title: forumThreads.title,
     createdAt: forumThreads.createdAt,
     userId: forumThreads.userId,
-    user: users
-  })
+    user: {
+      username: users.username,
+      email: users.email
+    }
+  } as any)
   .from(forumThreads)
   .leftJoin(users, eq(forumThreads.userId, users.id))
+  .where(eq(forumThreads.status, 'approved'))
   .orderBy(desc(forumThreads.createdAt))
   .limit(10);
 

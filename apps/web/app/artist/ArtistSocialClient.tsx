@@ -115,7 +115,7 @@ export default function ArtistSocialClient({
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.1 }}
                     className="flex items-center gap-3 group cursor-pointer"
-                    onClick={() => window.location.href = `/artist/${artist.id}`}
+                    onClick={() => { window.location.href = `/artist/${artist.id}` }}
                   >
                     <div className="w-10 h-10 bg-zinc-800 border border-white/10 overflow-hidden relative grayscale group-hover:grayscale-0 transition-all">
                       <img src={artist.avatar} alt="" className="w-full h-full object-cover opacity-60 group-hover:opacity-100" />
@@ -179,7 +179,7 @@ export default function ArtistSocialClient({
                     <div className="flex-1 space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-bold uppercase tracking-tight hover:text-[#D1FF3D] cursor-pointer" onClick={() => window.location.href = `/artist/${signal.id}`}>
+                          <span className="text-[11px] font-bold uppercase tracking-tight hover:text-[#D1FF3D] cursor-pointer" onClick={() => { window.location.href = `/artist/${signal.id}` }}>
                             {signal.artistName}
                           </span>
                           <span className="text-[9px] font-mono text-zinc-600 lowercase">@{signal.undergroundName}</span>
@@ -251,7 +251,7 @@ export default function ArtistSocialClient({
                 ))}
               </div>
             </section>
-          </div>
+          </aside>
         </div>
       </div>
     </div>
