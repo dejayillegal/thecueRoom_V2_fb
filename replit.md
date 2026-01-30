@@ -78,6 +78,25 @@ The project utilizes a pnpm monorepo structure with `apps/web` for the Next.js f
     * RFC-compliant email regex with proper normalization
     * Updated auth routes to use bcryptjs consistently
   - TODO: Email service integration for password reset and verification emails
+- **Artist Social UI (January 2026):**
+  - Artist-only social layer derived from existing data (no new tables)
+  - **Routes:**
+    * `/artist` - Artist social directory with feed (artist/admin only)
+    * `/artist/u/[username]` - Individual artist profile page by username
+    * `/link/[username]` - Public bio link page (Milkshake-style)
+  - **Following System:** Stored in profile metadata (`socialLinks._following` array)
+    * Follow/unfollow via `/api/artist/follow` (POST/DELETE)
+    * Followers count derived by reverse lookup
+    * Feed filters to show content from followed artists
+  - **Features:**
+    * Profile viewing with stats (signals, followers, following, karma)
+    * Recent activity (threads, replies) from forum data
+    * Social links display from profile metadata
+    * Own profile shows "Edit Profile" button, others show "Follow" button
+    * Shareable bio link pages for external promotion
+    * Artist preview cards on hover/tap
+  - **Access Control:** Restricted to artist and admin roles
+  - **Components:** ArtistProfileClient, ArtistPreviewCard, bio link page
 - **Profile Settings (October 31, 2025):**
   - Comprehensive profile management page at `/settings`
   - Read-only fields: email, username, artistName, verified social links (protected after verification)
