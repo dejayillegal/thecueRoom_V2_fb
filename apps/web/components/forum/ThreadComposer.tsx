@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { AtSign, Link as LinkIcon, Image, Code, Sparkles, Users, Lock, Globe, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { AtSign, Link as LinkIcon, Image, Code, Sparkles, Users, Lock, Globe, X, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,7 +17,12 @@ const categories = [
   { id: '5', name: 'General' },
 ];
 
-export function ThreadComposer() {
+interface ThreadComposerProps {
+  onClose?: () => void;
+}
+
+export function ThreadComposer({ onClose }: ThreadComposerProps) {
+  const router = useRouter();
   const [title, setTitle] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [body, setBody] = useState('');
@@ -212,15 +218,46 @@ export function ThreadComposer() {
     insertAtCursor('\n```\n// Your code here\n```\n');
   };
 
+  const handleDiscard = () => {
+    if (title.trim() || body.trim()) {
+      if (!confirm('Discard this thread? All unsaved changes will be lost.')) {
+        return;
+      }
+    }
+    if (onClose) {
+      onClose();
+    } else {
+      router.push('/community/forum');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="max-w-[1200px] mx-auto px-4 py-6">
-        <h1 className="text-3xl font-bold text-white mb-6">Create New Thread</h1>
+      <div className="max-w-[1200px] mx-auto px-3 sm:px-4 py-4 sm:py-6">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleDiscard}
+              className="p-2 rounded-lg bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-400 hover:text-white transition-colors"
+              title="Discard and go back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-xl sm:text-3xl font-bold text-white">Create New Thread</h1>
+          </div>
+          <button
+            onClick={handleDiscard}
+            className="p-2 rounded-lg bg-[#1a1a1a] hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-colors"
+            title="Discard thread"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-        <div className="grid grid-cols-12 gap-6">
-          <div className="col-span-8">
-            <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg p-6">
-              <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+          <div className="lg:col-span-8 order-1">
+            <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg p-4 sm:p-6">
+              <div className="space-y-4 sm:space-y-6">
                 <div>
                   <Label htmlFor="title" className="text-sm font-semibold text-white mb-2 block">
                     Thread Title
@@ -324,45 +361,45 @@ export function ThreadComposer() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 pt-2 border-t border-[#1a1a1a]">
+                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#1a1a1a]">
                   <button 
                     onClick={() => insertAtCursor('@')}
-                    className="flex items-center gap-2 px-3 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-400 hover:text-white rounded-lg text-sm font-medium transition-colors"
+                    className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-400 hover:text-white rounded-lg text-xs sm:text-sm font-medium transition-colors"
                     title="Insert @ to mention a user"
                   >
                     <AtSign className="w-4 h-4" />
-                    Mention
+                    <span className="hidden sm:inline">Mention</span>
                   </button>
                   <button 
                     onClick={() => setShowLinkDialog(true)}
-                    className="flex items-center gap-2 px-3 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-400 hover:text-white rounded-lg text-sm font-medium transition-colors"
+                    className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-400 hover:text-white rounded-lg text-xs sm:text-sm font-medium transition-colors"
                     title="Insert a link"
                   >
                     <LinkIcon className="w-4 h-4" />
-                    Link
+                    <span className="hidden sm:inline">Link</span>
                   </button>
                   <button 
                     onClick={() => setShowMediaDialog(true)}
-                    className="flex items-center gap-2 px-3 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-400 hover:text-white rounded-lg text-sm font-medium transition-colors"
+                    className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-400 hover:text-white rounded-lg text-xs sm:text-sm font-medium transition-colors"
                     title="Insert an image"
                   >
                     <Image className="w-4 h-4" />
-                    Media
+                    <span className="hidden sm:inline">Media</span>
                   </button>
                   <button 
                     onClick={handleInsertCodeSnippet}
-                    className="flex items-center gap-2 px-3 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-400 hover:text-white rounded-lg text-sm font-medium transition-colors"
+                    className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-400 hover:text-white rounded-lg text-xs sm:text-sm font-medium transition-colors"
                     title="Insert code snippet"
                   >
                     <Code className="w-4 h-4" />
-                    Snippet
+                    <span className="hidden sm:inline">Snippet</span>
                   </button>
                   <button
                     onClick={() => setShowAIAssist(true)}
-                    className="flex items-center gap-2 px-3 py-2 bg-[#D7FF3C]/10 hover:bg-[#D7FF3C]/20 text-[#D7FF3C] border border-[#D7FF3C]/30 rounded-lg text-sm font-medium transition-colors ml-auto"
+                    className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 bg-[#D7FF3C]/10 hover:bg-[#D7FF3C]/20 text-[#D7FF3C] border border-[#D7FF3C]/30 rounded-lg text-xs sm:text-sm font-medium transition-colors ml-auto"
                   >
                     <Sparkles className="w-4 h-4" />
-                    AI Draft
+                    <span className="hidden sm:inline">AI Draft</span>
                   </button>
                 </div>
 
@@ -502,25 +539,25 @@ export function ThreadComposer() {
                   )}
                 </div>
 
-                <div className="flex items-center justify-between pt-6 border-t border-[#1a1a1a]">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 sm:pt-6 border-t border-[#1a1a1a]">
                   <button 
                     onClick={handleSaveDraft}
-                    className="px-4 py-2 text-gray-400 hover:text-white text-sm font-medium transition-colors"
+                    className="px-4 py-2 text-gray-400 hover:text-white text-xs sm:text-sm font-medium transition-colors order-3 sm:order-1"
                     disabled={isSubmitting}
                   >
                     Save as Draft
                   </button>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3 order-1 sm:order-2">
                     <button 
                       onClick={() => setShowPreview(!showPreview)}
-                      className="px-4 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white text-sm font-medium rounded-lg transition-colors"
+                      className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white text-xs sm:text-sm font-medium rounded-lg transition-colors"
                       disabled={isSubmitting}
                     >
                       {showPreview ? 'Edit' : 'Preview'}
                     </button>
                     <Button 
                       onClick={handlePostThread}
-                      className="bg-[#D7FF3C] hover:bg-[#e7ff6f] text-black font-semibold"
+                      className="flex-1 sm:flex-none bg-[#D7FF3C] hover:bg-[#e7ff6f] text-black font-semibold text-xs sm:text-sm"
                       disabled={isSubmitting || !title.trim() || !categoryId || !body.trim()}
                     >
                       {isSubmitting ? 'Posting...' : 'Post Thread'}
@@ -531,10 +568,10 @@ export function ThreadComposer() {
             </div>
           </div>
 
-          <div className="col-span-4">
-            <div className="sticky top-6 space-y-4">
+          <div className="lg:col-span-4 order-2">
+            <div className="lg:sticky lg:top-6 space-y-4">
               <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg p-4">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wide mb-4">
+                <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wide mb-3 sm:mb-4">
                   Thread Settings
                 </h3>
 

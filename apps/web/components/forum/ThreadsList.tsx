@@ -143,67 +143,76 @@ export function ThreadsList() {
 
 function ThreadCard({ thread }: { thread: Thread }) {
   const displayName = thread.user?.profile?.displayName || thread.user?.username || 'Anonymous';
-  const excerpt = thread.body?.substring(0, 140) + (thread.body?.length > 140 ? '...' : '');
+  const excerpt = thread.body?.substring(0, 100) + (thread.body?.length > 100 ? '...' : '');
 
   return (
     <Link href={`/community/thread/${thread.id}`} className="block group">
       <div className={`
-        bg-[#111111]/40 border border-white/5 rounded-[32px] p-8
+        bg-[#111111]/40 border border-white/5 rounded-2xl sm:rounded-[32px] p-4 sm:p-8
         hover:bg-[#151515] hover:border-[#D1FF3D]/20 transition-all duration-500 backdrop-blur-md relative overflow-hidden
         ${thread.isPinned ? 'ring-1 ring-[#D1FF3D]/20' : ''}
       `}>
-        {/* Subtle Waveform Separator */}
-        <div className="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-0 right-0 p-4 sm:p-8 opacity-0 group-hover:opacity-100 transition-opacity">
            <TrendingUp className="w-4 h-4 text-[#D1FF3D]/20" />
         </div>
 
-        <div className="flex gap-8">
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-8">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#D1FF3D] to-[#9B5CFF] p-[1px]">
-                  <div className="w-full h-full rounded-full bg-black flex items-center justify-center text-[10px] font-black text-white">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-[#D1FF3D] to-[#9B5CFF] p-[1px]">
+                  <div className="w-full h-full rounded-full bg-black flex items-center justify-center text-[9px] sm:text-[10px] font-black text-white">
                     {displayName[0].toUpperCase()}
                   </div>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xs font-bold text-white flex items-center gap-1 group-hover:text-[#D1FF3D] transition-colors">
+                  <span className="text-[10px] sm:text-xs font-bold text-white flex items-center gap-1 group-hover:text-[#D1FF3D] transition-colors">
                     {displayName}
-                    {thread.user?.verified && <CheckCircle2 className="w-3 h-3 text-[#D1FF3D]" />}
+                    {thread.user?.verified && <CheckCircle2 className="w-2.5 sm:w-3 h-2.5 sm:h-3 text-[#D1FF3D]" />}
                   </span>
-                  <span className="text-[9px] text-zinc-600 font-mono uppercase tracking-widest">
+                  <span className="text-[8px] sm:text-[9px] text-zinc-600 font-mono uppercase tracking-widest">
                     {formatTimeAgo(new Date(thread.createdAt))}
                   </span>
                 </div>
               </div>
               {thread.category && (
-                <span className="text-[9px] px-2.5 py-1 bg-[#9B5CFF]/10 text-[#9B5CFF] rounded-full font-black uppercase tracking-widest border border-[#9B5CFF]/20">
+                <span className="text-[8px] sm:text-[9px] px-2 sm:px-2.5 py-0.5 sm:py-1 bg-[#9B5CFF]/10 text-[#9B5CFF] rounded-full font-black uppercase tracking-wider sm:tracking-widest border border-[#9B5CFF]/20">
                   {thread.category.name}
                 </span>
               )}
             </div>
 
-            <div className="flex items-start gap-3 mb-3">
-              {thread.isPinned && <Pin className="w-4 h-4 text-[#D1FF3D] flex-shrink-0 mt-1" />}
-              <h3 className="text-xl font-bold text-white leading-tight tracking-tight group-hover:italic transition-all">
+            <div className="flex items-start gap-2 sm:gap-3 mb-2 sm:mb-3">
+              {thread.isPinned && <Pin className="w-3 h-3 sm:w-4 sm:h-4 text-[#D1FF3D] flex-shrink-0 mt-0.5 sm:mt-1" />}
+              <h3 className="text-base sm:text-xl font-bold text-white leading-tight tracking-tight group-hover:italic transition-all line-clamp-2">
                 {thread.title}
               </h3>
             </div>
 
-            <p className="text-sm text-zinc-500 font-light leading-relaxed mb-6 line-clamp-2 italic border-l border-white/5 pl-6 group-hover:border-[#D1FF3D]/20 transition-colors">
+            <p className="text-xs sm:text-sm text-zinc-500 font-light leading-relaxed mb-3 sm:mb-6 line-clamp-2 italic border-l-2 border-white/5 pl-3 sm:pl-6 group-hover:border-[#D1FF3D]/20 transition-colors">
               {excerpt}
             </p>
 
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
               {thread.tags?.slice(0, 3).map((tag) => (
-                <span key={tag} className="text-[10px] font-mono text-zinc-600 border border-white/5 px-2.5 py-0.5 rounded-full hover:border-[#D1FF3D]/30 transition-colors">
+                <span key={tag} className="text-[9px] sm:text-[10px] font-mono text-zinc-600 border border-white/5 px-2 py-0.5 rounded-full hover:border-[#D1FF3D]/30 transition-colors">
                   #{tag}
                 </span>
               ))}
+              <div className="flex sm:hidden items-center gap-3 ml-auto text-zinc-500">
+                <span className="flex items-center gap-1 text-[9px]">
+                  <MessageSquare className="w-3 h-3" />
+                  {thread.replyCount}
+                </span>
+                <span className="flex items-center gap-1 text-[9px]">
+                  <ThumbsUp className="w-3 h-3" />
+                  {thread.likesCount}
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-col items-end justify-between min-w-[100px] border-l border-white/5 pl-8">
+          <div className="hidden sm:flex flex-col items-end justify-between min-w-[100px] border-l border-white/5 pl-8">
             <div className="flex flex-col gap-4 text-right">
               <div className="group/stat">
                 <MessageSquare className="w-4 h-4 text-zinc-700 ml-auto mb-1 group-hover/stat:text-[#D1FF3D] transition-colors" />

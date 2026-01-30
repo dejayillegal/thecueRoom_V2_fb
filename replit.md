@@ -98,7 +98,7 @@ The project utilizes a pnpm monorepo structure with `apps/web` for the Next.js f
   - Comprehensive duplicate detection (email, artist name, social URL exact and normalized)
   - Suspicion scoring system (threshold: 40+ = rejected)
   - Multi-factor analysis combining profile completeness, social presence, and authenticity
-- **Community Forum (November 2025):**
+- **Community Forum (November 2025 - January 2026):**
   - **Database Schema (Nov 3):** Enhanced with 4 new tables for advanced features:
     * `thread_drafts` - Autosave functionality for thread composition
     * `mentions` - @mention tracking and notifications
@@ -113,6 +113,15 @@ The project utilizes a pnpm monorepo structure with `apps/web` for the Next.js f
     * ThreadAssistModal - AI suggestion modal with tone selectors and safety toggles
     * ProfileModal - User profile with stats, badges, activity feed, and quick mention composer
   - **Features Implemented:** Category filtering, thread sorting, verified artist badges, upvote system, visibility controls
+  - **Forum Content Seeding (January 2026):** Automatic forum content seeding on cold start:
+    * 5 categories: General Discussion, Production Tips, Collaborations, Industry News, Feedback & Reviews
+    * 6 sample threads with pre-approved moderation status for immediate display
+    * Located at `apps/web/lib/bootstrap/seed-forum.ts`
+  - **Mobile Responsiveness (January 2026):** Full mobile support for forum components:
+    * ForumList: Collapsible mobile menu for categories, responsive header with New Thread button
+    * ThreadsList: Responsive sort tabs, mobile-optimized thread cards with inline stats
+    * ThreadComposer: Mobile toolbar (icon-only), close/discard buttons (ArrowLeft/X), responsive category selector
+    * Responsive patterns: `px-3 sm:px-6`, `text-base sm:text-xl`, `hidden sm:flex`, `flex-wrap`
   - **Documentation:** Comprehensive implementation guide for tasks 10-25 in `docs/FORUM_REMAINING_TASKS.md`
   - **Remaining Work:** Mentions, drafts, attachments, real-time updates, AI moderation, notifications (see documentation)
 - **Admin Console:** Planned for content management and moderation.
