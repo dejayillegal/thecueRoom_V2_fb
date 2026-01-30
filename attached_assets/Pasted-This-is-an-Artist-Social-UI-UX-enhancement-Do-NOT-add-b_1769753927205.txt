@@ -1,0 +1,182 @@
+This is an Artist Social UI/UX enhancement.
+Do NOT add backend services.
+Do NOT add database schemas.
+Do NOT change authentication or roles.
+
+GOAL:
+Transform the Artist Social page into a modern,
+social-app-style experience with:
+- follower-style social layout (UI-driven)
+- rich artist profile
+- Milkshake-style “link hub” inside artist profiles
+- advanced motion and graphical elements
+while reusing existing artist/profile/forum data only.
+
+–––––––––––––––––––––
+CORE CONSTRAINTS
+–––––––––––––––––––––
+- UI-only implementation
+- Artist-only visibility (role === "artist")
+- Admin readable
+- Normal users excluded
+- No duplicate navigation
+- No new APIs
+
+–––––––––––––––––––––
+STEP 1: ARTIST SOCIAL PAGE LAYOUT RESET
+–––––––––––––––––––––
+Problem:
+Artist Social page feels empty and static.
+
+Actions:
+1. Redesign layout to feel like a social feed:
+   - Left: Artist identity / profile panel
+   - Center: Activity / signal stream
+   - Right: Social context (presence, links, stats)
+2. Use layered cards and panels.
+3. Remove large empty regions.
+
+Verification:
+Page feels populated and intentional even with minimal data.
+
+–––––––––––––––––––––
+STEP 2: ARTIST PROFILE (SOCIAL-APP STYLE)
+–––––––––––––––––––––
+Actions:
+1. Enhance Artist profile card with:
+   - avatar (existing or generated)
+   - artist alias
+   - underground username
+   - role badge / trust tier badge (visual only)
+2. Add social-style counters (derived, not stored):
+   - Threads created
+   - Comments made
+   - Signals (activity count)
+3. Add follow-style UI (visual only):
+   - “Following” / “Followers” indicators
+   - No backend persistence required
+
+Verification:
+Profile reads like a modern social identity.
+
+–––––––––––––––––––––
+STEP 3: MILKSHAKE-STYLE LINK HUB (UI-ONLY)
+–––––––––––––––––––––
+Actions:
+1. Add a “Links” section inside artist profile:
+   - stacked, tappable cards
+   - supports multiple links
+2. Use existing profile metadata or client-side state.
+3. Allow artist to:
+   - add/edit/remove links (client-side)
+4. Design links to be:
+   - mobile-first
+   - shareable visually
+5. Provide a single “public profile link” UI affordance.
+
+Rules:
+- No external embeds
+- No backend storage required
+
+Verification:
+Artist profile can function as a link-in-bio page.
+
+–––––––––––––––––––––
+STEP 4: ARTIST ACTIVITY STREAM (REUSE EXISTING DATA)
+–––––––––––––––––––––
+Actions:
+1. Populate feed using:
+   - forum threads
+   - comments
+2. Display as:
+   - social timeline
+   - signal-style entries
+3. Use compact cards with hover expansion.
+
+Verification:
+Feed shows real artist activity with social rhythm.
+
+–––––––––––––––––––––
+STEP 5: PRESENCE & STATUS (DERIVED)
+–––––––––––––––––––––
+Actions:
+1. Derive artist presence using:
+   - recent activity timestamps
+2. Display status:
+   - Live
+   - Recently Active
+3. Use animated pulse or glow indicator.
+
+Rules:
+- No realtime services
+- No websockets
+
+Verification:
+Presence feels alive without infrastructure.
+
+–––––––––––––––––––––
+STEP 6: ADVANCED GRAPHICAL ELEMENTS
+–––––––––––––––––––––
+Actions:
+1. Add subtle visual systems:
+   - waveform lines
+   - signal pulses
+   - gradient glows
+2. Use brand colors only.
+3. Avoid visual noise.
+
+Verification:
+UI feels musical, underground, and premium.
+
+–––––––––––––––––––––
+STEP 7: MOTION & MICRO-INTERACTIONS
+–––––––––––––––––––––
+Actions:
+1. Animate:
+   - profile reveal
+   - card hover
+   - feed entry appearance
+2. Animate only opacity and transform.
+3. Respect prefers-reduced-motion.
+
+Verification:
+Motion feels intentional and smooth.
+
+–––––––––––––––––––––
+STEP 8: RESPONSIVENESS
+–––––––––––––––––––––
+Actions:
+1. Ensure layout works on:
+   - desktop
+   - tablet
+   - mobile
+2. Stack panels vertically on mobile.
+3. Preserve sidebar behavior.
+
+Verification:
+Artist Social feels like a real social app on mobile.
+
+–––––––––––––––––––––
+STEP 9: SAFETY CHECK
+–––––––––––––––––––––
+1. No console errors.
+2. No backend changes.
+3. No schema changes.
+4. Normal users unaffected.
+5. Admin access preserved.
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Redesigned Artist Social page
+- Social-app-style artist profiles
+- Milkshake-style link hub inside profiles
+- Advanced graphical elements and motion
+- Confirmation that:
+  - Artists only can access
+  - Implementation is UI-driven
+  - No backend or schema changes were made
+
+Do not explain.
+Do not ask questions.
+Implement directly.

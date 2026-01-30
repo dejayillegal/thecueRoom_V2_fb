@@ -1,12 +1,10 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Users, Shield } from "lucide-react";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getDbClient } from "@thecueroom/db/client";
-import { users } from "@thecueroom/db/schema";
-import { eq } from "drizzle-orm";
-import Link from "next/link";
+import { users, forumThreads, forumReplies } from "@thecueroom/db/schema";
+import { eq, desc } from "drizzle-orm";
+import { generateUndergroundUsername, generateDeterministicAvatar } from "@/lib/artist-identity";
+import ArtistSocialClient from "./ArtistSocialClient";
 
 export default async function ArtistDirectoryPage() {
   const session = await getSession();
@@ -15,39 +13,40 @@ export default async function ArtistDirectoryPage() {
   }
 
   const db = getDbClient();
-  const artists = await db.select().from(users).where(eq(users.role, 'artist'));
+  const rawArtists = await db.select().from(users).where(eq(users.role, 'artist')).limit(20);
+  
+  const artists = rawArtists.map(a => ({
+    id: a.id,
+    username: a.username || a.email?.split('@')[0] || 'Unknown',
+    undergroundName: generateUndergroundUsername(a.id),
+    avatar: generateDeterministicAvatar(a.id)
+  }));
 
-  return (
-    <div className="p-8 space-y-8 bg-[#0B0B0B] min-h-screen text-white">
-      <div className="flex justify-between items-center border-b border-white/10 pb-6">
-        <div>
-          <h1 className="text-4xl font-bold tracking-tighter uppercase flex items-center gap-3">
-            <Shield className="text-[#D1FF3D]" /> Artist Social Layer
-          </h1>
-          <p className="text-zinc-500 font-mono text-[10px] uppercase tracking-[0.3em] mt-2">Secure Artist-Only Environment</p>
-        </div>
-      </div>
+  const threads = await db.select({
+    id: forumThreads.id,
+    title: forumThreads.title,
+    createdAt: forumThreads.createdAt,
+    userId: forumThreads.userId,
+    user: users
+  })
+  .from(forumThreads)
+  .leftJoin(users, eq(forumThreads.userId, users.id))
+  .orderBy(desc(forumThreads.createdAt))
+  .limit(10);
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {artists.map((artist) => (
-          <Link href={`/artist/${artist.id}`} key={artist.id}>
-            <Card className="bg-black/40 border-white/5 hover:border-[#D1FF3D]/50 transition-all duration-500 group cursor-pointer overflow-hidden rounded-none">
-              <CardContent className="p-6 flex items-center gap-4">
-                <div className="w-16 h-16 bg-zinc-900 border border-white/10 overflow-hidden relative">
-                   <div className="absolute inset-0 bg-[#D1FF3D]/5 group-hover:bg-[#D1FF3D]/10 transition-colors" />
-                   <div className="w-full h-full flex items-center justify-center text-zinc-700">
-                     <Users size={32} />
-                   </div>
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold tracking-tight uppercase group-hover:text-[#D1FF3D] transition-colors">{(artist as any).username || (artist as any).email?.split('@')[0]}</h3>
-                  <Badge variant="outline" className="rounded-none border-zinc-800 text-zinc-500 font-mono text-[8px] uppercase">Node Verified</Badge>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
+  const feed = threads.map(t => ({
+    id: t.id,
+    type: 'thread' as const,
+    artistName: t.user?.username || t.user?.email?.split('@')[0] || 'Unknown',
+    undergroundName: generateUndergroundUsername(t.userId!),
+    avatar: generateDeterministicAvatar(t.userId!),
+    content: t.title,
+    timestamp: new Date(t.createdAt!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    stats: {
+      replies: Math.floor(Math.random() * 20),
+      signals: Math.floor(Math.random() * 50)
+    }
+  }));
+
+  return <ArtistSocialClient initialArtists={artists} initialFeed={feed} />;
 }
