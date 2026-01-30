@@ -1,0 +1,149 @@
+This is a BOOTSTRAP SELF-HEAL FIX.
+Do NOT introduce migrations.
+Do NOT block startup.
+Do NOT assume tables exist.
+
+GOAL:
+On EVERY cold start or fresh setup:
+- Ensure admin + test accounts exist
+- Ensure forum + seed data exist
+- Fail gracefully if tables are missing
+- Auto-retry creation once schema appears
+- Match news feed bootstrap behavior
+
+–––––––––––––––––––––
+CRITICAL CONSTRAINT (FAST MODE)
+–––––––––––––––––––––
+Fast mode cannot:
+- run interactive migrations
+- halt server startup
+- prompt for schema confirmation
+
+Therefore:
+Bootstrap must be NON-BLOCKING and IDPOTENT.
+
+–––––––––––––––––––––
+STEP 1: CONVERT BOOTSTRAP TO DEFERRED SELF-HEAL
+–––––––––––––––––––––
+Problem:
+Bootstrap runs before tables exist and exits permanently.
+
+Actions:
+1. Wrap ALL bootstrap logic in a retry-safe guard:
+   - detect missing tables
+   - do NOT exit
+   - schedule retry after server start
+2. Use a lightweight interval or one-time delayed retry.
+3. Stop retrying once tables exist.
+
+Rules:
+- No crashes
+- No process.exit
+- No blocking startup
+
+Verification:
+Server starts even if DB is empty.
+
+–––––––––––––––––––––
+STEP 2: TABLE-AWARE BOOTSTRAP CHECKS
+–––––––––––––––––––––
+Actions:
+1. Replace “table missing → skip forever” logic.
+2. Implement:
+   - check table existence
+   - if missing → retry later
+3. Required tables:
+   - users
+   - profiles
+   - forumThreads
+   - comments
+
+Verification:
+Bootstrap runs AFTER tables appear.
+
+–––––––––––––––––––––
+STEP 3: ADMIN ACCOUNT (NON-NEGOTIABLE)
+–––––––––––––––––––––
+Admin account:
+- email: dejayillegal@gmail.com
+- password: Closer@82
+- role: admin
+- verified: true
+- username: illegal_mastercue
+
+Actions:
+1. If users table exists:
+   - upsert admin account
+2. If admin exists:
+   - enforce role + verification
+3. If admin missing:
+   - create user + profile
+4. Never duplicate.
+
+Verification:
+Admin can log in after any cold start.
+
+–––––––––––––––––––––
+STEP 4: TEST ARTIST ACCOUNTS
+–––––––––––––––––––––
+Actions:
+1. Seed small fixed set of test artists.
+2. Use deterministic usernames.
+3. Only create if missing.
+4. Never duplicate.
+
+Verification:
+Artist Social and Forum have real users.
+
+–––––––––––––––––––––
+STEP 5: FORUM SEED DATA
+–––––––––––––––––––––
+Actions:
+1. If forum tables exist:
+   - create starter threads
+   - attach to admin artist
+2. If forum tables missing:
+   - retry later
+
+Rules:
+- Same pattern as news feed ingestion
+- Non-blocking
+
+Verification:
+Community Forum is never empty after setup.
+
+–––––––––––––––––––––
+STEP 6: SINGLE-EXECUTION GUARANTEE
+–––––––––––––––––––––
+Actions:
+1. Maintain in-memory guard:
+   - prevents double execution
+2. Once bootstrap succeeds:
+   - disable retries
+
+Verification:
+No duplicate rows on refresh.
+
+–––––––––––––––––––––
+STEP 7: LOGGING (REQUIRED)
+–––––––––––––––––––––
+Log clearly:
+- waiting for schema
+- retrying bootstrap
+- bootstrap completed
+
+No silent failures.
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Deferred, self-healing bootstrap logic
+- Admin + test accounts always created
+- Forum always seeded
+- Works on every cold start
+- No migrations
+- No crashes
+
+Do not explain.
+Do not ask questions.
+Implement directly.

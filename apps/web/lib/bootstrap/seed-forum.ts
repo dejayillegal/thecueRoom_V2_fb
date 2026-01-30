@@ -19,19 +19,19 @@ const FORUM_THREADS: ForumThread[] = [
 ];
 
 let forumSeedingComplete = false;
-let forumSeedingAttempted = false;
+let forumRetryTimer: NodeJS.Timeout | null = null;
 
 export async function ensureForumContent(): Promise<{ success: boolean; message: string }> {
   if (forumSeedingComplete) return { success: true, message: 'Forum seeded' };
-  if (forumSeedingAttempted) return { success: false, message: 'Attempted' };
 
-  forumSeedingAttempted = true;
   try {
     const db = getDbClient();
     const tableCheck = await db.execute(sql`SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'forum_categories') as exists`);
+    
     if (!(tableCheck.rows?.[0] as any)?.exists) {
-      console.log('[Bootstrap] Forum tables missing. Skipping seeding.');
-      return { success: false, message: 'Forum tables missing' };
+      console.log('[Bootstrap] Forum tables missing. Scheduling retry...');
+      scheduleForumRetry();
+      return { success: false, message: 'Waiting for schema' };
     }
 
     const catMap: Record<string, string> = {};
@@ -45,7 +45,11 @@ export async function ensureForumContent(): Promise<{ success: boolean; message:
     }
 
     const admin = await db.execute(sql`SELECT id FROM users WHERE role = 'admin' LIMIT 1`);
-    if (!admin.rows?.[0]) return { success: true, message: 'No admin for threads' };
+    if (!admin.rows?.[0]) {
+      console.log('[Bootstrap] Waiting for admin user to seed forum...');
+      scheduleForumRetry();
+      return { success: false, message: 'Waiting for admin' };
+    }
     const adminId = (admin.rows[0] as any).id;
 
     for (const thread of FORUM_THREADS) {
@@ -58,9 +62,18 @@ export async function ensureForumContent(): Promise<{ success: boolean; message:
     }
 
     forumSeedingComplete = true;
+    if (forumRetryTimer) clearInterval(forumRetryTimer);
     return { success: true, message: 'Seeded' };
   } catch (error: any) {
-    console.error('Forum seed fail:', error);
+    console.error('[Bootstrap] Forum seed fail:', error);
+    scheduleForumRetry();
     return { success: false, message: error.message };
   }
+}
+
+function scheduleForumRetry() {
+  if (forumRetryTimer) return;
+  forumRetryTimer = setInterval(() => {
+    ensureForumContent().catch(err => console.error('[Bootstrap] Forum retry error:', err));
+  }, 30000);
 }
