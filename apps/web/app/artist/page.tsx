@@ -40,7 +40,7 @@ export default async function ArtistDirectoryPage() {
                    </div>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold tracking-tight uppercase group-hover:text-[#D1FF3D] transition-colors">{artist.username || artist.email.split('@')[0]}</h3>
+                  <h3 className="text-lg font-bold tracking-tight uppercase group-hover:text-[#D1FF3D] transition-colors">{(artist as any).username || (artist as any).email.split('@')[0]}</h3>
                   <Badge variant="outline" className="rounded-none border-zinc-800 text-zinc-500 font-mono text-[8px] uppercase">Node Verified</Badge>
                 </div>
               </CardContent>

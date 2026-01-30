@@ -91,10 +91,16 @@ export async function ensureRequiredAccounts(): Promise<{ success: boolean; mess
 
       if (existing.rows?.length > 0) {
         const passwordHash = await bcrypt.hash(account.password, 10);
-        await db.execute(sql`UPDATE users SET role = ${account.role}, verified = ${account.verified}, password_hash = ${passwordHash}, updated_at = NOW() WHERE email = ${normalizedEmail}`);
+        await db.execute(sql`UPDATE users SET role = ${account.role}, verified = ${account.verified}, password_hash = ${passwordHash}, username = ${account.username}, updated_at = NOW() WHERE email = ${normalizedEmail}`);
         console.log(`[Bootstrap] Updated account: ${normalizedEmail}`);
       } else {
         const passwordHash = await bcrypt.hash(account.password, 10);
+        // Check if username exists for another email to avoid conflict
+        const nameConflict = await db.execute(sql`SELECT id FROM users WHERE username = ${account.username} AND email != ${normalizedEmail} LIMIT 1`);
+        if (nameConflict.rows?.length > 0) {
+           console.log(`[Bootstrap] Username conflict for ${account.username}. Skipping.`);
+           continue;
+        }
         const res = await db.execute(sql`INSERT INTO users (email, username, password_hash, role, verified, created_at, updated_at) VALUES (${normalizedEmail}, ${account.username}, ${passwordHash}, ${account.role}, ${account.verified}, NOW(), NOW()) RETURNING id`);
         if (res.rows?.[0]) {
           await db.execute(sql`INSERT INTO profiles (user_id, display_name, created_at, updated_at) VALUES (${(res.rows[0] as any).id}::uuid, ${account.username}, NOW(), NOW())`);
