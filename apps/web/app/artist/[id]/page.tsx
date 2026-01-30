@@ -9,11 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Activity, Shield, MapPin, Globe, User } from 'lucide-react';
 import Image from 'next/image';
 
-export default async function ArtistProfilePage({ params }: { params: { id: string } }) {
+export default async function ArtistProfilePage({ params }: { params: Promise<{ id: string }> }) {
   await checkArtistAccess();
   const db = getDbClient();
   
-  const artistId = params.id;
+  const { id: artistId } = await params;
   
   const artistRecords = await db.select().from(users).where(eq(users.id, artistId)).limit(1);
   if (artistRecords.length === 0 || (artistRecords[0].role !== 'artist' && artistRecords[0].role !== 'admin')) {

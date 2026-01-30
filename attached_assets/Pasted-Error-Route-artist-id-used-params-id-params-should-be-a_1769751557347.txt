@@ -1,0 +1,76 @@
+Error: Route "/artist/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at ArtistProfilePage (app/artist/[id]/page.tsx:16:27)
+  14 |   const db = getDbClient();
+  15 |   
+> 16 |   const artistId = params.id;
+     |                           ^
+  17 |   
+  18 |   const artistRecords = await db.select().from(users).where(eq(users.id, artistId)).limit(1);
+  19 |   if (artistRecords.length === 0 || (artistRecords[0].role !== 'artist' && artistRecords[0].role !== 'admin')) {
+ GET /artist/a260be3c-d45a-47cf-b13f-f95398e4822c 200 in 2120ms
+Error: Route "/artist/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at ArtistProfilePage (app/artist/[id]/page.tsx:16:27)
+  14 |   const db = getDbClient();
+  15 |   
+> 16 |   const artistId = params.id;
+     |                           ^
+  17 |   
+  18 |   const artistRecords = await db.select().from(users).where(eq(users.id, artistId)).limit(1);
+  19 |   if (artistRecords.length === 0 || (artistRecords[0].role !== 'artist' && artistRecords[0].role !== 'admin')) {
+ GET /artist/bad2ead5-66f8-4e31-bc2a-f976e41a7a36 200 in 143ms
+Error: Route "/artist/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at ArtistProfilePage (app/artist/[id]/page.tsx:16:27)
+  14 |   const db = getDbClient();
+  15 |   
+> 16 |   const artistId = params.id;
+     |                           ^
+  17 |   
+  18 |   const artistRecords = await db.select().from(users).where(eq(users.id, artistId)).limit(1);
+  19 |   if (artistRecords.length === 0 || (artistRecords[0].role !== 'artist' && artistRecords[0].role !== 'admin')) {
+ GET /artist/e0d9143b-0a62-412e-bb6b-b419fa1c9188 200 in 204ms
+ ○ Compiling /ai/epk-generator ...
+ ✓ Compiled /ai/epk-generator in 4.2s (2379 modules)
+ GET /ai/epk-generator 200 in 4509ms
+ ○ Compiling /community/forum ...
+ ✓ Compiled /community/forum in 908ms (2421 modules)
+ GET /community/forum 200 in 1269ms
+✅ Database client initialized using supabase provider
+Error: Route "/artist/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at ArtistProfilePage (app/artist/[id]/page.tsx:16:27)
+  14 |   const db = getDbClient();
+  15 |   
+> 16 |   const artistId = params.id;
+     |                           ^
+  17 |   
+  18 |   const artistRecords = await db.select().from(users).where(eq(users.id, artistId)).limit(1);
+  19 |   if (artistRecords.length === 0 || (artistRecords[0].role !== 'artist' && artistRecords[0].role !== 'admin')) {
+ GET /artist/42a64743-eaab-4645-8b75-585f0393197e 200 in 298ms
+ GET /community/forum 200 in 52ms
+ ○ Compiling /api/forum/thread ...
+ ✓ Compiled /api/forum/thread in 1240ms (2434 modules)
+✅ Database client initialized using supabase provider
+List contributors error: TypeError: Cannot convert undefined or null to object
+    at Function.entries (<anonymous>)
+List contributors error: TypeError: Cannot convert undefined or null to object
+    at Function.entries (<anonymous>)
+ GET /api/forum/contributors 500 in 1408ms
+ GET /api/forum/contributors 500 in 1421ms
+ GET /api/forum/thread?sort=newest&limit=20 200 in 1471ms
+ GET /api/forum/thread?sort=newest&limit=20 200 in 48ms
+ ○ Compiling /community/thread/[id] ...
+ ✓ Compiled /community/thread/[id] in 1255ms (2460 modules)
+ GET /community/thread/bc6e79b5-a46f-4988-8478-787ace1ee4a8 200 in 1999ms
+ ○ Compiling /api/forum/thread/[id] ...
+ ✓ Compiled /api/forum/thread/[id] in 711ms (2462 modules)
+✅ Database client initialized using supabase provider
+✅ Database client initialized using supabase provider
+Error: Route "/api/forum/thread/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/forum/thread/[id]/route.ts:36:13)
+  34 | ) {
+  35 |   try {
+> 36 |     const { id } = params;
+     |             ^
+  37 |
+  38 |     const db = getDbClient();
+  39 |
+ GET /api/forum/thread/bc6e79b5-a46f-4988-8478-787ace1ee4a8 200 in 1816ms

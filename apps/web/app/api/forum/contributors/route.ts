@@ -11,15 +11,14 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '10');
 
-    const contributors = await db.select({
+    const results = await db.select({
       userId: users.id,
       username: users.username,
       displayName: profiles.displayName,
-      avatar: profiles.avatar,
+      avatar: profiles.socialProfileUrl,
       verified: users.verified,
       karmaPoints: userReputation.karmaPoints,
       badges: userReputation.badges,
-      weeklyRank: userReputation.weeklyRank,
     })
     .from(userReputation)
     .leftJoin(users, eq(userReputation.userId, users.id))
@@ -27,7 +26,7 @@ export async function GET(request: NextRequest) {
     .orderBy(desc(userReputation.karmaPoints))
     .limit(limit);
 
-    return NextResponse.json({ contributors });
+    return NextResponse.json({ contributors: results });
   } catch (error) {
     console.error('List contributors error:', error);
     return NextResponse.json(

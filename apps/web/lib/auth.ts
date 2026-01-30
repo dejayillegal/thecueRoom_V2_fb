@@ -29,7 +29,7 @@ export async function createToken(userData: UserData): Promise<string> {
 export async function verifyToken(token: string): Promise<UserData | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload as unknown as UserData;
+    return payload as any as UserData;
   } catch (error) {
     return null;
   }
