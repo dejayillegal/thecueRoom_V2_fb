@@ -63,9 +63,14 @@ const getNavItemsForRole = (role: string) => {
 export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const [isMobile, setIsMobile] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const [expanded, toggleExpanded] = usePersistentToggle('sidebar-expanded', false);
   const [userRole, setUserRole] = useState<string>('user');
   const [canSubmit, setCanSubmit] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     async function fetchUserRole() {
@@ -136,6 +141,15 @@ export const Sidebar = memo(function Sidebar({ className, isOpen, onToggle }: Si
   }, [isMobile, isOpen]);
 
   const sidebarWidth = expanded ? 'w-[240px]' : 'w-[64px]';
+
+  if (!isMounted) {
+    return (
+      <aside className={cn(
+        'fixed left-0 top-0 h-screen bg-black flex flex-col z-40 border-r border-[#1a1a1a] w-[64px]',
+        className
+      )} />
+    );
+  }
 
   return (
     <>

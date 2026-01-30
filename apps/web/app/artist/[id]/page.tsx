@@ -6,7 +6,7 @@ import { generateUndergroundUsername, generateDeterministicAvatar } from '@/lib/
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Activity, Shield, MapPin, Globe, User, ExternalLink, MessageSquare, Zap, Share2, Plus, ArrowLeft } from 'lucide-react';
+import { Activity, Shield, MapPin, Globe, User, ExternalLink, MessageSquare, Zap, Share2, Plus, ArrowLeft, Music } from 'lucide-react';
 import Link from 'next/link';
 
 export default async function ArtistProfilePage({ params }: { params: Promise<{ id: string }> }) {

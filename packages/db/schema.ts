@@ -82,6 +82,13 @@ export const forumThreads = pgTable('forum_threads', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+export const threadLikes = pgTable('thread_likes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  threadId: uuid('thread_id').notNull().references(() => forumThreads.id),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
 export const forumReplies = pgTable('forum_replies', {
   id: uuid('id').primaryKey().defaultRandom(),
   threadId: uuid('thread_id').notNull().references(() => forumThreads.id),
