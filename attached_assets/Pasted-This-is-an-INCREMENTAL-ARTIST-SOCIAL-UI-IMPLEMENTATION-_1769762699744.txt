@@ -1,0 +1,186 @@
+This is an INCREMENTAL ARTIST SOCIAL UI IMPLEMENTATION.
+Do NOT introduce new backend services.
+Do NOT add new database tables or schemas.
+Do NOT change authentication provider.
+Do NOT claim real-time infrastructure.
+
+GOAL:
+Implement an Artist-only social experience using existing
+users, profiles, forum activity, and profile metadata,
+in a way that is robust, deterministic, and Fast-mode compatible.
+
+–––––––––––––––––––––
+IMPLEMENTATION STRATEGY (MANDATORY)
+–––––––––––––––––––––
+This is NOT a full social backend.
+This is a UI-driven social layer that:
+- derives relationships from profile metadata
+- derives activity from forum data
+- derives presence from recent timestamps
+- uses deterministic routing
+
+All logic must be incremental and safe.
+
+–––––––––––––––––––––
+STEP 1: ARTIST PROFILE ROUTE (FOUNDATION)
+–––––––––––––––––––––
+Actions:
+1. Create route:
+   /artist/[username]
+2. Resolve artist using:
+   - users.username
+   - profiles data
+3. Render profile with:
+   - artistName
+   - username (immutable except admin)
+   - avatar (existing or generated placeholder)
+   - bio
+   - social links (if present)
+
+Rules:
+- No new profile fields required
+- Fail gracefully if artist not found
+
+Verification:
+Clicking artist name/avatar opens profile page.
+
+–––––––––––––––––––––
+STEP 2: FOLLOWING / FOLLOWERS (METADATA ONLY)
+–––––––––––––––––––––
+Actions:
+1. Store following list as array of usernames
+   inside existing profile metadata JSON.
+2. Implement UI actions:
+   - Follow
+   - Unfollow
+3. Display:
+   - Following count
+   - Followers count (derived by reverse lookup)
+
+Rules:
+- No new tables
+- No joins
+- Metadata only
+
+Verification:
+Artists can follow/unfollow and see counts update.
+
+–––––––––––––––––––––
+STEP 3: ARTIST SOCIAL FEED (DERIVED)
+–––––––––––––––––––––
+Actions:
+1. Build Artist Social feed by filtering:
+   - forumThreads
+   - comments
+based on followed usernames.
+2. Display items in a feed layout.
+3. Clicking any item routes to the forum thread.
+
+Rules:
+- Forum remains source of truth
+- No duplicate content
+
+Verification:
+Artist Social feed shows real forum activity.
+
+–––––––––––––––––––––
+STEP 4: OWN PROFILE VS OTHER ARTIST VIEW
+–––––––––––––––––––––
+Actions:
+1. If viewing own profile:
+   - show “Edit Profile” button
+2. Reuse existing profile edit logic
+   (do NOT duplicate forms).
+3. Settings menu remains for privacy/account only.
+
+Verification:
+Artists edit profile from Artist Social page.
+
+–––––––––––––––––––––
+STEP 5: BIO LINK PAGE (MILKSHAKE-STYLE, STATIC)
+–––––––––––––––––––––
+Actions:
+1. Create public route:
+   /link/[username]
+2. Render links stored in profile metadata:
+   - title
+   - url
+3. Style as:
+   - mobile-first
+   - minimal
+   - brand-consistent
+
+Rules:
+- No external APIs
+- No backend logic
+- Static render from metadata
+
+Verification:
+Artists can share /link/username externally.
+
+–––––––––––––––––––––
+STEP 6: HOVER / TAP ARTIST PREVIEW
+–––––––––––––––––––––
+Actions:
+1. On hover (desktop) or tap (mobile) of artist name:
+   - show mini profile card
+2. Card includes:
+   - avatar
+   - artistName
+   - follow button
+   - activity summary
+
+Rules:
+- UI only
+- No extra queries
+
+Verification:
+Artist context visible without navigation.
+
+–––––––––––––––––––––
+STEP 7: ARTIST-ONLY ACCESS CONTROL
+–––––––––––––––––––––
+Actions:
+1. Restrict Artist Social routes to:
+   - role === "artist"
+   - admin allowed
+2. Normal users must not see Artist Social UI.
+
+Verification:
+Access control enforced consistently.
+
+–––––––––––––––––––––
+STEP 8: MOTION & POLISH (SAFE)
+–––––––––––––––––––––
+Actions:
+1. Add subtle motion:
+   - opacity
+   - transform
+2. Respect prefers-reduced-motion.
+3. No heavy animations.
+
+Verification:
+UI feels modern and responsive.
+
+–––––––––––––––––––––
+SAFETY REQUIREMENTS
+–––––––––––––––––––––
+1. No schema changes
+2. No auth changes
+3. No console errors
+4. No broken forum routes
+5. Desktop & mobile stable
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Artist profile pages
+- Follow/following via metadata
+- Artist activity feed
+- Bio link pages
+- Hover/tap artist previews
+- Artist-only visibility
+
+Do not explain.
+Do not ask questions.
+Implement incrementally and safely.
