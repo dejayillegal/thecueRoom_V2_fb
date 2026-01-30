@@ -1,0 +1,155 @@
+This is an Artist-only social experience enhancement.
+Do NOT change authentication provider.
+Do NOT add new realtime infrastructure.
+Do NOT affect normal (non-artist) users.
+
+GOAL:
+Create a creatively unique, modern Artist profile and social layer
+that feels like an underground music network,
+with artist presence, activity visibility, and expressive UI motion.
+
+–––––––––––––––––––––
+STEP 1: ARTIST-ONLY ACCESS CONTROL
+–––––––––––––––––––––
+Rules:
+- Features apply ONLY to users with role = "artist"
+- Normal users must NOT see Artist social features
+
+Actions:
+1. Gate Artist profiles, activity views, and interactions
+   strictly behind role = artist.
+2. Admin users can view Artist profiles for moderation only.
+
+Verification:
+Normal users cannot access Artist social features.
+
+–––––––––––––––––––––
+STEP 2: ARTIST PROFILE PAGE (CORE)
+–––––––––––––––––––––
+Actions:
+1. Create Artist profile pages using existing user/profile data.
+2. Profile must include:
+   - artist name / alias
+   - creatively generated underground-style username
+   - AI-generated avatar (client-side placeholder / visual generation only)
+   - short bio
+   - social profile links
+3. Apply strong visual identity:
+   - layered panels
+   - glow accents
+   - signal / waveform-inspired elements
+
+Rules:
+- No backend AI generation required
+- Visual generation only
+
+Verification:
+Artist profiles feel expressive and unique.
+
+–––––––––––––––––––––
+STEP 3: ARTIST ACTIVITY SURFACE
+–––––––––––––––––––––
+Actions:
+1. Display Artist activity:
+   - threads created
+   - comments posted
+2. Show activity as a timeline or feed.
+3. Add subtle motion on activity reveal.
+
+Rules:
+- Read-only for viewers
+- No new data models
+
+Verification:
+Artist profiles show real activity history.
+
+–––––––––––––––––––––
+STEP 4: ARTIST PRESENCE (LIVE INDICATOR — SAFE)
+–––––––––––––––––––––
+Problem:
+Need “Artist is live” without realtime infra.
+
+Actions:
+1. Implement presence indicators using:
+   - recent activity timestamp
+   - session presence
+2. Display:
+   - “Live”
+   - “Recently active”
+3. Animate presence indicator subtly.
+
+Rules:
+- No WebSockets
+- No realtime services
+
+Verification:
+Presence feels alive but is safe and deterministic.
+
+–––––––––––––––––––––
+STEP 5: ARTIST-TO-ARTIST INTERACTION (UI-LEVEL)
+–––––––––––––––––––––
+Actions:
+1. Add Artist-only interaction affordances:
+   - message button (UI placeholder)
+   - report issue to admin
+2. Admin users can receive artist issue messages.
+3. No realtime chat required.
+
+Rules:
+- UI-level only
+- No chat backend
+
+Verification:
+Artists can initiate interactions safely.
+
+–––––––––––––––––––––
+STEP 6: PRIVACY CONTROLS (ARTIST CONFIGURABLE)
+–––––––––––––––––––––
+Actions:
+1. Allow Artists to configure:
+   - show/hide social links
+   - show/hide activity
+   - show/hide presence
+2. Respect privacy settings everywhere.
+
+Verification:
+Privacy settings immediately affect profile visibility.
+
+–––––––––––––––––––––
+STEP 7: MOTION & GRAPHICAL ELEMENTS
+–––––––––––––––––––––
+Actions:
+1. Add expressive motion:
+   - profile section reveals
+   - hover pulses
+   - signal-style transitions
+2. Animate only transform & opacity.
+3. Respect prefers-reduced-motion.
+
+Verification:
+Experience feels modern, musical, and performant.
+
+–––––––––––––––––––––
+STEP 8: SAFETY & REGRESSION CHECK
+–––––––––––––––––––––
+1. No console errors.
+2. No backend schema changes.
+3. Normal users unaffected.
+4. Admin access preserved.
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Artist-only profile pages
+- Artist activity timeline
+- Presence indicators
+- Privacy controls
+- Creative UI motion & visuals
+- Confirmation that:
+  - Only artists see this layer
+  - Normal users are excluded
+  - No new backend infra was added
+
+Do not explain.
+Do not ask questions.
+Implement directly.
