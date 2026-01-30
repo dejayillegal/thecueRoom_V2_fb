@@ -1,0 +1,87 @@
+This is a navigation integration fix.
+Do NOT redesign navigation.
+Do NOT add new sidebars.
+Do NOT change desktop or mobile layout structure.
+
+GOAL:
+Remove the duplicate sidebar that was introduced and integrate
+the “Artist Social” entry into the EXISTING sidebar only.
+
+–––––––––––––––––––––
+STEP 1: REMOVE DUPLICATE SIDEBAR (CRITICAL)
+–––––––––––––––––––––
+Problem:
+A second sidebar/navigation container was created unintentionally.
+
+Actions:
+1. Identify and remove the duplicate sidebar component.
+2. Ensure only ONE sidebar exists across the app.
+3. Do NOT remove or modify the original sidebar component.
+
+Verification:
+Only one sidebar renders in all routes.
+
+–––––––––––––––––––––
+STEP 2: ADD “ARTIST SOCIAL” TO EXISTING SIDEBAR
+–––––––––––––––––––––
+Actions:
+1. Add a new navigation item labeled “Artist Social”
+   to the EXISTING sidebar menu.
+2. Position it logically with other community/social links.
+3. Use existing sidebar item styles and icons.
+
+Rules:
+- Do NOT create a new navigation section
+- Do NOT duplicate menu logic
+
+Verification:
+“Artist Social” appears as a normal sidebar item.
+
+–––––––––––––––––––––
+STEP 3: ROLE-BASED VISIBILITY (ARTIST-ONLY)
+–––––––––––––––––––––
+Actions:
+1. Show “Artist Social” ONLY when:
+   - user.role === "artist"
+2. Admin users may also see it for moderation.
+3. Normal users must NOT see this item.
+
+Verification:
+- Artists: see Artist Social
+- Admins: see Artist Social
+- Normal users: do NOT see it
+
+–––––––––––––––––––––
+STEP 4: ROUTING & STATE CONSISTENCY
+–––––––––––––––––––––
+Actions:
+1. Ensure Artist Social uses existing routing/layout wrappers.
+2. Do NOT mount separate layout trees.
+3. Ensure sidebar collapse/expand behavior works as before.
+
+Verification:
+No layout duplication.
+Sidebar state behaves normally.
+
+–––––––––––––––––––––
+STEP 5: SAFETY CHECK
+–––––––––––––––––––––
+1. No console errors.
+2. No duplicate navigation DOM nodes.
+3. Sidebar styling unchanged.
+4. Artist Social works correctly.
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Duplicate sidebar removed
+- Artist Social added to existing sidebar
+- Role-based visibility enforced
+- Confirmation that:
+  - Only one sidebar exists
+  - Navigation remains stable
+  - Artist Social is accessible correctly
+
+Do not explain.
+Do not ask questions.
+Implement directly.
