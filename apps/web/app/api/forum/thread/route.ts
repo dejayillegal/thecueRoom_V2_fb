@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getDbClient } from '@/lib/db-client';
-import { forumThreads, forumReplies, users, profiles, forumCategories } from '@thecueroom/db/schema';
-import { eq } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import { getSession } from '@/lib/auth';
-
-const db = getDbClient();
 
 const createThreadSchema = z.object({
   categoryId: z.string().uuid(),
@@ -30,22 +27,24 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = createThreadSchema.parse(body);
 
-    const [thread] = await db
-      .insert(forumThreads)
-      .values({
-        categoryId: data.categoryId,
-        authorId: userId,
-        title: data.title,
-        content: data.content,
-        tags: data.tags || [],
-        isPinned: false,
-        isLocked: false,
-        viewCount: 0,
-        replyCount: 0,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .returning();
+    const db = getDbClient();
+    const slug = data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+    const result = await db.execute(sql`
+      INSERT INTO forum_threads (user_id, category_id, title, slug, body, tags, view_count, reply_count, likes_count, is_pinned, moderation_status, created_at, updated_at)
+      VALUES (${userId}::uuid, ${data.categoryId}::uuid, ${data.title}, ${slug}, ${data.content}, ${JSON.stringify(data.tags || [])}::jsonb, 0, 0, 0, false, 'pending', NOW(), NOW())
+      RETURNING id, title, slug
+    `);
+
+    const thread = result.rows?.[0] as { id: string; title: string; slug: string } | undefined;
+
+    if (!thread) {
+      throw new Error('Failed to create thread');
+    }
+
+    await db.execute(sql`
+      UPDATE forum_categories SET thread_count = thread_count + 1 WHERE id = ${data.categoryId}::uuid
+    `);
 
     return NextResponse.json({
       success: true,
@@ -81,51 +80,61 @@ export async function GET(request: NextRequest) {
 
     const db = getDbClient();
 
-    // Build the query with joins
-    let query = db
-      .select({
-        thread: forumThreads,
-        user: {
-          username: users.username,
-          verified: users.verified,
-        },
-        profile: {
-          displayName: profiles.displayName,
-          avatar: profiles.avatar,
-        },
-        category: {
-          name: forumCategories.name,
-        },
-      })
-      .from(forumThreads)
-      .leftJoin(users, eq(forumThreads.userId, users.id))
-      .leftJoin(profiles, eq(users.id, profiles.userId))
-      .leftJoin(forumCategories, eq(forumThreads.categoryId, forumCategories.id))
-      .where(eq(forumThreads.isHidden, false));
+    let orderClause = 'ORDER BY t.is_pinned DESC, t.created_at DESC';
+    let additionalWhere = '';
+
+    if (sort === 'trending') {
+      orderClause = 'ORDER BY t.likes_count DESC, t.view_count DESC';
+    } else if (sort === 'unanswered') {
+      additionalWhere = 'AND t.reply_count = 0';
+      orderClause = 'ORDER BY t.created_at DESC';
+    }
 
     if (categoryId) {
-      query = query.where(eq(forumThreads.categoryId, categoryId)) as any;
+      additionalWhere += ` AND t.category_id = '${categoryId}'`;
     }
 
-    // Apply sorting
-    if (sort === 'trending') {
-      query = query.orderBy(forumThreads.likesCount, forumThreads.viewCount);
-    } else if (sort === 'unanswered') {
-      query = query.where(eq(forumThreads.replyCount, 0));
-      query = query.orderBy(forumThreads.createdAt);
-    } else {
-      // newest
-      query = query.orderBy(forumThreads.isPinned, forumThreads.createdAt);
-    }
+    const results = await db.execute(sql`
+      SELECT 
+        t.id, t.title, t.slug, t.body, t.tags, t.view_count, t.reply_count, 
+        t.likes_count, t.is_pinned, t.moderation_status, t.created_at, t.updated_at,
+        u.username, u.verified,
+        p.display_name, p.artist_name,
+        c.name as category_name, c.slug as category_slug
+      FROM forum_threads t
+      LEFT JOIN users u ON t.user_id = u.id
+      LEFT JOIN profiles p ON u.id = p.user_id
+      LEFT JOIN forum_categories c ON t.category_id = c.id
+      WHERE t.moderation_status = 'approved' ${sql.raw(additionalWhere)}
+      ${sql.raw(orderClause)}
+      LIMIT ${limit} OFFSET ${offset}
+    `);
 
-    const results = await query.limit(limit).offset(offset);
-
-    // Transform results
-    const threads = results.map((row) => ({
-      ...row.thread,
-      user: row.user,
-      profile: row.profile,
-      category: row.category,
+    const threads = (results.rows || []).map((row: any) => ({
+      id: row.id,
+      title: row.title,
+      slug: row.slug,
+      body: row.body,
+      tags: row.tags,
+      viewCount: row.view_count,
+      replyCount: row.reply_count,
+      likesCount: row.likes_count,
+      isPinned: row.is_pinned,
+      moderationStatus: row.moderation_status,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      user: {
+        username: row.username,
+        verified: row.verified,
+      },
+      profile: {
+        displayName: row.display_name,
+        artistName: row.artist_name,
+      },
+      category: {
+        name: row.category_name,
+        slug: row.category_slug,
+      },
     }));
 
     return NextResponse.json({

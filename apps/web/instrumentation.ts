@@ -4,8 +4,12 @@ export async function register() {
     
     try {
       const { ensureRequiredAccounts } = await import('./lib/bootstrap/seed-accounts');
-      const result = await ensureRequiredAccounts();
-      console.log(`[Instrumentation] Bootstrap result: ${result.message}`);
+      const accountResult = await ensureRequiredAccounts();
+      console.log(`[Instrumentation] Account bootstrap: ${accountResult.message}`);
+
+      const { ensureForumContent } = await import('./lib/bootstrap/seed-forum');
+      const forumResult = await ensureForumContent();
+      console.log(`[Instrumentation] Forum bootstrap: ${forumResult.message}`);
     } catch (error) {
       console.error('[Instrumentation] Bootstrap error (non-fatal):', error);
     }
