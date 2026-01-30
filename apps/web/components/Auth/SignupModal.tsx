@@ -221,7 +221,7 @@ export function SignupModal({ open, onOpenChange, onSwitchToSignin, isEmbedded =
                 />
                 <Label
                   htmlFor="artist-mode"
-                  className="text-[8px] sm:text-[11px] font-mono uppercase tracking-[0.4em] text-[#D1FF3D] cursor-pointer font-bold"
+                  className="text-[8px] sm:text-[11px] font-mono uppercase tracking-[0.4em] text-[#D1FF3D] cursor-pointer font-bold text-left w-full"
                 >
                   Register as Artist
                 </Label>

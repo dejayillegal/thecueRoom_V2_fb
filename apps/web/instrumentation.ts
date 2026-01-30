@@ -3,6 +3,11 @@ export async function register() {
     console.log('[Instrumentation] Next.js server starting...');
     
     try {
+      // 1. Ensure schema is initialized (Check only, shell commands not safe in instrumentation)
+      const { initializeDatabaseSchema } = await import('./lib/bootstrap/schema-init');
+      await initializeDatabaseSchema();
+
+      // 2. Seed accounts
       const { ensureRequiredAccounts } = await import('./lib/bootstrap/seed-accounts');
       const accountResult = await ensureRequiredAccounts();
       console.log(`[Instrumentation] Account bootstrap: ${accountResult.message}`);

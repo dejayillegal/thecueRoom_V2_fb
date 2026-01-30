@@ -19,16 +19,44 @@ const REQUIRED_ACCOUNTS: SeedAccount[] = [
     verified: true,
   },
   {
-    email: 'test1@thecueroom.dev',
-    password: 'Test@123',
-    username: 'test1',
-    role: 'user',
+    email: 'dj.phoenix@thecueroom.dev',
+    password: 'Artist@123',
+    username: 'dj_phoenix',
+    role: 'artist',
     verified: true,
   },
   {
-    email: 'test2@thecueroom.dev',
-    password: 'Test@123',
-    username: 'test2',
+    email: 'producer.nova@thecueroom.dev',
+    password: 'Artist@123',
+    username: 'producer_nova',
+    role: 'artist',
+    verified: true,
+  },
+  {
+    email: 'mixer.zen@thecueroom.dev',
+    password: 'Artist@123',
+    username: 'mixer_zen',
+    role: 'artist',
+    verified: true,
+  },
+  {
+    email: 'techno.wizard@thecueroom.dev',
+    password: 'Artist@123',
+    username: 'techno_wizard',
+    role: 'artist',
+    verified: true,
+  },
+  {
+    email: 'liquid.bass@thecueroom.dev',
+    password: 'Artist@123',
+    username: 'liquidbass',
+    role: 'artist',
+    verified: true,
+  },
+  {
+    email: 'community.manager@thecueroom.dev',
+    password: 'Staff@123',
+    username: 'community_manager',
     role: 'user',
     verified: true,
   },
@@ -38,13 +66,8 @@ let seedingComplete = false;
 let seedingAttempted = false;
 
 export async function ensureRequiredAccounts(): Promise<{ success: boolean; message: string }> {
-  if (seedingComplete) {
-    return { success: true, message: 'Already seeded' };
-  }
-
-  if (seedingAttempted) {
-    return { success: false, message: 'Seeding already attempted, database may not be ready' };
-  }
+  if (seedingComplete) return { success: true, message: 'Already seeded' };
+  if (seedingAttempted) return { success: false, message: 'Seeding already attempted' };
 
   seedingAttempted = true;
   console.log('[Bootstrap] Starting required account seeding...');
@@ -56,84 +79,35 @@ export async function ensureRequiredAccounts(): Promise<{ success: boolean; mess
       sql`SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users') as exists`
     );
     
-    const tableExists = tableCheck.rows && tableCheck.rows.length > 0 && (tableCheck.rows[0] as any).exists;
-    
-    if (!tableExists) {
-      console.log('[Bootstrap] Users table does not exist yet. Skipping seed until migrations are run.');
+    if (!(tableCheck.rows?.[0] as any)?.exists) {
+      console.log('[Bootstrap] Users table does not exist. Skipping.');
       seedingAttempted = false;
-      return { success: false, message: 'Users table does not exist' };
+      return { success: false, message: 'Users table missing' };
     }
 
     for (const account of REQUIRED_ACCOUNTS) {
       const normalizedEmail = account.email.toLowerCase();
-      
-      const existingUsers = await db.execute(
-        sql`SELECT id, role, verified FROM users WHERE email = ${normalizedEmail} LIMIT 1`
-      );
+      const existing = await db.execute(sql`SELECT id FROM users WHERE email = ${normalizedEmail} LIMIT 1`);
 
-      if (existingUsers.rows && existingUsers.rows.length > 0) {
-        const existingUser = existingUsers.rows[0] as { id: string; role: string; verified: boolean };
-        
-        const needsUpdate = 
-          existingUser.role !== account.role || 
-          existingUser.verified !== account.verified;
-
-        if (needsUpdate) {
-          const passwordHash = await bcrypt.hash(account.password, 10);
-          
-          await db.execute(
-            sql`UPDATE users SET role = ${account.role}, verified = ${account.verified}, password_hash = ${passwordHash}, updated_at = NOW() WHERE id = ${existingUser.id}::uuid`
-          );
-
-          console.log(`[Bootstrap] Updated account: ${normalizedEmail} (role=${account.role}, verified=${account.verified})`);
-        } else {
-          const passwordHash = await bcrypt.hash(account.password, 10);
-          await db.execute(
-            sql`UPDATE users SET password_hash = ${passwordHash}, updated_at = NOW() WHERE id = ${existingUser.id}::uuid`
-          );
-          console.log(`[Bootstrap] Account exists, refreshed password: ${normalizedEmail}`);
-        }
+      if (existing.rows?.length > 0) {
+        const passwordHash = await bcrypt.hash(account.password, 10);
+        await db.execute(sql`UPDATE users SET role = ${account.role}, verified = ${account.verified}, password_hash = ${passwordHash}, updated_at = NOW() WHERE email = ${normalizedEmail}`);
+        console.log(`[Bootstrap] Updated account: ${normalizedEmail}`);
       } else {
         const passwordHash = await bcrypt.hash(account.password, 10);
-
-        const result = await db.execute(
-          sql`INSERT INTO users (email, username, password_hash, role, verified, created_at, updated_at) 
-              VALUES (${normalizedEmail}, ${account.username}, ${passwordHash}, ${account.role}, ${account.verified}, NOW(), NOW()) 
-              RETURNING id`
-        );
-
-        if (result.rows && result.rows.length > 0) {
-          const newUserId = (result.rows[0] as { id: string }).id;
-          
-          await db.execute(
-            sql`INSERT INTO profiles (user_id, display_name, created_at, updated_at) 
-                VALUES (${newUserId}::uuid, ${account.username}, NOW(), NOW())`
-          );
-
-          console.log(`[Bootstrap] Created account: ${normalizedEmail} (role=${account.role}, verified=${account.verified})`);
+        const res = await db.execute(sql`INSERT INTO users (email, username, password_hash, role, verified, created_at, updated_at) VALUES (${normalizedEmail}, ${account.username}, ${passwordHash}, ${account.role}, ${account.verified}, NOW(), NOW()) RETURNING id`);
+        if (res.rows?.[0]) {
+          await db.execute(sql`INSERT INTO profiles (user_id, display_name, created_at, updated_at) VALUES (${(res.rows[0] as any).id}::uuid, ${account.username}, NOW(), NOW())`);
+          console.log(`[Bootstrap] Created account: ${normalizedEmail}`);
         }
       }
     }
 
     seedingComplete = true;
-    console.log('[Bootstrap] Required account seeding complete. All accounts are login-ready.');
     return { success: true, message: 'Seeding complete' };
   } catch (error: any) {
-    if (error?.code === '42P01') {
-      console.log('[Bootstrap] Database tables not ready. Will retry on next request.');
-      seedingAttempted = false;
-      return { success: false, message: 'Tables not ready' };
-    }
-    console.error('[Bootstrap] FAILED to seed required accounts:', error);
-    return { success: false, message: error?.message || 'Unknown error' };
+    console.error('[Bootstrap] FAILED account seed:', error);
+    seedingAttempted = false;
+    return { success: false, message: error.message };
   }
-}
-
-export function isBootstrapComplete(): boolean {
-  return seedingComplete;
-}
-
-export function resetBootstrapState(): void {
-  seedingComplete = false;
-  seedingAttempted = false;
 }
