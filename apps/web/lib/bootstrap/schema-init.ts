@@ -16,12 +16,19 @@ export async function initializeDatabaseSchema(): Promise<{ success: boolean; me
     if (!tableExists) {
       console.log('[Bootstrap] Database schema missing. Initializing tables...');
       
-      // In a real production app, we would use migrations. 
-      // For this environment, we can trigger a schema push if we're in a cold start.
-      // However, instrumentation runs within the Next.js process, and we shouldn't 
-      // spawn shell commands like 'drizzle-kit push' here as it might be unstable.
-      
-      return { success: false, message: 'Database schema not initialized. Please run pnpm --filter db migrate.' };
+      const { execSync } = await import('child_process');
+      try {
+        // Use --force for non-interactive mode
+        execSync('pnpm --filter db exec drizzle-kit push --force', { 
+          stdio: 'inherit',
+          env: { ...process.env, CI: 'true' }
+        });
+        console.log('[Bootstrap] Schema migration completed successfully');
+        return { success: true, message: 'Schema initialized successfully' };
+      } catch (migrateError: any) {
+        console.error('[Bootstrap] Schema migration failed:', migrateError);
+        return { success: false, message: 'Database schema initialization failed' };
+      }
     }
 
     return { success: true, message: 'Schema verified' };
