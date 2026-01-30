@@ -14,7 +14,7 @@ const REQUIRED_ACCOUNTS: SeedAccount[] = [
   {
     email: 'dejayillegal@gmail.com',
     password: 'Closer@82',
-    username: 'admin',
+    username: 'illegal_mastercue',
     role: 'admin',
     verified: true,
   },

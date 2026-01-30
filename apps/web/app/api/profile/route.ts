@@ -97,33 +97,8 @@ export async function GET(request: NextRequest) {
       .where(eq(profiles.userId, userId))
       .limit(1);
 
-    // Admin script user information
-    const adminInfo = {
-      username: 'illegal.mastercue',
-      email: 'dejayillegal@gmail.com',
-      artistName: 'Illegal',
-      displayName: 'Illegal Mastercue',
-      verificationStatus: 'Approved',
-      accountRole: 'Admin',
-      owner: true,
-    };
-
-    // If the logged-in user is an admin, merge or override with admin info
-    let finalUser = {
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      verified: user.verified,
-      verificationStatus: user.verificationStatus,
-      role: user.role,
-    };
-
-    if (user.role === 'Admin') {
-      finalUser = { ...finalUser, ...adminInfo };
-    }
-
     return NextResponse.json({
-      user: finalUser,
+      user,
       profile: profile || null,
     });
   } catch (error) {
@@ -147,31 +122,8 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const db = getDbClient();
 
-    // Check if user exists
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Prevent non-admins from updating admin-specific fields
-    if (user.role !== 'Admin' && (body.username || body.email || body.artistName || body.displayName || body.verificationStatus || body.accountRole || body.owner)) {
-       // Allow updating some fields like displayName for non-admins if desired,
-       // but strictly control sensitive admin fields.
-       // For now, we'll just return an error for any attempt to update admin fields by non-admins.
-       const adminFieldsAttempted = Object.keys(body).some(key => ['username', 'email', 'artistName', 'displayName', 'verificationStatus', 'accountRole', 'owner'].includes(key));
-       if (adminFieldsAttempted) {
-         return NextResponse.json({ error: 'Unauthorized to update admin fields' }, { status: 403 });
-       }
-    }
-
-
     // Allowed fields for update
-    const allowedFields = {
+    const allowedFields: Record<string, any> = {
       displayName: body.displayName,
       firstName: body.firstName,
       lastName: body.lastName,
@@ -184,35 +136,14 @@ export async function PATCH(request: NextRequest) {
       showPhone: body.showPhone,
       publicReleases: body.publicReleases,
       allowContactRequests: body.allowContactRequests,
-      // Add other fields from user schema if they should be editable via profile update
-      username: body.username, // Allow username update if admin
-      email: body.email, // Allow email update if admin
-      artistName: body.artistName, // Allow artistName update if admin
-      verificationStatus: body.verificationStatus, // Allow verificationStatus update if admin
-      role: body.role, // Allow role update if admin
+      socialLinks: body.socialLinks,
+      updatedAt: new Date(),
     };
 
     // Remove undefined fields
-    const updateData: Record<string, any> = Object.fromEntries(
+    const updateData = Object.fromEntries(
       Object.entries(allowedFields).filter(([_, v]) => v !== undefined)
     );
-
-    // Admin specific updates
-    if (user.role === 'Admin') {
-      if (body.username !== undefined) updateData.username = body.username;
-      if (body.email !== undefined) updateData.email = body.email;
-      if (body.artistName !== undefined) updateData.artistName = body.artistName;
-      if (body.displayName !== undefined) updateData.displayName = body.displayName;
-      if (body.verificationStatus !== undefined) updateData.verificationStatus = body.verificationStatus;
-      if (body.role !== undefined) updateData.role = body.role; // This would be the user's role
-      if (body.owner !== undefined) {
-        // Handle owner status if it's a separate field in your DB schema or logic
-        // For now, assuming it's part of the user object or a related concept
-      }
-    }
-
-    // Add updated timestamp
-    updateData.updatedAt = new Date();
 
     // Check if profile exists
     const [existingProfile] = await db
@@ -222,32 +153,16 @@ export async function PATCH(request: NextRequest) {
       .limit(1);
 
     if (existingProfile) {
-      // Update existing profile
       await db
         .update(profiles)
         .set(updateData)
         .where(eq(profiles.userId, userId));
     } else {
-      // Create new profile
       await db.insert(profiles).values({
         userId,
         ...updateData,
       });
     }
-
-    // Update user table directly for fields like email, username, role etc.
-    const userUpdateData: Record<string, any> = {};
-    if (user.role === 'Admin') {
-        if (updateData.username !== undefined) userUpdateData.username = updateData.username;
-        if (updateData.email !== undefined) userUpdateData.email = updateData.email;
-        if (updateData.role !== undefined) userUpdateData.role = updateData.role;
-        if (updateData.verificationStatus !== undefined) userUpdateData.verificationStatus = updateData.verificationStatus;
-        if (updateData.artistName !== undefined) userUpdateData.artistName = updateData.artistName; // Assuming artistName is in users table too
-    }
-    if (Object.keys(userUpdateData).length > 0) {
-        await db.update(users).set(userUpdateData).where(eq(users.id, userId));
-    }
-
 
     // Fetch updated profile
     const [updatedProfile] = await db
@@ -259,14 +174,9 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({
       success: true,
       profile: updatedProfile,
-      user: user // Return user info too if it was updated
     });
   } catch (error) {
     console.error('Profile update error:', error);
-    // More specific error handling for different types of errors
-    if (error instanceof Error && error.message.includes('Invalid session')) {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
-    }
     return NextResponse.json(
       { error: 'Failed to update profile' },
       { status: 500 }

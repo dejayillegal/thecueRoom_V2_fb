@@ -1,12 +1,12 @@
 import { checkArtistAccess } from '@/lib/artist-access';
 import { getDbClient } from '@thecueroom/db/client';
 import { users, profiles, forumThreads, forumReplies } from '@thecueroom/db/schema';
-import { eq, desc } from 'drizzle-orm';
-import { generateUndergroundUsername, generateDeterministicAvatar } from '@/lib/artist-identity';
+import { eq, desc, sql } from 'drizzle-orm';
+import { generateDeterministicAvatar } from '@/lib/artist-identity';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Activity, Shield, MapPin, Globe, User, ExternalLink, MessageSquare, Zap, Share2, Plus, ArrowLeft, Music } from 'lucide-react';
+import { Activity, Shield, MapPin, Globe, User, ExternalLink, MessageSquare, Zap, Share2, Plus, ArrowLeft, Music, Users } from 'lucide-react';
 import Link from 'next/link';
 
 export default async function ArtistProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -23,25 +23,24 @@ export default async function ArtistProfilePage({ params }: { params: Promise<{ 
   const artist = artistRecords[0];
   const profileRecords = await db.select().from(profiles).where(eq(profiles.userId, artist.id)).limit(1);
   const profile = profileRecords[0];
-  
-  const threads = await db.select().from(forumThreads).where(eq(forumThreads.userId, artist.id)).orderBy(desc(forumThreads.createdAt)).limit(5);
-  const replies = await db.select().from(forumReplies).where(eq(forumReplies.userId, artist.id)).orderBy(desc(forumReplies.createdAt)).limit(10);
-  
-  const undergroundName = generateUndergroundUsername(artist.id);
   const avatarUrl = generateDeterministicAvatar(artist.id);
+  const tier = artist.role === 'admin' ? { label: 'ADMIN', color: 'bg-purple-500' } : { label: 'ARTIST', color: 'bg-[#D1FF3D]' };
   
-  const activityCount = threads.length + replies.length;
-  let tier = { label: 'Signal Initiate', color: 'bg-zinc-800' };
-  if (activityCount > 15) tier = { label: 'Core Node', color: 'bg-purple-600' };
-  else if (activityCount > 10) tier = { label: 'Scene Operator', color: 'bg-[#D1FF3D] text-black' };
-  else if (activityCount > 5) tier = { label: 'Frequency Builder', color: 'bg-blue-600' };
+  const socialLinks = (profile?.socialLinks as Record<string, string>) || {};
+  const links = Object.entries(socialLinks).map(([label, url]) => ({
+    label: label.toUpperCase(),
+    url: url,
+    icon: Music,
+    color: 'text-[#D1FF3D]'
+  }));
 
-  // Derived Link Data (Milkshake-style)
-  const links = [
-    { label: 'LATEST RELEASE', url: '#', icon: Music, color: 'text-[#D1FF3D]' },
-    { label: 'BOOKING INQUIRIES', url: '#', icon: ExternalLink, color: 'text-white' },
-    { label: 'PRESS KIT', url: `/ai/epk-generator`, icon: Share2, color: 'text-purple-400' },
-  ];
+  // Fetch real stats
+  const [threadsCount] = await db.select({ count: sql<number>`count(*)` }).from(forumThreads).where(eq(forumThreads.userId, artist.id));
+  const [repliesCount] = await db.select({ count: sql<number>`count(*)` }).from(forumReplies).where(eq(forumReplies.userId, artist.id));
+  const activityCount = Number(threadsCount?.count || 0) + Number(repliesCount?.count || 0);
+
+  const threads = await db.select().from(forumThreads).where(eq(forumThreads.userId, artist.id)).orderBy(desc(forumThreads.createdAt)).limit(5);
+  const replies = await db.select().from(forumReplies).where(eq(forumReplies.userId, artist.id)).orderBy(desc(forumReplies.createdAt)).limit(5);
 
   return (
     <div className="min-h-screen bg-[#0B0B0B] text-white selection:bg-[#D1FF3D] selection:text-black">
@@ -65,8 +64,8 @@ export default async function ArtistProfilePage({ params }: { params: Promise<{ 
                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
                  <div className="absolute bottom-0 left-0 p-6 w-full">
                     <Badge className={`${tier.color} rounded-none font-mono text-[9px] uppercase tracking-[0.2em] mb-2`}>{tier.label}</Badge>
-                    <h1 className="text-3xl font-black tracking-tighter uppercase leading-tight">{profile?.artistName || artist.username}</h1>
-                    <p className="text-[11px] font-mono text-[#D1FF3D] lowercase opacity-70">@{undergroundName}</p>
+                    <h1 className="text-3xl font-black tracking-tighter uppercase leading-tight">{profile?.artistName || profile?.displayName || artist.username}</h1>
+                    <p className="text-[11px] font-mono text-[#D1FF3D] lowercase opacity-70">@{artist.username}</p>
                  </div>
                </div>
                {/* Online Status Pulse */}

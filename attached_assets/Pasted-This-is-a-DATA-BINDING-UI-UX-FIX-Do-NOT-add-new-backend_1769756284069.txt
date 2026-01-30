@@ -1,0 +1,165 @@
+This is a DATA-BINDING + UI/UX FIX.
+Do NOT add new backend services.
+Do NOT add new database schemas.
+Do NOT change authentication provider.
+
+GOAL:
+Make Artist Social use REAL existing data,
+create a proper Admin Artist profile,
+add a Milkshake-style bio link generator,
+and unify usernames across Artist Social + Community Threads.
+
+–––––––––––––––––––––
+CORE RULES (NON-NEGOTIABLE)
+–––––––––––––––––––––
+- Reuse existing users, profiles, forumThreads, comments
+- Artist-only visibility (role === "artist")
+- Username ≠ Artist Name
+- Username is immutable except for admin
+- No mock data
+- No duplicate sidebars
+- UI-driven enhancements only
+
+–––––––––––––––––––––
+STEP 1: BIND ARTIST SOCIAL TO REAL DATA
+–––––––––––––––––––––
+Problem:
+Artist Social currently shows placeholder content.
+
+Actions:
+1. Populate Artist Social using:
+   - users (role === "artist")
+   - profiles
+   - forumThreads
+   - comments
+2. Replace all mock nodes with:
+   - real artists
+   - real threads
+3. Ensure all cards are clickable:
+   - artist → artist profile
+   - thread → thread view
+
+Verification:
+Artist Social displays real activity.
+
+–––––––––––––––––––––
+STEP 2: ADMIN ARTIST PROFILE (SPECIAL CASE)
+–––––––––––––––––––––
+Actions:
+1. Ensure admin user has an Artist profile.
+2. Set admin username to:
+   illegal_mastercue
+3. Username rules:
+   - immutable for all users
+   - admin is the only exception
+4. Artist name remains separate (displayName / artistName).
+
+Verification:
+Admin appears as artist everywhere consistently.
+
+–––––––––––––––––––––
+STEP 3: USERNAME UNIFICATION (CRITICAL)
+–––––––––––––––––––––
+Problem:
+Usernames are inconsistent across pages.
+
+Actions:
+1. Wherever a thread or comment shows an author:
+   - use username (not email, not ID)
+2. Link username to Artist profile page.
+3. Community Threads must reflect:
+   - correct artist username
+   - correct artist avatar
+4. Normal users continue to behave unchanged.
+
+Verification:
+Clicking a username always opens the correct artist profile.
+
+–––––––––––––––––––––
+STEP 4: MILKSHAKE-STYLE BIO LINK GENERATOR
+–––––––––––––––––––––
+Problem:
+Artist bio link hub is missing.
+
+Actions:
+1. Add a “Links” section to Artist profile:
+   - stacked card layout
+   - mobile-first
+2. Allow artists to:
+   - add multiple links
+   - label links (Spotify, SoundCloud, Insta, etc.)
+3. Store links using:
+   - existing profile metadata
+   - or client-side persistence
+4. Generate a single public profile link:
+   /artist/{username}
+
+Rules:
+- No backend AI
+- No external embeds
+
+Verification:
+Artist profile functions as link-in-bio page.
+
+–––––––––––––––––––––
+STEP 5: THREAD HOVER / TAP ARTIST PREVIEW
+–––––––––––––––––––––
+Problem:
+Threads feel disconnected from artists.
+
+Actions:
+1. On hover (desktop) or tap (mobile):
+   - show Artist preview card
+2. Preview includes:
+   - avatar
+   - artist name
+   - username
+   - presence status
+   - short bio
+3. Use smooth motion:
+   - fade + translate
+4. Ensure accessibility on mobile.
+
+Verification:
+Threads feel socially connected.
+
+–––––––––––––––––––––
+STEP 6: MOTION & POLISH
+–––––––––––––––––––––
+Actions:
+1. Animate:
+   - artist cards
+   - hover previews
+   - link cards
+2. Animate only:
+   - opacity
+   - transform
+3. Respect prefers-reduced-motion.
+
+Verification:
+Motion feels premium and controlled.
+
+–––––––––––––––––––––
+STEP 7: SAFETY CHECK
+–––––––––––––––––––––
+1. No console errors.
+2. No schema changes.
+3. No backend regressions.
+4. Normal users unaffected.
+5. Sidebar unchanged.
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Artist Social uses real data
+- Admin artist profile created (illegal_mastercue)
+- Usernames unified across app
+- Milkshake-style bio link hub added
+- Hover/tap artist previews implemented
+- Confirmation that:
+  - No new backend infra was added
+  - Implementation is stable and fast
+
+Do not explain.
+Do not ask questions.
+Implement directly.

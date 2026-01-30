@@ -21,7 +21,7 @@ interface SignalEntry {
   id: string;
   type: 'thread' | 'comment';
   artistName: string;
-  undergroundName: string;
+  username: string;
   avatar: string;
   content: string;
   timestamp: string;
@@ -75,14 +75,9 @@ export default function ArtistSocialClient({
         {/* Top Header System */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-white/5 pb-8">
           <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#D1FF3D]/10 border border-[#D1FF3D]/20">
-                <Shield className="text-[#D1FF3D] w-6 h-6" />
-              </div>
-              <h1 className="text-4xl lg:text-6xl font-black tracking-tighter uppercase leading-none">
-                Artist <span className="text-zinc-500">Social</span>
-              </h1>
-            </div>
+                      <h1 className="text-4xl lg:text-6xl font-black tracking-tighter uppercase leading-none">
+                        Artist <span className="text-zinc-500">Social</span>
+                      </h1>
             <div className="flex items-center gap-4 text-zinc-500 font-mono text-[10px] uppercase tracking-[0.4em]">
               <span className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-[#D1FF3D] rounded-full animate-ping" />
@@ -126,9 +121,9 @@ export default function ArtistSocialClient({
                     </div>
                     <div>
                       <p className="text-[11px] font-bold uppercase tracking-tight group-hover:text-[#D1FF3D] transition-colors line-clamp-1">
-                        {artist.username}
+                        {artist.displayName}
                       </p>
-                      <p className="text-[9px] font-mono text-zinc-600 lowercase">@{artist.undergroundName}</p>
+                      <p className="text-[9px] font-mono text-zinc-600 lowercase">@{artist.username}</p>
                     </div>
                   </motion.div>
                 ))}
@@ -186,7 +181,7 @@ export default function ArtistSocialClient({
                           <span className="text-[11px] font-bold uppercase tracking-tight hover:text-[#D1FF3D] cursor-pointer" onClick={() => navigateToArtist(signal.id)}>
                             {signal.artistName}
                           </span>
-                          <span className="text-[9px] font-mono text-zinc-600 lowercase">@{signal.undergroundName}</span>
+                          <span className="text-[9px] font-mono text-zinc-600 lowercase">@{signal.username}</span>
                         </div>
                         <span className="text-[8px] font-mono text-zinc-700 uppercase">{signal.timestamp}</span>
                       </div>

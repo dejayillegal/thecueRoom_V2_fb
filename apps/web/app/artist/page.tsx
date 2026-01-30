@@ -15,39 +15,39 @@ export default async function ArtistDirectoryPage() {
   const db = getDbClient();
   const rawArtists = await db.select().from(users).where(eq(users.role, 'artist')).limit(20);
   
-  const artists = rawArtists.map(a => ({
+  const artists = rawArtists.map((a: any) => ({
     id: a.id,
-    username: a.username || a.email?.split('@')[0] || 'Unknown',
-    undergroundName: generateUndergroundUsername(a.id),
+    username: a.username || 'Unknown',
+    displayName: a.username || 'Unknown',
     avatar: generateDeterministicAvatar(a.id)
   }));
 
-  // Fix: moderationStatus is the correct column name in schema.ts
-  const threads = await (db.select({
+  const threads = await db.select({
     id: forumThreads.id,
     title: forumThreads.title,
     createdAt: forumThreads.createdAt,
     userId: forumThreads.userId,
-    userName: users.username,
-    userEmail: users.email
-  } as any)
+    username: users.username,
+    replyCount: forumThreads.replyCount,
+    likesCount: forumThreads.likesCount
+  })
   .from(forumThreads)
   .leftJoin(users, eq(forumThreads.userId, users.id))
   .where(eq(forumThreads.moderationStatus, 'approved'))
   .orderBy(desc(forumThreads.createdAt))
-  .limit(10) as any);
+  .limit(10);
 
   const feed = (threads || []).map((t: any) => ({
     id: t.id,
     type: 'thread' as const,
-    artistName: t.userName || t.userEmail?.split('@')[0] || 'Unknown',
-    undergroundName: generateUndergroundUsername(t.userId!),
+    artistName: t.username || 'Unknown',
+    username: t.username || 'unknown',
     avatar: generateDeterministicAvatar(t.userId!),
     content: t.title,
     timestamp: t.createdAt ? new Date(t.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently',
     stats: {
-      replies: Math.floor(Math.random() * 20),
-      signals: Math.floor(Math.random() * 50)
+      replies: t.replyCount || 0,
+      signals: t.likesCount || 0
     }
   }));
 
