@@ -1,0 +1,174 @@
+This is an ARTIST SOCIAL EXTENSION.
+Do NOT add new backend services.
+Do NOT add new database schemas.
+Do NOT change authentication provider.
+Do NOT duplicate profile systems.
+
+GOAL:
+Transform Artist Social into a full artist-profile social experience
+(similar to Instagram Threads),
+using ONLY existing users, profiles, forumThreads, comments, likes,
+and profile metadata.
+
+–––––––––––––––––––––
+CORE PRINCIPLE (MANDATORY)
+–––––––––––––––––––––
+This must be UI-driven and data-derived.
+All “social” behavior must be inferred or stored using:
+- existing profiles
+- existing forum activity
+- existing profile metadata fields
+(no new tables)
+
+–––––––––––––––––––––
+STEP 1: ARTIST SOCIAL PROFILE PAGE (CLICKABLE)
+–––––––––––––––––––––
+Actions:
+1. Clicking an artist avatar or username anywhere opens:
+   /artist/[username]
+2. Artist profile page shows:
+   - artistName (public)
+   - username (immutable except admin)
+   - avatar
+   - bio
+   - generated underground handle
+   - social links (if enabled)
+
+Rules:
+- username is canonical identifier
+- artistName and username are different concepts
+- Admin username: illegal_mastercue (must resolve everywhere)
+
+Verification:
+All artist names and avatars are clickable and route correctly.
+
+–––––––––––––––––––––
+STEP 2: FOLLOWING / FOLLOWERS (THREADS-STYLE, NO NEW TABLES)
+–––––––––––––––––––––
+Actions:
+1. Implement “Follow” behavior by storing:
+   - followed usernames
+   inside existing profile metadata (JSON)
+2. Display:
+   - Followers count
+   - Following count
+3. Clicking Followers / Following opens a modal list.
+
+Rules:
+- No new schema
+- Metadata-based only
+- Artist-only visibility
+
+Verification:
+Artists can follow/unfollow each other and see counts.
+
+–––––––––––––––––––––
+STEP 3: ARTIST FEED = COMMUNITY ACTIVITY FILTER
+–––––––––––––––––––––
+Actions:
+1. Artist Social feed shows:
+   - threads from followed artists
+   - threads liked by followed artists
+   - threads commented on by followed artists
+2. Each item links to the original Community Forum thread.
+
+Rules:
+- No duplicate content
+- Forum remains source of truth
+
+Verification:
+Artist Social feels like Threads, but redirects to Forum.
+
+–––––––––––––––––––––
+STEP 4: OWN PROFILE VIEW VS OTHER ARTIST VIEW
+–––––––––––––––––––––
+Actions:
+1. If artist views their own profile:
+   - show Edit Profile button
+   - show Edit Bio Links
+2. Editing profile:
+   - reuses existing profile edit logic from Settings
+   - Settings menu now focuses on privacy + account only
+
+Rules:
+- Do NOT duplicate edit forms
+- Move profile editing entry point, not logic
+
+Verification:
+Artists edit profile from Artist Social page.
+
+–––––––––––––––––––––
+STEP 5: MILKSHAKE / LINKTREE-STYLE BIO LINK PAGE
+–––––––––––––––––––––
+Actions:
+1. Allow artists to create a public bio-link page:
+   /link/[username]
+2. Artist can add multiple links using profile metadata:
+   - title
+   - URL
+3. Bio-link page uses:
+   - minimal layout
+   - brand style
+   - mobile-first design
+
+Rules:
+- No backend service
+- No external API
+- Static page rendered from profile metadata
+
+Verification:
+Artists can share /link/username externally.
+
+–––––––––––––––––––––
+STEP 6: HOVER / TAP ARTIST PREVIEW
+–––––––––––––––––––––
+Actions:
+1. Hover (desktop) or tap (mobile) on artist name shows:
+   - mini profile card
+   - avatar
+   - artistName
+   - follow button
+   - activity summary
+2. Use subtle motion only.
+
+Verification:
+Artist identity is visible without navigation.
+
+–––––––––––––––––––––
+STEP 7: MOTION & GRAPHICAL LANGUAGE
+–––––––––––––––––––––
+Actions:
+1. Apply social-app motion patterns:
+   - feed item reveal
+   - follow button feedback
+   - modal slide-ups
+2. Animate only transform and opacity.
+3. Respect prefers-reduced-motion.
+
+Verification:
+Experience feels modern, musical, and social.
+
+–––––––––––––––––––––
+STEP 8: SAFETY & CONSISTENCY
+–––––––––––––––––––––
+1. Artist-only access enforced (role === "artist")
+2. Admin can view all artist profiles
+3. Normal users see NONE of this
+4. No schema changes
+5. No auth changes
+6. No console errors
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Clickable artist social profiles
+- Followers / following system (metadata-based)
+- Artist activity feed linked to forum
+- Profile edit entry moved into Artist Social
+- Milkshake-style public bio link pages
+- Hover / tap artist preview cards
+- Advanced motion & graphical polish
+
+Do not explain.
+Do not ask questions.
+Implement directly.
