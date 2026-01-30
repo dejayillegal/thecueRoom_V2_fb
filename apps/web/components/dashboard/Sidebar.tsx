@@ -41,6 +41,7 @@ const getNavItemsForRole = (role: string) => {
     { href: '/ai/meme-studio', label: 'AI Meme', icon: MessageSquare },
     { href: '/ai/epk-generator', label: 'AI EPK', icon: FileText },
     { href: '/community/forum', label: 'Community Forum', icon: Users },
+    { href: '/artist', label: 'Artist Social', icon: MessageSquare },
     { href: '/music/weekly', label: 'Curated Music', icon: Music },
   ];
 
