@@ -1,0 +1,34 @@
+[Bootstrap] Starting required account seeding...
+✅ Database client initialized using supabase provider
+[Bootstrap] Account exists, refreshed password: dejayillegal@gmail.com
+[Bootstrap] Account exists, refreshed password: test1@thecueroom.dev
+[Bootstrap] Account exists, refreshed password: test2@thecueroom.dev
+[Bootstrap] Required account seeding complete. All accounts are login-ready.
+[Instrumentation] Bootstrap result: Seeding complete
+ ✓ Ready in 3.5s
+ ○ Compiling / ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ ✓ Compiled /api/auth/signin in 14.5s (2198 modules)
+[Signin] Attempt for: dejayillegal@gmail.com
+✅ Database client initialized using supabase provider
+ POST /api/auth/check-availability 200 in 12788ms
+[Signin] User authenticated: 3bfaa545-ce50-42e1-aa82-92c209797bf2 dejayillegal@gmail.com admin
+[Signin] Session set, returning success
+ POST /api/auth/signin 200 in 12564ms
+ ○ Compiling /api/feeds ...
+ ✓ Compiled /api/feeds in 666ms (2245 modules)
+✅ Database client initialized using supabase provider
+ GET /api/feeds?limit=12&offset=0 200 in 881ms
+[Signin] Attempt for: dejayillegal@gmail.com
+[Signin] User authenticated: 3bfaa545-ce50-42e1-aa82-92c209797bf2 dejayillegal@gmail.com admin
+[Signin] Session set, returning success
+ POST /api/auth/signin 200 in 187ms
+ GET /api/feeds?limit=12&offset=0 200 in 62ms
+ GET / 200 in 530ms
+ ⚠ Cross origin request detected from da79e9ab-ecea-4a20-8c5d-bd28b8890a59-00-utv3pnvke4do.spock.replit.dev to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ POST /api/auth/check-availability 200 in 60ms
+[Signin] Attempt for: dejayillegal@gmail.com
+[Signin] User authenticated: 3bfaa545-ce50-42e1-aa82-92c209797bf2 dejayillegal@gmail.com admin
+[Signin] Session set, returning success
+ POST /api/auth/signin 200 in 157ms

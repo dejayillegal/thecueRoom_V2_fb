@@ -28,7 +28,10 @@ export function AuthModal({ isOpen, onClose, initialTab = 'signin' }: AuthModalP
   }, [initialTab, isOpen]);
 
   useEffect(() => {
-    if (!email) return setEmailStatus('idle');
+    if (!email || tab !== 'signup') {
+      setEmailStatus('idle');
+      return;
+    }
     const timer = setTimeout(async () => {
       setEmailStatus('checking');
       try {
@@ -42,7 +45,7 @@ export function AuthModal({ isOpen, onClose, initialTab = 'signin' }: AuthModalP
       } catch { setEmailStatus('idle'); }
     }, 500);
     return () => clearTimeout(timer);
-  }, [email]);
+  }, [email, tab]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,10 +55,11 @@ export function AuthModal({ isOpen, onClose, initialTab = 'signin' }: AuthModalP
       const res = await fetch('/api/auth/signin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
-      if (data.ok) {
+      if (res.ok && data.success) {
         window.location.href = '/dashboard';
       } else {
         setError(data.error || 'Authentication failed');
@@ -75,10 +79,11 @@ export function AuthModal({ isOpen, onClose, initialTab = 'signin' }: AuthModalP
       const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email }),
       });
       const data = await res.json();
-      if (data.ok) {
+      if (res.ok && data.success) {
         setError('Recovery link dispatched to ' + email);
       } else {
         setError(data.error || 'Recovery failed');

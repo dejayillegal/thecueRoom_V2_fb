@@ -82,6 +82,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       const response = await fetch("/api/auth/signin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           email,
           password,
@@ -162,6 +163,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(payload),
       });
 
