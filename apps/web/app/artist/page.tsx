@@ -1,9 +1,9 @@
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getDbClient } from "@thecueroom/db/client";
-import { users, forumThreads } from "@thecueroom/db/schema";
-import { eq, desc } from "drizzle-orm";
-import { generateUndergroundUsername, generateDeterministicAvatar } from "@/lib/artist-identity";
+import { users, profiles, forumThreads } from "@thecueroom/db/schema";
+import { eq, desc, inArray } from "drizzle-orm";
+import { generateDeterministicAvatar } from "@/lib/artist-identity";
 import ArtistSocialClient from "./ArtistSocialClient";
 
 export default async function ArtistDirectoryPage() {
@@ -13,14 +13,32 @@ export default async function ArtistDirectoryPage() {
   }
 
   const db = getDbClient();
-  const rawArtists = await db.select().from(users).where(eq(users.role, 'artist')).limit(20);
   
-  const artists = rawArtists.map((a: any) => ({
-    id: a.id,
-    username: a.username || 'Unknown',
-    displayName: a.username || 'Unknown',
-    avatar: generateDeterministicAvatar(a.id)
-  }));
+  const rawArtists = await db.select({
+    id: users.id,
+    username: users.username,
+    role: users.role,
+  }).from(users).where(eq(users.role, 'artist')).limit(20);
+
+  const artistProfiles = await db.select().from(profiles).where(
+    inArray(profiles.userId, rawArtists.map(a => a.id))
+  );
+  
+  const profileMap = new Map(artistProfiles.map(p => [p.userId, p]));
+  
+  const artists = rawArtists.map((a) => {
+    const profile = profileMap.get(a.id);
+    return {
+      id: a.id,
+      username: a.username || 'Unknown',
+      displayName: profile?.artistName || profile?.displayName || a.username || 'Unknown',
+      avatar: generateDeterministicAvatar(a.id)
+    };
+  });
+
+  const myProfile = await db.select().from(profiles).where(eq(profiles.userId, session.uid)).limit(1);
+  const mySocialLinks = (myProfile[0]?.socialLinks as Record<string, any>) || {};
+  const myFollowing: string[] = mySocialLinks._following || [];
 
   const threads = await db.select({
     id: forumThreads.id,
@@ -35,9 +53,9 @@ export default async function ArtistDirectoryPage() {
   .leftJoin(users, eq(forumThreads.userId, users.id))
   .where(eq(forumThreads.moderationStatus, 'approved'))
   .orderBy(desc(forumThreads.createdAt))
-  .limit(10);
+  .limit(20);
 
-  const feed = (threads || []).map((t: any) => ({
+  const feedAll = (threads || []).map((t: any) => ({
     id: t.id,
     type: 'thread' as const,
     artistName: t.username || 'Unknown',
@@ -48,8 +66,12 @@ export default async function ArtistDirectoryPage() {
     stats: {
       replies: t.replyCount || 0,
       signals: t.likesCount || 0
-    }
+    },
+    isFollowing: myFollowing.includes(t.username || '')
   }));
+
+  const feedFollowing = feedAll.filter(f => f.isFollowing);
+  const feed = feedFollowing.length > 0 ? feedFollowing : feedAll.slice(0, 10);
 
   return <ArtistSocialClient initialArtists={artists} initialFeed={feed} />;
 }
