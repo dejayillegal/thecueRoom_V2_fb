@@ -30,20 +30,8 @@ export async function ensureForumContent(): Promise<{ success: boolean; message:
     const db = getDbClient();
     const tableCheck = await db.execute(sql`SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'forum_categories') as exists`);
     if (!(tableCheck.rows?.[0] as any)?.exists) {
-      console.log('[Bootstrap] Forum tables missing. Attempting migration...');
-      const { execSync } = await import('child_process');
-      try {
-        execSync('pnpm --filter db exec drizzle-kit push --force', { 
-          stdio: 'inherit',
-          env: { ...process.env, CI: 'true' }
-        });
-        const retryCheck = await db.execute(sql`SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'forum_categories') as exists`);
-        if (!(retryCheck.rows?.[0] as any)?.exists) {
-           return { success: false, message: 'Missing forum tables after migration' };
-        }
-      } catch (e) {
-        return { success: false, message: 'Migration failed during forum seed' };
-      }
+      console.log('[Bootstrap] Forum tables missing. Skipping seeding.');
+      return { success: false, message: 'Forum tables missing' };
     }
 
     const catMap: Record<string, string> = {};

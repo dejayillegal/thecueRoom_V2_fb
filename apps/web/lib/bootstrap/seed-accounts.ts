@@ -80,22 +80,8 @@ export async function ensureRequiredAccounts(): Promise<{ success: boolean; mess
     );
     
     if (!(tableCheck.rows?.[0] as any)?.exists) {
-      console.log('[Bootstrap] Users table does not exist. Attempting migration...');
-      const { execSync } = await import('child_process');
-      try {
-        execSync('pnpm --filter db exec drizzle-kit push --force', { 
-          stdio: 'inherit',
-          env: { ...process.env, CI: 'true' }
-        });
-        const retryCheck = await db.execute(
-          sql`SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users') as exists`
-        );
-        if (!(retryCheck.rows?.[0] as any)?.exists) {
-          return { success: false, message: 'Users table still missing after migration' };
-        }
-      } catch (e) {
-        return { success: false, message: 'Migration failed during account seed' };
-      }
+      console.log('[Bootstrap] Users table does not exist. Skipping seeding.');
+      return { success: false, message: 'Users table missing' };
     }
 
     for (const account of REQUIRED_ACCOUNTS) {
