@@ -10,7 +10,6 @@ import {
   playlists,
   memes,
 } from '@thecueroom/db/schema';
-import { sql } from 'drizzle-orm';
 
 export async function seedDemoData() {
   const db = getDbClient();
@@ -22,50 +21,40 @@ export async function seedDemoData() {
       return { ok: true, message: 'Demo data already exists, skipping seed' };
     }
 
-    const demoUsers: Array<{
-      id: string;
-      email: string;
-      username: string;
-      role: string;
-      verified: boolean;
-      password?: string;
-    }> = [
+    const demoUserData = [
       {
-        id: 'admin-1',
         email: 'dejayillegal@gmail.com',
         username: 'admin',
         role: 'admin',
         verified: true,
         password: 'Closer@82',
-      }
+      },
+      ...Array.from({ length: 50 }, (_, i) => ({
+        email: `user${i + 1}@demo.thecueroom.com`,
+        username: `user${i + 1}`,
+        role: i < 12 ? 'artist' : 'user',
+        verified: true,
+        password: 'Test123!',
+      })),
     ];
 
-    for (let i = 1; i <= 50; i++) {
-      const role = i <= 12 ? 'artist' : 'user';
-      demoUsers.push({
-        id: `demo-user-${i}`,
-        email: `user${i}@demo.thecueroom.com`,
-        username: `user${i}`,
-        role,
-        verified: true,
-      });
-    }
-
-    await db.insert(users).values(
-      await Promise.all(demoUsers.map(async (u) => ({
-        id: u.id,
+    const insertedUsers = await db.insert(users).values(
+      await Promise.all(demoUserData.map(async (u) => ({
         email: u.email,
         username: u.username,
-        passwordHash: await bcrypt.hash(u.password || 'Test@12345', 10),
+        passwordHash: await bcrypt.hash(u.password, 10),
         role: u.role,
         verified: u.verified,
         createdAt: new Date(),
         updatedAt: new Date(),
       })))
-    );
+    ).returning({ id: users.id, email: users.email, role: users.role });
+
+    const artistUsers = insertedUsers.filter((u: { id: string; email: string; role: string }) => u.role === 'artist');
+    const allUsers = insertedUsers;
 
     await db.insert(profiles).values(
-      demoUsers.slice(0, 12).map((u, index) => ({
+      artistUsers.map((u: { id: string; email: string; role: string }, index: number) => ({
         userId: u.id,
         displayName: `Artist ${index + 1}`,
         artistName: `DJ Demo ${index + 1}`,
@@ -93,12 +82,12 @@ export async function seedDemoData() {
 
     await db.insert(forumThreads).values(
       Array.from({ length: 50 }, (_, i) => ({
-        categoryId: categoryIds[i % categories.length].id,
-        userId: demoUsers[i % 50].id,
+        categoryId: categoryIds[i % categories.length]!.id,
+        userId: allUsers[i % allUsers.length]!.id,
         title: `Demo Thread ${i + 1}: ${['Tips', 'Discussion', 'Question', 'News', 'Help'][i % 5]}`,
         slug: `demo-thread-${i + 1}`,
         body: `This is a demo thread about ${categories[i % categories.length]}. Join the discussion!`,
-        tags: JSON.stringify([categories[i % categories.length].toLowerCase()]),
+        tags: JSON.stringify([categories[i % categories.length]!.toLowerCase()]),
         viewCount: Math.floor(Math.random() * 500),
         replyCount: Math.floor(Math.random() * 100),
         likesCount: Math.floor(Math.random() * 200),
@@ -118,10 +107,10 @@ export async function seedDemoData() {
 
     await db.insert(gigs).values(
       Array.from({ length: 30 }, (_, i) => {
-        const venue = venues[i % venues.length];
+        const venue = venues[i % venues.length]!;
         const daysAhead = i + 1;
         return {
-          userId: demoUsers[i % 12].id,
+          userId: artistUsers[i % artistUsers.length]!.id,
           title: `${venue.name} - ${['Techno Night', 'House Session', 'Underground', 'Showcase', 'Festival'][i % 5]}`,
           description: `An amazing night of electronic music at ${venue.name}`,
           venue: venue.name,
@@ -216,7 +205,7 @@ export async function seedDemoData() {
 
     await db.insert(memes).values(
       Array.from({ length: 20 }, (_, i) => ({
-        userId: demoUsers[i % 50].id,
+        userId: allUsers[i % allUsers.length]!.id,
         template: `template-${i % 5}`,
         textTop: `When the drop hits`,
         textBottom: `Just right`,
@@ -230,8 +219,8 @@ export async function seedDemoData() {
       ok: true,
       message: 'Demo data seeded successfully',
       counts: {
-        users: 50,
-        artists: 12,
+        users: allUsers.length,
+        artists: artistUsers.length,
         categories: 5,
         threads: 50,
         gigs: 30,

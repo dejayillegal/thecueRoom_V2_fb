@@ -152,3 +152,61 @@ export const notifications = pgTable('notifications', {
   read: boolean('read').default(false),
   createdAt: timestamp('created_at').defaultNow(),
 });
+
+export const gigs = pgTable('gigs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  title: text('title').notNull(),
+  description: text('description'),
+  venue: text('venue').notNull(),
+  location: text('location').notNull(),
+  city: text('city'),
+  startTime: timestamp('start_time').notNull(),
+  endTime: timestamp('end_time'),
+  ticketUrl: text('ticket_url'),
+  genres: jsonb('genres').default([]),
+  approved: boolean('approved').default(false),
+  visibility: text('visibility').default('public'),
+  status: text('status').default('pending'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const spotlightItems = pgTable('spotlight_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  title: text('title').notNull(),
+  excerpt: text('excerpt'),
+  content: text('content'),
+  image: text('image').notNull(),
+  link: text('link'),
+  category: text('category').notNull(),
+  featured: boolean('featured').default(false),
+  publishedAt: timestamp('published_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const playlists = pgTable('playlists', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  title: text('title').notNull(),
+  description: text('description'),
+  platform: text('platform'),
+  platformId: text('platform_id'),
+  embedUrl: text('embed_url'),
+  soundcloudUrl: text('soundcloud_url'),
+  monthOf: timestamp('month_of'),
+  featured: boolean('featured').default(false),
+  visibility: text('visibility').default('public'),
+  status: text('status').default('draft'),
+  curatedAt: timestamp('curated_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const memes = pgTable('memes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  template: text('template').notNull(),
+  textTop: text('text_top'),
+  textBottom: text('text_bottom'),
+  imageUrl: text('image_url').notNull(),
+  upvotes: integer('upvotes').default(0),
+  createdAt: timestamp('created_at').defaultNow(),
+});
