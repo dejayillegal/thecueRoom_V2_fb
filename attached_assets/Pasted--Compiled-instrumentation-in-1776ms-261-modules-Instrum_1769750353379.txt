@@ -1,0 +1,86 @@
+ ✓ Compiled /instrumentation in 1776ms (261 modules)
+[Instrumentation] Next.js server starting...
+[Bootstrap] Starting required account seeding...
+✅ Database client initialized using supabase provider
+[Bootstrap] Users table does not exist yet. Skipping seed until migrations are run.
+[Instrumentation] Account bootstrap: Users table does not exist
+[Bootstrap] Starting forum content seeding...
+[Bootstrap] Forum tables do not exist yet. Skipping forum seed.
+[Instrumentation] Forum bootstrap: Forum tables do not exist
+ ✓ Ready in 5.2s
+ ○ Compiling / ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ ✓ Compiled / in 12.5s (1889 modules)
+ ○ Compiling /api/feeds ...
+ ✓ Compiled /api/feeds in 7.4s (2166 modules)
+✅ Database client initialized using supabase provider
+ GET /api/feeds?limit=12&offset=0 200 in 6142ms
+ GET / 200 in 20816ms
+Ingest failed for 6AM Group: Status code 404
+Ingest failed for Your EDM: Status code 500
+ ⚠ Cross origin request detected from 3911f7b5-8873-4249-921a-a2effa4936c5-00-3uxfmn6gpgcd2.worf.replit.dev to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ GET /api/feeds?limit=12&offset=0 200 in 84ms
+ GET / 200 in 662ms
+ ○ Compiling /api/auth/signin ...
+ ✓ Compiled /api/auth/signin in 1119ms (2244 modules)
+[Signin] Attempt for: dejayillegal@gmail.com
+✅ Database client initialized using supabase provider
+checkRateLimit runtime error: error: relation "login_attempts" does not exist
+    at async checkRateLimit (app/api/auth/signin/route.ts:16:20)
+    at async POST (app/api/auth/signin/route.ts:97:24)
+  14 |     const db = getDbClient();
+  15 |     
+> 16 |     const record = await db
+     |                    ^
+  17 |       .select()
+  18 |       .from(loginAttempts)
+  19 |       .where(eq(loginAttempts.identifier, identifier)) {
+  length: 113,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '80',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1452',
+  routine: 'parserOpenTable'
+}
+Authentication error: error: relation "users" does not exist
+    at async authenticateUser (lib/auth.ts:40:25)
+    at async POST (app/api/auth/signin/route.ts:103:18)
+  38 |   try {
+  39 |     const db = getDbClient();
+> 40 |     const userRecords = await db.select().from(users).where(eq(users.email, email));
+     |                         ^
+  41 |     
+  42 |     if (userRecords.length === 0) {
+  43 |       return null; {
+  length: 105,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '144',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1452',
+  routine: 'parserOpenTable'
+}
+[Signin] Authentication failed for: dejayillegal@gmail.com
+ POST /api/auth/signin 401 in 1966ms
