@@ -142,12 +142,20 @@ export const Header = memo(function Header({ user, sidebarOpen, onToggleSidebar 
           <LogOut size={20} />
         </button>
 
-        <Avatar className="w-9 h-9 cursor-pointer ring-2 ring-transparent hover:ring-[#1a1a1a] transition-all">
-          <AvatarImage src={user?.image || undefined} alt={user?.name || 'User'} />
-          <AvatarFallback className="bg-[var(--tcr-accent)] text-black text-sm font-semibold">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
+        <div className="flex items-center gap-3">
+          <Link href={`/link/${userId || 'me'}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity group">
+            <div className="text-right hidden sm:block">
+              <p className="text-sm font-bold text-white group-hover:text-[var(--tcr-accent)] transition-colors">{user?.name || 'User'}</p>
+              <p className="text-[10px] text-zinc-500 font-mono lowercase">@{user?.name?.toLowerCase().replace(/\s+/g, '_') || 'artist'}</p>
+            </div>
+            <Avatar className="w-9 h-9 cursor-pointer ring-2 ring-transparent hover:ring-[#D1FF3D]/50 transition-all">
+              <AvatarImage src={user?.image || undefined} alt={user?.name || 'User'} />
+              <AvatarFallback className="bg-[var(--tcr-accent)] text-black text-sm font-semibold">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+          </Link>
+        </div>
       </div>
     </header>
   );

@@ -25,7 +25,8 @@ import {
   Gamepad2,
   Palette,
   Globe,
-  Disc
+  Disc,
+  Link2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/Logo';
@@ -52,6 +53,7 @@ const getNavItemsForRole = (role: string) => {
     { href: '/community/forum', label: 'The Green Room', icon: Users },
     { href: '/artist', label: 'Artist Connect', icon: Globe },
     { href: '/music/weekly', label: 'Weekly Curated', icon: Disc },
+    { href: '/settings', label: 'Milkshake Style', icon: Link2 },
   ];
 
   if (role === 'admin') {
