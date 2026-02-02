@@ -60,15 +60,6 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
   };
 }
 
-const getLinkIcon = (label: string) => {
-  const lower = label.toLowerCase();
-  if (lower.includes('spotify') || lower.includes('soundcloud') || lower.includes('music')) return Music;
-  if (lower.includes('instagram') || lower.includes('ig')) return Instagram;
-  if (lower.includes('youtube') || lower.includes('yt')) return Youtube;
-  if (lower.includes('twitter') || lower.includes('x')) return Twitter;
-  return Globe;
-};
-
 export default async function BioLinkPage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
   const db = getDbClient();
