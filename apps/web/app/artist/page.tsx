@@ -73,7 +73,7 @@ export default async function ArtistDirectoryPage() {
   const threads = await db.select({
     id: forumThreads.id,
     title: forumThreads.title,
-    content: forumThreads.content,
+    body: forumThreads.body,
     createdAt: forumThreads.createdAt,
     userId: forumThreads.userId,
     username: users.username,
@@ -86,25 +86,27 @@ export default async function ArtistDirectoryPage() {
   .orderBy(desc(forumThreads.createdAt))
   .limit(30);
 
-  const feedAll = (threads || []).map((t: any) => {
-    const authorProfile = allProfiles.find(p => p.userId === t.userId);
-    return {
-      id: t.id,
-      type: 'thread' as const,
-      artistName: authorProfile?.artistName || authorProfile?.displayName || t.username || 'Unknown',
-      username: t.username || 'unknown',
-      avatar: generateDeterministicAvatar(t.userId!),
-      title: t.title,
-      content: t.content?.substring(0, 200) || t.title,
-      timestamp: t.createdAt ? new Date(t.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'Recently',
-      stats: {
-        replies: t.replyCount || 0,
-        signals: t.likesCount || 0
-      },
-      isFollowing: myFollowing.includes(t.username || ''),
-      isOwn: t.userId === session.uid
-    };
-  });
+  const feedAll = (threads || [])
+    .filter((t: any) => t.id && t.userId)
+    .map((t: any) => {
+      const authorProfile = allProfiles.find(p => p.userId === t.userId);
+      return {
+        id: t.id,
+        type: 'thread' as const,
+        artistName: authorProfile?.artistName || authorProfile?.displayName || t.username || 'Unknown',
+        username: t.username || 'unknown',
+        avatar: generateDeterministicAvatar(t.userId),
+        title: t.title || '',
+        content: (t.body?.substring(0, 200) || t.title || ''),
+        timestamp: t.createdAt ? new Date(t.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'Recently',
+        stats: {
+          replies: t.replyCount || 0,
+          signals: t.likesCount || 0
+        },
+        isFollowing: myFollowing.includes(t.username || ''),
+        isOwn: t.userId === session.uid
+      };
+    });
 
   const feedFollowing = feedAll.filter(f => f.isFollowing || f.isOwn);
   const feed = feedFollowing.length >= 3 ? feedFollowing : feedAll.slice(0, 15);
