@@ -42,7 +42,7 @@ const getNavItemsForRole = (role: string) => {
   const commonItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/news', label: 'News Feed', icon: Newspaper },
-    { href: '/gigs/india', label: 'Gig Radar', icon: Radar },
+    { href: '/gigs/india', label: 'Gig Radar', icon: Radio },
   ];
 
   const artistItems = [
@@ -58,7 +58,7 @@ const getNavItemsForRole = (role: string) => {
     return [...commonItems, ...artistItems,
       { href: '/admin/events', label: 'Verify Events', icon: CheckCircle2 },
       { href: '/admin/sources', label: 'System Settings', icon: Settings },
-      { href: '/admin/monthly-playlists', label: 'Curation Logic', icon: Radio }
+      { href: '/admin/monthly-playlists', label: 'Curation Logic', icon: Sparkles }
     ];
   }
 
