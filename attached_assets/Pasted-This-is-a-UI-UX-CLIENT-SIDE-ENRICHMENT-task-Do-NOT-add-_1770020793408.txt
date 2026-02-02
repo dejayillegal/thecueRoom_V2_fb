@@ -1,0 +1,154 @@
+This is a UI/UX + CLIENT-SIDE ENRICHMENT task.
+Do NOT add backend services.
+Do NOT add database schemas.
+Do NOT scrape restricted sources.
+Do NOT change navigation structure.
+
+GOAL:
+Redesign Bio Link Studio into a premium, modern,
+artist-first bio-link experience with rich previews,
+creative motion, and strong visual identity.
+
+–––––––––––––––––––––
+STEP 1: VISUAL HIERARCHY & LAYOUT RESET
+–––––––––––––––––––––
+Actions:
+1. Redesign Bio Link Studio into a 2-panel studio layout:
+   - Left: Link composition & controls
+   - Right: Live device preview (mobile-first)
+2. Introduce clear vertical rhythm:
+   - Header → Composer → Active Links → Preview
+3. Improve headline presence:
+   - Strong title
+   - Subtle animated accent line
+4. Remove flatness using:
+   - depth layers
+   - soft gradients
+   - controlled glow accents
+
+Rules:
+- Keep brand colors
+- Keep typography
+- No layout shift
+
+Verification:
+Page reads as a creative studio, not a form.
+
+–––––––––––––––––––––
+STEP 2: LINK CARD SYSTEM (CORE)
+–––––––––––––––––––––
+Actions:
+1. Convert links into rich “Signal Cards”:
+   - platform icon
+   - label
+   - preview thumbnail (if available)
+2. Each card supports:
+   - reorder (drag handle)
+   - toggle visibility
+   - edit
+   - delete
+3. Use glass / signal-panel styling:
+   - soft blur
+   - subtle border glow
+
+Rules:
+- No backend changes
+- UI only
+
+Verification:
+Links feel like content, not fields.
+
+–––––––––––––––––––––
+STEP 3: SMART THUMBNAIL PREVIEW (SAFE)
+–––––––––––––––––––––
+Actions:
+1. Implement client-side link enrichment:
+   - Detect platform by URL:
+     - Spotify
+     - YouTube
+     - SoundCloud
+     - Apple Music
+2. Fetch metadata ONLY via:
+   - oEmbed endpoints
+   - Open Graph tags (no scraping)
+3. Extract:
+   - thumbnail
+   - title
+   - artist/channel name
+4. Cache previews in memory per session.
+
+Rules:
+- No API keys required
+- Fail gracefully if metadata unavailable
+
+Verification:
+Links auto-preview when pasted.
+
+–––––––––––––––––––––
+STEP 4: ADVANCED MOTION & MICRO-INTERACTIONS
+–––––––––––––––––––––
+Actions:
+1. Add expressive but restrained motion:
+   - card reveal on add
+   - hover lift + glow
+   - reorder drag feedback
+2. Animate only:
+   - opacity
+   - transform
+3. Respect prefers-reduced-motion.
+
+Verification:
+Motion feels premium and intentional.
+
+–––––––––––––––––––––
+STEP 5: LIVE PREVIEW UPGRADE
+–––––––––––––––––––––
+Actions:
+1. Upgrade mobile preview to:
+   - realistic device frame
+   - smooth content scroll
+2. Preview must reflect:
+   - ordering
+   - visibility
+   - thumbnails
+3. Preview updates instantly on change.
+
+Verification:
+Preview feels real and responsive.
+
+–––––––––––––––––––––
+STEP 6: ARTIST IDENTITY SIGNALS
+–––––––––––––––––––––
+Actions:
+1. Show artist avatar, name, handle at top.
+2. Add subtle identity accents:
+   - waveform
+   - signal dots
+3. Keep minimal and underground.
+
+Verification:
+Bio page feels like an artist artifact.
+
+–––––––––––––––––––––
+STEP 7: PERFORMANCE & SAFETY
+–––––––––––––––––––––
+1. No console errors
+2. No blocking fetches
+3. No backend regressions
+4. Works on mobile, tablet, desktop
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Redesigned Bio Link Studio UI
+- Rich link preview cards
+- Live device preview with motion
+- Safe thumbnail fetching
+- Confirmation that:
+  - No backend changes were made
+  - No scraping violations exist
+  - UX feels modern, creative, premium
+
+Do not explain.
+Do not ask questions.
+Implement directly.
