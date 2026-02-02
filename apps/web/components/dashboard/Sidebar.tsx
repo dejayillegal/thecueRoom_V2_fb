@@ -53,7 +53,7 @@ const getNavItemsForRole = (role: string) => {
     { href: '/community/forum', label: 'The Green Room', icon: Users },
     { href: '/artist', label: 'Artist Connect', icon: Globe },
     { href: '/music/weekly', label: 'Weekly Curated', icon: Disc },
-    { href: '/settings?tab=social', label: 'Bio Link Studio', icon: Link2 },
+    { href: '/bio-link-studio', label: 'Bio Link Studio', icon: Link2 },
   ];
 
   if (role === 'admin') {
