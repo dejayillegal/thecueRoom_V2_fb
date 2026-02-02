@@ -16,7 +16,16 @@ import {
   ChevronLeft,
   X,
   Plus,
-  CheckCircle2
+  CheckCircle2,
+  Sparkles,
+  Ticket,
+  Calendar,
+  LayoutDashboard,
+  Radio,
+  Gamepad2,
+  Palette,
+  Mic2,
+  Disc
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/Logo';
@@ -31,25 +40,25 @@ interface SidebarProps {
 
 const getNavItemsForRole = (role: string) => {
   const commonItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: Home },
-    { href: '/news', label: 'News', icon: Newspaper },
-    { href: '/gigs/india', label: 'Gigs', icon: Radar },
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/news', label: 'News Feed', icon: Newspaper },
+    { href: '/gigs/india', label: 'Gig Radar', icon: Radar },
   ];
 
   const artistItems = [
-    { href: '/ai/cover-art', label: 'AI Cover Art', icon: Image },
-    { href: '/ai/meme-studio', label: 'AI Meme', icon: MessageSquare },
-    { href: '/ai/epk-generator', label: 'AI EPK', icon: FileText },
-    { href: '/community/forum', label: 'Community Forum', icon: Users },
-    { href: '/artist', label: 'Artist Social', icon: MessageSquare },
-    { href: '/music/weekly', label: 'Curated Music', icon: Music },
+    { href: '/ai/cover-art', label: 'Cover Art Studio', icon: Palette },
+    { href: '/ai/meme-studio', label: 'Meme Studio', icon: Gamepad2 },
+    { href: '/ai/epk-generator', label: 'EPK Generator', icon: FileText },
+    { href: '/community/forum', label: 'The Green Room', icon: Users },
+    { href: '/artist', label: 'Artist Connect', icon: Mic2 },
+    { href: '/music/weekly', label: 'Weekly Curated', icon: Disc },
   ];
 
   if (role === 'admin') {
     return [...commonItems, ...artistItems,
-      { href: '/admin/events', label: 'Review Events', icon: CheckCircle2 },
-      { href: '/admin/sources', label: 'Manage Sources', icon: Settings },
-      { href: '/admin/monthly-playlists', label: 'Playlist Config', icon: Music }
+      { href: '/admin/events', label: 'Verify Events', icon: CheckCircle2 },
+      { href: '/admin/sources', label: 'System Settings', icon: Settings },
+      { href: '/admin/monthly-playlists', label: 'Curation Logic', icon: Radio }
     ];
   }
 

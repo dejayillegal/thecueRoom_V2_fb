@@ -41,8 +41,8 @@ export const SidebarItem = React.forwardRef<HTMLAnchorElement, SidebarItemProps>
           size={20} 
           strokeWidth={active ? 2.5 : 2.2} 
           className={cn(
-            "transition-all duration-300 group-hover:scale-110",
-            active ? "text-[var(--tcr-accent)] drop-shadow-[0_0_8px_rgba(215,255,60,0.5)]" : "text-gray-200 group-hover:text-white"
+            "transition-all duration-300 group-hover:scale-110 group-hover:rotate-3",
+            active ? "text-[var(--tcr-accent)] drop-shadow-[0_0_12px_rgba(215,255,60,0.6)]" : "text-gray-200 group-hover:text-white"
           )} 
           aria-hidden="true" 
         />
