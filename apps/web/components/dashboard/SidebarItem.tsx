@@ -32,7 +32,7 @@ export const SidebarItem = React.forwardRef<HTMLAnchorElement, SidebarItemProps>
           active
             ? 'text-white bg-[var(--tcr-accent)]/10 font-bold'
             : 'text-gray-400 hover:bg-white/5 hover:text-white',
-          !expanded && 'justify-center'
+          !expanded && 'justify-center px-1'
         )}
         aria-label={label}
         title={!expanded ? label : undefined}
@@ -42,7 +42,7 @@ export const SidebarItem = React.forwardRef<HTMLAnchorElement, SidebarItemProps>
           strokeWidth={active ? 2.5 : 2.2} 
           className={cn(
             "transition-all duration-300 group-hover:scale-110 group-hover:rotate-3",
-            active ? "text-[var(--tcr-accent)] drop-shadow-[0_0_12px_rgba(215,255,60,0.6)]" : "text-gray-200 group-hover:text-white"
+            active ? "text-[var(--tcr-accent)] drop-shadow-[0_0_8px_rgba(215,255,60,0.4)]" : "text-gray-200 group-hover:text-white"
           )} 
           aria-hidden="true" 
         />
@@ -52,7 +52,7 @@ export const SidebarItem = React.forwardRef<HTMLAnchorElement, SidebarItemProps>
           </span>
         )}
         {active && (
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[var(--tcr-accent)] rounded-r-full shadow-[0_0_15px_rgba(215,255,60,0.5)] z-10" />
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-[var(--tcr-accent)] rounded-r-full shadow-[0_0_10px_rgba(215,255,60,0.4)] z-10" />
         )}
         <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       </Link>
