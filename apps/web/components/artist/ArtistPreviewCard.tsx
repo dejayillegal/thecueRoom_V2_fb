@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useFollow } from '@/hooks/useFollow';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserPlus, UserMinus, Zap, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
@@ -34,44 +34,7 @@ export function ArtistPreviewCard({
   onClose,
 }: ArtistPreviewCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [following, setFollowing] = useState(isFollowing);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
-        onClose?.();
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [onClose]);
-
-  const handleFollow = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (isLoading) return;
-
-    setIsLoading(true);
-    try {
-      const method = following ? 'DELETE' : 'POST';
-      const res = await fetch('/api/artist/follow', {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetUsername: username }),
-      });
-      
-      if (res.ok) {
-        setFollowing(!following);
-        onFollow?.();
-      }
-    } catch (error) {
-      console.error('Follow error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { isFollowing: following, toggleFollow: handleFollow, isLoading } = useFollow(initialIsFollowing, username);
 
   const style = position ? {
     position: 'fixed' as const,

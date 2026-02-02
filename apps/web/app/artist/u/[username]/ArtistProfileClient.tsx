@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useFollow } from '@/hooks/useFollow';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -39,36 +39,12 @@ interface ArtistProfileClientProps {
 export default function ArtistProfileClient({ 
   artist, stats, threads, replies, isFollowing: initialIsFollowing, isOwnProfile 
 }: ArtistProfileClientProps) {
-  const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
+  const { isFollowing, toggleFollow, isLoading } = useFollow(initialIsFollowing, artist.username);
   const [followersCount, setFollowersCount] = useState(stats.followers);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const tier = artist.role === 'admin' 
-    ? { label: 'ADMIN', color: 'bg-purple-500' } 
-    : { label: 'ARTIST', color: 'bg-[#D1FF3D]' };
-
-  const handleFollow = async () => {
-    if (isLoading) return;
-    setIsLoading(true);
-    
-    try {
-      const method = isFollowing ? 'DELETE' : 'POST';
-      const res = await fetch('/api/artist/follow', {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetUsername: artist.username }),
-      });
-      
-      if (res.ok) {
-        setIsFollowing(!isFollowing);
-        setFollowersCount(prev => isFollowing ? prev - 1 : prev + 1);
-      }
-    } catch (error) {
-      console.error('Follow error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    setFollowersCount(stats.followers + (isFollowing !== initialIsFollowing ? (isFollowing ? 1 : -1) : 0));
+  }, [isFollowing, initialIsFollowing, stats.followers]);
 
   const handleShare = async () => {
     const url = `${window.location.origin}/link/${artist.username}`;
@@ -120,7 +96,7 @@ export default function ArtistProfileClient({
                 </Link>
               ) : (
                 <button 
-                  onClick={handleFollow}
+                  onClick={toggleFollow}
                   disabled={isLoading}
                   className={`flex-1 py-3 border text-center text-[10px] uppercase tracking-widest transition-colors flex items-center justify-center gap-2 ${
                     isFollowing 

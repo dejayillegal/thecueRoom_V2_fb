@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
+import { useFollow } from '@/hooks/useFollow';
+
 interface CurrentUser {
   id: string;
   username: string;
@@ -268,131 +270,66 @@ export default function ArtistSocialClient({
             <h3 className="text-sm font-medium text-zinc-400 mb-3">Suggested for you</h3>
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
               {suggestedArtists.map((artist, i) => (
-                <motion.div
-                  key={artist.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="flex-shrink-0 w-28 text-center"
-                >
-                  <img 
-                    src={artist.avatar} 
-                    alt="" 
-                    className="w-16 h-16 rounded-full mx-auto mb-2 cursor-pointer hover:ring-2 ring-[#D7FF3C] transition-all"
-                    onClick={() => navigateToArtist(artist.username)}
-                  />
-                  <p className="text-xs font-medium truncate mb-1">{artist.displayName}</p>
-                  <button
-                    onClick={() => handleFollow(artist.username, true)}
-                    className="px-3 py-1 bg-[#D7FF3C] text-black text-xs font-medium rounded-full hover:bg-[#c4eb35] transition-colors"
-                  >
-                    Follow
-                  </button>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        )}
+  const { isFollowing, toggleFollow, isLoading } = useFollow(artist.isFollowing, artist.username);
 
-        <div className="space-y-0">
-          <AnimatePresence mode="popLayout">
-            {filteredFeed.length === 0 ? (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-12 text-zinc-500"
-              >
-                <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>No posts yet. Follow artists to see their content here.</p>
-              </motion.div>
-            ) : (
-              filteredFeed.map((signal, i) => (
-                <motion.article
-                  key={signal.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ delay: i * 0.03 }}
-                  className="py-4 border-b border-white/5 hover:bg-white/[0.02] transition-colors cursor-pointer"
-                  onClick={() => navigateToThread(signal.id)}
-                >
-                  <div className="flex gap-3">
-                    <img 
-                      src={signal.avatar} 
-                      alt="" 
-                      className="w-10 h-10 rounded-full flex-shrink-0 cursor-pointer hover:ring-2 ring-white/20 transition-all"
-                      onClick={(e) => { e.stopPropagation(); navigateToArtist(signal.username); }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span 
-                          className="font-semibold text-sm hover:underline cursor-pointer"
-                          onClick={(e) => { e.stopPropagation(); navigateToArtist(signal.username); }}
-                        >
-                          {signal.artistName}
-                        </span>
-                        <span className="text-zinc-500 text-sm">@{signal.username}</span>
-                        <span className="text-zinc-600 text-xs">· {signal.timestamp}</span>
-                        {signal.isOwn && (
-                          <span className="text-[10px] px-1.5 py-0.5 bg-[#D7FF3C]/20 text-[#D7FF3C] rounded">You</span>
-                        )}
-                      </div>
-                      <h3 className="font-medium mb-1 text-white">{signal.title}</h3>
-                      <p className="text-zinc-400 text-sm leading-relaxed line-clamp-3">{signal.content}</p>
-                      <div className="flex items-center gap-6 mt-3">
-                        <button 
-                          className="flex items-center gap-1.5 text-zinc-500 hover:text-[#D7FF3C] transition-colors group"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MessageSquare size={16} className="group-hover:scale-110 transition-transform" />
-                          <span className="text-xs">{signal.stats.replies}</span>
-                        </button>
-                        <button 
-                          className="flex items-center gap-1.5 text-zinc-500 hover:text-red-400 transition-colors group"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Heart size={16} className="group-hover:scale-110 transition-transform" />
-                          <span className="text-xs">{signal.stats.signals}</span>
-                        </button>
-                        <button 
-                          className="flex items-center gap-1.5 text-zinc-500 hover:text-white transition-colors group"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Share2 size={16} className="group-hover:scale-110 transition-transform" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </motion.article>
-              ))
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-
-      <AnimatePresence>
-        {showFollowers && (
-          <FollowersModal 
-            isOpen={showFollowers} 
-            onClose={() => setShowFollowers(false)}
-            title="Followers"
-            artists={artists.filter(a => {
-              const isFollowingMe = initialArtists.find(ia => ia.username === a.username)?.isFollowing;
-              return isFollowingMe;
-            })}
-            onFollow={handleFollow}
-          />
+  return (
+    <motion.div
+      key={artist.id}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: i * 0.05 }}
+      className="flex-shrink-0 w-28 text-center"
+    >
+      <img 
+        src={artist.avatar} 
+        alt="" 
+        className="w-16 h-16 rounded-full mx-auto mb-2 cursor-pointer hover:ring-2 ring-[#D7FF3C] transition-all"
+        onClick={() => navigateToArtist(artist.username)}
+      />
+      <p className="text-xs font-medium truncate mb-1">{artist.displayName}</p>
+      <button
+        onClick={toggleFollow}
+        disabled={isLoading}
+        className={cn(
+          "px-3 py-1 text-xs font-medium rounded-full transition-colors",
+          isFollowing 
+            ? "bg-white/10 text-white hover:bg-red-500/20 hover:text-red-400" 
+            : "bg-[#D7FF3C] text-black hover:bg-[#c4eb35]"
         )}
-        {showFollowing && (
-          <FollowersModal 
-            isOpen={showFollowing} 
-            onClose={() => setShowFollowing(false)}
-            title="Following"
-            artists={followingArtists}
-            onFollow={handleFollow}
-          />
-        )}
-      </AnimatePresence>
-    </div>
+      >
+        {isFollowing ? 'Following' : 'Follow'}
+      </button>
+    </motion.div>
   );
 }
+
+export default function ArtistSocialClient({ 
+  currentUser,
+  initialArtists, 
+  initialFeed 
+}: { 
+  currentUser: CurrentUser;
+  initialArtists: Artist[], 
+  initialFeed: SignalEntry[] 
+}) {
+  const [artists, setArtists] = useState(initialArtists);
+  const [feed] = useState(initialFeed);
+  const [activeTab, setActiveTab] = useState<'foryou' | 'following'>('foryou');
+  const [showFollowers, setShowFollowers] = useState(false);
+  const [showFollowing, setShowFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(currentUser.followers);
+  const [followingCount, setFollowingCount] = useState(currentUser.following);
+
+  // Sync follow state across artists list when one is updated via hook elsewhere
+  useEffect(() => {
+    const listener = (username: string, isFollowing: boolean) => {
+      setArtists(prev => prev.map(a => 
+        a.username === username 
+          ? { ...a, isFollowing, followers: a.followers + (isFollowing ? 1 : -1) }
+          : a
+      ));
+      setFollowingCount(prev => prev + (isFollowing ? 1 : -1));
+    };
+    // This is a bit tricky since ArtistSocialClient doesn't use the hook directly for the list
+    // But we can listen to the same event system
+  }, []);

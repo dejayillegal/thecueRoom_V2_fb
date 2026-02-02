@@ -1,0 +1,109 @@
+This is a LOGIC & CONSISTENCY FIX.
+Do NOT redesign UI.
+Do NOT add new backend services.
+Do NOT add new database schemas.
+Do NOT change authentication.
+
+GOAL:
+Fix incorrect following / followers counts
+and ensure ALL artist profiles render using the SAME data contract
+as the logged-in Artist Social profile.
+
+–––––––––––––––––––––
+ROOT CAUSES (DO NOT IGNORE)
+–––––––––––––––––––––
+1. Following count is derived from stale or local state.
+2. Followers count is not recalculated via reverse lookup.
+3. Other artist profiles are not using the same profile renderer
+   as the logged-in artist view.
+
+–––––––––––––––––––––
+STEP 1: SINGLE SOURCE OF TRUTH FOR FOLLOWING
+–––––––––––––––––––––
+Actions:
+1. Treat profile.metadata.following as the ONLY source of truth.
+2. When Follow / Unfollow is clicked:
+   - update metadata.following array
+   - persist immediately
+3. After update:
+   - re-read metadata before rendering counts
+
+Rules:
+- No optimistic-only UI
+- No local-only counters
+
+Verification:
+Following count updates instantly and correctly.
+
+–––––––––––––––––––––
+STEP 2: CORRECT FOLLOWERS COUNT (REVERSE LOOKUP)
+–––––––––––––––––––––
+Actions:
+1. Followers count MUST be derived by:
+   - scanning profiles.metadata.following
+   - counting profiles that include this username
+2. Do NOT store followers explicitly.
+3. Recompute followers count on render.
+
+Rules:
+- Derived, not stored
+- Always accurate
+
+Verification:
+Followers count reflects real relationships.
+
+–––––––––––––––––––––
+STEP 3: UNIFY ARTIST PROFILE RENDERER
+–––––––––––––––––––––
+Actions:
+1. Extract shared ArtistProfile component.
+2. Use it for:
+   - logged-in artist profile
+   - other artist profile pages
+3. Pass profile data as props:
+   - artistName
+   - username
+   - avatar
+   - bio
+   - followersCount
+   - followingCount
+   - activity feed
+
+Rules:
+- No duplicate profile layouts
+- Same visual + logic for all artists
+
+Verification:
+All artist profiles look and behave identically.
+
+–––––––––––––––––––––
+STEP 4: FOLLOW BUTTON STATE SYNC
+–––––––––––––––––––––
+Actions:
+1. Follow button state is derived from:
+   metadata.following.includes(targetUsername)
+2. Button label updates only after persistence success.
+
+Verification:
+Follow / Following state is always correct.
+
+–––––––––––––––––––––
+STEP 5: SAFETY CHECK
+–––––––––––––––––––––
+1. No schema changes
+2. No console errors
+3. No duplicate state
+4. Desktop & mobile stable
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Following count updates correctly
+- Followers count correct via reverse lookup
+- Other artist profiles match Artist Social profile
+- Unified ArtistProfile component
+- No UI redesign beyond consistency
+
+Do not explain.
+Do not ask questions.
+Implement directly.

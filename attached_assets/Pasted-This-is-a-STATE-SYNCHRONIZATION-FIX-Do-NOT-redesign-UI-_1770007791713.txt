@@ -1,0 +1,100 @@
+This is a STATE SYNCHRONIZATION FIX.
+Do NOT redesign UI.
+Do NOT add new backend services.
+Do NOT add new database schemas.
+
+GOAL:
+Ensure following count updates correctly when an artist is followed
+from the “Suggested for you” section.
+
+–––––––––––––––––––––
+ROOT CAUSE
+–––––––––––––––––––––
+The “Suggested for you” Follow button:
+- updates metadata.following
+- BUT does not trigger a shared state refresh
+- counts remain stale until page reload
+
+–––––––––––––––––––––
+STEP 1: SINGLE FOLLOW HANDLER (MANDATORY)
+–––––––––––––––––––––
+Actions:
+1. Create ONE shared follow/unfollow handler.
+2. This handler must:
+   - update profile.metadata.following
+   - persist to backend
+   - re-fetch updated profile metadata
+3. All follow buttons MUST use this handler:
+   - Suggested for you
+   - Artist profile page
+   - Hover cards
+   - Avatar menu
+
+Rules:
+- No local-only state
+- No duplicated handlers
+
+Verification:
+All follow actions go through the same logic.
+
+–––––––––––––––––––––
+STEP 2: FORCE RE-READ AFTER FOLLOW
+–––––––––––––––––––––
+Actions:
+1. After follow/unfollow succeeds:
+   - invalidate cached profile data
+   - re-read metadata.following from source
+2. Recompute:
+   - following count
+   - followers count (reverse lookup)
+
+Rules:
+- No optimistic counters
+- Always derive from fresh data
+
+Verification:
+Following count updates immediately.
+
+–––––––––––––––––––––
+STEP 3: SUGGESTED CARD STATE SYNC
+–––––––––––––––––––––
+Actions:
+1. After follow:
+   - update button state to “Following”
+   - disable duplicate follow
+2. Suggested list does NOT manage counts itself.
+3. Counts are read from unified profile state.
+
+Verification:
+Suggested cards reflect correct follow state.
+
+–––––––––––––––––––––
+STEP 4: REACTIVITY GUARANTEE
+–––––––––––––––––––––
+Actions:
+1. Ensure Artist Social header counters subscribe to:
+   - shared profile state
+2. No separate counter state allowed.
+
+Verification:
+Header counts update regardless of where follow occurred.
+
+–––––––––––––––––––––
+STEP 5: SAFETY CHECK
+–––––––––––––––––––––
+1. No schema changes
+2. No console errors
+3. No page reload required
+4. Desktop and mobile stable
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Following count updates when following from Suggested section
+- Button state updates correctly
+- All follow sources behave consistently
+- No duplicated follow logic
+
+Do not explain.
+Do not ask questions.
+Implement directly.
