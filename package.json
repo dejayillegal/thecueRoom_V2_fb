@@ -17,6 +17,7 @@
     "seed:admin": "tsx scripts/seed-admin.ts",
     "seed:test-users": "tsx scripts/seed-test-users.ts",
     "setup": "dotenv -- tsx scripts/setup.ts",
+    "init:db": "dotenv -- tsx scripts/init-db.ts",
     "worker": "tsx scripts/start-worker.ts",
     "worker:dev": "tsx watch scripts/start-worker.ts",
     "ai:worker": "pnpm --filter worker ai",

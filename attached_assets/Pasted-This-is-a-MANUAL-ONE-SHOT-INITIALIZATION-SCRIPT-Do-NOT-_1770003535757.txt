@@ -1,0 +1,172 @@
+This is a MANUAL ONE-SHOT INITIALIZATION SCRIPT.
+Do NOT auto-run on server start.
+Do NOT loop.
+Do NOT retry automatically.
+
+GOAL:
+Provide a single command/script that I can run manually
+on cold start or fresh setup to:
+
+- Ensure database schema exists
+- Seed admin, artist, and user accounts
+- Populate forum categories and demo threads
+- Use underground-style usernames
+- Never duplicate data
+- Never require repeated Fast-mode runs
+
+–––––––––––––––––––––
+STRATEGY (FAST-MODE SAFE)
+–––––––––––––––––––––
+Initialization must be:
+- explicit
+- idempotent
+- manually triggered
+- schema-aware
+
+No background jobs.
+No startup hooks.
+
+–––––––––––––––––––––
+STEP 1: CREATE MANUAL INIT SCRIPT
+–––––––––––––––––––––
+Actions:
+1. Create script:
+   scripts/init-db.ts
+2. Script runs ONLY when explicitly invoked.
+
+–––––––––––––––––––––
+STEP 2: SCHEMA CHECK (NON-DESTRUCTIVE)
+–––––––––––––––––––––
+Actions:
+1. On run:
+   - check existence of required tables:
+     users, profiles, login_attempts,
+     forumThreads, comments, categories
+2. If tables missing:
+   - run existing Drizzle migration logic ONCE
+3. If tables exist:
+   - skip schema creation
+
+Rules:
+- No DROP
+- No reset
+- No force recreate
+
+–––––––––––––––––––––
+STEP 3: ADMIN ACCOUNT (IMMUTABLE)
+–––––––––––––––––––––
+Admin:
+- email: dejayillegal@gmail.com
+- password: Closer@82
+- role: admin
+- verified: true
+- username: illegal_mastercue
+
+Actions:
+1. Upsert admin user.
+2. Enforce:
+   - correct role
+   - verified badge
+3. Never duplicate.
+
+–––––––––––––––––––––
+STEP 4: UNDERGROUND USERNAME GENERATOR
+–––––––––––––––––––––
+Actions:
+1. Replace user1, user2, etc with underground-style usernames.
+2. Use deterministic generator:
+   examples:
+   - bass_ritual
+   - nocturn_kid
+   - techno_veil
+   - pulse_operator
+   - subfreq_404
+3. Ensure usernames are:
+   - lowercase
+   - unique
+   - stable across runs
+
+Rules:
+- Same seed → same usernames
+- No randomness per run
+
+–––––––––––––––––––––
+STEP 5: ARTIST + USER SEEDING
+–––––––––––––––––––––
+Actions:
+1. Seed:
+   - 12 artist accounts
+   - 38 general users
+2. All accounts:
+   - password: Test123!
+   - verified: true
+3. Assign roles correctly.
+
+Rules:
+- UUID-safe inserts
+- Capture inserted IDs correctly
+- Never duplicate users
+
+–––––––––––––––––––––
+STEP 6: FORUM SEEDING
+–––––––––––––––––––––
+Actions:
+1. Ensure categories exist:
+   - Production
+   - Scene
+   - Career
+   - Discussion
+   - Marketing
+2. Seed:
+   - 50 demo threads
+   - replies
+3. Attach threads to artist users.
+
+Rules:
+- Skip if already populated
+- Forum remains source of truth
+
+–––––––––––––––––––––
+STEP 7: EXECUTION COMMAND
+–––––––––––––––––––––
+Actions:
+1. Add package.json script:
+   "init:db": "tsx scripts/init-db.ts"
+2. This script is run manually only.
+
+–––––––––––––––––––––
+STEP 8: LOGGING (MANDATORY)
+–––––––––––––––––––––
+Log clearly:
+- schema created or skipped
+- admin created or exists
+- artists created or skipped
+- users created or skipped
+- forum seeded or skipped
+
+No silent behavior.
+
+–––––––––––––––––––––
+VERIFICATION
+–––––––––––––––––––––
+Running:
+npm run init:db
+
+Results in:
+- schema present
+- admin login works
+- underground usernames visible
+- artist social + forum populated
+- second run makes NO changes
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- scripts/init-db.ts
+- updated package.json command
+- deterministic underground usernames
+- idempotent behavior
+
+Do not explain.
+Do not ask questions.
+Implement directly.
