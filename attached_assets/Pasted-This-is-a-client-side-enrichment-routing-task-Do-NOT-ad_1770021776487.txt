@@ -1,0 +1,146 @@
+This is a client-side enrichment + routing task.
+Do NOT add new backend services.
+Do NOT add new database schemas.
+Do NOT change authentication.
+Do NOT scrape restricted platforms.
+
+GOAL:
+Make Bio Link Studio behave like Linktree / Milkshake:
+- Auto-detect link sources
+- Show correct platform icons
+- Allow publishing a public bio link
+- Public link opens a shareable artist bio page
+
+–––––––––––––––––––––
+STEP 1: AUTO LINK SOURCE DETECTION (NON-NEGOTIABLE)
+–––––––––––––––––––––
+Actions:
+1. When a URL is added, detect platform by hostname:
+   - spotify.com → Spotify
+   - youtube.com / youtu.be → YouTube
+   - soundcloud.com → SoundCloud
+   - apple.com/music → Apple Music
+   - bandcamp.com → Bandcamp
+   - instagram.com → Instagram
+   - x.com / twitter.com → X
+   - default → Generic link
+2. Assign:
+   - platform name
+   - platform icon
+   - platform accent color (existing brand-safe variants)
+
+Rules:
+- Detection is client-side only
+- No API calls required
+
+Verification:
+Pasting a link immediately shows the correct platform icon.
+
+–––––––––––––––––––––
+STEP 2: PLATFORM ICON RENDERING
+–––––––––––––––––––––
+Actions:
+1. Display platform icon:
+   - on each Signal Card
+   - in Live Preview
+2. Icons must be:
+   - high contrast
+   - sharp (SVG)
+   - visually consistent
+3. Generic links use a neutral link icon.
+
+Verification:
+Each link visually communicates its source instantly.
+
+–––––––––––––––––––––
+STEP 3: SAFE METADATA PREVIEW (OPTIONAL ENRICHMENT)
+–––––––––––––––––––––
+Actions:
+1. Attempt metadata fetch via:
+   - oEmbed (YouTube, SoundCloud)
+   - OpenGraph tags (Spotify, Bandcamp)
+2. Extract:
+   - thumbnail (if available)
+   - title
+3. If fetch fails:
+   - fallback gracefully to icon-only card
+
+Rules:
+- No scraping
+- No API keys
+- No blocking UI
+
+Verification:
+Popular platforms show thumbnails when possible.
+
+–––––––––––––––––––––
+STEP 4: PUBLISHABLE BIO LINK (CORE FEATURE)
+–––––––––––––––––––––
+Actions:
+1. Add a “Publish Bio Link” action.
+2. Generate a public URL using existing routing:
+   /artist/{username}/links
+   OR
+   /@{username}
+3. Page renders:
+   - artist avatar
+   - artist name + handle
+   - published signal links
+4. Page must be:
+   - mobile-first
+   - fast
+   - shareable externally
+
+Rules:
+- Reuse existing profile + bio-link data
+- No new tables
+- Read-only public page
+
+Verification:
+Opening the link works without login.
+
+–––––––––––––––––––––
+STEP 5: LIVE PREVIEW ↔ PUBLIC PAGE PARITY
+–––––––––––––––––––––
+Actions:
+1. Ensure Live Preview matches public page exactly.
+2. Ordering, visibility, icons, thumbnails must match.
+3. Updates reflect immediately after “Sync Changes”.
+
+Verification:
+What you see in studio = what public sees.
+
+–––––––––––––––––––––
+STEP 6: UX POLISH (FAST MODE SAFE)
+–––––––––––––––––––––
+Actions:
+1. Add subtle motion:
+   - link add
+   - reorder
+   - publish confirmation
+2. Animate only opacity and transform.
+3. Respect prefers-reduced-motion.
+
+–––––––––––––––––––––
+STEP 7: SAFETY & PERFORMANCE
+–––––––––––––––––––––
+1. No console errors.
+2. No layout shift.
+3. No blocked renders.
+4. Works on mobile, tablet, desktop.
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Automatic source detection
+- Correct platform icons per link
+- Optional thumbnails when supported
+- Shareable public bio link page
+- Confirmation that:
+  - No backend services were added
+  - No schema changes were made
+  - Bio link works externally like Linktree
+
+Do not explain.
+Do not ask questions.
+Implement directly.
