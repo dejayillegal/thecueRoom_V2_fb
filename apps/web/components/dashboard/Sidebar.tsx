@@ -24,7 +24,7 @@ import {
   Radio,
   Gamepad2,
   Palette,
-  Mic2,
+  Share2,
   Disc
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -50,7 +50,7 @@ const getNavItemsForRole = (role: string) => {
     { href: '/ai/meme-studio', label: 'Meme Studio', icon: Gamepad2 },
     { href: '/ai/epk-generator', label: 'EPK Generator', icon: FileText },
     { href: '/community/forum', label: 'The Green Room', icon: Users },
-    { href: '/artist', label: 'Artist Connect', icon: Mic2 },
+    { href: '/artist', label: 'Artist Connect', icon: Share2 },
     { href: '/music/weekly', label: 'Weekly Curated', icon: Disc },
   ];
 
