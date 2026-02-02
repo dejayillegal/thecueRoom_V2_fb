@@ -25,7 +25,9 @@ import {
   EyeOff,
   Edit2,
   Layout,
-  Smartphone
+  Smartphone,
+  Instagram,
+  Twitter
 } from 'lucide-react';
 import { motion, Reorder, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -92,19 +94,23 @@ export default function BioLinkStudio() {
   };
 
   const detectType = (url: string) => {
-    if (url.includes('spotify')) return 'spotify';
-    if (url.includes('youtube') || url.includes('youtu.be')) return 'youtube';
-    if (url.includes('soundcloud')) return 'soundcloud';
-    if (url.includes('apple') && url.includes('music')) return 'apple';
+    const lowerUrl = url.toLowerCase();
+    if (lowerUrl.includes('spotify.com')) return 'spotify';
+    if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) return 'youtube';
+    if (lowerUrl.includes('soundcloud.com')) return 'soundcloud';
+    if (lowerUrl.includes('apple.com/music')) return 'apple';
+    if (lowerUrl.includes('bandcamp.com')) return 'bandcamp';
+    if (lowerUrl.includes('instagram.com')) return 'instagram';
+    if (lowerUrl.includes('x.com') || lowerUrl.includes('twitter.com')) return 'x';
     return 'other';
   };
 
   const fetchMetadata = async (url: string) => {
     const type = detectType(url);
-    if (type === 'other') return null;
+    const supportedOEmbed = ['spotify', 'youtube', 'soundcloud'];
+    if (!supportedOEmbed.includes(type)) return null;
 
     try {
-      // Use oEmbed endpoints which are safe and CORS-friendly usually
       let oembedUrl = '';
       if (type === 'spotify') oembedUrl = `https://open.spotify.com/oembed?url=${url}`;
       if (type === 'youtube') oembedUrl = `https://www.youtube.com/oembed?url=${url}&format=json`;
@@ -180,9 +186,12 @@ export default function BioLinkStudio() {
     switch (type) {
       case 'spotify': return <Disc size={18} className="text-[#1DB954]" />;
       case 'youtube': return <Youtube size={18} className="text-[#FF0000]" />;
-      case 'podcast': return <Mic2 size={18} className="text-[#9B5CFF]" />;
       case 'soundcloud': return <Radio size={18} className="text-[#FF3300]" />;
-      default: return <Globe size={18} className="text-[#D7FF3C]" />;
+      case 'apple': return <Music size={18} className="text-[#FA243C]" />;
+      case 'bandcamp': return <Disc size={18} className="text-[#629AA9]" />;
+      case 'instagram': return <Instagram size={18} className="text-[#E4405F]" />;
+      case 'x': return <Twitter size={18} className="text-[#1DA1F2]" />;
+      default: return <Globe size={18} className="text-zinc-400" />;
     }
   };
 
@@ -418,7 +427,9 @@ export default function BioLinkStudio() {
                             {link.thumbnail ? (
                               <img src={link.thumbnail} alt="" className="w-full h-full object-cover group-hover/link:scale-110 transition-transform" />
                             ) : (
-                              getIcon(link.type)
+                              <div className="text-white">
+                                {getIcon(link.type)}
+                              </div>
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
