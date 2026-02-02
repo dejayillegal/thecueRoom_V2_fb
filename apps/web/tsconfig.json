@@ -19,7 +19,7 @@
       "@/components/*": ["./src/components/*", "./components/*"],
       "@/lib/*": ["./src/lib/*", "./lib/*"],
       "@/app/*": ["./app/*"],
-      "@/hooks/*": ["./src/hooks/*"],
+      "@/hooks/*": ["./hooks/*", "./src/hooks/*"],
       "@thecueroom/ai/*": ["../../packages/ai/*"],
       "@thecueroom/fallback/*": ["../../packages/fallback/*"],
       "@thecueroom/epk": ["../../packages/epk/index.ts"],

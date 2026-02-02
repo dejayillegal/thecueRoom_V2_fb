@@ -40,8 +40,10 @@ export function useFollow(initialIsFollowing: boolean, username: string) {
         // Notify all other hooks about the change
         followListeners.forEach(listener => listener(username, shouldFollow));
         
-        // Invalidate or re-fetch profile data if needed
-        // For now, we rely on the shared state and the fact that we're deriving counts
+        // Dispatch global event for non-hook listeners
+        window.dispatchEvent(new CustomEvent('follow-change', { 
+          detail: { username, isFollowing: shouldFollow } 
+        }));
       }
     } catch (error) {
       console.error('Follow error:', error);

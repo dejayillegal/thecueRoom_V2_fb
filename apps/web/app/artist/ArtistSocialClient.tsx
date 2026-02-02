@@ -156,13 +156,23 @@ export default function ArtistSocialClient({
           ? { ...a, isFollowing, followers: a.followers + (isFollowing ? 1 : -1) }
           : a
       ));
-      setFollowingCount(prev => prev + (isFollowing ? 1 : -1));
+      if (isFollowing) {
+        setFollowingCount(prev => prev + 1);
+      } else {
+        setFollowingCount(prev => prev - 1);
+      }
     };
 
-    // We add a listener to our shared state system in useFollow
-    // Since useFollow doesn't export the listeners directly, we can use a custom event or similar
-    // But for now, since we're in Build mode and need to finish, I'll ensure the hook itself triggers this if possible
-    // Actually, I'll just rely on the fact that individual buttons use the hook and sync up.
+    // Use a custom event to sync state back to the main client
+    window.addEventListener('follow-change', ((e: CustomEvent) => {
+      handleFollowChange(e.detail.username, e.detail.isFollowing);
+    }) as EventListener);
+
+    return () => {
+      window.removeEventListener('follow-change', ((e: CustomEvent) => {
+        handleFollowChange(e.detail.username, e.detail.isFollowing);
+      }) as EventListener);
+    };
   }, []);
 
   const navigateToThread = (threadId: string) => {
