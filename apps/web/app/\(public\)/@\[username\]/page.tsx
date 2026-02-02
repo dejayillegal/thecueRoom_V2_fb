@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import { generateDeterministicAvatar } from '@/lib/artist-identity';
 import { notFound } from 'next/navigation';
 import { ExternalLink, Music, Globe, Instagram, Youtube, Twitter, Disc, Radio } from 'lucide-react';
+import { Metadata } from 'next';
 
 const detectType = (url: string) => {
   const lowerUrl = url.toLowerCase();
@@ -44,12 +45,15 @@ const getIconColor = (type: string) => {
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
-  const { username } = await params;
+  let { username } = await params;
+  if (username.startsWith('%40')) username = username.substring(3);
+  if (username.startsWith('@')) username = username.substring(1);
+
   const db = getDbClient();
   const userRecords = await db.select().from(users).where(eq(users.username, username)).limit(1);
   const user = userRecords[0];
   
-  if (!user) return { title: 'Not Found' };
+  if (!user) return { title: 'Artist Not Found' };
   
   const profileRecords = await db.select().from(profiles).where(eq(profiles.userId, user.id)).limit(1);
   const profile = profileRecords[0];
@@ -60,19 +64,28 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
   };
 }
 
-export default async function BioLinkPage({ params }: { params: Promise<{ username: string }> }) {
-  const { username } = await params;
+export default async function PublicBioPage({ params }: { params: Promise<{ username: string }> }) {
+  let { username } = await params;
+  if (username.startsWith('%40')) username = username.substring(3);
+  if (username.startsWith('@')) username = username.substring(1);
+
   const db = getDbClient();
   
   const userRecords = await db.select().from(users).where(eq(users.username, username)).limit(1);
   if (userRecords.length === 0) {
-    notFound();
+    return (
+      <div className="min-h-screen bg-[#0B0B0B] text-white flex flex-col items-center justify-center px-4">
+        <h1 className="text-4xl font-black tracking-tighter uppercase italic mb-4">Artist Not Found</h1>
+        <p className="text-zinc-500 font-mono text-sm uppercase tracking-widest">Signal lost: @{username}</p>
+        <a href="/" className="mt-8 text-xs font-bold uppercase tracking-[0.2em] text-[#D1FF3D] hover:underline">Return to Base</a>
+      </div>
+    );
   }
   
   const user = userRecords[0];
   const profileRecords = await db.select().from(profiles).where(eq(profiles.userId, user.id)).limit(1);
   const profile = profileRecords[0];
-  const avatarUrl = generateDeterministicAvatar(user.id);
+  const avatarUrl = profile?.avatar || generateDeterministicAvatar(user.id);
   
   const socialLinks = profile?.socialLinks || [];
   const visibleLinks = (Array.isArray(socialLinks) ? socialLinks : []).filter((l: any) => l.visible !== false).map((link: any) => {

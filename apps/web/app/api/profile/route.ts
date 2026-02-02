@@ -77,7 +77,6 @@ export async function GET(request: NextRequest) {
     console.log('[Profile API] Fetching profile for userId:', userId);
     const db = getDbClient();
 
-    // Fetch user and profile data
     const [user] = await db
       .select()
       .from(users)
