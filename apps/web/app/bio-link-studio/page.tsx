@@ -332,16 +332,16 @@ export default function BioLinkStudio() {
                 </div>
               </div>
 
-              <Reorder.Group axis="y" values={links} onReorder={setLinks} className="space-y-4">
-                <AnimatePresence mode="popLayout">
-                  {links.map((link) => (
-                    <Reorder.Item 
-                      key={link.id} 
-                      value={link}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                    >
+            <Reorder.Group axis="y" values={links} onReorder={setLinks}>
+              <AnimatePresence mode="popLayout">
+                {links.map((link) => (
+                  <Reorder.Item 
+                    key={link.id} 
+                    value={link}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                  >
                       <div className={cn(
                         "group relative flex items-center gap-4 p-5 bg-zinc-900/30 border border-white/5 hover:border-[#D7FF3C]/20 transition-all backdrop-blur-sm",
                         !link.visible && "opacity-40 grayscale"

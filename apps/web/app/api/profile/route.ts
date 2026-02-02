@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
     const [user] = await db
       .select()
       .from(users)
-      .where(eq(users.id, userId))
+      .where(eq(users.id, userId as any))
       .limit(1);
 
     if (!user) {
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
     const [profile] = await db
       .select()
       .from(profiles)
-      .where(eq(profiles.userId, userId))
+      .where(eq(profiles.userId, userId as any))
       .limit(1);
 
     return NextResponse.json({
@@ -123,7 +123,7 @@ export async function PATCH(request: NextRequest) {
     const db = getDbClient();
 
     // Allowed fields for update
-    const allowedFields: Record<string, any> = {
+    const updateData: any = {
       displayName: body.displayName,
       artistName: body.artistName,
       firstName: body.firstName,
@@ -142,25 +142,23 @@ export async function PATCH(request: NextRequest) {
     };
 
     // Remove undefined fields
-    const updateData = Object.fromEntries(
-      Object.entries(allowedFields).filter(([_, v]) => v !== undefined)
-    );
+    Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
 
     // Check if profile exists
     const [existingProfile] = await db
       .select()
       .from(profiles)
-      .where(eq(profiles.userId, userId))
+      .where(eq(profiles.userId, userId as any))
       .limit(1);
 
     if (existingProfile) {
       await db
         .update(profiles)
         .set(updateData)
-        .where(eq(profiles.userId, userId));
+        .where(eq(profiles.userId, userId as any));
     } else {
       await db.insert(profiles).values({
-        userId,
+        userId: userId as any,
         ...updateData,
       });
     }
@@ -169,7 +167,7 @@ export async function PATCH(request: NextRequest) {
     const [updatedProfile] = await db
       .select()
       .from(profiles)
-      .where(eq(profiles.userId, userId))
+      .where(eq(profiles.userId, userId as any))
       .limit(1);
 
     return NextResponse.json({
