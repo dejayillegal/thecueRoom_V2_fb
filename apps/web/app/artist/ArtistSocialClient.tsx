@@ -180,7 +180,7 @@ export default function ArtistSocialClient({
   };
 
   const navigateToArtist = (username: string) => {
-    window.location.href = `/artist/u/${username}`;
+    window.location.href = `/link/${username}`;
   };
 
   const filteredFeed = activeTab === 'following' 

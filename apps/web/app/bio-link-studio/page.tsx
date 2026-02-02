@@ -323,6 +323,7 @@ export default function BioLinkStudio() {
                   <a 
                     href={`/link/${artist?.user?.username}`} 
                     target="_blank" 
+                    prefetch={false}
                     className="text-[9px] font-bold uppercase tracking-widest text-[#D7FF3C] hover:underline flex items-center gap-2"
                   >
                     <ExternalLink size={10} />

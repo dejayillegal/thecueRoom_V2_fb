@@ -1,0 +1,147 @@
+(Fix Public Bio Link Routing + Cache Issues)
+
+This is a routing correctness and cache invalidation fix.
+Do NOT redesign UI.
+Do NOT add new features.
+Do NOT touch backend logic.
+
+GOAL
+
+Ensure Public Bio Link always navigates to /link/[username],
+never resolves to old or cached routes, and works reliably after cold start.
+
+STEP 1 — FORCE CORRECT BIO LINK HREF (CRITICAL)
+
+Problem:
+Public Bio Link still points to an old route due to stale computed URLs.
+
+Actions:
+
+Locate all instances where Public Bio Link is generated:
+
+profile header
+
+avatar dropdown
+
+artist social page
+
+bio link studio
+
+Replace any hardcoded or legacy paths:
+
+❌ /@username
+
+❌ /artist/username
+
+❌ /profile/username
+
+Ensure only this format is used everywhere:
+
+`/link/${user.username}`
+
+
+Rules:
+
+URL must be computed inside the render, not at module scope
+
+Do NOT store the URL in constants outside components
+
+Verification:
+Inspect element → href shows /link/<username> exactly.
+
+STEP 2 — DISABLE PREFETCH TO AVOID STALE ROUTES
+
+Problem:
+Next.js App Router prefetch keeps old routes alive.
+
+Actions:
+
+For every <Link> or router navigation to the bio page:
+
+<Link href={`/link/${user.username}`} prefetch={false}>
+
+
+For programmatic navigation:
+
+router.push(`/link/${user.username}`);
+
+
+Verification:
+Navigation always resolves to /link/[username].
+
+STEP 3 — HARD RESET NEXT.JS ROUTE CACHE (REQUIRED)
+
+Actions:
+
+Add a one-time dev reset command to instructions:
+
+rm -rf .next
+rm -rf node_modules/.cache
+
+
+Restart dev server after cleanup.
+
+Rules:
+
+Do NOT rely on Replit Restart button alone
+
+Cache must be fully removed
+
+Verification:
+Next.js rebuilds routes from filesystem.
+
+STEP 4 — VERIFY ROUTE REGISTRATION
+
+Actions:
+
+Confirm route exists at:
+
+apps/web/app/link/[username]/page.tsx
+
+
+Ensure:
+
+no escaped folders (\[username\])
+
+no duplicate bio routes elsewhere
+
+Verification:
+Direct visit works:
+
+/link/illegal_mastercue
+
+STEP 5 — SAFETY & CONSISTENCY CHECK
+
+Ensure:
+
+No 404 on /link/[username]
+
+Sidebar is NOT rendered on bio page
+
+Bio page is public and unauthenticated
+
+Artist avatar + name render correctly
+
+REQUIRED OUTPUT
+
+All Public Bio Links route to /link/[username]
+
+No stale navigation or cached routes
+
+Bio page opens correctly from:
+
+profile
+
+avatar menu
+
+bio link studio
+
+No UI redesigns
+
+No backend changes
+
+IMPLEMENT DIRECTLY
+
+Do not explain.
+Do not ask questions.
+Do not add features.

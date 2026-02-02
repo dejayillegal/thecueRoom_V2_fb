@@ -1,0 +1,124 @@
+This is a routing and rendering correction.
+Do NOT redesign the internal Artist Social page.
+Do NOT add backend services or database schemas.
+
+GOAL:
+Public Bio Links must open a standalone, shareable
+Linktree/Milkshake-style page — NOT the internal artist UI.
+
+–––––––––––––––––––––
+STEP 1: SEPARATE INTERNAL vs PUBLIC BIO ROUTES (CRITICAL)
+–––––––––––––––––––––
+Problem:
+Public bio link routes to internal artist screen.
+
+Actions:
+1. Create a dedicated PUBLIC bio route:
+   - /bio/{username}
+   OR
+   - /@{username}
+2. This route must:
+   - be unauthenticated
+   - NOT use Artist Social layout
+   - NOT include sidebar, topbar, or app shell
+3. Internal Artist Social pages remain unchanged.
+
+Verification:
+Public bio link opens a clean standalone page.
+
+–––––––––––––––––––––
+STEP 2: PUBLIC BIO PAGE STRUCTURE (LINKTREE STYLE)
+–––––––––––––––––––––
+Actions:
+Public bio page must render:
+1. Artist avatar (large, centered)
+2. Artist display name
+3. @username
+4. Bio text
+5. List of published links as stacked cards:
+   - Spotify
+   - SoundCloud
+   - YouTube
+   - External links
+6. Each link:
+   - shows platform icon
+   - opens externally
+7. Minimal footer branding (thecueRoom)
+
+Rules:
+- No navigation
+- No sidebar
+- No edit controls
+
+Verification:
+Page feels like Linktree / Milkshake.
+
+–––––––––––––––––––––
+STEP 3: FIX BIO LINK STUDIO → PUBLIC LINK GENERATION
+–––––––––––––––––––––
+Actions:
+1. “Publish” in Bio Link Studio must generate:
+   - a PUBLIC URL only
+2. Store published state using:
+   - existing profile metadata
+   OR
+   - existing links data
+3. Public link must be:
+   - stable
+   - shareable
+   - reload-safe
+
+Verification:
+Shared link works in incognito / external browser.
+
+–––––––––––––––––––––
+STEP 4: PLATFORM AUTO-DETECTION (UI-ONLY)
+–––––––––––––––––––––
+Actions:
+1. Detect link source by URL:
+   - spotify.com → Spotify icon
+   - soundcloud.com → SoundCloud icon
+   - youtube.com / youtu.be → YouTube icon
+2. Fallback to generic link icon.
+3. Use existing icon set only.
+
+Verification:
+Icons match platform automatically.
+
+–––––––––––––––––––––
+STEP 5: ENSURE INTERNAL ARTIST PAGE DOES NOT RENDER PUBLIC BIO
+–––––––––––––––––––––
+Actions:
+1. Clicking “Public Bio Link”:
+   - opens the PUBLIC route only
+2. Internal artist page remains:
+   - social feed
+   - followers / following
+   - activity
+3. No UI overlap between the two pages.
+
+Verification:
+No internal UI leaks into public bio.
+
+–––––––––––––––––––––
+STEP 6: SAFETY CHECK
+–––––––––––––––––––––
+1. No 404s.
+2. No auth required.
+3. No console errors.
+4. Desktop + mobile responsive.
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Proper public bio landing page
+- Shareable bio URL
+- Correct routing separation
+- Auto-detected platform icons
+- Confirmation that:
+  - Internal Artist Social UI is unchanged
+  - Public bio behaves like Linktree/Milkshake
+
+Do not explain.
+Do not ask questions.
+Implement directly.
