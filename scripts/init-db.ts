@@ -194,8 +194,8 @@ async function main() {
     
     if (existing.length === 0) {
       const result = await db.execute(sql`
-        INSERT INTO forum_categories (id, name, slug, description, created_at, updated_at)
-        VALUES (gen_random_uuid(), ${cat.name}, ${cat.slug}, ${cat.description}, NOW(), NOW())
+        INSERT INTO forum_categories (id, name, slug, description, created_at)
+        VALUES (gen_random_uuid(), ${cat.name}, ${cat.slug}, ${cat.description}, NOW())
         RETURNING id
       `);
       categoryIds[cat.slug] = (result[0] as any).id;
