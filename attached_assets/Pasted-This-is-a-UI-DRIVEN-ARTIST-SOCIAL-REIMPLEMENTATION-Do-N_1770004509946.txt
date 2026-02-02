@@ -1,0 +1,189 @@
+This is a UI-DRIVEN ARTIST SOCIAL REIMPLEMENTATION.
+Do NOT add new backend services.
+Do NOT add new database schemas.
+Do NOT change authentication provider.
+Do NOT create a new sidebar.
+
+GOAL:
+Reimplement the Artist Social page to behave like a modern
+social media app (Threads-style), centered around the logged-in artist’s
+profile, followers, following, and activity.
+
+–––––––––––––––––––––
+CORE RULES (NON-NEGOTIABLE)
+–––––––––––––––––––––
+- Reuse existing users, profiles, forumThreads, comments
+- Store social state ONLY in existing profile metadata (JSON)
+- Artist-only feature (role === "artist")
+- Admin allowed
+- Normal users see none of this
+- Use the EXISTING sidebar and top-right avatar menu
+
+–––––––––––––––––––––
+STEP 1: ARTIST CONTEXT HEADER (CRITICAL)
+–––––––––––––––––––––
+Actions:
+1. Under the “ARTIST SOCIAL” title, display:
+   - logged-in artistName
+   - @username (immutable)
+2. This must reflect the CURRENT logged-in artist.
+3. Add subtle status indicator (active / recently active).
+
+Verification:
+Artist immediately sees their identity when opening Artist Social.
+
+–––––––––––––––––––––
+STEP 2: THREADS-STYLE FEED LAYOUT
+–––––––––––––––––––––
+Actions:
+1. Redesign Signal Stream into a social feed:
+   - full-width cards
+   - avatar + username + timestamp
+   - content emphasis
+2. Feed content includes:
+   - own threads
+   - threads from followed artists
+   - threads liked or commented on by followed artists
+3. Clicking any item routes to the original Community Forum thread.
+
+Rules:
+- Forum remains source of truth
+- No duplicated data
+
+Verification:
+Artist Social feels like Threads, not a forum list.
+
+–––––––––––––––––––––
+STEP 3: FOLLOWERS / FOLLOWING (VISIBLE & CLICKABLE)
+–––––––––––––––––––––
+Actions:
+1. Show follower count and following count
+   near the artist name.
+2. Clicking either opens a modal list of artists.
+3. Follow state is stored in profile metadata:
+   - following: [username]
+
+Rules:
+- No new tables
+- Derived followers via reverse lookup
+
+Verification:
+Artists can follow/unfollow and see counts update.
+
+–––––––––––––––––––––
+STEP 4: AVATAR MENU → ARTIST PROFILE HUB
+–––––––––––––––––––––
+Actions:
+1. Clicking the TOP-RIGHT avatar opens a profile hub panel.
+2. Panel shows:
+   - avatar
+   - artistName
+   - username
+   - followers / following
+   - activity summary
+3. Panel actions:
+   - View Profile
+   - Edit Profile
+   - Edit Bio Links (Milkshake-style)
+   - View Activity
+
+Rules:
+- Use existing dropdown / popover system
+- Do NOT add a new navigation system
+
+Verification:
+Avatar menu becomes artist control center.
+
+–––––––––––––––––––––
+STEP 5: EDIT PROFILE (REUSE EXISTING LOGIC)
+–––––––––––––––––––––
+Actions:
+1. “Edit Profile” routes to existing profile edit UI.
+2. Profile edit is NOT duplicated.
+3. Settings sidebar now focuses on:
+   - privacy
+   - account
+   - security
+
+Verification:
+Profile editing works from Artist Social without duplication.
+
+–––––––––––––––––––––
+STEP 6: MILKSHAKE / LINKTREE STYLE BIO LINKS
+–––––––––––––––––––––
+Actions:
+1. Allow artist to manage bio links:
+   - title
+   - URL
+2. Store links in profile metadata JSON.
+3. Generate public page:
+   /link/[username]
+4. Page is:
+   - mobile-first
+   - minimal
+   - brand-consistent
+
+Rules:
+- No backend service
+- No external APIs
+
+Verification:
+Artists can share their bio link externally.
+
+–––––––––––––––––––––
+STEP 7: ARTIST PROFILE PAGE
+–––––––––––––––––––––
+Actions:
+1. Route:
+   /artist/[username]
+2. Profile page shows:
+   - avatar
+   - artistName
+   - username
+   - followers / following
+   - bio
+   - links
+   - activity feed
+3. Own profile shows edit controls.
+4. Other artists show follow button only.
+
+Verification:
+Artist profiles behave like social profiles.
+
+–––––––––––––––––––––
+STEP 8: MOTION & SOCIAL POLISH
+–––––––––––––––––––––
+Actions:
+1. Add subtle social motion:
+   - feed reveal
+   - follow button feedback
+   - modal slide-ups
+2. Animate only opacity and transform.
+3. Respect prefers-reduced-motion.
+
+Verification:
+UI feels modern, social, and performant.
+
+–––––––––––––––––––––
+SAFETY CHECK
+–––––––––––––––––––––
+1. No schema changes
+2. No auth changes
+3. No duplicate sidebar
+4. No console errors
+5. Desktop & mobile stable
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Artist identity shown under Artist Social title
+- Threads-style social feed
+- Followers / following system
+- Avatar menu as artist hub
+- Milkshake-style bio links
+- Artist profile pages
+- Existing sidebar reused
+
+Do not explain.
+Do not ask questions.
+Implement directly.

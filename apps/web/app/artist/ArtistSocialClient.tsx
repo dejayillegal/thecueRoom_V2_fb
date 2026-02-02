@@ -1,21 +1,43 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Activity, 
   MessageSquare, 
   Users, 
-  TrendingUp, 
   Zap, 
-  Search,
-  ArrowRight,
-  Shield,
-  Music,
-  User as UserIcon
+  Heart,
+  Share2,
+  UserPlus,
+  UserCheck,
+  X,
+  ExternalLink,
+  Settings,
+  Edit3,
+  Link as LinkIcon
 } from 'lucide-react';
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+
+interface CurrentUser {
+  id: string;
+  username: string;
+  artistName: string;
+  avatar: string;
+  bio: string;
+  following: number;
+  followers: number;
+}
+
+interface Artist {
+  id: string;
+  username: string;
+  displayName: string;
+  avatar: string;
+  bio: string;
+  isFollowing: boolean;
+  followers: number;
+  following: number;
+}
 
 interface SignalEntry {
   id: string;
@@ -23,236 +45,354 @@ interface SignalEntry {
   artistName: string;
   username: string;
   avatar: string;
+  title: string;
   content: string;
   timestamp: string;
-  stats: {
-    replies: number;
-    signals: number;
-  }
+  stats: { replies: number; signals: number };
+  isFollowing: boolean;
+  isOwn: boolean;
 }
 
-const Waveform = () => (
-  <div className="flex items-center gap-[2px] h-4">
-    {[...Array(12)].map((_, i) => (
+function FollowersModal({ 
+  isOpen, 
+  onClose, 
+  title, 
+  artists,
+  onFollow
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  title: string;
+  artists: Artist[];
+  onFollow: (username: string, follow: boolean) => void;
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+      onClick={onClose}
+    >
       <motion.div
-        key={i}
-        className="w-[2px] bg-[#D1FF3D]"
-        animate={{ 
-          height: [4, 16, 8, 12, 6][i % 5],
-          opacity: [0.3, 1, 0.5, 0.8, 0.4][i % 5]
-        }}
-        transition={{
-          duration: 1.5,
-          repeat: Infinity,
-          delay: i * 0.1,
-          ease: "easeInOut"
-        }}
-      />
-    ))}
-  </div>
-);
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="bg-[#111] border border-white/10 rounded-xl w-full max-w-md max-h-[70vh] overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-white/10">
+          <h3 className="text-lg font-semibold">{title}</h3>
+          <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-full transition-colors">
+            <X size={20} />
+          </button>
+        </div>
+        <div className="overflow-y-auto max-h-[calc(70vh-60px)]">
+          {artists.length === 0 ? (
+            <p className="text-center text-zinc-500 py-8">No {title.toLowerCase()} yet</p>
+          ) : (
+            artists.map(artist => (
+              <div key={artist.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+                <div className="flex items-center gap-3">
+                  <img src={artist.avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
+                  <div>
+                    <p className="font-medium text-sm">{artist.displayName}</p>
+                    <p className="text-xs text-zinc-500">@{artist.username}</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => onFollow(artist.username, !artist.isFollowing)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                    artist.isFollowing 
+                      ? "bg-white/10 text-white hover:bg-red-500/20 hover:text-red-400" 
+                      : "bg-[#D7FF3C] text-black hover:bg-[#c4eb35]"
+                  )}
+                >
+                  {artist.isFollowing ? 'Following' : 'Follow'}
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
 
 export default function ArtistSocialClient({ 
+  currentUser,
   initialArtists, 
   initialFeed 
 }: { 
-  initialArtists: any[], 
+  currentUser: CurrentUser;
+  initialArtists: Artist[], 
   initialFeed: SignalEntry[] 
 }) {
+  const [artists, setArtists] = useState(initialArtists);
+  const [feed] = useState(initialFeed);
+  const [activeTab, setActiveTab] = useState<'foryou' | 'following'>('foryou');
+  const [showFollowers, setShowFollowers] = useState(false);
+  const [showFollowing, setShowFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(currentUser.followers);
+  const [followingCount, setFollowingCount] = useState(currentUser.following);
+
+  const handleFollow = async (username: string, shouldFollow: boolean) => {
+    try {
+      const method = shouldFollow ? 'POST' : 'DELETE';
+      await fetch('/api/artist/follow', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      });
+      
+      setArtists(prev => prev.map(a => 
+        a.username === username 
+          ? { ...a, isFollowing: shouldFollow, followers: a.followers + (shouldFollow ? 1 : -1) }
+          : a
+      ));
+      setFollowingCount(prev => prev + (shouldFollow ? 1 : -1));
+    } catch (error) {
+      console.error('Follow error:', error);
+    }
+  };
+
+  const navigateToThread = (threadId: string) => {
+    window.location.href = `/forum/thread/${threadId}`;
+  };
+
   const navigateToArtist = (username: string) => {
     window.location.href = `/artist/u/${username}`;
   };
 
+  const filteredFeed = activeTab === 'following' 
+    ? feed.filter(f => f.isFollowing || f.isOwn)
+    : feed;
+
+  const suggestedArtists = artists.filter(a => !a.isFollowing && a.username !== currentUser.username).slice(0, 5);
+  const followingArtists = artists.filter(a => a.isFollowing);
+
   return (
-    <div className="min-h-screen bg-[#0B0B0B] text-white selection:bg-[#D1FF3D] selection:text-black">
-      {/* Background Pulse Systems */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#D1FF3D]/5 blur-[120px] rounded-full animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/5 blur-[120px] rounded-full animate-pulse [animation-delay:2s]" />
-      </div>
-
-      <div className="relative z-10 max-w-[1400px] mx-auto px-4 py-8 lg:px-8">
-        {/* Top Header System */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-white/5 pb-8">
-          <div className="space-y-2">
-                      <h1 className="text-4xl lg:text-6xl font-black tracking-tighter uppercase leading-none">
-                        Artist <span className="text-zinc-500">Social</span>
-                      </h1>
-            <div className="flex items-center gap-4 text-zinc-500 font-mono text-[10px] uppercase tracking-[0.4em]">
-              <span className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-[#D1FF3D] rounded-full animate-ping" />
-                Network Live
-              </span>
-              <span>/</span>
-              <span>Encrypted Layer</span>
-              <span>/</span>
-              <Waveform />
+    <div className="min-h-screen bg-[#0B0B0B] text-white">
+      <div className="max-w-2xl mx-auto px-4 py-6">
+        <motion.header 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="flex items-start gap-4 mb-6">
+            <div className="relative">
+              <img 
+                src={currentUser.avatar} 
+                alt="" 
+                className="w-20 h-20 rounded-full border-2 border-[#D7FF3C] object-cover"
+              />
+              <div className="absolute bottom-1 right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0B0B0B]" />
             </div>
-          </div>
-
-          <div className="relative w-full md:w-80 group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-[#D1FF3D] transition-colors" />
-            <Input 
-              placeholder="SEARCH FREQUENCIES..." 
-              className="bg-zinc-900/50 border-white/5 rounded-none pl-10 h-12 text-[10px] uppercase tracking-widest focus:ring-[#D1FF3D] focus:border-[#D1FF3D]/50 transition-all"
-            />
-          </div>
-        </header>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left: Identity Panel */}
-          <aside className="lg:col-span-3 space-y-8">
-            <section className="bg-zinc-900/30 border border-white/5 p-6 space-y-6">
-              <h2 className="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-500 border-b border-white/5 pb-3">
-                Global Nodes
-              </h2>
-              <div className="space-y-4">
-                {initialArtists.slice(0, 6).map((artist, i) => (
-                  <motion.div 
-                    key={artist.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className="flex items-center gap-3 group cursor-pointer"
-                    onClick={() => navigateToArtist(artist.username)}
-                  >
-                    <div className="w-10 h-10 bg-zinc-800 border border-white/10 overflow-hidden relative grayscale group-hover:grayscale-0 transition-all">
-                      <img src={artist.avatar} alt="" className="w-full h-full object-cover opacity-60 group-hover:opacity-100" />
-                    </div>
-                    <div>
-                      <p className="text-[11px] font-bold uppercase tracking-tight group-hover:text-[#D1FF3D] transition-colors line-clamp-1">
-                        {artist.displayName}
-                      </p>
-                      <p className="text-[9px] font-mono text-zinc-600 lowercase">@{artist.username}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-              <button className="w-full py-3 border border-white/5 text-[9px] uppercase tracking-[0.3em] text-zinc-500 hover:bg-[#D1FF3D] hover:text-black transition-all">
-                View Directory
-              </button>
-            </section>
-
-            <section className="bg-[#D1FF3D]/5 border border-[#D1FF3D]/10 p-6 space-y-4 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                <Zap className="w-12 h-12 text-[#D1FF3D]" />
-              </div>
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D1FF3D]">Artist Spotlight</h3>
-              <p className="text-[11px] text-zinc-400 leading-relaxed italic">
-                "The social layer is where the underground becomes a network. Connect, signal, and sync."
-              </p>
-            </section>
-          </aside>
-
-          {/* Center: Activity Feed */}
-          <main className="lg:col-span-6 space-y-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <Activity className="w-4 h-4 text-[#D1FF3D]" />
-                <h2 className="text-xs font-bold uppercase tracking-[0.3em]">Signal Stream</h2>
-              </div>
-              <div className="flex gap-2">
-                {['Live', 'Rising', 'Archived'].map(filter => (
-                  <button key={filter} className="px-3 py-1 bg-zinc-900 border border-white/5 text-[9px] uppercase tracking-widest text-zinc-500 hover:text-white transition-colors">
-                    {filter}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {initialFeed.map((signal, i) => (
-                <motion.div
-                  key={signal.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className="bg-zinc-900/40 border border-white/5 p-6 hover:border-[#D1FF3D]/20 transition-all group relative"
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold mb-1">{currentUser.artistName}</h1>
+              <p className="text-zinc-500 text-sm mb-3">@{currentUser.username}</p>
+              <div className="flex items-center gap-6 text-sm">
+                <button 
+                  onClick={() => setShowFollowers(true)}
+                  className="hover:underline"
                 >
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="w-12 h-12 bg-zinc-800 border border-white/10 overflow-hidden group-hover:border-[#D1FF3D]/50 transition-colors">
-                        <img src={signal.avatar} alt="" className="w-full h-full object-cover grayscale group-hover:grayscale-0 opacity-70 group-hover:opacity-100 transition-all" />
-                      </div>
-                    </div>
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-bold uppercase tracking-tight hover:text-[#D1FF3D] cursor-pointer" onClick={() => navigateToArtist(signal.username)}>
-                            {signal.artistName}
-                          </span>
-                          <span className="text-[9px] font-mono text-zinc-600 lowercase">@{signal.username}</span>
-                        </div>
-                        <span className="text-[8px] font-mono text-zinc-700 uppercase">{signal.timestamp}</span>
-                      </div>
-                      
-                      <p className="text-sm text-zinc-300 leading-relaxed font-light line-clamp-3 group-hover:line-clamp-none transition-all">
-                        {signal.content}
-                      </p>
+                  <span className="font-semibold">{followersCount}</span>
+                  <span className="text-zinc-500 ml-1">followers</span>
+                </button>
+                <button 
+                  onClick={() => setShowFollowing(true)}
+                  className="hover:underline"
+                >
+                  <span className="font-semibold">{followingCount}</span>
+                  <span className="text-zinc-500 ml-1">following</span>
+                </button>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <a 
+                href="/settings" 
+                className="p-2 rounded-full border border-white/10 hover:bg-white/5 transition-colors"
+              >
+                <Edit3 size={18} />
+              </a>
+              <a 
+                href={`/link/${currentUser.username}`}
+                target="_blank"
+                className="p-2 rounded-full border border-white/10 hover:bg-white/5 transition-colors"
+              >
+                <LinkIcon size={18} />
+              </a>
+            </div>
+          </div>
+          {currentUser.bio && (
+            <p className="text-zinc-400 text-sm mb-4">{currentUser.bio}</p>
+          )}
+        </motion.header>
 
-                      <div className="flex items-center gap-6 pt-2">
-                        <div className="flex items-center gap-1.5 text-zinc-500 hover:text-white cursor-pointer transition-colors">
-                          <MessageSquare size={12} />
-                          <span className="text-[10px] font-mono">{signal.stats.replies}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-zinc-500 hover:text-[#D1FF3D] cursor-pointer transition-colors">
-                          <Zap size={12} />
-                          <span className="text-[10px] font-mono">{signal.stats.signals}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+        <div className="flex border-b border-white/10 mb-6">
+          <button
+            onClick={() => setActiveTab('foryou')}
+            className={cn(
+              "flex-1 py-3 text-sm font-medium transition-colors relative",
+              activeTab === 'foryou' ? "text-white" : "text-zinc-500 hover:text-zinc-300"
+            )}
+          >
+            For You
+            {activeTab === 'foryou' && (
+              <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#D7FF3C]" />
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('following')}
+            className={cn(
+              "flex-1 py-3 text-sm font-medium transition-colors relative",
+              activeTab === 'following' ? "text-white" : "text-zinc-500 hover:text-zinc-300"
+            )}
+          >
+            Following
+            {activeTab === 'following' && (
+              <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#D7FF3C]" />
+            )}
+          </button>
+        </div>
+
+        {suggestedArtists.length > 0 && activeTab === 'foryou' && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mb-6 p-4 bg-zinc-900/50 rounded-xl border border-white/5"
+          >
+            <h3 className="text-sm font-medium text-zinc-400 mb-3">Suggested for you</h3>
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+              {suggestedArtists.map((artist, i) => (
+                <motion.div
+                  key={artist.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="flex-shrink-0 w-28 text-center"
+                >
+                  <img 
+                    src={artist.avatar} 
+                    alt="" 
+                    className="w-16 h-16 rounded-full mx-auto mb-2 cursor-pointer hover:ring-2 ring-[#D7FF3C] transition-all"
+                    onClick={() => navigateToArtist(artist.username)}
+                  />
+                  <p className="text-xs font-medium truncate mb-1">{artist.displayName}</p>
+                  <button
+                    onClick={() => handleFollow(artist.username, true)}
+                    className="px-3 py-1 bg-[#D7FF3C] text-black text-xs font-medium rounded-full hover:bg-[#c4eb35] transition-colors"
+                  >
+                    Follow
+                  </button>
                 </motion.div>
               ))}
             </div>
-          </main>
+          </motion.div>
+        )}
 
-          {/* Right: Network Stats & Presence */}
-          <aside className="lg:col-span-3 space-y-8">
-            <section className="bg-zinc-900/30 border border-white/5 p-6 space-y-6">
-              <h2 className="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-500 border-b border-white/5 pb-3">
-                Network Vitals
-              </h2>
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Users className="w-4 h-4 text-zinc-600" />
-                    <span className="text-[10px] uppercase text-zinc-400">Nodes Online</span>
+        <div className="space-y-0">
+          <AnimatePresence mode="popLayout">
+            {filteredFeed.length === 0 ? (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-12 text-zinc-500"
+              >
+                <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>No posts yet. Follow artists to see their content here.</p>
+              </motion.div>
+            ) : (
+              filteredFeed.map((signal, i) => (
+                <motion.article
+                  key={signal.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ delay: i * 0.03 }}
+                  className="py-4 border-b border-white/5 hover:bg-white/[0.02] transition-colors cursor-pointer"
+                  onClick={() => navigateToThread(signal.id)}
+                >
+                  <div className="flex gap-3">
+                    <img 
+                      src={signal.avatar} 
+                      alt="" 
+                      className="w-10 h-10 rounded-full flex-shrink-0 cursor-pointer hover:ring-2 ring-white/20 transition-all"
+                      onClick={(e) => { e.stopPropagation(); navigateToArtist(signal.username); }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span 
+                          className="font-semibold text-sm hover:underline cursor-pointer"
+                          onClick={(e) => { e.stopPropagation(); navigateToArtist(signal.username); }}
+                        >
+                          {signal.artistName}
+                        </span>
+                        <span className="text-zinc-500 text-sm">@{signal.username}</span>
+                        <span className="text-zinc-600 text-xs">· {signal.timestamp}</span>
+                        {signal.isOwn && (
+                          <span className="text-[10px] px-1.5 py-0.5 bg-[#D7FF3C]/20 text-[#D7FF3C] rounded">You</span>
+                        )}
+                      </div>
+                      <h3 className="font-medium mb-1 text-white">{signal.title}</h3>
+                      <p className="text-zinc-400 text-sm leading-relaxed line-clamp-3">{signal.content}</p>
+                      <div className="flex items-center gap-6 mt-3">
+                        <button 
+                          className="flex items-center gap-1.5 text-zinc-500 hover:text-[#D7FF3C] transition-colors group"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MessageSquare size={16} className="group-hover:scale-110 transition-transform" />
+                          <span className="text-xs">{signal.stats.replies}</span>
+                        </button>
+                        <button 
+                          className="flex items-center gap-1.5 text-zinc-500 hover:text-red-400 transition-colors group"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Heart size={16} className="group-hover:scale-110 transition-transform" />
+                          <span className="text-xs">{signal.stats.signals}</span>
+                        </button>
+                        <button 
+                          className="flex items-center gap-1.5 text-zinc-500 hover:text-white transition-colors group"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Share2 size={16} className="group-hover:scale-110 transition-transform" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <span className="text-[10px] font-mono text-[#D1FF3D]">{initialArtists.length * 3 + 12}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <TrendingUp className="w-4 h-4 text-zinc-600" />
-                    <span className="text-[10px] uppercase text-zinc-400">Signal Density</span>
-                  </div>
-                  <span className="text-[10px] font-mono text-white">4.2 GHz</span>
-                </div>
-                <div className="pt-4 space-y-2">
-                   <div className="h-[1px] bg-white/5 w-full" />
-                   <p className="text-[8px] font-mono text-zinc-700 uppercase leading-loose">
-                     LATENCY: 12ms<br/>
-                     STATUS: OPTIMIZED<br/>
-                     ZONE: GLOBAL_NET
-                   </p>
-                </div>
-              </div>
-            </section>
-
-            <section className="space-y-4">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-500 pl-2">Active Signals</h3>
-              <div className="space-y-2">
-                {['Production Rituals', 'Gear Talk', 'Live Sets'].map((tag, i) => (
-                  <div key={tag} className="flex items-center justify-between p-3 bg-zinc-900/50 border border-white/5 group hover:border-[#D1FF3D]/20 cursor-pointer transition-all">
-                    <span className="text-[10px] uppercase tracking-wider text-zinc-400 group-hover:text-white">#{tag.replace(' ', '_')}</span>
-                    <ArrowRight size={12} className="text-zinc-700 group-hover:text-[#D1FF3D] group-hover:translate-x-1 transition-all" />
-                  </div>
-                ))}
-              </div>
-            </section>
-          </aside>
+                </motion.article>
+              ))
+            )}
+          </AnimatePresence>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showFollowers && (
+          <FollowersModal 
+            isOpen={showFollowers} 
+            onClose={() => setShowFollowers(false)}
+            title="Followers"
+            artists={artists.filter(a => {
+              const isFollowingMe = initialArtists.find(ia => ia.username === a.username)?.isFollowing;
+              return isFollowingMe;
+            })}
+            onFollow={handleFollow}
+          />
+        )}
+        {showFollowing && (
+          <FollowersModal 
+            isOpen={showFollowing} 
+            onClose={() => setShowFollowing(false)}
+            title="Following"
+            artists={followingArtists}
+            onFollow={handleFollow}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

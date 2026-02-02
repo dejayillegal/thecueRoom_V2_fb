@@ -78,25 +78,33 @@ The project utilizes a pnpm monorepo structure with `apps/web` for the Next.js f
     * RFC-compliant email regex with proper normalization
     * Updated auth routes to use bcryptjs consistently
   - TODO: Email service integration for password reset and verification emails
-- **Artist Social UI (January 2026):**
+- **Artist Social UI (January 2026 - Threads-Style Reimplementation):**
   - Artist-only social layer derived from existing data (no new tables)
   - **Routes:**
-    * `/artist` - Artist social directory with feed (artist/admin only)
+    * `/artist` - Threads-style social feed with artist identity header
     * `/artist/u/[username]` - Individual artist profile page by username
     * `/link/[username]` - Public bio link page (Milkshake-style)
+  - **UI/UX (Threads-Style):**
+    * Logged-in artist identity header with avatar, name, @username, and online status
+    * Followers/following counts with clickable modals showing artist lists
+    * For You / Following tab-based feed filtering
+    * Full-width post cards with avatar, username, timestamp, content
+    * Suggested artists carousel for discovery
+    * Heart/reply/share interactions on posts
+    * Mobile-first responsive design
   - **Following System:** Stored in profile metadata (`socialLinks._following` array)
     * Follow/unfollow via `/api/artist/follow` (POST/DELETE)
-    * Followers count derived by reverse lookup
+    * Followers count derived by reverse lookup across all profiles
     * Feed filters to show content from followed artists
   - **Features:**
-    * Profile viewing with stats (signals, followers, following, karma)
+    * Profile viewing with stats (followers, following)
     * Recent activity (threads, replies) from forum data
     * Social links display from profile metadata
-    * Own profile shows "Edit Profile" button, others show "Follow" button
+    * Own profile shows "Edit Profile" and "Bio Link" buttons
     * Shareable bio link pages for external promotion
-    * Artist preview cards on hover/tap
+    * Click-through to original forum threads
   - **Access Control:** Restricted to artist and admin roles
-  - **Components:** ArtistProfileClient, ArtistPreviewCard, bio link page
+  - **Components:** ArtistSocialClient, ArtistProfileClient, FollowersModal, bio link page
 - **Profile Settings (October 31, 2025):**
   - Comprehensive profile management page at `/settings`
   - Read-only fields: email, username, artistName, verified social links (protected after verification)

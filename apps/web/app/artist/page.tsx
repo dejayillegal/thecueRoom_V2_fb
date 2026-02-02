@@ -18,31 +18,62 @@ export default async function ArtistDirectoryPage() {
     id: users.id,
     username: users.username,
     role: users.role,
-  }).from(users).where(eq(users.role, 'artist')).limit(20);
+  }).from(users).where(eq(users.role, 'artist')).limit(50);
 
-  const artistProfiles = await db.select().from(profiles).where(
-    inArray(profiles.userId, rawArtists.map(a => a.id))
-  );
+  const allProfiles = await db.select().from(profiles);
+  const profileMap = new Map(allProfiles.map(p => [p.userId, p]));
   
-  const profileMap = new Map(artistProfiles.map(p => [p.userId, p]));
-  
+  const myProfile = profileMap.get(session.uid);
+  const mySocialLinks = (myProfile?.socialLinks as Record<string, any>) || {};
+  const myFollowing: string[] = mySocialLinks._following || [];
+
+  let myFollowers = 0;
+  for (const p of allProfiles) {
+    const links = (p.socialLinks as Record<string, any>) || {};
+    const following: string[] = links._following || [];
+    if (following.includes(session.username || '')) {
+      myFollowers++;
+    }
+  }
+
+  const currentUser = {
+    id: session.uid,
+    username: session.username || 'unknown',
+    artistName: myProfile?.artistName || myProfile?.displayName || session.username || 'Artist',
+    avatar: generateDeterministicAvatar(session.uid),
+    bio: myProfile?.bio || '',
+    following: myFollowing.length,
+    followers: myFollowers
+  };
+
   const artists = rawArtists.map((a) => {
     const profile = profileMap.get(a.id);
+    const socialLinks = (profile?.socialLinks as Record<string, any>) || {};
+    const following: string[] = socialLinks._following || [];
+    
+    let followers = 0;
+    for (const p of allProfiles) {
+      const links = (p.socialLinks as Record<string, any>) || {};
+      const f: string[] = links._following || [];
+      if (f.includes(a.username || '')) followers++;
+    }
+
     return {
       id: a.id,
       username: a.username || 'Unknown',
       displayName: profile?.artistName || profile?.displayName || a.username || 'Unknown',
-      avatar: generateDeterministicAvatar(a.id)
+      avatar: generateDeterministicAvatar(a.id),
+      bio: profile?.bio || '',
+      isFollowing: myFollowing.includes(a.username || ''),
+      followers,
+      following: following.length
     };
   });
-
-  const myProfile = await db.select().from(profiles).where(eq(profiles.userId, session.uid)).limit(1);
-  const mySocialLinks = (myProfile[0]?.socialLinks as Record<string, any>) || {};
-  const myFollowing: string[] = mySocialLinks._following || [];
 
   const threads = await db.select({
     id: forumThreads.id,
     title: forumThreads.title,
+    content: forumThreads.content,
     createdAt: forumThreads.createdAt,
     userId: forumThreads.userId,
     username: users.username,
@@ -53,25 +84,30 @@ export default async function ArtistDirectoryPage() {
   .leftJoin(users, eq(forumThreads.userId, users.id))
   .where(eq(forumThreads.moderationStatus, 'approved'))
   .orderBy(desc(forumThreads.createdAt))
-  .limit(20);
+  .limit(30);
 
-  const feedAll = (threads || []).map((t: any) => ({
-    id: t.id,
-    type: 'thread' as const,
-    artistName: t.username || 'Unknown',
-    username: t.username || 'unknown',
-    avatar: generateDeterministicAvatar(t.userId!),
-    content: t.title,
-    timestamp: t.createdAt ? new Date(t.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently',
-    stats: {
-      replies: t.replyCount || 0,
-      signals: t.likesCount || 0
-    },
-    isFollowing: myFollowing.includes(t.username || '')
-  }));
+  const feedAll = (threads || []).map((t: any) => {
+    const authorProfile = allProfiles.find(p => p.userId === t.userId);
+    return {
+      id: t.id,
+      type: 'thread' as const,
+      artistName: authorProfile?.artistName || authorProfile?.displayName || t.username || 'Unknown',
+      username: t.username || 'unknown',
+      avatar: generateDeterministicAvatar(t.userId!),
+      title: t.title,
+      content: t.content?.substring(0, 200) || t.title,
+      timestamp: t.createdAt ? new Date(t.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'Recently',
+      stats: {
+        replies: t.replyCount || 0,
+        signals: t.likesCount || 0
+      },
+      isFollowing: myFollowing.includes(t.username || ''),
+      isOwn: t.userId === session.uid
+    };
+  });
 
-  const feedFollowing = feedAll.filter(f => f.isFollowing);
-  const feed = feedFollowing.length > 0 ? feedFollowing : feedAll.slice(0, 10);
+  const feedFollowing = feedAll.filter(f => f.isFollowing || f.isOwn);
+  const feed = feedFollowing.length >= 3 ? feedFollowing : feedAll.slice(0, 15);
 
-  return <ArtistSocialClient initialArtists={artists} initialFeed={feed} />;
+  return <ArtistSocialClient currentUser={currentUser} initialArtists={artists} initialFeed={feed} />;
 }
