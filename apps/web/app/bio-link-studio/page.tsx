@@ -162,7 +162,7 @@ export default function BioLinkStudio() {
     
     const link: SocialLink = {
       id: `link-${Date.now()}`,
-      label: newLink.label || metadata?.title || 'New Link',
+      label: newLink.label || metadata?.title || (type !== 'other' ? type.charAt(0).toUpperCase() + type.slice(1) : 'New Link'),
       url: newLink.url,
       type,
       visible: true,
@@ -278,7 +278,17 @@ export default function BioLinkStudio() {
                   <Layout size={16} className="text-[#D7FF3C]" />
                   <h2 className="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-400">Active Pipeline</h2>
                 </div>
-                <span className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest">{links.length} nodes online</span>
+                <div className="flex items-center gap-4">
+                  <a 
+                    href={`/link/${artist?.user?.username}`} 
+                    target="_blank" 
+                    className="text-[9px] font-bold uppercase tracking-widest text-[#D7FF3C] hover:underline flex items-center gap-2"
+                  >
+                    <ExternalLink size={10} />
+                    Public Bio Link
+                  </a>
+                  <span className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest">{links.length} nodes online</span>
+                </div>
               </div>
 
               <Reorder.Group axis="y" values={links} onReorder={setLinks} className="space-y-4">
