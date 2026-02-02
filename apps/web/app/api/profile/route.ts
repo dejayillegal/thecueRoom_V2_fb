@@ -125,6 +125,7 @@ export async function PATCH(request: NextRequest) {
     // Allowed fields for update
     const allowedFields: Record<string, any> = {
       displayName: body.displayName,
+      artistName: body.artistName,
       firstName: body.firstName,
       lastName: body.lastName,
       bio: body.bio,

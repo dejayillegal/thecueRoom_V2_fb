@@ -1,0 +1,140 @@
+This is a routing, data-binding, and UI editability fix.
+Do NOT add new backend services.
+Do NOT add new database schemas.
+Do NOT change authentication provider.
+
+GOAL:
+Fix the 404 error on public bio links
+AND allow artists to edit their name and avatar correctly,
+with changes reflected everywhere (studio + public page).
+
+–––––––––––––––––––––
+STEP 1: FIX PUBLIC BIO LINK 404 (CRITICAL)
+–––––––––––––––––––––
+Problem:
+Public bio link resolves to 404.
+
+Actions:
+1. Register a public route for artist bio pages:
+   - /@{username}
+   OR
+   - /artist/{username}/links
+2. Route must be:
+   - statically resolvable
+   - server-rendered or edge-safe
+3. Fetch artist data by:
+   - username (NOT user id)
+4. If artist exists:
+   - render bio link page
+5. If artist does not exist:
+   - render a styled “Artist Not Found” state (not Next.js 404)
+
+Rules:
+- Do NOT rely on client-only routing
+- Do NOT require authentication
+
+Verification:
+Opening a public bio link loads correctly.
+
+–––––––––––––––––––––
+STEP 2: ENSURE USERNAME → PROFILE RESOLUTION
+–––––––––––––––––––––
+Actions:
+1. Ensure username is:
+   - unique
+   - immutable (except admin users)
+2. Public bio route must resolve using:
+   - profile.username
+3. Do NOT use email or internal IDs for routing.
+
+Verification:
+Public link works consistently across reloads.
+
+–––––––––––––––––––––
+STEP 3: MAKE ARTIST NAME EDITABLE (DISPLAY NAME)
+–––––––––––––––––––––
+Problem:
+Artist name is static or not editable.
+
+Actions:
+1. Allow artists to edit:
+   - artist display name (NOT username)
+2. Persist artist name to existing profile fields or metadata.
+3. Reflect updated artist name in:
+   - Artist Social
+   - Bio Link Studio
+   - Public bio page
+   - Thread hover cards
+   - Posts and activity feeds
+
+Rules:
+- Username stays constant
+- Artist name is display-only
+
+Verification:
+Changing artist name updates everywhere instantly.
+
+–––––––––––––––––––––
+STEP 4: MAKE ARTIST AVATAR EDITABLE
+–––––––––––––––––––––
+Actions:
+1. Allow artist to update avatar via:
+   - upload
+   - generated variant selector
+2. Store avatar reference in existing profile data.
+3. Reflect avatar changes in:
+   - Artist Social
+   - Bio Link Studio preview
+   - Public bio page
+   - Threads and comments
+
+Rules:
+- No new storage service
+- Reuse existing upload mechanism or deterministic generator
+
+Verification:
+Avatar updates propagate globally.
+
+–––––––––––––––––––––
+STEP 5: PUBLIC BIO PAGE DATA BINDING
+–––––––––––––––––––––
+Actions:
+1. Public bio page must render:
+   - artist avatar
+   - artist display name
+   - username/handle
+   - published bio links
+2. Page must be:
+   - mobile-first
+   - shareable
+   - fast
+3. Styling must match existing underground aesthetic.
+
+Verification:
+Public page mirrors Bio Link Studio preview.
+
+–––––––––––––––––––––
+STEP 6: SAFETY CHECK
+–––––––––––––––––––––
+1. No console errors.
+2. No broken links.
+3. No auth leakage.
+4. Desktop + mobile both work.
+
+–––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––
+- Working public bio link route (no 404)
+- Editable artist display name
+- Editable artist avatar
+- Consistent data across:
+  - Artist Social
+  - Bio Link Studio
+  - Public bio page
+- Confirmation that:
+  - No backend services were added
+  - No schema changes were made
+
+Do not explain.
+Do not ask questions.
+Implement directly.

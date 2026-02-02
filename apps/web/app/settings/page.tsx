@@ -49,6 +49,8 @@ export default function SettingsPage() {
   // Form state
   const [formData, setFormData] = useState({
     displayName: '',
+    artistName: '',
+    avatar: '',
     firstName: '',
     lastName: '',
     bio: '',
@@ -89,6 +91,8 @@ export default function SettingsPage() {
       if (data.profile) {
         setFormData({
           displayName: data.profile.displayName || '',
+          artistName: data.profile.artistName || '',
+          avatar: data.profile.avatar || '',
           firstName: data.profile.firstName || '',
           lastName: data.profile.lastName || '',
           bio: data.profile.bio || '',
@@ -218,13 +222,25 @@ export default function SettingsPage() {
                   <p className="text-xs text-gray-500">Username cannot be changed</p>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-gray-300">Artist Name</Label>
+                  <Label htmlFor="artistName" className="text-gray-300">Artist Name</Label>
                   <Input 
-                    value={userProfile?.profile?.artistName || 'Not set'}
-                    disabled
-                    className="bg-[#1a1a1a] border-[#333] text-gray-500 cursor-not-allowed"
+                    id="artistName"
+                    value={formData.artistName}
+                    onChange={(e) => handleFieldChange('artistName', e.target.value)}
+                    placeholder="Your artist name"
+                    className="bg-[#1a1a1a] border-[#333] text-white"
                   />
-                  <p className="text-xs text-gray-500">Artist name cannot be changed</p>
+                  <p className="text-xs text-gray-500">This is your public display name.</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="avatar" className="text-gray-300">Avatar URL</Label>
+                  <Input 
+                    id="avatar"
+                    value={formData.avatar}
+                    onChange={(e) => handleFieldChange('avatar', e.target.value)}
+                    placeholder="https://..."
+                    className="bg-[#1a1a1a] border-[#333] text-white"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-gray-300">Verification Status</Label>

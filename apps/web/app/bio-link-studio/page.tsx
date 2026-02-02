@@ -53,6 +53,7 @@ export default function BioLinkStudio() {
   const [links, setLinks] = useState<SocialLink[]>([]);
   const [newLink, setNewLink] = useState({ label: '', url: '', type: 'other' });
   const [artist, setArtist] = useState<any>(null);
+  const [profileData, setProfileData] = useState({ artistName: '', avatar: '' });
 
   useEffect(() => {
     fetchProfile();
@@ -65,6 +66,10 @@ export default function BioLinkStudio() {
       if (response.ok) {
         const data = await response.json();
         setArtist(data);
+        setProfileData({
+          artistName: data.profile?.artistName || '',
+          avatar: data.profile?.avatar || ''
+        });
         const socialLinks = data.profile?.socialLinks || [];
         setLinks(Array.isArray(socialLinks) 
           ? socialLinks.map((l: any, i: number) => ({
@@ -141,7 +146,11 @@ export default function BioLinkStudio() {
       const response = await fetch('/api/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ socialLinks: links }),
+        body: JSON.stringify({ 
+          socialLinks: links,
+          artistName: profileData.artistName,
+          avatar: profileData.avatar
+        }),
       });
 
       if (!response.ok) throw new Error('Failed to save changes');
@@ -232,6 +241,38 @@ export default function BioLinkStudio() {
           </div>
 
           <div className="flex-1 overflow-y-auto p-8 space-y-12 scrollbar-hide overscroll-contain">
+            {/* Artist Identity Section */}
+            <section className="space-y-6">
+              <div className="flex items-center gap-3 mb-6">
+                <Edit2 size={16} className="text-[#D7FF3C]" />
+                <h2 className="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-400">Artist Identity</h2>
+              </div>
+              <Card className="bg-zinc-900/40 border-white/5 backdrop-blur-sm rounded-none overflow-hidden group">
+                <CardContent className="p-6 space-y-6 relative z-10">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-[0.2em] text-zinc-500 font-bold">Artist Name</Label>
+                      <Input 
+                        value={profileData.artistName}
+                        onChange={(e) => setProfileData({ ...profileData, artistName: e.target.value })}
+                        placeholder="Public Artist Name"
+                        className="bg-black/40 border-white/10 text-white font-mono text-xs rounded-none h-11 focus:border-[#D7FF3C]/50 transition-all"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase tracking-[0.2em] text-zinc-500 font-bold">Avatar URL</Label>
+                      <Input 
+                        value={profileData.avatar}
+                        onChange={(e) => setProfileData({ ...profileData, avatar: e.target.value })}
+                        placeholder="Avatar Image URL"
+                        className="bg-black/40 border-white/10 text-white font-mono text-xs rounded-none h-11 focus:border-[#D7FF3C]/50 transition-all"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+
             {/* Quick Add Section */}
             <section className="space-y-6">
               <div className="flex items-center gap-3 mb-6">
@@ -407,13 +448,13 @@ export default function BioLinkStudio() {
                     }}
                   >
                     <div className="w-full h-full rounded-full bg-zinc-800 overflow-hidden">
-                       <img src={artist?.profile?.avatar || '/placeholder-avatar.jpg'} alt="" className="w-full h-full object-cover grayscale" />
+                       <img src={profileData.avatar || artist?.profile?.avatar || '/placeholder-avatar.jpg'} alt="" className="w-full h-full object-cover grayscale" />
                     </div>
                     {/* Status Dot */}
                     <div className="absolute bottom-1 right-1 w-4 h-4 bg-[#D7FF3C] rounded-full border-4 border-[#0B0B0B] shadow-[0_0_10px_#D7FF3C]" />
                   </motion.div>
                   <h4 className="text-2xl font-black tracking-tighter uppercase italic leading-none mb-1">
-                    {artist?.profile?.artistName || 'Artist Name'}
+                    {profileData.artistName || artist?.profile?.artistName || 'Artist Name'}
                   </h4>
                   <p className="text-[10px] font-mono text-[#D7FF3C] tracking-widest lowercase opacity-60">
                     @{artist?.user?.username || 'handle'}
