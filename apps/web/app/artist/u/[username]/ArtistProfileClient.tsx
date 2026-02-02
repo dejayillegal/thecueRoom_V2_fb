@@ -43,6 +43,19 @@ export default function ArtistProfileClient({
   const { isFollowing, toggleFollow, isLoading } = useFollow(initialIsFollowing, artist.username);
   const [followersCount, setFollowersCount] = useState(stats.followers);
 
+  const getTier = (role: string) => {
+    switch (role?.toLowerCase()) {
+      case 'admin':
+        return { label: 'Admin', color: 'bg-red-500' };
+      case 'artist':
+        return { label: 'Artist', color: 'bg-[#D1FF3D]' };
+      default:
+        return { label: 'Member', color: 'bg-zinc-500' };
+    }
+  };
+
+  const tier = getTier(artist.role);
+
   useEffect(() => {
     setFollowersCount(stats.followers + (isFollowing !== initialIsFollowing ? (isFollowing ? 1 : -1) : 0));
   }, [isFollowing, initialIsFollowing, stats.followers]);
