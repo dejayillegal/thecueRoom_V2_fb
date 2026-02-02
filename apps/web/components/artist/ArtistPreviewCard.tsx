@@ -4,6 +4,7 @@ import { useFollow } from '@/hooks/useFollow';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserPlus, UserMinus, Zap, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
+import { useRef, useEffect, useState } from 'react';
 
 interface ArtistPreviewCardProps {
   username: string;
@@ -28,13 +29,24 @@ export function ArtistPreviewCard({
   verified,
   bio,
   stats,
-  isFollowing = false,
+  isFollowing: initialIsFollowing = false,
   onFollow,
   position,
   onClose,
 }: ArtistPreviewCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const { isFollowing: following, toggleFollow: handleFollow, isLoading } = useFollow(initialIsFollowing, username);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
+        onClose?.();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [onClose]);
 
   const style = position ? {
     position: 'fixed' as const,
@@ -91,7 +103,7 @@ export function ArtistPreviewCard({
         </div>
 
         <button
-          onClick={handleFollow}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleFollow(); onFollow?.(); }}
           disabled={isLoading}
           className={`w-full py-2.5 text-[10px] uppercase tracking-widest font-bold transition-all flex items-center justify-center gap-2 ${
             following

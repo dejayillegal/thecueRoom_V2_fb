@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useFollow } from '@/hooks/useFollow';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
