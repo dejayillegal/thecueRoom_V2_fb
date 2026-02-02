@@ -38,7 +38,7 @@ export const SidebarItem = React.forwardRef<HTMLAnchorElement, SidebarItemProps>
         title={!expanded ? label : undefined}
       >
         <Icon 
-          size={20} 
+          size={expanded ? 20 : 24} 
           strokeWidth={active ? 2.5 : 2.2} 
           className={cn(
             "transition-all duration-300 group-hover:scale-110 group-hover:rotate-3",
