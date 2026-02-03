@@ -43,6 +43,9 @@ export const profiles = pgTable('profiles', {
   showPhone: boolean('show_phone').default(false),
   publicReleases: boolean('public_releases').default(true),
   allowContactRequests: boolean('allow_contact_requests').default(true),
+  avatarSeed: text('avatar_seed'),
+  avatarType: text('avatar_type').default('generated'),
+  avatarUrl: text('avatar_url'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });

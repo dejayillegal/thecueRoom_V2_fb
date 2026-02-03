@@ -128,7 +128,6 @@ export async function PATCH(request: NextRequest) {
       firstName: body.firstName,
       lastName: body.lastName,
       bio: body.bio,
-      avatar: body.avatar,
       phone: body.phone,
       region: body.region,
       genre: body.genre,
@@ -137,6 +136,9 @@ export async function PATCH(request: NextRequest) {
       publicReleases: body.publicReleases,
       allowContactRequests: body.allowContactRequests,
       socialLinks: body.socialLinks || body.socialLinksData,
+      avatarSeed: body.avatarSeed,
+      avatarType: body.avatarType,
+      avatarUrl: body.avatarUrl,
       updatedAt: new Date(),
     };
 

@@ -26,7 +26,9 @@ interface UserProfile {
     firstName?: string;
     lastName?: string;
     bio?: string;
-    avatar?: string;
+    avatarUrl?: string;
+    avatarType?: string;
+    avatarSeed?: string;
     phone?: string;
     region?: string;
     genre?: string;
@@ -51,7 +53,9 @@ export default function SettingsPage() {
   const [formData, setFormData] = useState({
     displayName: '',
     artistName: '',
-    avatar: '',
+    avatarUrl: '',
+    avatarType: 'generated',
+    avatarSeed: '',
     firstName: '',
     lastName: '',
     bio: '',
@@ -62,7 +66,6 @@ export default function SettingsPage() {
     showPhone: false,
     publicReleases: true,
     allowContactRequests: true,
-    avatarSeed: '',
   });
 
   const [avatarPreview, setAvatarPreview] = useState('');
@@ -76,16 +79,26 @@ export default function SettingsPage() {
     const newSeed = Math.random().toString(36).substring(7);
     const newAvatar = generateDeterministicAvatar(newSeed);
     setAvatarPreview(newAvatar);
-    setFormData(prev => ({ ...prev, avatarSeed: newSeed, avatar: newAvatar }));
+    setFormData(prev => ({ 
+      ...prev, 
+      avatarSeed: newSeed, 
+      avatarType: 'generated'
+    }));
     setSaved(false);
   };
 
   const revertAvatar = () => {
-    if (userProfile?.profile) {
-      const originalAvatar = userProfile.profile.avatar || '';
-      const originalSeed = (userProfile.profile as any).avatarSeed || '';
+    if (userProfile?.user) {
+      const originalSeed = userProfile.user.id;
+      const originalAvatar = generateDeterministicAvatar(originalSeed);
       setAvatarPreview(originalAvatar);
-      setFormData(prev => ({ ...prev, avatar: originalAvatar, avatarSeed: originalSeed }));
+      setFormData(prev => ({ 
+        ...prev, 
+        avatarSeed: originalSeed, 
+        avatarType: 'generated',
+        avatarUrl: ''
+      }));
+      setSaved(false);
     }
   };
 
@@ -110,23 +123,31 @@ export default function SettingsPage() {
 
       // Populate form with profile data
       if (data.profile) {
+        const profile = data.profile;
+        const seed = profile.avatarSeed || data.user.id;
         setFormData({
-          displayName: data.profile.displayName || '',
-          artistName: data.profile.artistName || '',
-          avatar: data.profile.avatar || '',
-          firstName: data.profile.firstName || '',
-          lastName: data.profile.lastName || '',
-          bio: data.profile.bio || '',
-          phone: data.profile.phone || '',
-          region: data.profile.region || '',
-          genre: data.profile.genre || '',
-          showEmail: data.profile.showEmail ?? false,
-          showPhone: data.profile.showPhone ?? false,
-          publicReleases: data.profile.publicReleases ?? true,
-          allowContactRequests: data.profile.allowContactRequests ?? true,
-          avatarSeed: (data.profile as any).avatarSeed || '',
+          displayName: profile.displayName || '',
+          artistName: profile.artistName || '',
+          avatarUrl: profile.avatarUrl || '',
+          avatarType: profile.avatarType || 'generated',
+          avatarSeed: seed,
+          firstName: profile.firstName || '',
+          lastName: profile.lastName || '',
+          bio: profile.bio || '',
+          phone: profile.phone || '',
+          region: profile.region || '',
+          genre: profile.genre || '',
+          showEmail: profile.showEmail ?? false,
+          showPhone: profile.showPhone ?? false,
+          publicReleases: profile.publicReleases ?? true,
+          allowContactRequests: profile.allowContactRequests ?? true,
         });
-        setAvatarPreview(data.profile.avatar || '');
+        
+        if (profile.avatarType === 'custom' && profile.avatarUrl) {
+          setAvatarPreview(profile.avatarUrl);
+        } else {
+          setAvatarPreview(generateDeterministicAvatar(seed));
+        }
       }
     } catch (err) {
       console.error('Profile fetch error:', err);
@@ -145,13 +166,7 @@ export default function SettingsPage() {
       const response = await fetch('/api/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          socialLinksData: {
-            ...(userProfile?.profile?.socialLinks as any || {}),
-            avatarSeed: formData.avatarSeed
-          }
-        }),
+        body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
@@ -173,7 +188,19 @@ export default function SettingsPage() {
   };
 
   const handleFieldChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value };
+      if (field === 'avatarUrl') {
+        if (value) {
+          newData.avatarType = 'custom';
+          setAvatarPreview(value);
+        } else {
+          newData.avatarType = 'generated';
+          setAvatarPreview(generateDeterministicAvatar(prev.avatarSeed || userProfile?.user.id || 'default'));
+        }
+      }
+      return newData;
+    });
     setSaved(false);
   };
 
@@ -264,15 +291,15 @@ export default function SettingsPage() {
                 <div className="space-y-4">
                   <Label className="text-gray-300">Profile Avatar</Label>
                   <div className="flex flex-col items-center gap-6 p-6 bg-[#1a1a1a] border border-[#333] rounded-lg">
-                    <div className="relative group">
-                      <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-[#D7FF3C] shadow-[0_0_20px_rgba(215,255,60,0.2)] bg-[#050505]">
+                      <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-[#D7FF3C] shadow-[0_0_20px_rgba(215,255,60,0.2)] bg-[#050505] relative group">
                         {avatarPreview ? (
-                          <img src={avatarPreview} alt="Droid Avatar" className="w-full h-full object-contain p-2" />
+                          <img src={avatarPreview} alt="Droid Avatar" className="w-full h-full object-contain p-2 grayscale group-hover:grayscale-0 transition-all duration-500" />
                         ) : (
                           <div className="w-full h-full bg-zinc-900 flex items-center justify-center text-zinc-700 font-mono text-xs">
                             NO_SIGNAL
                           </div>
                         )}
+                        <div className="absolute inset-0 pointer-events-none border border-[#D7FF3C]/20 rounded-lg animate-pulse" />
                       </div>
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg pointer-events-none">
                         <Wand2 size={24} className="text-[#D7FF3C]" />
@@ -306,14 +333,11 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="avatar" className="text-gray-300">Custom Avatar URL</Label>
+                  <Label htmlFor="avatarUrl" className="text-gray-300">Custom Avatar URL</Label>
                   <Input 
-                    id="avatar"
-                    value={formData.avatar}
-                    onChange={(e) => {
-                      handleFieldChange('avatar', e.target.value);
-                      setAvatarPreview(e.target.value);
-                    }}
+                    id="avatarUrl"
+                    value={formData.avatarUrl}
+                    onChange={(e) => handleFieldChange('avatarUrl', e.target.value)}
                     placeholder="https://..."
                     className="bg-[#1a1a1a] border-[#333] text-white"
                   />

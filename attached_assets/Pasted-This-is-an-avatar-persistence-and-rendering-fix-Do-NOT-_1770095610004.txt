@@ -1,0 +1,228 @@
+This is an avatar persistence and rendering fix.
+Do NOT add new tables.
+Do NOT add backend services.
+Do NOT change auth.
+
+GOAL
+
+Ensure both Auto-Generated Droid Avatars and Custom Avatar URLs:
+
+SAVE correctly
+
+PROPAGATE globally across the entire app
+
+RENDER consistently in:
+
+Sidebar
+
+Artist Social
+
+Community threads
+
+BioLink pages
+
+Dashboard
+
+Settings
+
+Upgrade the Droid Avatar visuals with:
+
+stronger graphical identity
+
+subtle motion
+
+modern underground cyber aesthetic
+
+STEP 1 — FIX AVATAR SAVE LOGIC (CRITICAL)
+
+Problem
+Avatar changes are not persisted.
+
+Actions
+
+On Save Changes:
+
+Persist avatar data to existing profiles record
+
+Store:
+
+avatarSeed (string)
+
+avatarType = generated | custom
+
+avatarUrl (nullable)
+
+Ensure:
+
+Save is synchronous
+
+UI reflects success immediately
+
+Rules
+
+NO new schema
+
+Use existing profile metadata / columns only
+
+Verification
+Reload → avatar remains unchanged.
+
+STEP 2 — GLOBAL AVATAR SOURCE RESOLUTION (NON-NEGOTIABLE)
+
+Actions
+Create a single avatar resolver utility used everywhere:
+
+Resolution order:
+
+If avatarType === custom AND avatarUrl exists → use it
+
+Else → render generated Droid Avatar using avatarSeed
+
+Apply this resolver to:
+
+Sidebar avatar
+
+Top-right avatar
+
+Artist Social feed
+
+Forum threads
+
+BioLink public page
+
+Profile hover previews
+
+Rules
+
+No duplicate logic
+
+No per-page avatar hacks
+
+Verification
+Changing avatar updates everywhere instantly.
+
+STEP 3 — DROID AVATAR VISUAL UPGRADE (FAST-MODE SAFE)
+
+Upgrade the generator to include:
+
+Core elements:
+
+Droid head / helmet frame
+
+Eye module (mono / dual / visor)
+
+Jaw or mask plate
+
+Visual enhancements:
+
+layered SVG shapes
+
+metallic gradients
+
+glow rim (brand green)
+
+subtle noise texture
+
+Motion:
+
+slow idle pulse
+
+eye flicker or scan line
+
+hover glow intensification
+
+Rules
+
+SVG or Canvas only
+
+Animate opacity + transform only
+
+Respect prefers-reduced-motion
+
+Verification
+Avatar feels alive, cybernetic, premium.
+
+STEP 4 — REGENERATE / RESET BEHAVIOR
+
+Actions
+
+Reconfigure Droid:
+
+rotates seed
+
+updates avatar immediately
+
+Reset Core:
+
+restores original deterministic seed
+
+Both actions:
+
+update state
+
+persist on Save
+
+Verification
+User can safely experiment without breaking state.
+
+STEP 5 — CUSTOM AVATAR URL BEHAVIOR
+
+Actions
+
+If Custom Avatar URL is entered:
+
+switch avatarType → custom
+
+preview immediately
+
+If URL is cleared:
+
+auto-fallback to generated Droid Avatar
+
+Validate URL format (basic)
+
+Verification
+Custom avatars override correctly and safely.
+
+STEP 6 — BIO LINK & PUBLIC PAGES CONSISTENCY
+
+Actions
+
+Public Bio page must use the same avatar resolver
+
+No dashboard layout leaks
+
+Avatar appearance matches app avatar
+
+Verification
+Public link avatar == internal avatar.
+
+STEP 7 — SAFETY CHECK
+
+Ensure:
+
+No console errors
+
+No hydration issues
+
+No layout shift
+
+No duplicate avatar renders
+
+Desktop & mobile stable
+
+REQUIRED OUTPUT
+
+Avatar save works
+
+Avatar updates everywhere
+
+Droid avatars are modern, animated, underground
+
+Custom avatar URLs persist correctly
+
+Single global avatar resolution logic
+
+Do not explain.
+Do not ask questions.
+Implement directly.

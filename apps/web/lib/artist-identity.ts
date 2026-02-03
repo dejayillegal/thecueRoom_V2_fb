@@ -37,12 +37,24 @@ export function generateDeterministicAvatar(seed: string): string {
       <stop offset="50%" style="stop-color:#111;stop-opacity:1" />
       <stop offset="100%" style="stop-color:#050505;stop-opacity:1" />
     </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:${accentColor};stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:${accentColor};stop-opacity:0" />
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
       <feMerge>
         <feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/>
       </feMerge>
     </filter>
+    <style>
+      @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+      @keyframes flicker { 0% { opacity: 1; } 5% { opacity: 0.4; } 10% { opacity: 1; } 15% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 1; } }
+      @keyframes scan { 0% { transform: translateY(-20px); } 100% { transform: translateY(20px); } }
+      .eye-glow { animation: pulse 3s infinite ease-in-out; }
+      .glitch { animation: flicker 5s infinite; }
+      .scanline { animation: scan 2s infinite linear; }
+    </style>
   </defs>`;
 
   // Head Base
@@ -54,7 +66,10 @@ export function generateDeterministicAvatar(seed: string): string {
   } else { // Narrow/Android
     headPath = "M 80,30 L 120,30 L 140,140 L 100,170 L 60,140 Z";
   }
-  svg += `<path d="${headPath}" fill="url(#metal)" stroke="#333" stroke-width="2" />`;
+  
+  // Head Shadow/Outer Glow
+  svg += `<path d="${headPath}" fill="none" stroke="${accentColor}" stroke-width="0.5" opacity="0.3" filter="url(#glow)" />`;
+  svg += `<path d="${headPath}" fill="url(#metal)" stroke="#333" stroke-width="2" className="glitch" />`;
 
   // Mechanical Details (Panels)
   for(let i=0; i<detailLevel; i++) {
@@ -64,9 +79,10 @@ export function generateDeterministicAvatar(seed: string): string {
   }
 
   // Eyes / Optics
+  svg += `<g class="eye-glow">`;
   if (eyeType === 0) { // Visor
     svg += `<rect x="65" y="70" width="70" height="15" fill="#050505" stroke="${accentColor}" stroke-width="1" filter="url(#glow)" />`;
-    svg += `<rect x="80" y="75" width="40" height="5" fill="${accentColor}" opacity="0.5" />`;
+    svg += `<rect x="65" y="70" width="70" height="2" fill="${accentColor}" class="scanline" opacity="0.5" />`;
   } else if (eyeType === 1) { // Mono
     svg += `<circle cx="100" cy="75" r="15" fill="#050505" stroke="#333" stroke-width="2" />`;
     svg += `<circle cx="100" cy="75" r="5" fill="${accentColor}" filter="url(#glow)" />`;
@@ -80,6 +96,7 @@ export function generateDeterministicAvatar(seed: string): string {
       svg += `<rect x="${x-4}" y="${y-4}" width="8" height="8" fill="${accentColor}" opacity="0.8" filter="url(#glow)" />`;
     });
   }
+  svg += `</g>`;
 
   // Mouth / Grille
   if (mouthType === 0) { // Grille
@@ -96,4 +113,12 @@ export function generateDeterministicAvatar(seed: string): string {
   
   svg += `</svg>`;
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+}
+
+export function resolveAvatar(profile: any, userId: string): string {
+  if (profile?.avatarType === 'custom' && profile?.avatarUrl) {
+    return profile.avatarUrl;
+  }
+  const seed = profile?.avatarSeed || userId || 'default';
+  return generateDeterministicAvatar(seed);
 }

@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import { motion, Reorder, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { resolveAvatar } from '@/lib/artist-identity';
 
 interface SocialLink {
   id: string;
@@ -450,7 +451,7 @@ export default function BioLinkStudio() {
                     }}
                   >
                     <div className="w-full h-full rounded-full bg-zinc-800 overflow-hidden">
-                       <img src={profileData.avatar || artist?.profile?.avatar || '/placeholder-avatar.jpg'} alt="" className="w-full h-full object-cover grayscale" />
+                       <img src={resolveAvatar(artist?.profile, artist?.user?.id)} alt="" className="w-full h-full object-cover grayscale" />
                     </div>
                     {/* Status Dot */}
                     <div className="absolute bottom-1 right-1 w-4 h-4 bg-[#D7FF3C] rounded-full border-4 border-[#0B0B0B] shadow-[0_0_10px_#D7FF3C]" />
