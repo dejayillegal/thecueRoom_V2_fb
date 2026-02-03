@@ -1,0 +1,260 @@
+(Avatar System v2 — Presence Decay · Hover Micro-Signal · Trust Ring Harmonics · Image Upload)
+
+This is a visual identity + interaction refinement.
+Do NOT redesign UI.
+Do NOT add database tables or backend services.
+Do NOT modify navigation or routing.
+
+GOAL
+
+Finalize a single authoritative avatar system
+
+Add presence decay timing
+
+Add avatar hover micro-signals
+
+Add trust-tier ring animation harmonics
+
+Replace avatar URL with image upload (JPG/PNG ≤ 2 MB)
+
+Ensure consistency across:
+
+Header
+
+Artist Social
+
+Forum Threads
+
+Public Bio Link page
+
+STEP 1 — CANONICAL AVATAR SOURCE (UPDATED)
+
+Problem
+Avatar sources are fragmented and URL-based.
+
+Actions
+
+Define ONE avatar resolver with priority:
+
+profile.uploadedAvatar (image file)
+
+profile.generatedAvatarSvg (droid)
+
+deterministic fallback (seeded)
+
+Remove all usage of:
+
+avatar URL inputs
+
+external avatar links
+
+Apply resolver everywhere:
+
+header
+
+artist social
+
+forum threads
+
+public bio page
+
+Rules
+
+No per-page avatar logic
+
+No inline generators
+
+Verification
+Avatar change reflects globally.
+
+STEP 2 — AVATAR IMAGE UPLOAD (JPG / PNG)
+
+Problem
+Avatar URL is unreliable and unsafe.
+
+Actions
+
+Replace avatar URL field with file upload:
+
+accepted types: .jpg, .jpeg, .png
+
+max size: 2 MB
+
+Validate client-side:
+
+file type
+
+file size
+
+On upload:
+
+store reference in existing profile metadata
+
+immediately update avatar preview
+
+Keep generated avatar as fallback if upload removed.
+
+Rules
+
+No new tables
+
+No third-party upload services
+
+Verification
+Uploaded image persists and renders everywhere.
+
+STEP 3 — PRESENCE DECAY TIMING
+
+Problem
+Presence feels binary.
+
+Actions
+
+Implement presence decay states:
+
+Active → last interaction < 2 min
+
+Fading → 2–10 min
+
+Idle → > 10 min
+
+Drive decay using:
+
+existing session timestamps
+
+last activity time
+
+Map decay to pulse intensity:
+
+Active → strong pulse
+
+Fading → slow dim pulse
+
+Idle → static ring (no pulse)
+
+Rules
+
+No timers or intervals
+
+No realtime infra
+
+CSS animation only
+
+Verification
+Presence softens naturally over time.
+
+STEP 4 — AVATAR HOVER MICRO-SIGNAL
+
+Problem
+Avatars lack tactile feedback.
+
+Actions
+
+Add hover micro-signal to avatars:
+
+slight scale (≤ 1.03)
+
+soft glow ramp
+
+Trigger on:
+
+hover (desktop)
+
+press (mobile)
+
+Duration:
+
+fast in
+
+gentle out
+
+Rules
+
+Transform + opacity only
+
+Respect prefers-reduced-motion
+
+Verification
+Hover feels alive but restrained.
+
+STEP 5 — TRUST-TIER RING ANIMATION HARMONICS
+
+Problem
+Trust rings are static.
+
+Actions
+
+Add harmonic motion to trust rings:
+
+Admin → steady energy wave
+
+Verified Artist → segmented breathing glow
+
+Artist → subtle oscillation
+
+User → none
+
+Animation characteristics:
+
+long duration
+
+phase-shifted opacity
+
+never distracting
+
+Rules
+
+No flashing
+
+No color changes
+
+Purely decorative
+
+Verification
+Trust rings feel intentional and alive.
+
+STEP 6 — APPLY EVERYWHERE (STRICT)
+
+Ensure the same avatar source + ring logic applies to:
+
+Header avatar
+
+Artist Social feed
+
+Forum thread authors
+
+Public bio pages
+
+No exceptions.
+
+STEP 7 — SAFETY CHECK
+
+Confirm:
+
+No duplicate avatars
+
+No layout shifts
+
+No console errors
+
+Mobile + desktop stable
+
+Sidebar untouched
+
+REQUIRED OUTPUT
+
+Image upload replaces avatar URL
+
+One canonical avatar source
+
+Presence decay implemented
+
+Hover micro-signals active
+
+Trust ring harmonics applied
+
+Avatar consistent everywhere
+
+Do not explain.
+Do not ask questions.
+Implement directly.
