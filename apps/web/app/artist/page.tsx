@@ -14,16 +14,16 @@ export default async function ArtistDirectoryPage() {
 
   const db = getDbClient();
   
-  const rawArtists = await db.select({
+  const rawArtists: any = await db.select({
     id: users.id,
     username: users.username,
     role: users.role,
   }).from(users).where(eq(users.role, 'artist')).limit(50);
 
   const allProfiles = await db.select().from(profiles);
-  const profileMap = new Map(allProfiles.map(p => [p.userId, p]));
+  const profileMap = new Map(allProfiles.map((p: any) => [p.userId, p]));
   
-  const myProfile = profileMap.get(session.uid);
+  const myProfile: any = profileMap.get(session.uid);
   const mySocialLinks = (myProfile?.socialLinks as Record<string, any>) || {};
   const myFollowing: string[] = mySocialLinks._following || [];
 
@@ -39,15 +39,15 @@ export default async function ArtistDirectoryPage() {
   const currentUser = {
     id: session.uid,
     username: session.username || 'unknown',
-    artistName: myProfile?.artistName || myProfile?.displayName || session.username || 'Artist',
+    artistName: (myProfile?.artistName || myProfile?.displayName || session.username || 'Artist') as string,
     avatar: resolveAvatar(myProfile, session.uid),
-    bio: myProfile?.bio || '',
+    bio: (myProfile?.bio || '') as string,
     following: myFollowing.length,
     followers: myFollowers
   };
 
-  const artists = rawArtists.map((a) => {
-    const profile = profileMap.get(a.id);
+  const artists = rawArtists.map((a: any) => {
+    const profile: any = profileMap.get(a.id);
     const socialLinks = (profile?.socialLinks as Record<string, any>) || {};
     const following: string[] = socialLinks._following || [];
     
@@ -61,16 +61,16 @@ export default async function ArtistDirectoryPage() {
     return {
       id: a.id,
       username: a.username || 'Unknown',
-      displayName: profile?.artistName || profile?.displayName || a.username || 'Unknown',
+      displayName: (profile?.artistName || profile?.displayName || a.username || 'Unknown') as string,
       avatar: resolveAvatar(profile, a.id),
-      bio: profile?.bio || '',
+      bio: (profile?.bio || '') as string,
       isFollowing: myFollowing.includes(a.username || ''),
       followers,
       following: following.length
     };
   });
 
-  const threads = await db.select({
+  const threads: any = await db.select({
     id: forumThreads.id,
     title: forumThreads.title,
     body: forumThreads.body,
@@ -81,34 +81,34 @@ export default async function ArtistDirectoryPage() {
     likesCount: forumThreads.likesCount
   })
   .from(forumThreads)
-  .leftJoin(users, eq(forumThreads.userId, users.id))
+  .leftJoin(users, eq(forumThreads.userId, users.id as any))
   .where(eq(forumThreads.moderationStatus, 'approved'))
-  .orderBy(desc(forumThreads.createdAt))
+  .orderBy(desc(forumThreads.createdAt as any))
   .limit(30);
 
   const feedAll = (threads || [])
     .filter((t: any) => t.id && t.userId)
     .map((t: any) => {
-      const authorProfile = allProfiles.find(p => p.userId === t.userId);
+      const authorProfile: any = allProfiles.find((p: any) => p.userId === t.userId);
       return {
         id: t.id,
         type: 'thread' as const,
-        artistName: authorProfile?.artistName || authorProfile?.displayName || t.username || 'Unknown',
-        username: t.username || 'unknown',
+        artistName: (authorProfile?.artistName || authorProfile?.displayName || t.username || 'Unknown') as string,
+        username: (t.username || 'unknown') as string,
         avatar: resolveAvatar(authorProfile, t.userId),
-        title: t.title || '',
-        content: (t.body?.substring(0, 200) || t.title || ''),
+        title: (t.title || '') as string,
+        content: (t.body?.substring(0, 200) || t.title || '') as string,
         timestamp: t.createdAt ? new Date(t.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'Recently',
         stats: {
-          replies: t.replyCount || 0,
-          signals: t.likesCount || 0
+          replies: (t.replyCount || 0) as number,
+          signals: (t.likesCount || 0) as number
         },
         isFollowing: myFollowing.includes(t.username || ''),
         isOwn: t.userId === session.uid
       };
     });
 
-  const feedFollowing = feedAll.filter(f => f.isFollowing || f.isOwn);
+  const feedFollowing = feedAll.filter((f: any) => f.isFollowing || f.isOwn);
   const feed = feedFollowing.length >= 3 ? feedFollowing : feedAll.slice(0, 15);
 
   return <ArtistSocialClient currentUser={currentUser} initialArtists={artists} initialFeed={feed} />;
