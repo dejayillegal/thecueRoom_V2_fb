@@ -70,7 +70,7 @@ export default async function ArtistDirectoryPage() {
     };
   });
 
-  const threads: any = await db.select({
+  const threads = await db.select({
     id: forumThreads.id,
     title: forumThreads.title,
     body: forumThreads.body,
