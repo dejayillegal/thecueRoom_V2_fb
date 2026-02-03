@@ -136,7 +136,7 @@ export async function PATCH(request: NextRequest) {
       showPhone: body.showPhone,
       publicReleases: body.publicReleases,
       allowContactRequests: body.allowContactRequests,
-      socialLinks: body.socialLinks,
+      socialLinks: body.socialLinks || body.socialLinksData,
       updatedAt: new Date(),
     };
 

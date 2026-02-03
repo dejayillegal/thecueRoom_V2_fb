@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { User, Music, Globe, Bell, Lock, Shield, Loader2, Save, CheckCircle2 } from 'lucide-react';
+import { User, Music, Globe, Bell, Lock, Shield, Loader2, Save, CheckCircle2, Wand2, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { generateDeterministicAvatar } from '@/lib/artist-identity';
 
 interface UserProfile {
   user: {
@@ -61,12 +62,32 @@ export default function SettingsPage() {
     showPhone: false,
     publicReleases: true,
     allowContactRequests: true,
+    avatarSeed: '',
   });
+
+  const [avatarPreview, setAvatarPreview] = useState('');
 
   // Fetch user profile on mount
   useEffect(() => {
     fetchProfile();
   }, []);
+
+  const generateNewAvatar = () => {
+    const newSeed = Math.random().toString(36).substring(7);
+    const newAvatar = generateDeterministicAvatar(newSeed);
+    setAvatarPreview(newAvatar);
+    setFormData(prev => ({ ...prev, avatarSeed: newSeed, avatar: newAvatar }));
+    setSaved(false);
+  };
+
+  const revertAvatar = () => {
+    if (userProfile?.profile) {
+      const originalAvatar = userProfile.profile.avatar || '';
+      const originalSeed = (userProfile.profile as any).avatarSeed || '';
+      setAvatarPreview(originalAvatar);
+      setFormData(prev => ({ ...prev, avatar: originalAvatar, avatarSeed: originalSeed }));
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -103,7 +124,9 @@ export default function SettingsPage() {
           showPhone: data.profile.showPhone ?? false,
           publicReleases: data.profile.publicReleases ?? true,
           allowContactRequests: data.profile.allowContactRequests ?? true,
+          avatarSeed: (data.profile as any).avatarSeed || '',
         });
+        setAvatarPreview(data.profile.avatar || '');
       }
     } catch (err) {
       console.error('Profile fetch error:', err);
@@ -122,7 +145,13 @@ export default function SettingsPage() {
       const response = await fetch('/api/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          socialLinksData: {
+            ...(userProfile?.profile?.socialLinks as any || {}),
+            avatarSeed: formData.avatarSeed
+          }
+        }),
       });
 
       if (!response.ok) {
@@ -232,15 +261,61 @@ export default function SettingsPage() {
                   />
                   <p className="text-xs text-gray-500">This is your public display name.</p>
                 </div>
+                <div className="space-y-4">
+                  <Label className="text-gray-300">Profile Avatar</Label>
+                  <div className="flex flex-col items-center gap-6 p-6 bg-[#1a1a1a] border border-[#333] rounded-lg">
+                    <div className="relative group">
+                      <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-[#D7FF3C] shadow-[0_0_20px_rgba(215,255,60,0.2)]">
+                        {avatarPreview ? (
+                          <img src={avatarPreview} alt="Avatar Preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-zinc-900 flex items-center justify-center text-zinc-700 font-mono text-xs">
+                            NO_SIGNAL
+                          </div>
+                        )}
+                      </div>
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full pointer-events-none">
+                        <Wand2 size={24} className="text-[#D7FF3C]" />
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-3 w-full">
+                      <Button 
+                        onClick={generateNewAvatar}
+                        variant="outline"
+                        className="flex-1 bg-transparent border-white/10 hover:border-[#D7FF3C]/50 hover:bg-[#D7FF3C]/5 text-white gap-2 font-bold uppercase text-[10px] tracking-widest"
+                      >
+                        <Wand2 size={14} />
+                        Regenerate
+                      </Button>
+                      <Button 
+                        onClick={revertAvatar}
+                        variant="ghost"
+                        className="text-zinc-500 hover:text-white gap-2 font-bold uppercase text-[10px] tracking-widest"
+                      >
+                        <RotateCcw size={14} />
+                        Revert
+                      </Button>
+                    </div>
+                    <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest text-center">
+                      Deterministic Seed: {formData.avatarSeed || 'NATIVE'}
+                    </p>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="avatar" className="text-gray-300">Avatar URL</Label>
+                  <Label htmlFor="avatar" className="text-gray-300">Custom Avatar URL</Label>
                   <Input 
                     id="avatar"
                     value={formData.avatar}
-                    onChange={(e) => handleFieldChange('avatar', e.target.value)}
+                    onChange={(e) => {
+                      handleFieldChange('avatar', e.target.value);
+                      setAvatarPreview(e.target.value);
+                    }}
                     placeholder="https://..."
                     className="bg-[#1a1a1a] border-[#333] text-white"
                   />
+                  <p className="text-xs text-gray-500 italic">Overwrite generated avatar with a custom image link</p>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-gray-300">Verification Status</Label>

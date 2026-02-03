@@ -1,0 +1,216 @@
+(Finalize BioLink Publish + Public Page Isolation + Auto Avatar)
+
+This is a public bio publishing + avatar system fix.
+Do NOT redesign dashboard pages.
+Do NOT add backend services or schemas.
+
+GOAL
+
+Deploy Changes must generate a public bio link
+
+Public bio page must be:
+
+standalone
+
+Linktree/Milkshake-style
+
+NO dashboard UI
+
+Artist avatar must:
+
+auto-resolve
+
+auto-generate if missing
+
+Avatar generator must exist in Settings
+
+All changes must work in Fast mode
+
+STEP 1 — FIX “DEPLOY CHANGES” → PUBLIC BIO LINK (CRITICAL)
+
+Problem
+Deploy Changes currently points to an internal app page.
+
+Actions
+
+“Deploy Changes” must generate:
+
+/bio/{username}
+
+
+This URL must:
+
+be public
+
+work without login
+
+open in incognito
+
+Store published state using:
+
+existing profile metadata
+
+OR existing biolink data
+
+Rules
+
+Do NOT link to /artist
+
+Do NOT link to internal layouts
+
+Verification
+Clicking Public Bio Link opens only the bio page.
+
+STEP 2 — HARD ISOLATE PUBLIC BIO PAGE (NO APP UI)
+
+Actions
+
+Ensure route exists at:
+
+apps/web/app/bio/layout.tsx
+
+
+This layout MUST:
+
+render {children} only
+
+NOT import sidebar, topbar, providers
+
+/bio/[username]/page.tsx must:
+
+render avatar
+
+display name
+
+@username
+
+bio
+
+stacked links
+
+No edit buttons
+
+No navigation
+
+Minimal footer branding only
+
+Verification
+Public bio page looks like Linktree, not the app.
+
+STEP 3 — AUTO AVATAR RESOLUTION (NO BACKEND AI)
+
+Problem
+Avatar is empty or manual-only.
+
+Actions
+
+Avatar resolution order:
+
+Custom avatar URL (if set)
+
+Generated avatar (fallback)
+
+Generated avatar must:
+
+be deterministic (seeded by username)
+
+be SVG or Canvas
+
+be client-side only
+
+Style:
+
+abstract
+
+underground
+
+geometric / droid / ritual aesthetic
+
+Rules
+
+No external AI
+
+No uploads required
+
+Verification
+Every artist always has an avatar.
+
+STEP 4 — AVATAR GENERATOR IN SETTINGS
+
+Actions
+
+Add “Generate Avatar” button in Settings
+
+Clicking it:
+
+regenerates avatar visually
+
+updates avatar seed
+
+Allow:
+
+regenerate
+
+save
+
+revert
+
+Rules
+
+No backend calls
+
+Store seed in existing profile metadata
+
+Verification
+Users can generate unique underground avatars.
+
+STEP 5 — BIO LINK UI RULES (PUBLIC PAGE)
+
+Actions
+
+Links must render as stacked cards
+
+Auto-detect platform by URL:
+
+spotify.com → Spotify icon
+
+soundcloud.com → SoundCloud icon
+
+youtube.com → YouTube icon
+
+Optional thumbnail preview (best-effort)
+
+External links open in new tab
+
+Verification
+Public bio feels like Linktree/Milkshake.
+
+STEP 6 — SAFETY CHECK
+
+Ensure:
+
+No dashboard UI on /bio/*
+
+No auth required
+
+No console errors
+
+Desktop + mobile responsive
+
+Internal Artist Social unchanged
+
+REQUIRED OUTPUT
+
+Deploy Changes creates a public bio URL
+
+Public bio page is standalone
+
+Avatar always renders
+
+Auto avatar generator exists in Settings
+
+Public bio usable outside the app
+
+Do not explain.
+Do not ask questions.
+Implement directly.

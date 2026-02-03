@@ -94,9 +94,9 @@ export default async function PublicBioPage({ params }: { params: Promise<{ user
   const user = userRecords[0];
   const profileRecords = await db.select().from(profiles).where(eq(profiles.userId, user.id)).limit(1);
   const profile = profileRecords[0];
-  const avatarUrl = profile?.avatar || generateDeterministicAvatar(user.id);
-  
   const socialLinksData = profile?.socialLinks as any || {};
+  const avatarUrl = profile?.avatar || generateDeterministicAvatar(socialLinksData.avatarSeed || user.id);
+  
   const linksArray = Array.isArray(socialLinksData.links) ? socialLinksData.links : (Array.isArray(socialLinksData) ? socialLinksData : []);
   const themeKey = socialLinksData.theme || 'dark-minimal';
   const theme = themes[themeKey as keyof typeof themes] || themes['dark-minimal'];
