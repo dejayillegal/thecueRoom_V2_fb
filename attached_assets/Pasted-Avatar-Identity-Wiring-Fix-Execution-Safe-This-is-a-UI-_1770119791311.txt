@@ -1,0 +1,245 @@
+Avatar & Identity Wiring Fix (Execution-Safe)
+
+This is a UI wiring + visual polish task.
+Do NOT redesign layouts.
+Do NOT add database tables or backend services.
+Do NOT change navigation structure.
+
+GOAL
+
+Fix avatar and identity mismatches and improve avatar visuals.
+
+Ensure:
+
+Same avatar everywhere
+
+Same username / artist name everywhere
+
+Avatar upload works
+
+Header avatar click opens Profile Settings
+
+Droid-style avatar visuals with subtle motion
+
+STEP 1 — REMOVE BROKEN AVATAR URL INPUT
+
+Actions:
+
+Remove Custom Avatar URL input from Profile Settings UI.
+
+Delete all logic that reads:
+
+avatarUrl
+
+profile.avatarUrl
+
+Ensure no component uses avatar URLs.
+
+Result:
+Avatar source cannot diverge.
+
+STEP 2 — USE EXISTING PROFILE DATA CONSISTENTLY
+
+Actions:
+
+Identify the profile data already loaded in Profile Settings.
+
+Pass the SAME profile data to:
+
+Header
+
+Artist Social
+
+Forum Threads
+
+Bio Link page
+
+Remove duplicate or hardcoded identity values.
+
+Rules:
+
+No new fetching logic
+
+Reuse existing profile object
+
+Result:
+Username + artist name match everywhere.
+
+STEP 3 — AVATAR PRIORITY LOGIC (INLINE)
+
+Wherever avatar is rendered, apply this logic only:
+
+If profile.metadata.avatarImage exists → render it
+
+Else if profile.metadata.generatedAvatarSvg exists → render it
+
+Else → render deterministic fallback avatar
+
+Rules:
+
+Same logic everywhere
+
+No page-specific conditions
+
+STEP 4 — IMAGE UPLOAD (CLIENT-ONLY)
+
+In Profile Settings:
+
+Add avatar upload input:
+
+.jpg, .jpeg, .png
+
+Max size 2 MB
+
+Validate type + size on client.
+
+Convert image to base64.
+
+Save to profile.metadata.avatarImage.
+
+Update preview immediately.
+
+Rules:
+
+No external storage
+
+No backend changes
+
+STEP 5 — DROID-STYLE GENERATED AVATAR
+
+Actions:
+
+Generate a deterministic SVG avatar using:
+
+angular geometry
+
+circuit-like shapes
+
+underground / techno aesthetic
+
+Seed generation using username.
+
+Store SVG in profile.metadata.generatedAvatarSvg.
+
+Rules:
+
+SVG only
+
+No faces or text
+
+Grayscale + brand accent
+
+STEP 6 — AVATAR MICRO-MOTION
+
+Apply to avatar container:
+
+Hover / press:
+
+scale ≤ 1.03
+
+soft glow increase
+
+Idle:
+
+very slow breathing glow
+
+Rules:
+
+transform + opacity only
+
+Respect prefers-reduced-motion
+
+STEP 7 — PRESENCE DECAY (VISUAL ONLY)
+
+Using existing timestamps:
+
+< 2 min → strong pulse
+
+2–10 min → slow pulse
+
+10 min → static ring
+
+Rules:
+
+CSS only
+
+No timers
+
+No realtime logic
+
+STEP 8 — TRUST RING VISUAL STATES
+
+Decorative only:
+
+Admin → steady wave
+
+Verified Artist → segmented breathing
+
+Artist → subtle oscillation
+
+User → no ring
+
+Rules:
+
+No color changes
+
+No flashing
+
+Long durations
+
+STEP 9 — HEADER IDENTITY FIX
+
+Actions:
+
+Header must render:
+
+avatar (same logic)
+
+artist name (if artist)
+
+username
+
+Remove cached or mismatched header state.
+
+STEP 10 — HEADER AVATAR CLICK ROUTE
+
+Actions:
+
+Clicking avatar in header must navigate to:
+
+/settings/profile
+
+
+Remove any other avatar click behavior.
+
+FINAL CHECK
+
+Confirm:
+
+Avatar identical everywhere
+
+Upload works
+
+Header identity correct
+
+No console errors
+
+Desktop + mobile stable
+
+Sidebar untouched
+
+REQUIRED OUTPUT
+
+Avatar URL removed
+
+Upload replaces URL
+
+Droid avatar present
+
+Avatar consistent globally
+
+Header avatar opens Profile Settings
+
+Do not explain.
+Do not ask questions.
+Implement directly.

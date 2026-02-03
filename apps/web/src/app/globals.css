@@ -1,0 +1,38 @@
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.01); }
+}
+
+@keyframes presence-strong {
+  0%, 100% { transform: scale(1); background-color: #D7FF3C; box-shadow: 0 0 5px #D7FF3C; }
+  50% { transform: scale(1.2); background-color: #D7FF3C; box-shadow: 0 0 10px #D7FF3C; }
+}
+
+@keyframes presence-slow {
+  0%, 100% { background-color: #D7FF3C; opacity: 0.6; }
+  50% { background-color: #D7FF3C; opacity: 0.3; }
+}
+
+@keyframes trust-admin {
+  0%, 100% { border-color: rgba(135, 59, 191, 0.5); box-shadow: 0 0 10px rgba(135, 59, 191, 0.5); }
+  50% { border-color: rgba(135, 59, 191, 1); box-shadow: 0 0 20px rgba(135, 59, 191, 0.8); }
+}
+
+@keyframes trust-verified {
+  0%, 100% { border-style: dashed; border-color: rgba(215, 255, 60, 0.5); }
+  50% { border-style: dashed; border-color: rgba(215, 255, 60, 1); }
+}
+
+@keyframes trust-artist {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+.animate-breathe { animation: breathe 4s ease-in-out infinite; }
+.animate-presence-strong { animation: presence-strong 2s ease-in-out infinite; }
+.animate-presence-slow { animation: presence-slow 4s ease-in-out infinite; }
+.animate-trust-admin { border: 2px solid; animation: trust-admin 3s linear infinite; }
+.animate-trust-verified { border: 2px dashed; animation: trust-verified 5s linear infinite; }
+.animate-trust-artist { border: 1px solid rgba(255, 255, 255, 0.3); animation: trust-artist 6s ease-in-out infinite; }
+
