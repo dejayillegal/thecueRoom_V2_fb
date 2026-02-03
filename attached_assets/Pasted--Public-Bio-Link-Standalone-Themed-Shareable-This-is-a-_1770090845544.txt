@@ -1,0 +1,219 @@
+(Public Bio Link — Standalone, Themed, Shareable)
+
+This is a routing and rendering correction.
+Do NOT redesign internal Artist Social pages.
+Do NOT add backend services or database schemas.
+
+GOAL
+
+Public Bio Links must open a standalone, shareable, themed bio page
+(Linktree / Milkshake style), accessible without login, and fully separated
+from the internal Artist Social UI.
+
+STEP 1 — SEPARATE INTERNAL vs PUBLIC BIO ROUTES (CRITICAL)
+
+Problem:
+Public bio link resolves to internal Artist Social UI.
+
+Actions:
+
+Create a dedicated PUBLIC bio route:
+
+/bio/[username] (preferred)
+
+This route MUST:
+
+be unauthenticated
+
+NOT use Artist Social layout
+
+NOT render sidebar, topbar, or app shell
+
+Internal Artist Social routes remain unchanged.
+
+Verification:
+Visiting /bio/<username> opens a clean standalone page.
+
+STEP 2 — PUBLIC BIO PAGE STRUCTURE (LINKTREE STYLE)
+
+Actions:
+Public bio page must render:
+
+Artist avatar (large, centered)
+
+Artist display name
+
+@username
+
+Bio text
+
+Stack of published links as cards:
+
+Spotify
+
+SoundCloud
+
+YouTube
+
+External URLs
+
+Each link:
+
+shows platform icon
+
+opens externally
+
+Minimal footer branding: thecueRoom
+
+Rules:
+
+No navigation
+
+No sidebar
+
+No edit controls
+
+No dashboard UI
+
+Verification:
+Page feels like Linktree / Milkshake.
+
+STEP 3 — BIO LINK STUDIO → PUBLIC LINK PUBLISHING
+
+Actions:
+
+“Publish” in Bio Link Studio must generate:
+
+/bio/<username>
+
+Persist published state using:
+
+existing profile metadata
+
+existing links data
+
+Public link must be:
+
+stable
+
+reload-safe
+
+shareable externally
+
+Verification:
+Link works in incognito and external browsers.
+
+STEP 4 — PLATFORM AUTO-DETECTION (UI-ONLY)
+
+Actions:
+
+Detect platform by URL:
+
+spotify.com → Spotify icon
+
+soundcloud.com → SoundCloud icon
+
+youtube.com / youtu.be → YouTube icon
+
+Fallback to generic link icon.
+
+Use existing icon set only.
+
+Verification:
+Icons match platform automatically.
+
+STEP 5 — PUBLIC BIO THEMES (CLIENT-SIDE ONLY)
+
+Actions:
+
+Add selectable public bio themes:
+
+Dark Minimal
+
+Neon Underground
+
+Monochrome Signal
+
+Pulse Gradient
+
+Theme selection:
+
+stored in existing profile metadata
+
+applied ONLY to /bio/[username]
+
+Themes control:
+
+background
+
+card style
+
+accent glow
+
+typography scale
+
+Rules:
+
+No new tables
+
+No backend logic
+
+CSS / client-side only
+
+Verification:
+Artists can switch themes; public page updates instantly.
+
+STEP 6 — ENSURE INTERNAL ARTIST PAGE IS UNCHANGED
+
+Actions:
+
+Clicking “Public Bio Link” always opens /bio/[username]
+
+Internal Artist Social UI continues to show:
+
+feed
+
+followers / following
+
+activity
+
+No layout or UI overlap between internal and public pages.
+
+Verification:
+No internal UI leaks into public bio.
+
+STEP 7 — SAFETY CHECK
+
+No 404s
+
+No auth required
+
+No console errors
+
+Mobile + desktop responsive
+
+Prefetch disabled for public bio links
+
+REQUIRED OUTPUT
+
+Standalone public bio page
+
+Shareable /bio/[username] URL
+
+Linktree/Milkshake-style layout
+
+Theme selection support
+
+Auto-detected platform icons
+
+Confirmation that:
+
+Internal Artist Social UI is untouched
+
+Public bio is fully standalone
+
+No backend or schema changes were made
+
+Do not explain.
+Do not ask questions.
+Implement directly.

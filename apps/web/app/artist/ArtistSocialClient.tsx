@@ -235,7 +235,7 @@ export default function ArtistSocialClient({
                 <Edit3 size={18} />
               </a>
               <a 
-                href={`/link/${currentUser.username}`}
+                href={`/bio/${currentUser.username}`}
                 target="_blank"
                 className="p-2 rounded-full border border-white/10 hover:bg-white/5 transition-colors"
               >
