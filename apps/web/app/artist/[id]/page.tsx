@@ -2,7 +2,7 @@ import { checkArtistAccess } from '@/lib/artist-access';
 import { getDbClient } from '@thecueroom/db/client';
 import { users, profiles, forumThreads, forumReplies } from '@thecueroom/db/schema';
 import { eq, desc, sql } from 'drizzle-orm';
-import { generateDeterministicAvatar } from '@/lib/artist-identity';
+import { resolveAvatar } from '@/lib/artist-identity';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -23,7 +23,7 @@ export default async function ArtistProfilePage({ params }: { params: Promise<{ 
   const artist = artistRecords[0];
   const profileRecords = await db.select().from(profiles).where(eq(profiles.userId, artist.id)).limit(1);
   const profile = profileRecords[0];
-  const avatarUrl = generateDeterministicAvatar(artist.id);
+  const avatarUrl = resolveAvatar(profile, artist.id);
   const tier = artist.role === 'admin' ? { label: 'ADMIN', color: 'bg-purple-500' } : { label: 'ARTIST', color: 'bg-[#D1FF3D]' };
   
   const socialLinks = (profile?.socialLinks as Record<string, string>) || {};

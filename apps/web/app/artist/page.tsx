@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getDbClient } from "@thecueroom/db/client";
 import { users, profiles, forumThreads } from "@thecueroom/db/schema";
 import { eq, desc, inArray } from "drizzle-orm";
-import { generateDeterministicAvatar } from "@/lib/artist-identity";
+import { resolveAvatar } from "@/lib/artist-identity";
 import ArtistSocialClient from "./ArtistSocialClient";
 
 export default async function ArtistDirectoryPage() {
@@ -40,7 +40,7 @@ export default async function ArtistDirectoryPage() {
     id: session.uid,
     username: session.username || 'unknown',
     artistName: myProfile?.artistName || myProfile?.displayName || session.username || 'Artist',
-    avatar: generateDeterministicAvatar(session.uid),
+    avatar: resolveAvatar(myProfile, session.uid),
     bio: myProfile?.bio || '',
     following: myFollowing.length,
     followers: myFollowers
@@ -62,7 +62,7 @@ export default async function ArtistDirectoryPage() {
       id: a.id,
       username: a.username || 'Unknown',
       displayName: profile?.artistName || profile?.displayName || a.username || 'Unknown',
-      avatar: generateDeterministicAvatar(a.id),
+      avatar: resolveAvatar(profile, a.id),
       bio: profile?.bio || '',
       isFollowing: myFollowing.includes(a.username || ''),
       followers,
@@ -95,7 +95,7 @@ export default async function ArtistDirectoryPage() {
         type: 'thread' as const,
         artistName: authorProfile?.artistName || authorProfile?.displayName || t.username || 'Unknown',
         username: t.username || 'unknown',
-        avatar: generateDeterministicAvatar(t.userId),
+        avatar: resolveAvatar(authorProfile, t.userId),
         title: t.title || '',
         content: (t.body?.substring(0, 200) || t.title || ''),
         timestamp: t.createdAt ? new Date(t.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'Recently',

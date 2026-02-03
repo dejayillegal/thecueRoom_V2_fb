@@ -1,7 +1,7 @@
 import { getDbClient } from '@thecueroom/db/client';
 import { users, profiles } from '@thecueroom/db/schema';
 import { eq } from 'drizzle-orm';
-import { generateDeterministicAvatar } from '@/lib/artist-identity';
+import { resolveAvatar } from '@/lib/artist-identity';
 import { notFound } from 'next/navigation';
 import { ExternalLink, Music, Globe, Instagram, Youtube, Twitter, Disc, Radio } from 'lucide-react';
 import { Metadata } from 'next';
@@ -94,9 +94,9 @@ export default async function PublicBioPage({ params }: { params: Promise<{ user
   const user = userRecords[0];
   const profileRecords = await db.select().from(profiles).where(eq(profiles.userId, user.id)).limit(1);
   const profile = profileRecords[0];
-  const socialLinksData = profile?.socialLinks as any || {};
-  const avatarUrl = profile?.avatar || generateDeterministicAvatar(socialLinksData.avatarSeed || user.id);
+  const avatarUrl = resolveAvatar(profile, user.id);
   
+  const socialLinksData = profile?.socialLinks as any || {};
   const linksArray = Array.isArray(socialLinksData.links) ? socialLinksData.links : (Array.isArray(socialLinksData) ? socialLinksData : []);
   const themeKey = socialLinksData.theme || 'dark-minimal';
   const theme = themes[themeKey as keyof typeof themes] || themes['dark-minimal'];
