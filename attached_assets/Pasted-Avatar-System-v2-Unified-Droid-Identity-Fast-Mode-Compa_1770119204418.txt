@@ -1,0 +1,288 @@
+Avatar System v2 — Unified Droid Identity (Fast-Mode Compatible)
+
+This is a consistency + wiring fix with visual enhancement.
+Do NOT redesign layouts.
+Do NOT add database tables or backend services.
+Do NOT change navigation or routing except where explicitly stated.
+
+GOAL
+
+Use one shared profile source and one avatar resolver everywhere.
+
+Add:
+
+Droid-style generated avatar (SVG)
+
+File upload avatar (JPG/PNG ≤ 2MB)
+
+Subtle motion (hover + presence)
+
+Correct header identity & click behavior
+
+Ensure the same avatar + name appear in:
+
+Header
+
+Profile Settings
+
+Artist Social
+
+Forum Threads
+
+Public Bio page
+
+STEP 1 — CREATE SINGLE PROFILE SELECTOR (CRITICAL)
+
+Create:
+
+apps/web/lib/identity/useCurrentProfile.ts
+
+
+Implementation rules:
+
+Read profile ONCE
+
+Return only:
+
+username
+
+artistName
+
+role
+
+metadata
+
+avatar (resolved output)
+
+No UI logic here.
+
+STEP 2 — CANONICAL AVATAR RESOLVER
+
+Create helper:
+
+apps/web/lib/identity/avatarResolver.ts
+
+
+Resolution priority (STRICT):
+
+profile.metadata.avatarImage // base64 upload
+
+profile.metadata.generatedAvatarSvg
+
+deterministic fallback (seeded)
+
+Rules:
+
+No per-page logic
+
+No inline SVG generators in components
+
+Resolver returns ONE renderable avatar source
+
+STEP 3 — REMOVE AVATAR URL COMPLETELY
+
+Actions:
+
+Remove Custom Avatar URL input from Profile Settings UI
+
+Delete all reads of:
+
+avatarUrl
+
+profile.avatarUrl
+
+Ensure no component references external avatar URLs
+
+Verification:
+
+No avatar URL input exists anywhere
+
+STEP 4 — AVATAR IMAGE UPLOAD (FAST-MODE SAFE)
+
+In Profile Settings:
+
+Add file upload control:
+
+Accept: .jpg, .jpeg, .png
+
+Max size: 2 MB
+
+Client-side validation only.
+
+On upload:
+
+Convert file → base64
+
+Save to profile.metadata.avatarImage
+
+Trigger local profile refresh
+
+Avatar updates immediately via resolver
+
+Rules:
+
+No external storage
+
+No backend changes
+
+STEP 5 — DROID-STYLE GENERATED AVATAR (SVG ONLY)
+
+Implement a deterministic SVG generator:
+
+Seeded by user id / username
+
+Droid / synth-entity silhouette
+
+Angular geometry
+
+Circuit / signal motifs
+
+Underground techno aesthetic
+
+Neutral grayscale + brand accent only
+
+Store result in:
+
+profile.metadata.generatedAvatarSvg
+
+
+No text. No letters. No faces.
+
+STEP 6 — MICRO-MOTION (CSS ONLY)
+
+Apply to avatar container everywhere:
+
+Idle:
+
+Very slow glow breathing
+
+Hover / press:
+
+scale ≤ 1.03
+
+soft halo ramp
+
+Rules:
+
+transform + opacity only
+
+respect prefers-reduced-motion
+
+long durations (calm, not flashy)
+
+STEP 7 — PRESENCE DECAY (NO REALTIME)
+
+Derive presence from existing timestamps:
+
+Active: < 2 min
+
+Fading: 2–10 min
+
+Idle: > 10 min
+
+Map to ring behavior:
+
+Active → strong pulse
+
+Fading → slow dim pulse
+
+Idle → static ring
+
+CSS animation only.
+No timers. No intervals.
+
+STEP 8 — TRUST RING HARMONICS
+
+Decorative only:
+
+Admin → steady wave
+
+Verified Artist → segmented breathing glow
+
+Artist → subtle oscillation
+
+User → none
+
+Rules:
+
+No flashing
+
+No color changes
+
+Long duration, phase-shifted opacity
+
+STEP 9 — HEADER IDENTITY FIX
+
+Header MUST use useCurrentProfile().
+
+Render:
+
+avatar (resolver)
+
+artistName (if artist)
+
+@username
+
+Remove:
+
+cached identity
+
+hardcoded header state
+
+STEP 10 — HEADER AVATAR CLICK ROUTING
+
+Clicking avatar in header MUST:
+
+navigate to /settings/profile
+
+Remove all alternate avatar click logic.
+
+STEP 11 — APPLY EVERYWHERE (STRICT)
+
+Ensure ALL use the same resolver + selector:
+
+Header
+
+Profile Settings
+
+Artist Social
+
+Forum Threads
+
+Public Bio page
+
+No exceptions.
+
+STEP 12 — SAFETY CHECK
+
+Confirm:
+
+No duplicate avatars
+
+No layout shifts
+
+No console errors
+
+Mobile + desktop stable
+
+Sidebar untouched
+
+REQUIRED OUTPUT
+
+Avatar URL fully removed
+
+File upload working
+
+Droid SVG avatar implemented
+
+Subtle motion + presence decay active
+
+One identity source everywhere
+
+Header identity correct
+
+Header avatar click opens Profile Settings
+
+Do not explain.
+Do not ask questions.
+Implement directly.
