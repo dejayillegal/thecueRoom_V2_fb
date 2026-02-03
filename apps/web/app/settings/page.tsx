@@ -332,8 +332,6 @@ export default function SettingsPage() {
                       </Button>
                     </div>
                   </div>
-                </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="avatarUrl" className="text-gray-300">Custom Avatar URL</Label>
                   <Input 
