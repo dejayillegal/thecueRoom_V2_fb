@@ -12,6 +12,7 @@ import {
   Edit3,
   Link as LinkIcon
 } from 'lucide-react';
+import Link from 'next/link';
 import { cn } from "@/lib/utils";
 import { useFollow } from '@/hooks/useFollow';
 
@@ -240,13 +241,14 @@ export default function ArtistSocialClient({
               >
                 <Edit3 size={18} />
               </a>
-              <a 
+              <Link 
                 href={`/bio/${currentUser.username}`}
                 target="_blank"
+                prefetch={false}
                 className="p-2 rounded-full border border-white/10 hover:bg-white/5 transition-colors"
               >
                 <LinkIcon size={18} />
-              </a>
+              </Link>
             </div>
           </div>
           {currentUser.bio && (
