@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -320,14 +321,15 @@ export default function BioLinkStudio() {
                   <h2 className="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-400">Active Pipeline</h2>
                 </div>
                 <div className="flex items-center gap-4">
-                  <a 
+                  <Link 
                     href={`/bio/${artist?.user?.username}`} 
-                    target="_blank" 
+                    target="_blank"
+                    prefetch={false}
                     className="text-[9px] font-bold uppercase tracking-widest text-[#D7FF3C] hover:underline flex items-center gap-2"
                   >
                     <ExternalLink size={10} />
                     Public Bio Link
-                  </a>
+                  </Link>
                   <span className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest">{links.length} nodes online</span>
                 </div>
               </div>
