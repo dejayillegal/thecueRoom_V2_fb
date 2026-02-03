@@ -16,25 +16,33 @@ import Link from 'next/link';
 import { cn } from "@/lib/utils";
 import { useFollow } from '@/hooks/useFollow';
 
+import { Avatar } from '@/components/ui/avatar';
+
 interface CurrentUser {
   id: string;
   username: string;
   artistName: string;
-  avatar: string;
+  avatarImage?: string;
+  generatedAvatarSvg?: string;
   bio: string;
   following: number;
   followers: number;
+  lastActivity?: number;
+  role?: 'admin' | 'verified' | 'artist' | 'user';
 }
 
 interface Artist {
   id: string;
   username: string;
   displayName: string;
-  avatar: string;
+  avatarImage?: string;
+  generatedAvatarSvg?: string;
   bio: string;
   isFollowing: boolean;
   followers: number;
   following: number;
+  lastActivity?: number;
+  role?: 'admin' | 'verified' | 'artist' | 'user';
 }
 
 interface SignalEntry {
@@ -42,13 +50,16 @@ interface SignalEntry {
   type: 'thread' | 'comment';
   artistName: string;
   username: string;
-  avatar: string;
+  avatarImage?: string;
+  generatedAvatarSvg?: string;
   title: string;
   content: string;
   timestamp: string;
   stats: { replies: number; signals: number };
   isFollowing: boolean;
   isOwn: boolean;
+  lastActivity?: number;
+  role?: 'admin' | 'verified' | 'artist' | 'user';
 }
 
 function FollowersModal({ 
@@ -109,13 +120,20 @@ function FollowersModal({
           ) : (
             artists.map(artist => (
               <div key={artist.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
-                <div className="flex items-center gap-3">
-                  <img src={artist.avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
-                  <div>
-                    <p className="font-medium text-sm">{artist.displayName}</p>
-                    <p className="text-xs text-zinc-500">@{artist.username}</p>
+                  <div className="flex items-center gap-3">
+                    <Avatar 
+                      username={artist.username}
+                      avatarImage={artist.avatarImage}
+                      generatedAvatarSvg={artist.generatedAvatarSvg}
+                      role={artist.role}
+                      lastActivity={artist.lastActivity}
+                      className="w-10 h-10" 
+                    />
+                    <div>
+                      <p className="font-medium text-sm">{artist.displayName}</p>
+                      <p className="text-xs text-zinc-500">@{artist.username}</p>
+                    </div>
                   </div>
-                </div>
                 <FollowButton username={artist.username} initialIsFollowing={artist.isFollowing} />
               </div>
             ))
@@ -206,14 +224,14 @@ export default function ArtistSocialClient({
           style={{ marginBottom: '2rem', display: 'block' }}
         >
           <div className="flex items-start gap-4 mb-6">
-            <div className="relative">
-              <img 
-                src={currentUser.avatar} 
-                alt="" 
-                className="w-20 h-20 rounded-full border-2 border-[#D7FF3C] object-cover"
-              />
-              <div className="absolute bottom-1 right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0B0B0B]" />
-            </div>
+            <Avatar 
+              username={currentUser.username}
+              avatarImage={currentUser.avatarImage}
+              generatedAvatarSvg={currentUser.generatedAvatarSvg}
+              role={currentUser.role}
+              lastActivity={currentUser.lastActivity}
+              className="w-20 h-20"
+            />
             <div className="flex-1">
               <h1 className="text-2xl font-bold mb-1">{currentUser.artistName}</h1>
               <p className="text-zinc-500 text-sm mb-3">@{currentUser.username}</p>
@@ -289,10 +307,13 @@ export default function ArtistSocialClient({
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
               {suggestedArtists.map((artist) => (
                 <div key={artist.id} className="flex-shrink-0 w-28 text-center">
-                  <img 
-                    src={artist.avatar} 
-                    alt="" 
-                    className="w-16 h-16 rounded-full mx-auto mb-2 cursor-pointer hover:ring-2 ring-[#D7FF3C] transition-all"
+                  <Avatar 
+                    username={artist.username}
+                    avatarImage={artist.avatarImage}
+                    generatedAvatarSvg={artist.generatedAvatarSvg}
+                    role={artist.role}
+                    lastActivity={artist.lastActivity}
+                    className="w-16 h-16 mx-auto mb-2 cursor-pointer"
                     onClick={() => navigateToArtist(artist.username)}
                   />
                   <p className="text-xs font-medium truncate mb-1">{artist.displayName}</p>
@@ -332,10 +353,13 @@ export default function ArtistSocialClient({
                       className="flex gap-3 w-full"
                       onClick={() => navigateToThread(signal.id)}
                     >
-                      <img 
-                        src={signal.avatar} 
-                        alt="" 
-                        className="w-10 h-10 rounded-full flex-shrink-0 cursor-pointer hover:ring-2 ring-white/20 transition-all"
+                      <Avatar 
+                        username={signal.username}
+                        avatarImage={signal.avatarImage}
+                        generatedAvatarSvg={signal.generatedAvatarSvg}
+                        role={signal.role}
+                        lastActivity={signal.lastActivity}
+                        className="w-10 h-10 flex-shrink-0 cursor-pointer"
                         onClick={(e) => { e.stopPropagation(); navigateToArtist(signal.username); }}
                       />
                       <div className="flex-1 min-w-0">

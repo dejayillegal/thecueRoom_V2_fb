@@ -8,33 +8,33 @@ interface UserProfileCardProps {
     username: string;
     displayName?: string;
     artistName?: string;
-    avatar?: string;
+    avatarImage?: string;
+    generatedAvatarSvg?: string;
     bio?: string;
     region?: string;
     genre?: string;
     verified?: boolean;
     socialProfileUrl?: string;
     aiCredits?: number;
+    lastActivity?: number;
+    role?: 'admin' | 'verified' | 'artist' | 'user';
   };
   variant?: 'full' | 'compact' | 'inline';
 }
 
 export function UserProfileCard({ user, variant = 'full' }: UserProfileCardProps) {
+  const avatarProps = {
+    username: user.username,
+    avatarImage: user.avatarImage,
+    generatedAvatarSvg: user.generatedAvatarSvg,
+    lastActivity: user.lastActivity,
+    role: user.role || (user.verified ? 'verified' : 'user')
+  };
+
   if (variant === 'inline') {
     return (
       <div className="flex items-center gap-2">
-        <div className="relative">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#D7FF3C] to-[#9B5CFF] flex items-center justify-center text-black text-xs font-bold">
-            {user.avatar ? (
-              <img src={user.avatar} alt={user.displayName || user.username} className="w-full h-full rounded-full object-cover" />
-            ) : (
-              user.username[0].toUpperCase()
-            )}
-          </div>
-          {user.verified && (
-            <CheckCircle2 className="absolute -bottom-0.5 -right-0.5 w-3 h-3 text-green-500 bg-[#0a0a0a] rounded-full" />
-          )}
-        </div>
+        <Avatar {...avatarProps} className="w-8 h-8" />
         <div className="flex flex-col">
           <span className="text-sm text-white font-medium flex items-center gap-1">
             {user.displayName || user.username}
@@ -50,18 +50,7 @@ export function UserProfileCard({ user, variant = 'full' }: UserProfileCardProps
   if (variant === 'compact') {
     return (
       <div className="flex items-start gap-3 p-3 bg-[#0a0a0a] rounded-lg border border-[#1a1a1a]">
-        <div className="relative flex-shrink-0">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#D7FF3C] to-[#9B5CFF] flex items-center justify-center text-black text-sm font-bold">
-            {user.avatar ? (
-              <img src={user.avatar} alt={user.displayName || user.username} className="w-full h-full rounded-full object-cover" />
-            ) : (
-              user.username[0].toUpperCase()
-            )}
-          </div>
-          {user.verified && (
-            <CheckCircle2 className="absolute -bottom-1 -right-1 w-4 h-4 text-green-500 bg-[#0a0a0a] rounded-full" />
-          )}
-        </div>
+        <Avatar {...avatarProps} className="w-12 h-12" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <h4 className="text-sm font-semibold text-white truncate">
@@ -110,18 +99,7 @@ export function UserProfileCard({ user, variant = 'full' }: UserProfileCardProps
   return (
     <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-4">
       <div className="flex items-start gap-4 mb-4">
-        <div className="relative flex-shrink-0">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#D7FF3C] to-[#9B5CFF] flex items-center justify-center text-black text-lg font-bold">
-            {user.avatar ? (
-              <img src={user.avatar} alt={user.displayName || user.username} className="w-full h-full rounded-full object-cover" />
-            ) : (
-              user.username[0].toUpperCase()
-            )}
-          </div>
-          {user.verified && (
-            <CheckCircle2 className="absolute -bottom-1 -right-1 w-5 h-5 text-green-500 bg-[#0a0a0a] rounded-full p-0.5" />
-          )}
-        </div>
+        <Avatar {...avatarProps} className="w-16 h-16" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <h3 className="text-lg font-bold text-white truncate">
