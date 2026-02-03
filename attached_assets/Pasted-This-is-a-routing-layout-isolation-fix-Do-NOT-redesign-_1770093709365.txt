@@ -1,0 +1,151 @@
+This is a routing layout isolation fix.
+Do NOT redesign internal Artist Social pages.
+Do NOT add backend services or schemas.
+
+GOAL
+
+The public bio page (/bio/[username]) must render as a standalone page
+and must NOT inherit:
+
+sidebar
+
+topbar
+
+artist social layout
+
+dashboard shell
+
+STEP 1 — CREATE A DEDICATED PUBLIC BIO LAYOUT (CRITICAL)
+
+Problem:
+/bio/[username] is rendered inside the main app layout.
+
+Actions:
+
+Create a new layout file at:
+
+apps/web/app/bio/layout.tsx
+
+
+This layout MUST:
+
+render {children} only
+
+NOT import app shell components
+
+NOT include sidebar, header, or providers tied to the dashboard
+
+Required structure (conceptual):
+
+<html>
+
+<body>
+
+{children}
+
+No navigation.
+No sidebar.
+No artist social UI.
+
+Verification:
+Viewing /bio/username shows ONLY the bio page.
+
+STEP 2 — ENSURE BIO PAGE USES ONLY THE BIO LAYOUT
+
+Actions:
+
+Confirm the route exists at:
+
+apps/web/app/bio/[username]/page.tsx
+
+
+Ensure this page:
+
+does NOT import Artist Social components
+
+does NOT wrap content in dashboard containers
+
+renders only:
+
+avatar
+
+name
+
+@username
+
+bio
+
+link cards
+
+Verification:
+The page looks like Linktree / Milkshake, not the app.
+
+STEP 3 — PREVENT APP LAYOUT LEAKAGE
+
+Actions:
+
+Remove /bio from any route groups using (app) or (dashboard) layouts.
+
+/bio must be top-level, not nested.
+
+❌ WRONG:
+
+(app)/bio/[username]
+
+
+✅ CORRECT:
+
+bio/[username]
+
+
+Verification:
+No sidebar appears on public bio page.
+
+STEP 4 — FIX PUBLIC BIO LINK TARGETS (FINAL)
+
+Actions:
+
+Ensure all “Public Bio Link” buttons use:
+
+/bio/${username}
+
+
+Disable prefetch:
+
+<Link href={`/bio/${username}`} prefetch={false} />
+
+
+Do NOT compute the link outside render scope.
+
+Verification:
+Clicking Public Bio Link opens ONLY the standalone page.
+
+STEP 5 — SAFETY CHECK
+
+Ensure:
+
+/bio/username works in incognito
+
+No auth required
+
+No console errors
+
+Desktop + mobile responsive
+
+Internal Artist Social pages unchanged
+
+REQUIRED OUTPUT
+
+Public bio renders standalone
+
+No sidebar / topbar / dashboard UI
+
+Shareable Linktree-style page
+
+Internal Artist Social UI untouched
+
+Routing behaves consistently on cold start
+
+Do not explain.
+Do not ask questions.
+Implement directly.
