@@ -41,6 +41,7 @@ const nextConfig: NextConfig = {
   devIndicators: {
     position: 'bottom-right',
   },
+  serverExternalPackages: ['drizzle-orm'],
 };
 
 export default nextConfig;
