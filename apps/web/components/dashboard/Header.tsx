@@ -123,7 +123,7 @@ export const Header = memo(function Header({ user, sidebarOpen, onToggleSidebar 
 
       <div className="flex items-center gap-4">
         <NotificationsButton
-          notifications={notifications}
+          notifications={notifications as any}
           unreadCount={unreadCount}
           onMarkAsRead={markAsRead}
           onMarkAllAsRead={markAllAsRead}
@@ -143,7 +143,7 @@ export const Header = memo(function Header({ user, sidebarOpen, onToggleSidebar 
         </button>
 
         <div className="flex items-center gap-3">
-          <Link href={`/link/${userId || 'me'}`} prefetch={false} className="flex items-center gap-3 hover:opacity-80 transition-opacity group">
+          <Link href={`/bio/${userId || 'me'}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity group">
             <div className="text-right hidden sm:block">
               <p className="text-sm font-bold text-white group-hover:text-[var(--tcr-accent)] transition-colors">{user?.name || 'User'}</p>
               <p className="text-[10px] text-zinc-500 font-mono lowercase">@{user?.name?.toLowerCase().replace(/\s+/g, '_') || 'artist'}</p>

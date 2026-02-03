@@ -8,11 +8,7 @@ import {
   Zap, 
   Heart,
   Share2,
-  UserPlus,
-  UserCheck,
   X,
-  ExternalLink,
-  Settings,
   Edit3,
   Link as LinkIcon
 } from 'lucide-react';
@@ -58,31 +54,47 @@ function FollowersModal({
   isOpen, 
   onClose, 
   title, 
-  artists,
-  onFollow
+  artists
 }: { 
   isOpen: boolean; 
   onClose: () => void; 
   title: string;
   artists: Artist[];
-  onFollow: (username: string, follow: boolean) => void;
 }) {
   if (!isOpen) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
-      onClick={onClose}
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 50,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backdropFilter: 'blur(4px)'
+      }}
     >
+      <div 
+        style={{ position: 'absolute', inset: 0 }} 
+        onClick={onClose} 
+      />
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="bg-[#111] border border-white/10 rounded-xl w-full max-w-md max-h-[70vh] overflow-hidden"
-        onClick={e => e.stopPropagation()}
+        style={{
+          position: 'relative',
+          backgroundColor: '#111',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '0.75rem',
+          width: '100%',
+          maxWidth: '28rem',
+          maxHeight: '70vh',
+          overflow: 'hidden',
+          zIndex: 1
+        }}
       >
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <h3 className="text-lg font-semibold">{title}</h3>
@@ -109,7 +121,7 @@ function FollowersModal({
           )}
         </div>
       </motion.div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -145,11 +157,9 @@ export default function ArtistSocialClient({
   const [activeTab, setActiveTab] = useState<'foryou' | 'following'>('foryou');
   const [showFollowers, setShowFollowers] = useState(false);
   const [showFollowing, setShowFollowing] = useState(false);
-  const [followersCount, setFollowersCount] = useState(currentUser.followers);
   const [followingCount, setFollowingCount] = useState(currentUser.following);
 
   useEffect(() => {
-    // Listen for follow changes to update counts globally
     const handleFollowChange = (username: string, isFollowing: boolean) => {
       setArtists(prev => prev.map(a => 
         a.username === username 
@@ -163,16 +173,12 @@ export default function ArtistSocialClient({
       }
     };
 
-    // Use a custom event to sync state back to the main client
-    window.addEventListener('follow-change', ((e: CustomEvent) => {
+    const followListener = (e: any) => {
       handleFollowChange(e.detail.username, e.detail.isFollowing);
-    }) as EventListener);
-
-    return () => {
-      window.removeEventListener('follow-change', ((e: CustomEvent) => {
-        handleFollowChange(e.detail.username, e.detail.isFollowing);
-      }) as EventListener);
     };
+
+    window.addEventListener('follow-change', followListener as EventListener);
+    return () => window.removeEventListener('follow-change', followListener as EventListener);
   }, []);
 
   const navigateToThread = (threadId: string) => {
@@ -180,7 +186,7 @@ export default function ArtistSocialClient({
   };
 
   const navigateToArtist = (username: string) => {
-    window.location.href = `/link/${username}`;
+    window.location.href = `/artist/u/${username}`;
   };
 
   const filteredFeed = activeTab === 'following' 
@@ -196,7 +202,7 @@ export default function ArtistSocialClient({
         <motion.header 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          style={{ marginBottom: '2rem', display: 'block' }}
         >
           <div className="flex items-start gap-4 mb-6">
             <div className="relative">
@@ -215,7 +221,7 @@ export default function ArtistSocialClient({
                   onClick={() => setShowFollowers(true)}
                   className="hover:underline"
                 >
-                  <span className="font-semibold">{followersCount}</span>
+                  <span className="font-semibold">{currentUser.followers}</span>
                   <span className="text-zinc-500 ml-1">followers</span>
                 </button>
                 <button 
@@ -258,7 +264,7 @@ export default function ArtistSocialClient({
           >
             For You
             {activeTab === 'foryou' && (
-              <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#D7FF3C]" />
+              <motion.div layoutId="activeTab" style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', backgroundColor: '#D7FF3C', display: 'block' }} />
             )}
           </button>
           <button
@@ -270,7 +276,7 @@ export default function ArtistSocialClient({
           >
             Following
             {activeTab === 'following' && (
-              <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#D7FF3C]" />
+              <motion.div layoutId="activeTab" style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', backgroundColor: '#D7FF3C', display: 'block' }} />
             )}
           </button>
         </div>
@@ -279,7 +285,7 @@ export default function ArtistSocialClient({
           <div className="mb-6 p-4 bg-zinc-900/50 rounded-xl border border-white/5">
             <h3 className="text-sm font-medium text-zinc-400 mb-3">Suggested for you</h3>
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-              {suggestedArtists.map((artist, i) => (
+              {suggestedArtists.map((artist) => (
                 <div key={artist.id} className="flex-shrink-0 w-28 text-center">
                   <img 
                     src={artist.avatar} 
@@ -302,70 +308,76 @@ export default function ArtistSocialClient({
                 key="empty"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-center py-12 text-zinc-500"
+                style={{ textAlign: 'center', padding: '3rem 0', color: '#71717a', display: 'block' }}
               >
                 <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p>No posts yet. Follow artists to see their content here.</p>
               </motion.div>
             ) : (
               filteredFeed.map((signal, i) => (
-                <motion.article
+                <article
                   key={signal.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ delay: i * 0.03 }}
-                  className="py-4 border-b border-white/5 hover:bg-white/[0.02] transition-colors cursor-pointer"
-                  onClick={() => navigateToThread(signal.id)}
+                  style={{ padding: '1rem 0', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', transition: 'background-color 0.2s', cursor: 'pointer' }}
                 >
-                  <div className="flex gap-3">
-                    <img 
-                      src={signal.avatar} 
-                      alt="" 
-                      className="w-10 h-10 rounded-full flex-shrink-0 cursor-pointer hover:ring-2 ring-white/20 transition-all"
-                      onClick={(e) => { e.stopPropagation(); navigateToArtist(signal.username); }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span 
-                          className="font-semibold text-sm hover:underline cursor-pointer"
-                          onClick={(e) => { e.stopPropagation(); navigateToArtist(signal.username); }}
-                        >
-                          {signal.artistName}
-                        </span>
-                        <span className="text-zinc-500 text-sm">@{signal.username}</span>
-                        <span className="text-zinc-600 text-xs">· {signal.timestamp}</span>
-                        {signal.isOwn && (
-                          <span className="text-[10px] px-1.5 py-0.5 bg-[#D7FF3C]/20 text-[#D7FF3C] rounded">You</span>
-                        )}
-                      </div>
-                      <h3 className="font-medium mb-1 text-white">{signal.title}</h3>
-                      <p className="text-zinc-400 text-sm leading-relaxed line-clamp-3">{signal.content}</p>
-                      <div className="flex items-center gap-6 mt-3">
-                        <button 
-                          className="flex items-center gap-1.5 text-zinc-500 hover:text-[#D7FF3C] transition-colors group"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MessageSquare size={16} className="group-hover:scale-110 transition-transform" />
-                          <span className="text-xs">{signal.stats.replies}</span>
-                        </button>
-                        <button 
-                          className="flex items-center gap-1.5 text-zinc-500 hover:text-red-400 transition-colors group"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Heart size={16} className="group-hover:scale-110 transition-transform" />
-                          <span className="text-xs">{signal.stats.signals}</span>
-                        </button>
-                        <button 
-                          className="flex items-center gap-1.5 text-zinc-500 hover:text-white transition-colors group"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Share2 size={16} className="group-hover:scale-110 transition-transform" />
-                        </button>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ delay: i * 0.03 }}
+                    style={{ display: 'flex', gap: '0.75rem' }}
+                  >
+                    <div 
+                      className="flex gap-3 w-full"
+                      onClick={() => navigateToThread(signal.id)}
+                    >
+                      <img 
+                        src={signal.avatar} 
+                        alt="" 
+                        className="w-10 h-10 rounded-full flex-shrink-0 cursor-pointer hover:ring-2 ring-white/20 transition-all"
+                        onClick={(e) => { e.stopPropagation(); navigateToArtist(signal.username); }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span 
+                            className="font-semibold text-sm hover:underline cursor-pointer"
+                            onClick={(e) => { e.stopPropagation(); navigateToArtist(signal.username); }}
+                          >
+                            {signal.artistName}
+                          </span>
+                          <span className="text-zinc-500 text-sm">@{signal.username}</span>
+                          <span className="text-zinc-600 text-xs">· {signal.timestamp}</span>
+                          {signal.isOwn && (
+                            <span className="text-[10px] px-1.5 py-0.5 bg-[#D7FF3C]/20 text-[#D7FF3C] rounded">You</span>
+                          )}
+                        </div>
+                        <h3 className="font-medium mb-1 text-white">{signal.title}</h3>
+                        <p className="text-zinc-400 text-sm leading-relaxed line-clamp-3">{signal.content}</p>
+                        <div className="flex items-center gap-6 mt-3">
+                          <button 
+                            className="flex items-center gap-1.5 text-zinc-500 hover:text-[#D7FF3C] transition-colors group"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MessageSquare size={16} className="group-hover:scale-110 transition-transform" />
+                            <span className="text-xs">{signal.stats.replies}</span>
+                          </button>
+                          <button 
+                            className="flex items-center gap-1.5 text-zinc-500 hover:text-red-400 transition-colors group"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Heart size={16} className="group-hover:scale-110 transition-transform" />
+                            <span className="text-xs">{signal.stats.signals}</span>
+                          </button>
+                          <button 
+                            className="flex items-center gap-1.5 text-zinc-500 hover:text-white transition-colors group"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Share2 size={16} className="group-hover:scale-110 transition-transform" />
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </motion.article>
+                  </motion.div>
+                </article>
               ))
             )}
           </AnimatePresence>
@@ -379,10 +391,9 @@ export default function ArtistSocialClient({
             onClose={() => setShowFollowers(false)}
             title="Followers"
             artists={artists.filter(a => {
-              const isFollowingMe = initialArtists.find(ia => ia.username === a.username)?.isFollowing;
-              return isFollowingMe;
+              const isFollowingMe = initialArtists.find((ia: Artist) => ia.username === a.username)?.isFollowing;
+              return !!isFollowingMe;
             })}
-            onFollow={() => {}} // Not used
           />
         )}
         {showFollowing && (
@@ -391,7 +402,6 @@ export default function ArtistSocialClient({
             onClose={() => setShowFollowing(false)}
             title="Following"
             artists={followingArtists}
-            onFollow={() => {}} // Not used
           />
         )}
       </AnimatePresence>
