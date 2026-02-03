@@ -1,0 +1,266 @@
+🔧 AVATAR SYNC v2 — IDENTITY CONSISTENCY PATCH (FAST MODE SAFE)
+
+You are working inside an existing Next.js app.
+
+This is a wiring + consistency correction only.
+
+HARD CONSTRAINTS
+
+❌ Do NOT redesign UI
+
+❌ Do NOT add database tables
+
+❌ Do NOT add backend services
+
+❌ Do NOT change navigation or layouts
+
+❌ Do NOT introduce new routes
+
+❌ Do NOT use third-party storage or services
+
+🎯 GOAL (NON-NEGOTIABLE)
+
+There must be ONE authoritative avatar + identity source.
+
+The same avatar, username, and artist name must render identically in:
+
+Header (top-right avatar)
+
+Profile Settings
+
+Artist Connect / Artist Social
+
+Community Hall / Green Room threads
+
+Public Bio page
+
+No initials. No mismatches. No fallbacks leaking.
+
+STEP 1 — CREATE SINGLE PROFILE SELECTOR (CRITICAL)
+
+Create one shared hook:
+
+apps/web/lib/identity/useCurrentProfile.ts
+
+
+This hook must:
+
+Fetch the current user profile ONCE
+
+Normalize identity fields
+
+Export a stable object
+
+Return shape (exact):
+
+{
+  id,
+  username,
+  artistName,
+  role,
+  avatarSrc,   // resolved image or svg
+  presenceState, // active | fading | idle
+  trustTier     // admin | verified | artist | user
+}
+
+
+🚫 No other component may fetch profile data directly
+🚫 No component may compute avatar on its own
+
+STEP 2 — CANONICAL AVATAR RESOLVER (ENFORCE)
+
+Create:
+
+apps/web/lib/identity/avatarResolver.ts
+
+
+Resolution priority (STRICT ORDER):
+
+profile.metadata.avatarImage (base64 image)
+
+profile.metadata.generatedAvatarSvg (droid SVG)
+
+deterministic fallback SVG (seeded by user id)
+
+Return ONE src string only.
+
+🚫 Remove ALL usage of:
+
+avatarUrl
+
+profile.avatarUrl
+
+inline avatar generators
+
+initials-based avatars
+
+STEP 3 — AVATAR UPLOAD (FILE ONLY)
+
+In Profile Settings:
+
+Remove Custom Avatar URL input entirely
+
+Add file upload control:
+
+Rules:
+
+Accept: .jpg, .jpeg, .png
+
+Max size: 2 MB
+
+Client-side validation only
+
+On upload:
+
+Convert file → base64
+
+Store in profile.metadata.avatarImage
+
+Immediately re-render avatar via resolver
+
+If upload is removed:
+
+Fall back to generated droid avatar
+
+🚫 No external storage
+🚫 No backend changes
+
+STEP 4 — DROID AVATAR (ADVANCED BUT LIGHTWEIGHT)
+
+Generated avatar must be:
+
+SVG-based
+
+Deterministic (seeded)
+
+Droid / cyber / underground music aesthetic
+
+Allowed:
+
+geometric core
+
+segmented rings
+
+minimal glow
+
+subtle noise / grid hints
+
+🚫 No canvas
+🚫 No WebGL
+🚫 No heavy math
+🚫 SVG only
+
+Store SVG string in:
+
+profile.metadata.generatedAvatarSvg
+
+STEP 5 — PRESENCE DECAY (CSS-ONLY)
+
+Derive presence using existing timestamps:
+
+Active: < 2 min
+
+Fading: 2–10 min
+
+Idle: > 10 min
+
+Map to ring behavior:
+
+Active → strong pulse
+
+Fading → slow dim pulse
+
+Idle → static ring
+
+Rules:
+
+❌ No timers
+
+❌ No intervals
+
+❌ No realtime infra
+
+✔ CSS animation only
+
+STEP 6 — TRUST-TIER RING HARMONICS
+
+Add decorative ring animation only:
+
+Admin → steady energy wave
+
+Verified Artist → segmented breathing glow
+
+Artist → subtle oscillation
+
+User → none
+
+Rules:
+
+Long duration
+
+Low contrast
+
+No flashing
+
+No color cycling
+
+STEP 7 — APPLY EVERYWHERE (STRICT)
+
+All of the following MUST use useCurrentProfile():
+
+Header avatar + name
+
+Profile Settings avatar preview
+
+Artist Connect cards
+
+Community Hall / Green Room thread authors
+
+Public Bio page avatar
+
+🚫 No exceptions
+🚫 No local avatar state
+
+STEP 8 — HEADER BEHAVIOR FIX
+
+Header must:
+
+Render avatar from resolver
+
+Render correct artistName / username
+
+On avatar click → navigate to:
+
+/settings/profile
+
+
+Remove:
+
+Cached header identity
+
+Dropdown-only avatar logic
+
+SAFETY CHECK (MANDATORY)
+
+Confirm:
+
+One avatar everywhere
+
+No initials anywhere
+
+No avatar URL logic left
+
+No console errors
+
+Desktop + mobile stable
+
+Sidebar untouched
+
+REQUIRED OUTPUT
+
+✔ Avatar upload replaces URL
+✔ One identity source
+✔ Avatar synced everywhere
+✔ Header identity correct
+✔ Droid avatar modern + animated
+✔ Presence decay + trust rings active
