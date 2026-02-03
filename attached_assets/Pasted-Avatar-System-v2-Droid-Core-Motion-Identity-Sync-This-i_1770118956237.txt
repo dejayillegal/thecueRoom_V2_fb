@@ -1,0 +1,338 @@
+Avatar System v2 — Droid Core · Motion · Identity Sync
+
+This is a visual identity + wiring correction.
+Do NOT redesign layout.
+Do NOT add database tables or backend services.
+Do NOT modify navigation or routing except where explicitly stated.
+
+GOAL
+
+Finalize a single authoritative avatar system with:
+
+One shared source of truth
+
+Droid-style underground avatar visuals
+
+Subtle graphical motion + signal elements
+
+Avatar upload replacing URL
+
+Perfect identity sync across the app
+
+Ensure consistency across:
+
+Header
+
+Profile Settings
+
+Artist Social
+
+Forum Threads
+
+Public Bio Link page
+
+STEP 1 — REMOVE AVATAR URL INPUT (HARD REQUIREMENT)
+
+Problem
+Avatar URL input causes divergence and breaks visual consistency.
+
+Actions
+
+Remove Custom Avatar URL field completely.
+
+Delete all logic reading:
+
+avatarUrl
+
+profile.avatarUrl
+
+Ensure no component references avatar URLs.
+
+Verification
+
+No URL input visible
+
+No URL-based avatar logic remains
+
+STEP 2 — SINGLE PROFILE SOURCE (CRITICAL)
+
+Problem
+Header, settings, and pages fetch identity differently.
+
+Actions
+
+Create one shared profile selector:
+
+lib/identity/useCurrentProfile.ts
+
+
+Selector must return:
+
+username
+
+artistName
+
+role
+
+avatar (resolved output only)
+
+The following MUST consume this selector:
+
+Header
+
+Profile Settings
+
+Artist Social
+
+Forum Threads
+
+Public Bio Page
+
+Rules
+
+No direct Supabase reads inside UI components
+
+No duplicated profile fetch logic
+
+Verification
+
+Username + artist name match everywhere
+
+STEP 3 — AVATAR IMAGE UPLOAD (FILE-ONLY)
+
+Problem
+Avatar upload is missing and URL logic still exists.
+
+Actions
+
+Replace avatar URL input with file upload:
+
+Accepted: .jpg, .jpeg, .png
+
+Max size: 2 MB
+
+Validate client-side only:
+
+File type
+
+File size
+
+On upload:
+
+Convert image → base64
+
+Store in profile.metadata.avatarImage
+
+Immediately refresh avatar resolver output.
+
+Rules
+
+No external storage
+
+No backend changes
+
+Keep generated avatar as fallback
+
+Verification
+
+Uploaded avatar appears instantly in:
+
+Header
+
+Profile Settings
+
+Artist Social
+
+Forum Threads
+
+Public Bio Page
+
+STEP 4 — AVATAR RESOLVER (FINAL)
+
+Actions
+
+Enforce one resolver with strict priority:
+
+profile.metadata.avatarImage (uploaded image)
+
+profile.metadata.generatedAvatarSvg (droid)
+
+Deterministic fallback
+
+Remove all other avatar logic.
+
+Verification
+
+Avatar never differs across pages.
+
+STEP 5 — DROID-STYLE GENERATED AVATAR (VISUAL ONLY)
+
+Goal
+Create a modern underground DJ / producer droid avatar.
+
+Actions
+
+Generated avatar must be:
+
+SVG-based
+
+Deterministic (seeded)
+
+Stored in profile.metadata.generatedAvatarSvg
+
+Visual language:
+
+Droid / synth-entity silhouette
+
+Angular geometry
+
+Circuit / signal motifs
+
+Underground techno aesthetic
+
+No text, no letters, no faces.
+
+Neutral grayscale + brand accent only.
+
+Rules
+
+No external avatar services
+
+No backend generation
+
+Visual-only, client-side
+
+Verification
+
+Generated avatar feels:
+
+Mechanical
+
+Musical
+
+Underground
+
+Artist-grade
+
+STEP 6 — AVATAR MICRO-MOTION & GRAPHICAL SIGNALS
+
+Actions
+
+Add subtle motion without layout change:
+
+Idle state:
+
+Very slow glow breathing
+
+Hover / press:
+
+Scale ≤ 1.03
+
+Soft halo ramp
+
+Optional internal SVG motion:
+
+Signal flicker
+
+Low-frequency pulse
+
+Rules
+
+Transform + opacity only
+
+Respect prefers-reduced-motion
+
+Long, calm animation durations
+
+Verification
+
+Avatar feels alive but restrained.
+
+STEP 7 — HEADER IDENTITY FIX
+
+Problem
+Header shows mismatched identity.
+
+Actions
+
+Header must render:
+
+Avatar from resolver
+
+artistName (if artist)
+
+@username
+
+Remove:
+
+Cached identity
+
+Hardcoded values
+
+Duplicate state
+
+Verification
+
+Header identity matches Profile Settings exactly.
+
+STEP 8 — HEADER AVATAR CLICK ROUTING
+
+Actions
+
+Clicking avatar in header MUST:
+
+Navigate to /settings/profile
+
+Remove alternate dropdown routing for avatar.
+
+Verification
+
+Avatar click always opens Profile Settings.
+
+STEP 9 — APPLY EVERYWHERE (STRICT)
+
+Ensure the same avatar resolver + motion logic applies to:
+
+Header avatar
+
+Artist Social feed
+
+Forum thread authors
+
+Public Bio Link page
+
+No exceptions.
+
+STEP 10 — SAFETY CHECK
+
+Confirm:
+
+No duplicate avatars
+
+No layout shifts
+
+No console errors
+
+Mobile + desktop stable
+
+Sidebar untouched
+
+REQUIRED OUTPUT
+
+Avatar URL fully removed
+
+File upload active and working
+
+Droid-style generated avatar implemented
+
+Subtle graphical motion added
+
+One canonical avatar source used everywhere
+
+Header identity correct
+
+Header avatar click opens settings
+
+Do not explain.
+Do not ask questions.
+Implement directly.
