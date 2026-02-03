@@ -265,20 +265,25 @@ export default function SettingsPage() {
                   <Label className="text-gray-300">Profile Avatar</Label>
                   <div className="flex flex-col items-center gap-6 p-6 bg-[#1a1a1a] border border-[#333] rounded-lg">
                     <div className="relative group">
-                      <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-[#D7FF3C] shadow-[0_0_20px_rgba(215,255,60,0.2)]">
+                      <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-[#D7FF3C] shadow-[0_0_20px_rgba(215,255,60,0.2)] bg-[#050505]">
                         {avatarPreview ? (
-                          <img src={avatarPreview} alt="Avatar Preview" className="w-full h-full object-cover" />
+                          <img src={avatarPreview} alt="Droid Avatar" className="w-full h-full object-contain p-2" />
                         ) : (
                           <div className="w-full h-full bg-zinc-900 flex items-center justify-center text-zinc-700 font-mono text-xs">
                             NO_SIGNAL
                           </div>
                         )}
                       </div>
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full pointer-events-none">
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg pointer-events-none">
                         <Wand2 size={24} className="text-[#D7FF3C]" />
                       </div>
                     </div>
                     
+                    <div className="flex flex-col gap-2 w-full text-center">
+                      <h3 className="text-[#D7FF3C] font-mono text-[10px] uppercase tracking-[0.2em]">Droid Model Configuration</h3>
+                      <p className="text-zinc-500 text-[10px] font-mono uppercase">Unit: {formData.avatarSeed || 'NATIVE-CORE'}</p>
+                    </div>
+
                     <div className="flex gap-3 w-full">
                       <Button 
                         onClick={generateNewAvatar}
@@ -286,7 +291,7 @@ export default function SettingsPage() {
                         className="flex-1 bg-transparent border-white/10 hover:border-[#D7FF3C]/50 hover:bg-[#D7FF3C]/5 text-white gap-2 font-bold uppercase text-[10px] tracking-widest"
                       >
                         <Wand2 size={14} />
-                        Regenerate
+                        Reconfigure Droid
                       </Button>
                       <Button 
                         onClick={revertAvatar}
@@ -294,12 +299,9 @@ export default function SettingsPage() {
                         className="text-zinc-500 hover:text-white gap-2 font-bold uppercase text-[10px] tracking-widest"
                       >
                         <RotateCcw size={14} />
-                        Revert
+                        Reset Core
                       </Button>
                     </div>
-                    <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest text-center">
-                      Deterministic Seed: {formData.avatarSeed || 'NATIVE'}
-                    </p>
                   </div>
                 </div>
 

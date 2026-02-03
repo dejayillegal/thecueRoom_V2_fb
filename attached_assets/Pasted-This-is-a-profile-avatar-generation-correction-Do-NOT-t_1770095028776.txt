@@ -1,0 +1,181 @@
+This is a profile avatar generation correction.
+Do NOT touch BioLink routing.
+Do NOT change schemas or auth.
+
+GOAL
+
+Replace the current abstract avatar with a DROID-LIKE, ANDROID-STYLE, UNDERGROUND MUSIC avatar system that:
+
+feels mechanical / synthetic
+
+looks like a masked android / cyber droid
+
+fits underground techno / ritual / industrial aesthetics
+
+is auto-generated and deterministic
+
+works fully in Fast mode
+
+STEP 1 — REPLACE ABSTRACT AVATAR STYLE (CRITICAL)
+
+Problem
+Current avatar is abstract geometry, not droid-like.
+
+Actions
+
+Replace avatar generator to render:
+
+head / mask silhouette
+
+mechanical eyes (mono / dual / visor)
+
+angular jaw / helmet shapes
+
+synthetic symmetry
+
+Visual language:
+
+android
+
+cybernetic
+
+underground / industrial
+
+Use:
+
+SVG or Canvas
+
+layered vector shapes
+
+hard edges, no organic blobs
+
+Rules
+
+NO abstract triangles only
+
+NO cartoon faces
+
+NO human realism
+
+Verification
+Avatar clearly reads as android/droid, not abstract art.
+
+STEP 2 — DETERMINISTIC SEED SYSTEM (KEEP)
+
+Actions
+
+Keep deterministic seed logic:
+
+seed = hash(username)
+
+Seed controls:
+
+head shape
+
+eye style
+
+visor type
+
+accent geometry
+
+Same user → same avatar every reload
+
+Verification
+Avatar remains stable unless regenerated.
+
+STEP 3 — UNDERGROUND COLOR & MATERIAL SYSTEM
+
+Actions
+
+Limit palette to:
+
+near-black
+
+gunmetal
+
+dark chrome
+
+acid green (brand)
+
+subtle neon accents
+
+Use:
+
+gradients for metal sheen
+
+noise/grain overlays (light)
+
+Avoid bright or playful colors
+
+Verification
+Avatar looks industrial, underground, nocturnal.
+
+STEP 4 — REGENERATE & REVERT (UI ONLY)
+
+Actions
+
+“Regenerate”:
+
+rotates seed
+
+changes droid configuration
+
+“Revert”:
+
+restores previous seed
+
+Display seed label (read-only)
+
+Rules
+
+No backend calls
+
+Store seed in existing profile metadata
+
+Verification
+User can explore variants safely.
+
+STEP 5 — AUTO-FALLBACK BEHAVIOR
+
+Actions
+
+Avatar resolution order:
+
+Custom Avatar URL (if provided)
+
+Generated Droid Avatar
+
+If Custom URL is removed:
+
+auto-fallback to generated droid avatar
+
+Verification
+Avatar never breaks or disappears.
+
+STEP 6 — SAFETY CHECK
+
+Ensure:
+
+No console errors
+
+No new dependencies
+
+No backend AI
+
+Works on mobile + desktop
+
+Only avatar visuals changed
+
+REQUIRED OUTPUT
+
+Droid-style underground avatar generator
+
+Deterministic, regeneratable avatars
+
+Android / cyber / ritual visual identity
+
+Integrated cleanly into Profile Settings
+
+Do not explain.
+Do not ask questions.
+Implement directly.

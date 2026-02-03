@@ -15,33 +15,84 @@ export function generateUndergroundUsername(seed: string): string {
 
 export function generateDeterministicAvatar(seed: string): string {
   const hash = createHash('md5').update(seed).digest('hex');
-  const hue = parseInt(hash.substring(0, 3), 16) % 360;
-  const saturation = 50 + (parseInt(hash.substring(3, 5), 16) % 50);
-  const lightness = 40 + (parseInt(hash.substring(5, 7), 16) % 20);
   
-  const shapes = parseInt(hash.substring(7, 9), 16) % 4;
-  const complexity = 3 + (parseInt(hash.substring(9, 11), 16) % 5);
+  // Base colors - Industrial/Underground Palette
+  const hue = parseInt(hash.substring(0, 2), 16) % 60 > 30 ? 65 : 180; // Either Lime (65) or Cyan/Blue (180) accents
+  const isLime = hue === 65;
+  const accentColor = isLime ? '#D7FF3C' : '#9B5CFF';
   
+  // Droid configuration
+  const headType = parseInt(hash.substring(2, 3), 16) % 3; // 0: Square, 1: Angled, 2: Narrow
+  const eyeType = parseInt(hash.substring(3, 4), 16) % 4; // 0: Visor, 1: Mono, 2: Dual, 3: Cyber-quad
+  const mouthType = parseInt(hash.substring(4, 5), 16) % 3; // 0: Grille, 1: Plate, 2: Minimal
+  const detailLevel = parseInt(hash.substring(5, 6), 16) % 5 + 3;
+
   let svg = `<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">`;
-  svg += `<rect width="200" height="200" fill="#0B0B0B" />`;
-  svg += `<defs><filter id="f1"><feGaussianBlur in="SourceGraphic" stdDeviation="5" /></filter></defs>`;
   
-  for (let i = 0; i < complexity; i++) {
-    const x = (parseInt(hash.substring(i*2, i*2+2), 16) / 255) * 200;
-    const y = (parseInt(hash.substring(i*3, i*3+2), 16) / 255) * 200;
-    const size = 20 + (parseInt(hash.substring(i*4, i*4+2), 16) / 255) * 80;
-    const opacity = 0.3 + (parseInt(hash.substring(i*5, i*5+2), 16) / 255) * 0.4;
-    
-    const color = `hsla(${(hue + i * 30) % 360}, ${saturation}%, ${lightness}%, ${opacity})`;
-    
-    if (shapes === 0) {
-      svg += `<circle cx="${x}" cy="${y}" r="${size}" fill="${color}" filter="url(#f1)" />`;
-    } else if (shapes === 1) {
-      svg += `<rect x="${x-size/2}" y="${y-size/2}" width="${size}" height="${size}" fill="${color}" transform="rotate(${i * 45} ${x} ${y})" />`;
-    } else {
-      svg += `<path d="M ${x},${y-size} L ${x+size},${y+size} L ${x-size},${y+size} Z" fill="${color}" opacity="${opacity}" />`;
-    }
+  // Background & Shadow
+  svg += `<rect width="200" height="200" fill="#0B0B0B" />`;
+  svg += `<defs>
+    <linearGradient id="metal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#222;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#111;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#050505;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>`;
+
+  // Head Base
+  let headPath = "";
+  if (headType === 0) { // Square/Industrial
+    headPath = "M 60,40 L 140,40 L 150,140 L 50,140 Z";
+  } else if (headType === 1) { // Angled/Tactical
+    headPath = "M 70,30 L 130,30 L 160,100 L 140,160 L 60,160 L 40,100 Z";
+  } else { // Narrow/Android
+    headPath = "M 80,30 L 120,30 L 140,140 L 100,170 L 60,140 Z";
   }
+  svg += `<path d="${headPath}" fill="url(#metal)" stroke="#333" stroke-width="2" />`;
+
+  // Mechanical Details (Panels)
+  for(let i=0; i<detailLevel; i++) {
+    const x1 = 70 + (parseInt(hash.substring(i*2, i*2+1), 16) % 60);
+    const y1 = 50 + (parseInt(hash.substring(i*2+1, i*2+2), 16) % 80);
+    svg += `<line x1="${x1}" y1="${y1}" x2="${x1+10}" y2="${y1}" stroke="#1a1a1a" stroke-width="1" />`;
+  }
+
+  // Eyes / Optics
+  if (eyeType === 0) { // Visor
+    svg += `<rect x="65" y="70" width="70" height="15" fill="#050505" stroke="${accentColor}" stroke-width="1" filter="url(#glow)" />`;
+    svg += `<rect x="80" y="75" width="40" height="5" fill="${accentColor}" opacity="0.5" />`;
+  } else if (eyeType === 1) { // Mono
+    svg += `<circle cx="100" cy="75" r="15" fill="#050505" stroke="#333" stroke-width="2" />`;
+    svg += `<circle cx="100" cy="75" r="5" fill="${accentColor}" filter="url(#glow)" />`;
+  } else if (eyeType === 2) { // Dual
+    svg += `<circle cx="80" cy="75" r="10" fill="#050505" stroke="#333" stroke-width="2" />`;
+    svg += `<circle cx="120" cy="75" r="10" fill="#050505" stroke="#333" stroke-width="2" />`;
+    svg += `<circle cx="80" cy="75" r="3" fill="${accentColor}" filter="url(#glow)" />`;
+    svg += `<circle cx="120" cy="75" r="3" fill="${accentColor}" filter="url(#glow)" />`;
+  } else { // Quad
+    [ [80,70], [120,70], [80,90], [120,90] ].forEach(([x,y]) => {
+      svg += `<rect x="${x-4}" y="${y-4}" width="8" height="8" fill="${accentColor}" opacity="0.8" filter="url(#glow)" />`;
+    });
+  }
+
+  // Mouth / Grille
+  if (mouthType === 0) { // Grille
+    for(let i=0; i<4; i++) {
+      svg += `<line x1="85" y1="${120 + i*5}" x2="115" y2="${120 + i*5}" stroke="#222" stroke-width="2" />`;
+    }
+  } else if (mouthType === 1) { // Plate
+    svg += `<path d="M 80,120 L 120,120 L 110,140 L 90,140 Z" fill="#050505" stroke="#222" />`;
+  }
+
+  // Symmetries / Side sensors
+  svg += `<rect x="45" y="80" width="10" height="30" fill="#111" stroke="#222" />`;
+  svg += `<rect x="145" y="80" width="10" height="30" fill="#111" stroke="#222" />`;
   
   svg += `</svg>`;
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
