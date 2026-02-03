@@ -2,6 +2,7 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
+import { getAvatarSrc } from "@/lib/avatar/getAvatarSrc";
 
 interface UserAvatarProps {
   profile: any;
@@ -11,29 +12,10 @@ interface UserAvatarProps {
 }
 
 export function UserAvatar({ profile, user, className, size = "md" }: UserAvatarProps) {
-  const metadata = profile?.socialLinks?.metadata || {};
-  const avatarImage = metadata.avatarImage;
-  const generatedAvatarSvg = metadata.generatedAvatarSvg;
+  const avatarSrc = getAvatarSrc(profile);
   
-  // Priority: Uploaded > Generated > Fallback
   const renderAvatar = () => {
-    if (avatarImage) {
-      return <img src={avatarImage} alt="Avatar" className="w-full h-full object-cover" />;
-    }
-    if (generatedAvatarSvg) {
-      return (
-        <div 
-          dangerouslySetInnerHTML={{ __html: generatedAvatarSvg }} 
-          className="w-full h-full flex items-center justify-center bg-[#0B0B0B]"
-        />
-      );
-    }
-    const initials = (profile?.artistName || user?.username || "?").charAt(0).toUpperCase();
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-[#9B5CFF] text-white font-bold">
-        {initials}
-      </div>
-    );
+    return <img src={avatarSrc} alt="Avatar" className="w-full h-full object-cover" />;
   };
 
   const sizeClasses = {

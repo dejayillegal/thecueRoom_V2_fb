@@ -1,0 +1,148 @@
+🧩 Fix Avatar Mismatch Bug (Header / Settings / Social / Forum)
+
+You are fixing an avatar inconsistency bug.
+
+Do NOT redesign UI.
+Do NOT add database tables.
+Do NOT add backend services.
+Do NOT change routing or navigation.
+
+GOAL
+
+The same avatar image must appear consistently in:
+
+Header (top right)
+
+Profile Settings
+
+Artist Connect / Artist Social
+
+Community Hall / Green Room threads
+
+Public Bio page
+
+Currently different components show different avatars — fix this.
+
+STEP 1 — SINGLE AVATAR SOURCE (BUG FIX)
+
+Problem:
+Multiple components compute avatar differently.
+
+Fix:
+Create one small helper:
+
+apps/web/lib/avatar/getAvatarSrc.ts
+
+
+Logic (simple, no refactor language):
+
+If profile.metadata.avatarImage exists → use it
+
+Else if profile.metadata.generatedAvatarSvg exists → use it
+
+Else → use existing fallback SVG logic
+
+Return one string (src).
+
+STEP 2 — USE HELPER EVERYWHERE
+
+Replace avatar usage in:
+
+Header avatar
+
+Profile Settings preview
+
+Artist Connect cards
+
+Community Hall thread author avatars
+
+Public Bio avatar
+
+All of them must import and use:
+
+getAvatarSrc(profile)
+
+
+Remove:
+
+initials avatars
+
+local avatar logic
+
+duplicated fallbacks
+
+STEP 3 — AVATAR UPLOAD (SMALL UI FIX)
+
+In Profile Settings only:
+
+Remove the “Custom Avatar URL” input
+
+Add file upload:
+
+Rules:
+
+jpg / jpeg / png
+
+max 2 MB
+
+client-side validation only
+
+On upload:
+
+convert file to base64
+
+store in profile.metadata.avatarImage
+
+immediately refresh preview using getAvatarSrc
+
+If upload removed:
+
+fall back to generated SVG
+
+No backend changes.
+
+STEP 4 — GENERATED DROID AVATAR (KEEP LIGHT)
+
+Keep existing generated avatar but:
+
+ensure it is stored only in profile.metadata.generatedAvatarSvg
+
+never generated inline in components
+
+No redesign. No canvas. SVG only.
+
+STEP 5 — HEADER CLICK FIX
+
+Bug:
+Clicking header avatar does nothing.
+
+Fix:
+Header avatar click must navigate to:
+
+/settings/profile
+
+
+No dropdown logic changes.
+
+SAFETY CHECK
+
+Confirm:
+
+Same avatar everywhere
+
+No initials anywhere
+
+No avatar URLs left
+
+No console errors
+
+Sidebar untouched
+
+OUTPUT
+
+Avatar mismatch bug resolved.
+Upload works.
+Header identity correct.
+Avatar consistent across app.
+
+Implement directly.

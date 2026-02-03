@@ -294,7 +294,7 @@ export default function SettingsPage() {
                     <div className="relative group">
                       <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-[#D7FF3C] shadow-[0_0_20px_rgba(215,255,60,0.2)] bg-[#050505] relative">
                         {avatarPreview ? (
-                          <img src={avatarPreview} alt="Droid Avatar" className="w-full h-full object-contain p-2 grayscale group-hover:grayscale-0 transition-all duration-500" />
+                          <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
                         ) : (
                           <div className="w-full h-full bg-zinc-900 flex items-center justify-center text-zinc-700 font-mono text-xs">
                             NO_SIGNAL
@@ -305,6 +305,50 @@ export default function SettingsPage() {
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg pointer-events-none">
                         <Wand2 size={24} className="text-[#D7FF3C]" />
                       </div>
+                    </div>
+                    
+                    <div className="flex flex-col items-center gap-2">
+                      <label className="cursor-pointer bg-[#D7FF3C] hover:bg-[#D7FF3C]/90 text-black px-4 py-2 rounded-md text-xs font-bold uppercase tracking-widest transition-colors">
+                        Upload Image
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/png, image/jpeg, image/jpg"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              if (file.size > 2 * 1024 * 1024) {
+                                alert("File size must be less than 2MB");
+                                return;
+                              }
+                              const reader = new FileReader();
+                              reader.onloadend = async () => {
+                                const base64 = reader.result as string;
+                                setAvatarPreview(base64);
+                                setFormData(prev => ({
+                                  ...prev,
+                                  avatarUrl: base64,
+                                  avatarType: 'custom'
+                                }));
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </label>
+                      <button
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            avatarUrl: '',
+                            avatarType: 'generated'
+                          }));
+                          setAvatarPreview(generateDeterministicAvatar(formData.avatarSeed || userProfile?.user.id || 'default'));
+                        }}
+                        className="text-[10px] text-zinc-500 hover:text-white uppercase tracking-tighter"
+                      >
+                        Remove Custom Avatar
+                      </button>
                     </div>
                   </div>
 
@@ -333,7 +377,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="hidden">
                   <Label htmlFor="avatarUrl" className="text-gray-300">Custom Avatar URL</Label>
                   <Input 
                     id="avatarUrl"

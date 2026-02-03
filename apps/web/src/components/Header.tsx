@@ -52,7 +52,7 @@ export function Header() {
               <p className="text-xs text-gray-500">@{user.username}</p>
             )}
           </div>
-          <Link href="/settings/profile">
+          <Link href="/settings">
             <UserAvatar profile={profile} user={user} size="sm" />
           </Link>
         </div>
