@@ -1,0 +1,107 @@
+CRITICAL AVATAR SYNC FIX — FINAL PASS
+FAST MODE SAFE — NO REDESIGN — NO NEW TABLES — NO NEW SERVICES
+
+GOAL
+Force Artist Connect, Header, and Settings to render
+the EXACT SAME avatar from ONE resolver.
+
+––––––––––––––––––––––––––
+STEP 1 — BAN DIRECT AVATAR USAGE (HARD)
+––––––––––––––––––––––––––
+Actions:
+• REMOVE all direct avatar rendering logic from:
+  - Artist Connect page
+  - Header component
+  - Profile Settings preview
+• DELETE any usage of:
+  - profile.avatar
+  - profile.image
+  - session.user.image
+  - initials-based avatars
+  - local avatar generators
+
+Rule:
+If a component renders an avatar directly → DELETE that code.
+
+––––––––––––––––––––––––––
+STEP 2 — SINGLE AVATAR RESOLVER (MANDATORY)
+––––––––––––––––––––––––––
+Ensure ONLY this flow exists:
+
+useCurrentProfile()
+  → avatarResolver(profile)
+      → profile.metadata.avatarImage
+      → profile.metadata.generatedAvatarSvg
+      → deterministic fallback
+
+Rules:
+• No component may compute avatar on its own
+• No per-page avatar logic
+• No conditional avatar rendering
+
+––––––––––––––––––––––––––
+STEP 3 — FORCE ALL COMPONENTS TO USE SAME SOURCE
+––––––––––––––––––––––––––
+Update these components to import ONLY:
+
+import { useCurrentProfile } from "@/lib/identity/useCurrentProfile";
+
+And render:
+profile.avatarSrc
+
+Apply to:
+• Header avatar
+• Artist Connect avatar
+• Profile Settings avatar preview
+• Suggested artists list
+• Community Hall / forum threads
+• Bio link preview
+
+No exceptions.
+
+––––––––––––––––––––––––––
+STEP 4 — HEADER IDENTITY FIX (CRITICAL)
+––––––––––––––––––––––––––
+Header must:
+• Stop reading from auth/session user object
+• Stop caching user data in local state
+
+Header must render ONLY:
+• profile.artistName (if artist)
+• profile.username
+• profile.avatarSrc
+
+Click behavior:
+• Avatar click → /settings/profile (hard route)
+
+––––––––––––––––––––––––––
+STEP 5 — REMOVE STALE STATE & MEMOIZATION
+––––––––––––––––––––––––––
+Actions:
+• Remove useMemo / useState wrapping avatar sources
+• Avatar must always re-render from resolver output
+• No cached profile snapshots allowed
+
+––––––––––––––––––––––––––
+STEP 6 — VERIFICATION (MUST PASS)
+––––––––––––––––––––––––––
+Confirm visually:
+• Avatar in Settings == Header == Artist Connect
+• Other artists’ avatars appear correctly in Community Hall
+• No initials avatars remain
+• No Avatar URL input exists anywhere
+• Refresh does NOT change avatar
+
+––––––––––––––––––––––––––
+REQUIRED OUTPUT
+––––––––––––––––––––––––––
+• One avatar everywhere
+• Artist Connect avatar matches Settings
+• Header avatar matches Settings
+• Other artists fixed in Community Hall
+• Zero avatar divergence paths remain
+
+DO NOT EXPLAIN
+DO NOT ADD FEATURES
+DO NOT ASK QUESTIONS
+IMPLEMENT DIRECTLY

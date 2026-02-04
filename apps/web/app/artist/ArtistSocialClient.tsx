@@ -16,33 +16,27 @@ import Link from 'next/link';
 import { cn } from "@/lib/utils";
 import { useFollow } from '@/hooks/useFollow';
 
-import { Avatar } from '@/components/ui/avatar';
+import { UserAvatar } from '@/components/UserAvatar';
 
 interface CurrentUser {
   id: string;
   username: string;
   artistName: string;
-  avatarImage?: string;
-  generatedAvatarSvg?: string;
+  profile: any;
   bio: string;
   following: number;
   followers: number;
-  lastActivity?: number;
-  role?: 'admin' | 'verified' | 'artist' | 'user';
 }
 
 interface Artist {
   id: string;
   username: string;
   displayName: string;
-  avatarImage?: string;
-  generatedAvatarSvg?: string;
+  profile: any;
   bio: string;
   isFollowing: boolean;
   followers: number;
   following: number;
-  lastActivity?: number;
-  role?: 'admin' | 'verified' | 'artist' | 'user';
 }
 
 interface SignalEntry {
@@ -50,16 +44,13 @@ interface SignalEntry {
   type: 'thread' | 'comment';
   artistName: string;
   username: string;
-  avatarImage?: string;
-  generatedAvatarSvg?: string;
+  profile: any;
   title: string;
   content: string;
   timestamp: string;
   stats: { replies: number; signals: number };
   isFollowing: boolean;
   isOwn: boolean;
-  lastActivity?: number;
-  role?: 'admin' | 'verified' | 'artist' | 'user';
 }
 
 function FollowersModal({ 
@@ -121,12 +112,8 @@ function FollowersModal({
             artists.map(artist => (
               <div key={artist.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
                   <div className="flex items-center gap-3">
-                    <Avatar 
-                      username={artist.username}
-                      avatarImage={artist.avatarImage}
-                      generatedAvatarSvg={artist.generatedAvatarSvg}
-                      role={artist.role}
-                      lastActivity={artist.lastActivity}
+                    <UserAvatar 
+                      profile={artist.profile}
                       className="w-10 h-10" 
                     />
                     <div>
@@ -224,12 +211,8 @@ export default function ArtistSocialClient({
           style={{ marginBottom: '2rem', display: 'block' }}
         >
           <div className="flex items-start gap-4 mb-6">
-            <Avatar 
-              username={currentUser.username}
-              avatarImage={currentUser.avatarImage}
-              generatedAvatarSvg={currentUser.generatedAvatarSvg}
-              role={currentUser.role}
-              lastActivity={currentUser.lastActivity}
+            <UserAvatar 
+              profile={currentUser.profile}
               className="w-20 h-20"
             />
             <div className="flex-1">
@@ -307,12 +290,8 @@ export default function ArtistSocialClient({
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
               {suggestedArtists.map((artist) => (
                 <div key={artist.id} className="flex-shrink-0 w-28 text-center">
-                  <Avatar 
-                    username={artist.username}
-                    avatarImage={artist.avatarImage}
-                    generatedAvatarSvg={artist.generatedAvatarSvg}
-                    role={artist.role}
-                    lastActivity={artist.lastActivity}
+                  <UserAvatar 
+                    profile={artist.profile}
                     className="w-16 h-16 mx-auto mb-2 cursor-pointer"
                     onClick={() => navigateToArtist(artist.username)}
                   />
@@ -353,14 +332,10 @@ export default function ArtistSocialClient({
                       className="flex gap-3 w-full"
                       onClick={() => navigateToThread(signal.id)}
                     >
-                      <Avatar 
-                        username={signal.username}
-                        avatarImage={signal.avatarImage}
-                        generatedAvatarSvg={signal.generatedAvatarSvg}
-                        role={signal.role}
-                        lastActivity={signal.lastActivity}
+                      <UserAvatar 
+                        profile={signal.profile}
                         className="w-10 h-10 flex-shrink-0 cursor-pointer"
-                        onClick={(e) => { e.stopPropagation(); navigateToArtist(signal.username); }}
+                        onClick={(e: React.MouseEvent) => { e.stopPropagation(); navigateToArtist(signal.username); }}
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">

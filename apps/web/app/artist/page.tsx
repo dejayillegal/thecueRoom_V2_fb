@@ -2,8 +2,7 @@ import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getDbClient } from "@thecueroom/db/client";
 import { users, profiles, forumThreads } from "@thecueroom/db/schema";
-import { eq, desc, inArray } from "drizzle-orm";
-import { resolveAvatar } from "@/lib/artist-identity";
+import { eq, desc } from "drizzle-orm";
 import ArtistSocialClient from "./ArtistSocialClient";
 
 export default async function ArtistDirectoryPage() {
@@ -40,7 +39,7 @@ export default async function ArtistDirectoryPage() {
     id: session.uid,
     username: session.username || 'unknown',
     artistName: (myProfile?.artistName || myProfile?.displayName || session.username || 'Artist') as string,
-    avatar: resolveAvatar(myProfile, session.uid),
+    profile: myProfile,
     bio: (myProfile?.bio || '') as string,
     following: myFollowing.length,
     followers: myFollowers
@@ -62,7 +61,7 @@ export default async function ArtistDirectoryPage() {
       id: a.id,
       username: a.username || 'Unknown',
       displayName: (profile?.artistName || profile?.displayName || a.username || 'Unknown') as string,
-      avatar: resolveAvatar(profile, a.id),
+      profile: profile,
       bio: (profile?.bio || '') as string,
       isFollowing: myFollowing.includes(a.username || ''),
       followers,
@@ -95,7 +94,7 @@ export default async function ArtistDirectoryPage() {
         type: 'thread' as const,
         artistName: (authorProfile?.artistName || authorProfile?.displayName || t.username || 'Unknown') as string,
         username: (t.username || 'unknown') as string,
-        avatar: resolveAvatar(authorProfile, t.userId),
+        profile: authorProfile,
         title: (t.title || '') as string,
         content: (t.body?.substring(0, 200) || t.title || '') as string,
         timestamp: t.createdAt ? new Date(t.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'Recently',

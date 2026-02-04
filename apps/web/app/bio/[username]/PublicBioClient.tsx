@@ -1,6 +1,7 @@
 'use client';
 
 import { ExternalLink, Music, Globe, Instagram, Youtube, Twitter, Disc, Radio } from 'lucide-react';
+import { UserAvatar } from '@/components/UserAvatar';
 
 interface BioLink {
   label: string;
@@ -13,7 +14,7 @@ interface PublicBioClientProps {
   username: string;
   artistName: string;
   bio: string;
-  avatarUrl: string;
+  profile: any;
   links: BioLink[];
   theme: string;
 }
@@ -110,7 +111,7 @@ export default function PublicBioClient({
   username, 
   artistName, 
   bio, 
-  avatarUrl, 
+  profile, 
   links, 
   theme: themeName 
 }: PublicBioClientProps) {
@@ -124,9 +125,7 @@ export default function PublicBioClient({
 
       <div className="relative z-10 w-full max-w-md space-y-8">
         <div className="flex flex-col items-center space-y-4">
-          <div className={`w-24 h-24 rounded-full overflow-hidden border-2 ${theme.cardBorder} bg-zinc-900 ${theme.accentGlow}`}>
-            <img src={avatarUrl} alt={artistName} className="w-full h-full object-cover" />
-          </div>
+          <UserAvatar profile={profile} size="xl" className={theme.accentGlow} />
           <div className="text-center">
             <h1 className="text-2xl font-black tracking-tighter uppercase italic">{artistName}</h1>
             <p className={`text-sm font-mono ${theme.accent} lowercase tracking-widest opacity-70`}>@{username}</p>
