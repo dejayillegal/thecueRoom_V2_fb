@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { generateDeterministicAvatar } from "@/lib/avatar/avatarResolver";
+import { useCurrentProfile } from "@/lib/identity/useCurrentProfile";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Download, User, Loader2 } from "lucide-react";
@@ -10,25 +11,24 @@ const HAIR_STYLES = ["short", "long", "mohawk", "bald"];
 const ACCENT_COLORS = ["#D1FF3D", "#873BBF", "#FF3D7F", "#3DFFCB"];
 
 export function AvatarGenerator() {
-  const [style, setStyle] = useState("minimal");
-  const [hair, setHair] = useState("short");
-  const [accentColor, setAccentColor] = useState("#D1FF3D");
+  const { profile, setProfile } = useCurrentProfile();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
     try {
-      const response = await fetch("/api/ai/avatar/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ style, hair, accentColor }),
-      });
-
-      const data = await response.json();
-      if (data.url) {
-        setAvatarUrl(data.url);
-      }
+      const svg = generateDeterministicAvatar(profile?.artistName || profile?.username || "user");
+      // Use the profile update logic instead of separate state
+      setProfile((prev: any) => ({
+        ...prev,
+        socialLinks: {
+          ...prev.socialLinks,
+          metadata: {
+            ...(prev.socialLinks?.metadata || {}),
+            generatedAvatarSvg: svg,
+          }
+        }
+      }));
     } catch (error) {
       console.error("Avatar generation failed:", error);
     } finally {

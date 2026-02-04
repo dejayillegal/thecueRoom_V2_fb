@@ -1,0 +1,233 @@
+This is a consistency + wiring fix.
+Do NOT redesign UI.
+Do NOT add database tables, services, or storage.
+Do NOT change navigation or layouts.
+
+GOAL
+
+There must be ONE avatar per user — identical everywhere.
+
+Fix all mismatches between:
+
+Header avatar
+
+Artist Connect avatar
+
+Profile Settings avatar
+
+Community / Forum avatars
+
+Bio Link avatar
+
+After this change:
+
+Uploading an avatar in Settings updates everything instantly
+
+Generated avatar is fallback only
+
+No thin / invisible avatars
+
+No initials, no placeholders, no URL avatars
+
+STEP 1 — DELETE AVATAR URL COMPLETELY (HARD STOP)
+
+Problem: Avatar URL still exists and breaks sync.
+
+Actions
+
+Remove Custom Avatar URL input from:
+
+Profile Settings
+
+Bio Link Studio
+
+Delete all references to:
+
+avatarUrl
+
+profile.avatarUrl
+
+any URL-based avatar logic
+
+Avatar must never be resolved from a URL.
+
+✅ Verification
+
+No avatar URL field exists anywhere
+
+Grep shows zero avatarUrl usage
+
+STEP 2 — CANONICAL AVATAR RESOLVER (MANDATORY)
+
+Create ONE resolver and use it everywhere.
+
+File
+apps/web/lib/avatar/avatarResolver.ts
+
+Logic (strict order)
+export function resolveAvatar(profile) {
+  return (
+    profile.metadata?.avatarImage ||        // uploaded image (base64)
+    profile.metadata?.generatedAvatarSvg || // droid fallback
+    generateDeterministicAvatar(profile.id) // last fallback
+  );
+}
+
+Rules
+
+No inline avatar logic anywhere
+
+No page-specific avatar handling
+
+Resolver is the only source
+
+STEP 3 — PROFILE SELECTOR (IDENTITY LOCK)
+
+Create ONE shared identity hook.
+
+File
+apps/web/lib/identity/useCurrentProfile.ts
+
+Must return
+
+username
+
+artistName
+
+avatar (from resolveAvatar)
+
+role
+
+verificationStatus
+
+Mandatory usage
+
+Replace all direct profile reads in:
+
+Header
+
+Artist Connect
+
+Profile Settings
+
+Community / Forum
+
+Bio Link pages
+
+❌ No component may fetch profile data directly
+❌ No duplicated selectors
+
+STEP 4 — AVATAR UPLOAD (FILE ONLY)
+Replace avatar input with:
+
+File upload button
+
+Constraints
+
+JPG / PNG only
+
+Max size 2 MB
+
+Client-side validation only
+
+On upload
+
+Convert file → Base64
+
+Store in:
+
+profile.metadata.avatarImage
+
+
+Immediately re-render via useCurrentProfile
+
+Keep
+
+Generated droid avatar as fallback if image removed
+
+STEP 5 — DROID AVATAR (VISUAL FIX)
+
+Problem: Droid avatar too thin / invisible.
+
+Fix
+
+Increase stroke weight
+
+Use filled geometry
+
+Add subtle inner glow
+
+Ensure high contrast on dark backgrounds
+
+Style
+
+Underground
+
+Tech / DJ / Producer
+
+Bold silhouette
+
+SVG only (no canvas, no libs)
+
+STEP 6 — APPLY RESOLVER EVERYWHERE (NO EXCEPTIONS)
+
+Replace avatar usage in:
+
+Header (top right)
+
+Artist Connect profile
+
+Suggested artists
+
+Forum threads (including admin)
+
+Bio link public page
+
+Settings preview
+
+Every avatar render must be:
+
+const { avatar } = useCurrentProfile();
+
+STEP 7 — HEADER IDENTITY FIX
+Header must show
+
+Avatar (from resolver)
+
+Artist Name (if artist)
+
+Username (below or tooltip)
+
+Click behavior
+
+Clicking avatar → /settings/profile
+
+Remove any other dropdown routing
+
+STEP 8 — SAFETY CHECK
+
+Confirm:
+
+Avatar is identical everywhere
+
+Upload once → reflected everywhere
+
+Admin avatars render correctly
+
+No initials or broken icons
+
+No console errors
+
+Sidebar untouched
+
+REQUIRED RESULT
+
+✔ One avatar system
+✔ Upload replaces URL permanently
+✔ Generated droid avatar is visible and bold
+✔ Header, Artist Connect, Forum, Settings all match
+✔ Admin + artists render correctly
+
+Do not explain.
+Do not ask questions.
+Implement directly.

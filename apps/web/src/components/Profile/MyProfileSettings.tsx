@@ -224,7 +224,7 @@ export default function MyProfileSettings() {
               </Button>
             </div>
             <p className="text-xs text-gray-400">
-              JPG or PNG. Max 2MB. Seed: {profile.artistName || "username"}
+              JPG or PNG. Max 2MB. Seed: {profile?.artistName || profile?.username || "username"}
             </p>
           </div>
         </div>

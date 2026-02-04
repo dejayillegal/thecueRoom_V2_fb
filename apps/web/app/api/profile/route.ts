@@ -138,7 +138,6 @@ export async function PATCH(request: NextRequest) {
       socialLinks: body.socialLinks || body.socialLinksData,
       avatarSeed: body.avatarSeed,
       avatarType: body.avatarType,
-      avatarUrl: body.avatarUrl,
       updatedAt: new Date(),
     };
 
