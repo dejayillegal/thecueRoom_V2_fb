@@ -25,8 +25,8 @@ export function UserAvatar({ profile, className, size = "md" }: UserAvatarProps)
   };
 
   // Trust Ring Logic
-  const role = user?.role || "user";
-  const isVerified = profile?.verified || false;
+  const role = profile?.role || "user";
+  const isVerified = profile?.trustTier === "verified" || false;
   
   let ringClass = "";
   if (role === "admin") ringClass = "animate-trust-admin";
