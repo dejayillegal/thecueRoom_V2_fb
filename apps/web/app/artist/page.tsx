@@ -17,7 +17,7 @@ export default async function ArtistDirectoryPage() {
     id: users.id,
     username: users.username,
     role: users.role,
-  }).from(users).where(eq(users.role, 'artist')).limit(50);
+  }).from(users).where(eq(users.role, 'artist' as any) as any).limit(50);
 
   const allProfiles = await db.select().from(profiles);
   const profileMap = new Map(allProfiles.map((p: any) => [p.userId, p]));
@@ -61,7 +61,7 @@ export default async function ArtistDirectoryPage() {
       id: a.id,
       username: a.username || 'Unknown',
       displayName: (profile?.artistName || profile?.displayName || a.username || 'Unknown') as string,
-      profile: profile,
+      profile: profile || { user: a },
       bio: (profile?.bio || '') as string,
       isFollowing: myFollowing.includes(a.username || ''),
       followers,
@@ -80,8 +80,8 @@ export default async function ArtistDirectoryPage() {
     likesCount: forumThreads.likesCount
   })
   .from(forumThreads)
-  .leftJoin(users, eq(forumThreads.userId, users.id as any))
-  .where(eq(forumThreads.moderationStatus, 'approved'))
+  .leftJoin(users, eq(forumThreads.userId, users.id as any) as any)
+  .where(eq(forumThreads.moderationStatus, 'approved' as any) as any)
   .orderBy(desc(forumThreads.createdAt as any))
   .limit(30);
 
@@ -94,7 +94,7 @@ export default async function ArtistDirectoryPage() {
         type: 'thread' as const,
         artistName: (authorProfile?.artistName || authorProfile?.displayName || t.username || 'Unknown') as string,
         username: (t.username || 'unknown') as string,
-        profile: authorProfile,
+        profile: authorProfile || { user: { id: t.userId, username: t.username } },
         title: (t.title || '') as string,
         content: (t.body?.substring(0, 200) || t.title || '') as string,
         timestamp: t.createdAt ? new Date(t.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'Recently',
