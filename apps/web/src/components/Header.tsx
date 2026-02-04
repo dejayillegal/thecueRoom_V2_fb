@@ -5,6 +5,7 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
 import { UserAvatar } from "./UserAvatar";
+import { useCurrentProfile } from "@/lib/identity/useCurrentProfile";
 import Link from "next/link";
 
 /**
@@ -13,18 +14,7 @@ import Link from "next/link";
 export function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedQuery = useDebounce(searchQuery, 300);
-  const [profile, setProfile] = useState<any>(null);
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    fetch("/api/profile/me")
-      .then(res => res.json())
-      .then(data => {
-        if (data.profile) setProfile(data.profile);
-        if (data.user) setUser(data.user);
-      })
-      .catch(err => console.error("Header identity fetch error:", err));
-  }, []);
+  const { profile, loading } = useCurrentProfile();
 
   const handleSearch = useCallback((value: string) => {
     setSearchQuery(value);
@@ -46,14 +36,14 @@ export function Header() {
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
             <p className="text-sm font-semibold text-white">
-              {profile?.artistName || user?.username || "Guest"}
+              {profile?.artistName || profile?.username || "Guest"}
             </p>
-            {profile?.artistName && user?.username && (
-              <p className="text-xs text-gray-500">@{user.username}</p>
+            {profile?.username && (
+              <p className="text-xs text-gray-500">@{profile.username}</p>
             )}
           </div>
           <Link href="/settings">
-            <UserAvatar profile={profile} user={user} size="sm" />
+            <UserAvatar profile={profile} size="sm" />
           </Link>
         </div>
       </div>

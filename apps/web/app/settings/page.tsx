@@ -377,17 +377,6 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="hidden">
-                  <Label htmlFor="avatarUrl" className="text-gray-300">Custom Avatar URL</Label>
-                  <Input 
-                    id="avatarUrl"
-                    value={formData.avatarUrl}
-                    onChange={(e) => handleFieldChange('avatarUrl', e.target.value)}
-                    placeholder="https://..."
-                    className="bg-[#1a1a1a] border-[#333] text-white"
-                  />
-                  <p className="text-xs text-gray-500 italic">Overwrite generated avatar with a custom image link</p>
-                </div>
                 <div className="space-y-2">
                   <Label className="text-gray-300">Verification Status</Label>
                   <div className="flex items-center gap-2">

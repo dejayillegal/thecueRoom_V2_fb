@@ -6,12 +6,11 @@ import { getAvatarSrc } from "@/lib/avatar/getAvatarSrc";
 
 interface UserAvatarProps {
   profile: any;
-  user?: any;
   className?: string;
   size?: "sm" | "md" | "lg" | "xl";
 }
 
-export function UserAvatar({ profile, user, className, size = "md" }: UserAvatarProps) {
+export function UserAvatar({ profile, className, size = "md" }: UserAvatarProps) {
   const avatarSrc = getAvatarSrc(profile);
   
   const renderAvatar = () => {

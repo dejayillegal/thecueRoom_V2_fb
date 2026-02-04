@@ -36,10 +36,22 @@ export const resolveAvatar = (profile: AvatarProfile): string => {
     <g transform="translate(50 50) rotate(${rotation})">
       <circle cx="0" cy="0" r="30" fill="none" stroke="hsla(${hue}, 80%, 60%, 0.8)" stroke-width="2">
         <animate attributeName="stroke-opacity" values="0.8;0.3;0.8" dur="4s" repeatCount="indefinite" />
+        <animateTransform attributeName="transform" type="scale" additive="sum" values="1;1.05;1" dur="3s" repeatCount="indefinite" />
       </circle>
       <circle cx="0" cy="0" r="20" fill="none" stroke="hsla(${hue}, 80%, 60%, 0.5)" stroke-width="1" stroke-dasharray="4 2" />
-      <path d="M-15 -15 L15 15 M-15 15 L15 -15" stroke="hsla(${hue}, 80%, 60%, 0.9)" stroke-width="1.5" />
+      <path d="M-15 -15 L15 15 M-15 15 L15 -15" stroke="hsla(${hue}, 80%, 60%, 0.9)" stroke-width="1.5">
+        <animate attributeName="stroke-opacity" values="0.9;0.5;0.9" dur="2s" repeatCount="indefinite" />
+      </path>
     </g>
+    <defs>
+      <filter id="glow">
+        <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
   </svg>`;
 
   const svgBase64 = typeof window !== 'undefined' 

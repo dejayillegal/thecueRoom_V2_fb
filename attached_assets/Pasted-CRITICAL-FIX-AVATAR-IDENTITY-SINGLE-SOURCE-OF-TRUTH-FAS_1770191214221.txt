@@ -1,0 +1,180 @@
+CRITICAL FIX — AVATAR & IDENTITY SINGLE SOURCE OF TRUTH
+FAST MODE SAFE — NO REDESIGN — NO NEW TABLES — NO NEW SERVICES
+
+GOAL
+Fix ALL avatar + identity inconsistencies by enforcing ONE canonical profile source
+and removing every alternative path that causes drift.
+
+This is a wiring + deletion task, not a feature build.
+
+–––––––––––––––––––––––––––––
+STEP 0 — NON-NEGOTIABLE RULE
+–––––––––––––––––––––––––––––
+There must be EXACTLY ONE avatar source.
+Any other avatar logic MUST be deleted.
+
+–––––––––––––––––––––––––––––
+STEP 1 — DELETE AVATAR URL EVERYWHERE (HARD DELETE)
+–––––––––––––––––––––––––––––
+Actions:
+• REMOVE the “Avatar URL” input from:
+  - Bio Link Studio
+  - Profile Settings
+• DELETE any logic referencing:
+  - avatarUrl
+  - profile.avatarUrl
+  - imageUrl
+• REMOVE preview rendering based on URLs
+
+Verification:
+• No Avatar URL input exists anywhere
+• No URL-based avatar logic remains in codebase
+
+–––––––––––––––––––––––––––––
+STEP 2 — CREATE ONE CANONICAL PROFILE HOOK
+–––––––––––––––––––––––––––––
+Create:
+apps/web/lib/identity/useCurrentProfile.ts
+
+This hook is the ONLY allowed profile reader.
+
+It returns:
+{
+  username,
+  artistName,
+  role,
+  avatarSrc,     // resolved avatar ONLY
+  trustTier,
+  presenceState
+}
+
+Rules:
+• No component may query Supabase directly for profile data
+• All identity reads MUST go through this hook
+
+–––––––––––––––––––––––––––––
+STEP 3 — CANONICAL AVATAR RESOLVER (FINAL)
+–––––––––––––––––––––––––––––
+Create:
+apps/web/lib/avatar/avatarResolver.ts
+
+Resolver priority (STRICT ORDER):
+1. profile.metadata.avatarImage   // uploaded image (base64)
+2. profile.metadata.generatedAvatarSvg
+3. deterministic fallback SVG
+
+ABSOLUTE RULES:
+• No inline avatar generators
+• No per-page avatar logic
+• No initials fallback
+
+–––––––––––––––––––––––––––––
+STEP 4 — AVATAR IMAGE UPLOAD (FILE ONLY)
+–––––––––––––––––––––––––––––
+Replace avatar inputs with FILE UPLOAD:
+
+• Accept only:
+  - .jpg
+  - .jpeg
+  - .png
+• Max size: 2 MB
+• Client-side validation only
+
+On upload:
+• Convert to base64
+• Store in: profile.metadata.avatarImage
+• Immediately refresh avatarResolver output
+
+Keep generated droid avatar ONLY as fallback.
+
+–––––––––––––––––––––––––––––
+STEP 5 — DROID AVATAR (GRAPHICAL, UNDERGROUND STYLE)
+–––––––––––––––––––––––––––––
+Generated avatar must be:
+• SVG based
+• Droid / bot inspired
+• Angular / modular
+• Dark, underground, techno aesthetic
+
+Features:
+• Subtle idle motion (opacity + transform only)
+• Soft inner glow accents
+• No randomness per render (seeded only)
+
+Stored in:
+profile.metadata.generatedAvatarSvg
+
+–––––––––––––––––––––––––––––
+STEP 6 — APPLY SAME AVATAR EVERYWHERE (NO EXCEPTIONS)
+–––––––––––––––––––––––––––––
+All of these MUST use useCurrentProfile():
+
+• Header avatar
+• Header username (text before avatar)
+• Profile Settings
+• Artist Social
+• Community Hall / Forum threads (ALL users)
+• Bio Link Studio preview
+• Public Bio page
+
+If avatar differs anywhere → it’s a bug.
+
+–––––––––––––––––––––––––––––
+STEP 7 — HEADER FIX (IDENTITY + CLICK)
+–––––––––––––––––––––––––––––
+Header must show:
+• Artist Name (if artist)
+• @username
+• Avatar from resolver
+
+Avatar click behavior:
+→ ALWAYS navigate to /settings/profile
+
+Remove:
+• Cached header state
+• Alternate dropdown routing
+
+–––––––––––––––––––––––––––––
+STEP 8 — TRUST RING + PRESENCE (CSS ONLY)
+–––––––––––––––––––––––––––––
+Presence decay:
+• Active < 2 min → strong pulse
+• 2–10 min → slow pulse
+• >10 min → static ring
+
+Trust ring animation:
+• Admin → steady harmonic wave
+• Verified Artist → segmented breathing glow
+• Artist → subtle oscillation
+• User → no ring
+
+Rules:
+• CSS only
+• transform + opacity only
+• respect prefers-reduced-motion
+
+–––––––––––––––––––––––––––––
+STEP 9 — SAFETY CHECK
+–––––––––––––––––––––––––––––
+Confirm:
+• One avatar everywhere
+• Other artists show correct avatars in Community Hall
+• No Avatar URL inputs remain
+• Username matches everywhere
+• No console errors
+• Sidebar untouched
+• Mobile + desktop stable
+
+–––––––––––––––––––––––––––––
+REQUIRED OUTPUT
+–––––––––––––––––––––––––––––
+• Avatar URL fully removed
+• File upload working
+• One avatar resolver used globally
+• Header identity correct
+• Community avatars fixed
+• Droid avatar visually advanced but restrained
+
+DO NOT EXPLAIN
+DO NOT ASK QUESTIONS
+IMPLEMENT DIRECTLY
