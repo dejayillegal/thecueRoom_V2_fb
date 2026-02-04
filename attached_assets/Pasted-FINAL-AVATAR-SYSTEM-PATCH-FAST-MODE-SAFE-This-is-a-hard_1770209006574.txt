@@ -1,0 +1,142 @@
+FINAL AVATAR SYSTEM PATCH (FAST MODE SAFE)
+
+This is a hard enforcement + visual upgrade.
+Do NOT redesign layout.
+Do NOT add backend services or tables.
+Do NOT touch routing except avatar click.
+
+GOAL
+• Fix broken admin avatars in Artist Connect / Community
+• Ensure header avatar ALWAYS equals Settings avatar (uploaded or generated)
+• Replace basic generated avatar with advanced underground droid visuals
+• Enforce ONE avatar source everywhere
+
+––––––––––––––––––––––––––
+STEP 1 — FIX ADMIN AVATAR BREAKAGE (CRITICAL)
+––––––––––––––––––––––––––
+Problem:
+Admin avatars render as broken / fallback initials.
+
+Cause:
+Admin profiles bypass avatar metadata or skip resolver.
+
+Actions:
+• ENSURE admin profiles use the SAME avatarResolver as artists.
+• REMOVE any conditional logic like:
+  - if (role === "admin") use default avatar
+  - admin-only avatar fallbacks
+• Admin must resolve avatar via:
+  profile.metadata.avatarImage
+  → profile.metadata.generatedAvatarSvg
+  → deterministic fallback
+
+Verification:
+Admin avatar appears correctly in:
+• Artist Connect
+• Community Hall threads
+• Header
+
+––––––––––––––––––––––––––
+STEP 2 — HEADER AVATAR HARD BIND
+––––––––––––––––––––––––––
+Problem:
+Header avatar differs from Settings avatar.
+
+Actions:
+• REMOVE all header avatar reads from:
+  - session.user
+  - auth payload
+  - cached state
+• Header MUST import:
+  useCurrentProfile()
+• Header MUST render:
+  profile.avatarSrc ONLY
+
+Rules:
+• No local avatar state
+• No memoized avatar
+• No fallback initials
+
+Verification:
+Uploading avatar in Settings updates header instantly.
+
+––––––––––––––––––––––––––
+STEP 3 — SINGLE AVATAR RESOLVER (RECONFIRM)
+––––––––––––––––––––––––––
+Ensure this is the ONLY resolution order:
+
+1. profile.metadata.avatarImage (uploaded JPG/PNG)
+2. profile.metadata.generatedAvatarSvg (droid)
+3. deterministic fallback SVG
+
+Rules:
+• No component may override this
+• No per-page avatar logic
+• No inline SVG generators in components
+
+––––––––––––––––––––––––––
+STEP 4 — UPGRADE GENERATED AVATAR (VISUAL)
+––––––––––––––––––––––––––
+Problem:
+Generated avatar is too basic.
+
+Actions:
+Replace generatedAvatarSvg with:
+• Droid / synth-face aesthetic
+• Underground / techno / industrial style
+• Features:
+  - segmented geometry
+  - asymmetric eyes / sensors
+  - layered plates
+  - subtle noise texture
+  - neon accent strokes
+• Deterministic via seed (username or userId)
+
+Animation (CSS-only, subtle):
+• Slow scanline drift
+• Micro glow pulse
+• No rotation
+• Respect prefers-reduced-motion
+
+Rules:
+• SVG only
+• No canvas
+• No external libraries
+• No randomness per render
+
+––––––––––––––––––––––––––
+STEP 5 — APPLY EVERYWHERE (NO EXCEPTIONS)
+––––––––––––––––––––––––––
+These MUST all render profile.avatarSrc:
+
+• Header
+• Profile Settings
+• Artist Connect
+• Suggested artists
+• Community Hall threads
+• Admin threads
+• Bio link page
+
+Delete any avatar code that does not comply.
+
+––––––––––––––––––––––––––
+STEP 6 — FINAL VERIFICATION
+––––––––––––––––––––––––––
+Confirm:
+• Admin avatar no longer broken
+• Header avatar == Settings avatar
+• Uploaded image overrides generated avatar everywhere
+• Generated droid avatar is visually rich and consistent
+• No initials avatars remain
+• Refresh does not change avatar
+
+REQUIRED OUTPUT
+• Admin avatar fixed
+• Header identity correct
+• One avatar source enforced
+• Advanced droid-style generated avatar active
+• Visual consistency across entire app
+
+DO NOT EXPLAIN
+DO NOT ASK QUESTIONS
+IMPLEMENT DIRECTLY

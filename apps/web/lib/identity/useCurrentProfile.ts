@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { resolveAvatar } from './avatarResolver';
 
 export interface Profile {
   username: string;
@@ -8,6 +7,7 @@ export interface Profile {
   avatarSrc: string;
   presenceState: 'active' | 'fading' | 'idle';
   trustTier: 'admin' | 'verified' | 'artist' | 'user';
+  socialLinks?: any;
 }
 
 export function useCurrentProfile() {
@@ -26,24 +26,22 @@ export function useCurrentProfile() {
         
         if (!rawUser) throw new Error('No user data');
 
-        const metadata = rawProfile?.socialLinks?.metadata || {};
         const lastActivity = rawProfile?.lastActivity || Date.now();
         const diff = (Date.now() - lastActivity) / 1000 / 60; // minutes
 
         const presenceState = diff < 2 ? 'active' : diff < 10 ? 'fading' : 'idle';
         const role = rawProfile?.role || (rawProfile?.verified ? 'verified' : 'user');
 
+        // Note: UserAvatar component uses getAvatarSrc(profile)
+        // We pass the raw profile object which contains socialLinks.metadata.avatarImage etc.
         setProfile({
+          ...rawProfile,
           username: rawUser.username || 'user',
           artistName: rawProfile?.artistName || rawUser.username || 'Artist',
           role: role,
           trustTier: role,
           presenceState,
-          avatarSrc: resolveAvatar({
-            avatarImage: metadata.avatarImage,
-            generatedAvatarSvg: metadata.generatedAvatarSvg,
-            username: rawUser.username || 'user'
-          })
+          socialLinks: rawProfile?.socialLinks // Ensure metadata is available for getAvatarSrc
         });
       } catch (err) {
         console.error('useCurrentProfile error:', err);
