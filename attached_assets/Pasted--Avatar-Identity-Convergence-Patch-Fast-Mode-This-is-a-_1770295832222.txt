@@ -1,0 +1,181 @@
+🔒 Avatar & Identity Convergence Patch (Fast Mode)
+
+This is a hard refactor and cleanup.
+Do NOT redesign UI.
+Do NOT add new services, schemas, or routes.
+
+GOAL
+
+Enforce one avatar + identity source across the entire app and delete all legacy paths.
+
+STEP 1 — DELETE LEGACY AVATAR PATHS (NON-NEGOTIABLE)
+
+Actions:
+
+Remove all references to:
+
+avatarUrl
+
+profile.avatarUrl
+
+profile.avatar_url
+
+initials-based avatar fallbacks
+
+Remove avatar URL inputs from:
+
+Profile Settings
+
+Bio Link Studio
+
+Delete any code branching on “if avatarUrl exists”.
+
+Verification:
+
+No URL avatar logic exists anywhere.
+
+STEP 2 — SINGLE PROFILE SELECTOR (MANDATORY)
+
+Create or enforce:
+
+apps/web/lib/identity/useCurrentProfile.ts
+
+
+This hook is the only allowed profile reader.
+
+It must return:
+
+username
+
+artistName
+
+role
+
+avatar (from avatarResolver)
+
+Rules:
+
+No component may fetch profile data directly.
+
+Header, Settings, Artist Connect, Community Hall, Bio pages MUST use this hook.
+
+STEP 3 — CANONICAL AVATAR RESOLVER
+
+Create or enforce:
+
+apps/web/lib/avatar/avatarResolver.ts
+
+
+Resolution order (strict):
+
+profile.metadata.avatarImage (base64 upload)
+
+profile.metadata.generatedAvatarSvg
+
+deterministic fallback
+
+Delete:
+
+inline avatar generators
+
+per-page fallbacks
+
+duplicated avatar logic
+
+STEP 4 — AVATAR UPLOAD (FILE ONLY)
+
+Replace avatar URL with:
+
+Upload button
+
+Accept .jpg, .jpeg, .png
+
+Max size 2 MB (client-side validation)
+
+On upload:
+
+Convert to base64
+
+Store in profile.metadata.avatarImage
+
+Immediately refresh avatar everywhere
+
+No external storage. No backend changes.
+
+STEP 5 — HEADER IDENTITY FIX
+
+Header must:
+
+Use useCurrentProfile
+
+Display:
+
+Avatar from resolver
+
+Artist name (if artist)
+
+Username
+
+Clicking avatar:
+
+Always routes to /settings/profile
+
+Remove:
+
+cached header user state
+
+alternate dropdown routing
+
+STEP 6 — APPLY EVERYWHERE
+
+Ensure avatar + identity consistency in:
+
+Header
+
+Profile Settings
+
+Artist Connect
+
+Community Hall threads (admin included)
+
+Public Bio page
+
+No exceptions.
+
+STEP 7 — VISUAL UPGRADE (NO LOGIC CHANGE)
+
+Improve generated droid avatar visuals:
+
+Thicker strokes
+
+Higher contrast
+
+Subtle glow layers
+
+Underground / industrial geometry
+
+Add:
+
+hover micro-signal (scale ≤ 1.03)
+
+slow idle oscillation
+
+CSS only. Respect reduced motion.
+
+FINAL CHECK
+
+One avatar everywhere
+
+No avatar URL inputs
+
+Admin avatars render correctly
+
+Header identity matches settings
+
+No console errors
+
+Sidebar untouched
+
+Do not explain.
+Do not add features.
+Implement directly.
