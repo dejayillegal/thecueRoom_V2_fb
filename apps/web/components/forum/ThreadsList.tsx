@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { MessageSquare, ThumbsUp, Eye, Pin, Lock, CheckCircle2, Clock, TrendingUp, Sparkles, RefreshCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getArtistProfileHref } from '@/lib/navigation';
 
 interface Thread {
   id: string;
@@ -163,7 +162,7 @@ function ThreadCard({ thread }: { thread: Thread }) {
       <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 relative z-10 pointer-events-none">
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3 sm:mb-4 pointer-events-auto">
-                <Link href={getArtistProfileHref(thread.user?.username || '')} className="flex items-center gap-2 group/author">
+                <Link href={`/artist/u/${thread.user?.username || ''}`} className="flex items-center gap-2 group/author">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-[#D1FF3D] to-[#9B5CFF] p-[1px]">
                     <div className="w-full h-full rounded-full bg-black flex items-center justify-center text-[9px] sm:text-[10px] font-black text-white">
                       {displayName[0].toUpperCase()}

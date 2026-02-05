@@ -15,7 +15,6 @@ import {
 import Link from 'next/link';
 import { cn } from "@/lib/utils";
 import { useFollow } from '@/hooks/useFollow';
-import { getArtistProfileHref } from '@/lib/navigation';
 
 import { UserAvatar } from '@/components/UserAvatar';
 
@@ -193,7 +192,7 @@ export default function ArtistSocialClient({
   };
 
   const navigateToArtist = (username: string) => {
-    window.location.href = getArtistProfileHref(username);
+    window.location.href = `/artist/u/${username}`;
   };
 
   const filteredFeed = activeTab === 'following' 
@@ -348,7 +347,7 @@ export default function ArtistSocialClient({
                       <div className="flex-1 min-w-0" onClick={() => navigateToThread(signal.id)}>
                         <div className="flex items-center gap-2 mb-1">
                           <Link 
-                            href={getArtistProfileHref(signal.username)}
+                            href={`/artist/u/${signal.username}`}
                             className="font-semibold text-sm hover:underline cursor-pointer hover:text-[#D1FF3D] transition-colors"
                             onClick={(e) => e.stopPropagation()}
                           >
