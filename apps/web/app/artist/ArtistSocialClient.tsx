@@ -15,6 +15,7 @@ import {
 import Link from 'next/link';
 import { cn } from "@/lib/utils";
 import { useFollow } from '@/hooks/useFollow';
+import { getArtistProfileHref } from '@/lib/navigation';
 
 import { UserAvatar } from '@/components/UserAvatar';
 
@@ -192,7 +193,7 @@ export default function ArtistSocialClient({
   };
 
   const navigateToArtist = (username: string) => {
-    window.location.href = `/artist/u/${username}`;
+    window.location.href = getArtistProfileHref(username);
   };
 
   const filteredFeed = activeTab === 'following' 
@@ -290,11 +291,15 @@ export default function ArtistSocialClient({
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
               {suggestedArtists.map((artist) => (
                 <div key={artist.id} className="flex-shrink-0 w-28 text-center">
-                  <UserAvatar 
-                    profile={artist.profile}
-                    className="w-16 h-16 mx-auto mb-2 cursor-pointer"
+                  <div 
+                    className="cursor-pointer"
                     onClick={() => navigateToArtist(artist.username)}
-                  />
+                  >
+                    <UserAvatar 
+                      profile={artist.profile}
+                      className="w-16 h-16 mx-auto mb-2"
+                    />
+                  </div>
                   <p className="text-xs font-medium truncate mb-1">{artist.displayName}</p>
                   <FollowButton username={artist.username} initialIsFollowing={artist.isFollowing} />
                 </div>
@@ -330,21 +335,25 @@ export default function ArtistSocialClient({
                   >
                     <div 
                       className="flex gap-3 w-full"
-                      onClick={() => navigateToThread(signal.id)}
                     >
-                      <UserAvatar 
-                        profile={signal.profile}
-                        className="w-10 h-10 flex-shrink-0 cursor-pointer"
+                      <div 
+                        className="cursor-pointer"
                         onClick={(e: React.MouseEvent) => { e.stopPropagation(); navigateToArtist(signal.username); }}
-                      />
-                      <div className="flex-1 min-w-0">
+                      >
+                        <UserAvatar 
+                          profile={signal.profile}
+                          className="w-10 h-10 flex-shrink-0"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0" onClick={() => navigateToThread(signal.id)}>
                         <div className="flex items-center gap-2 mb-1">
-                          <span 
-                            className="font-semibold text-sm hover:underline cursor-pointer"
-                            onClick={(e) => { e.stopPropagation(); navigateToArtist(signal.username); }}
+                          <Link 
+                            href={getArtistProfileHref(signal.username)}
+                            className="font-semibold text-sm hover:underline cursor-pointer hover:text-[#D1FF3D] transition-colors"
+                            onClick={(e) => e.stopPropagation()}
                           >
                             {signal.artistName}
-                          </span>
+                          </Link>
                           <span className="text-zinc-500 text-sm">@{signal.username}</span>
                           <span className="text-zinc-600 text-xs">· {signal.timestamp}</span>
                           {signal.isOwn && (

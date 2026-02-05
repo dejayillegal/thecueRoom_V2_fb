@@ -1,10 +1,11 @@
 "use client";
 
 import { useThreads } from "../../hooks/use-threads";
-import VirtualizedList from "../VirtualizedList";
+import { VirtualizedList } from "../VirtualizedList";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { UserAvatar } from "../UserAvatar";
+import { getArtistProfileHref } from "@/lib/navigation";
 
 interface Thread {
   id: string;
@@ -93,9 +94,12 @@ export default function ThreadList({
           </h3>
 
           <div className="flex items-center gap-3 text-sm text-gray-400">
-            <span className="flex items-center gap-2">
+            <Link href={getArtistProfileHref(thread.author.username)} className="flex items-center gap-2 hover:text-[#D1FF3D] transition-colors">
               <UserAvatar profile={thread.author.profile} user={thread.author} size="sm" />
-              {thread.author.username}
+              <div className="flex flex-col">
+                <span className="font-bold">{thread.author.profile?.artistName || thread.author.username}</span>
+                <span className="text-[10px] text-zinc-500">@{thread.author.username}</span>
+              </div>
               {thread.author.verified && (
                 <svg
                   className="w-4 h-4 text-blue-400"
@@ -109,7 +113,7 @@ export default function ThreadList({
                   />
                 </svg>
               )}
-            </span>
+            </Link>
             <span>
               {formatDistanceToNow(new Date(thread.createdAt), {
                 addSuffix: true,

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { MessageSquare, ThumbsUp, Eye, Pin, Lock, CheckCircle2, Clock, TrendingUp, Sparkles, RefreshCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getArtistProfileHref } from '@/lib/navigation';
 
 interface Thread {
   id: string;
@@ -131,7 +132,9 @@ export function ThreadsList() {
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.4, delay: idx * 0.05 }}
               >
-                <ThreadCard thread={thread} />
+                <div className="block group">
+                  <ThreadCard thread={thread} />
+                </div>
               </motion.div>
             ))
           )}
@@ -146,35 +149,36 @@ function ThreadCard({ thread }: { thread: Thread }) {
   const excerpt = thread.body?.substring(0, 100) + (thread.body?.length > 100 ? '...' : '');
 
   return (
-    <Link href={`/community/thread/${thread.id}`} className="block group">
-      <div className={`
-        bg-[#111111]/40 border border-white/5 rounded-2xl sm:rounded-[32px] p-4 sm:p-8
-        hover:bg-[#151515] hover:border-[#D1FF3D]/20 transition-all duration-500 backdrop-blur-md relative overflow-hidden
-        ${thread.isPinned ? 'ring-1 ring-[#D1FF3D]/20' : ''}
-      `}>
-        <div className="absolute top-0 right-0 p-4 sm:p-8 opacity-0 group-hover:opacity-100 transition-opacity">
-           <TrendingUp className="w-4 h-4 text-[#D1FF3D]/20" />
-        </div>
+    <div className={`
+      bg-[#111111]/40 border border-white/5 rounded-2xl sm:rounded-[32px] p-4 sm:p-8
+      hover:bg-[#151515] hover:border-[#D1FF3D]/20 transition-all duration-500 backdrop-blur-md relative overflow-hidden
+      ${thread.isPinned ? 'ring-1 ring-[#D1FF3D]/20' : ''}
+    `}>
+      <Link href={`/community/thread/${thread.id}`} className="absolute inset-0 z-0" />
+      
+      <div className="absolute top-0 right-0 p-4 sm:p-8 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+         <TrendingUp className="w-4 h-4 text-[#D1FF3D]/20" />
+      </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 sm:gap-8">
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-[#D1FF3D] to-[#9B5CFF] p-[1px]">
-                  <div className="w-full h-full rounded-full bg-black flex items-center justify-center text-[9px] sm:text-[10px] font-black text-white">
-                    {displayName[0].toUpperCase()}
+      <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 relative z-10 pointer-events-none">
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3 sm:mb-4 pointer-events-auto">
+                <Link href={getArtistProfileHref(thread.user?.username || '')} className="flex items-center gap-2 group/author">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-[#D1FF3D] to-[#9B5CFF] p-[1px]">
+                    <div className="w-full h-full rounded-full bg-black flex items-center justify-center text-[9px] sm:text-[10px] font-black text-white">
+                      {displayName[0].toUpperCase()}
+                    </div>
                   </div>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] sm:text-xs font-bold text-white flex items-center gap-1 group-hover:text-[#D1FF3D] transition-colors">
-                    {displayName}
-                    {thread.user?.verified && <CheckCircle2 className="w-2.5 sm:w-3 h-2.5 sm:h-3 text-[#D1FF3D]" />}
-                  </span>
-                  <span className="text-[8px] sm:text-[9px] text-zinc-600 font-mono uppercase tracking-widest">
-                    {formatTimeAgo(new Date(thread.createdAt))}
-                  </span>
-                </div>
-              </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] sm:text-xs font-bold text-white flex items-center gap-1 group-hover/author:text-[#D1FF3D] transition-colors">
+                      {thread.user?.profile?.displayName || thread.user?.username || 'Anonymous'}
+                      {thread.user?.verified && <CheckCircle2 className="w-2.5 sm:w-3 h-2.5 sm:h-3 text-[#D1FF3D]" />}
+                    </span>
+                    <span className="text-[8px] sm:text-[9px] text-zinc-600 font-mono uppercase tracking-widest">
+                      @{thread.user?.username}
+                    </span>
+                  </div>
+                </Link>
               {thread.category && (
                 <span className="text-[8px] sm:text-[9px] px-2 sm:px-2.5 py-0.5 sm:py-1 bg-[#9B5CFF]/10 text-[#9B5CFF] rounded-full font-black uppercase tracking-wider sm:tracking-widest border border-[#9B5CFF]/20">
                   {thread.category.name}
@@ -232,7 +236,7 @@ function ThreadCard({ thread }: { thread: Thread }) {
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 

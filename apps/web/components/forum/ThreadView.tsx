@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { UserProfileCard } from './UserProfileCard';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
+import { getArtistProfileHref } from '@/lib/navigation';
 
 interface ThreadData {
   id: string;
@@ -151,20 +152,20 @@ export function ThreadView({ threadId }: { threadId: string }) {
                 </div>
 
                 <div className="flex items-center justify-between pt-4">
-                   <div className="flex items-center gap-4">
+                   <Link href={getArtistProfileHref(thread.author.username)} className="flex items-center gap-4 group/author">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#D1FF3D] to-[#9B5CFF] p-[1px]">
                         <div className="w-full h-full rounded-full bg-black flex items-center justify-center text-sm font-black text-white">
                           {thread.author.displayName[0]}
                         </div>
                       </div>
                       <div className="flex flex-col">
-                        <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
+                        <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2 group-hover/author:text-[#D1FF3D] transition-colors">
                           {thread.author.displayName}
                           {thread.author.verified && <CheckCircle2 className="w-3.5 h-3.5 text-[#D1FF3D]" />}
                         </h3>
-                        <p className="text-[10px] text-zinc-600 font-mono tracking-widest uppercase">NODE: {thread.author.username}</p>
+                        <p className="text-[10px] text-zinc-600 font-mono tracking-widest uppercase">@{thread.author.username}</p>
                       </div>
-                   </div>
+                   </Link>
                    <div className="flex items-center gap-2">
                       <button 
                         onClick={() => setIsLiked(!isLiked)}
@@ -218,24 +219,26 @@ export function ThreadView({ threadId }: { threadId: string }) {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.1 }}
-                      className="group flex gap-6"
                     >
-                      <div className="flex-shrink-0">
-                        <div className="w-10 h-10 rounded-full bg-zinc-900 border border-white/5 flex items-center justify-center text-[10px] font-black text-zinc-500">
-                          {reply.author.displayName[0]}
+                      <div className="group flex gap-6">
+                        <div className="flex-shrink-0">
+                          <Link href={getArtistProfileHref(reply.author.username)}>
+                            <div className="w-10 h-10 rounded-full bg-zinc-900 border border-white/5 flex items-center justify-center text-[10px] font-black text-zinc-500">
+                              {reply.author.displayName[0]}
+                            </div>
+                          </Link>
                         </div>
-                      </div>
 
-                      <div className="flex-1 space-y-3">
-                        <div className="flex items-center gap-3">
-                          <h4 className="text-xs font-black text-white uppercase tracking-widest">
-                            {reply.author.displayName}
-                          </h4>
-                          {reply.author.verified && <CheckCircle2 className="w-3 h-3 text-[#D1FF3D]" />}
-                          <span className="text-[9px] text-zinc-600 font-mono">
-                            {formatTimeAgo(reply.createdAt)}
-                          </span>
-                        </div>
+                        <div className="flex-1 space-y-3">
+                          <div className="flex items-center gap-3">
+                            <Link href={getArtistProfileHref(reply.author.username)} className="text-xs font-black text-white uppercase tracking-widest group-hover:text-[#D1FF3D] transition-colors">
+                              {reply.author.displayName}
+                            </Link>
+                            {reply.author.verified && <CheckCircle2 className="w-3 h-3 text-[#D1FF3D]" />}
+                            <span className="text-[9px] text-zinc-600 font-mono">
+                              @{reply.author.username} · {formatTimeAgo(reply.createdAt)}
+                            </span>
+                          </div>
 
                         <p className="text-sm text-zinc-400 font-light leading-relaxed group-hover:text-zinc-200 transition-colors">
                           {reply.body}

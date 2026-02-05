@@ -1,0 +1,129 @@
+Scope
+
+This is a routing and rendering correction only.
+Do NOT change database schema.
+Do NOT redesign UI.
+Do NOT touch avatar logic.
+
+ISSUE 1 — Clicking artist username goes to 404
+Root Cause (what’s actually happening)
+
+Thread author links are pointing to a non-existent route, typically one of these patterns:
+
+/artist/${username} ❌
+
+/community/${username} ❌
+
+/profile/${username} ❌
+
+…but the actual artist profile page lives at a different route (likely Artist Connect / Artist Social).
+
+FIX 1 — Enforce Correct Artist Profile Route
+Actions
+
+Identify one canonical artist profile route, for example:
+
+/artist/${username} OR
+
+/artist-connect/${username} OR
+
+/artist/social/${username}
+
+Update all username / avatar links in:
+
+Community Hall thread cards
+
+Artist Connect feed
+
+Replies / comments
+
+Replace hardcoded or inferred paths with a helper:
+
+getArtistProfileHref(username)
+
+
+That helper must return the existing artist profile route.
+
+Ensure links use <Link href={getArtistProfileHref(username)}>
+(no manual string concatenation inside components).
+
+Verification
+
+Clicking illegal_mastercue opens the artist profile page.
+
+No 404 occurs.
+
+ISSUE 2 — Artist name + username rendered incorrectly
+Current Broken State
+
+You are rendering username twice, e.g.:
+
+illegal_mastercue
+@illegal_mastercue
+
+
+instead of:
+
+Illegal Mastercue
+@illegal_mastercue
+
+FIX 2 — Correct Display Name Mapping
+Actions
+
+Enforce this rule everywhere:
+
+Artist Name → profile.artistName
+
+Handle → @${profile.username}
+
+Update thread header rendering logic to:
+
+<div className="author">
+  <div className="artist-name">{profile.artistName}</div>
+  <div className="username">@{profile.username}</div>
+</div>
+
+
+Remove any fallback like:
+
+displayName || username
+
+artistName ?? username
+
+These cause duplication.
+
+Verification
+
+Threads show Artist Name on top
+
+@username appears once, below or beside it
+
+No duplicate usernames anywhere
+
+SAFETY CHECK (MANDATORY)
+
+Confirm:
+
+✅ No 404 when clicking artist names
+
+✅ Artist profile opens correctly
+
+✅ Artist name ≠ username visually
+
+✅ Avatars remain unchanged
+
+✅ No console errors
+
+REQUIRED OUTPUT
+
+Fixed artist profile routing
+
+Correct name + handle rendering
+
+No broken links
+
+No duplicated usernames
+
+Do not explain.
+Do not refactor beyond this scope.
+Implement directly.

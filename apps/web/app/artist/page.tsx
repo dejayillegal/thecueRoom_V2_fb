@@ -60,7 +60,7 @@ export default async function ArtistDirectoryPage() {
     return {
       id: a.id,
       username: a.username || 'Unknown',
-      displayName: (profile?.artistName || profile?.displayName || a.username || 'Unknown') as string,
+      displayName: (profile?.artistName || a.username || 'Unknown') as string,
       profile: profile || { user: a },
       bio: (profile?.bio || '') as string,
       isFollowing: myFollowing.includes(a.username || ''),
@@ -92,7 +92,7 @@ export default async function ArtistDirectoryPage() {
       return {
         id: t.id,
         type: 'thread' as const,
-        artistName: (authorProfile?.artistName || authorProfile?.displayName || t.username || 'Unknown') as string,
+        artistName: (authorProfile?.artistName || t.username || 'Unknown') as string,
         username: (t.username || 'unknown') as string,
         profile: authorProfile || { user: { id: t.userId, username: t.username } },
         title: (t.title || '') as string,
