@@ -1,0 +1,239 @@
+Avatar System Refactor — Cleanup & Consistency Patch
+Objective
+
+Remove legacy profile picture links, fix inconsistent avatar rendering, and enforce a single, authoritative avatar source across the app.
+
+This change does not add new services or tables.
+This is a cleanup + wiring correction.
+
+Problems Identified
+
+Multiple avatar sources are still referenced:
+
+avatarUrl
+
+profile.avatar_url
+
+inline initials / fallback icons
+
+Different components fetch profile data independently.
+
+Header, Settings, Artist Connect, Community Hall render different avatars.
+
+API routes rely on brittle exact-string matches.
+
+Single Source of Truth (MANDATORY)
+Canonical Avatar Fields (existing only)
+
+Use ONLY these, in this order:
+
+profile.metadata.avatarImage (base64 from upload)
+
+profile.metadata.generatedAvatarSvg (droid)
+
+Deterministic fallback (seeded)
+
+❌ Never read:
+
+avatarUrl
+
+profile.avatarUrl
+
+external image URLs
+
+Step 1 — Remove Old Profile Picture Links (Global)
+Search & Remove (Exact Matches)
+
+Run a global search and delete usage of:
+
+avatarUrl
+profile.avatarUrl
+profile.avatar_url
+customAvatarUrl
+
+Files commonly affected
+
+app/api/profile/*
+
+app/api/auth/*
+
+components/Header*
+
+components/Avatar*
+
+components/UserBadge*
+
+components/Forum/*
+
+components/Artist/*
+
+BioLinkStudio*
+
+✅ After this step, no URL input or URL logic should exist.
+
+Step 2 — Enforce Unified Profile Selector
+Create (or fix) ONE selector
+
+File
+
+apps/web/lib/identity/useCurrentProfile.ts
+
+Must return
+{
+  username,
+  artistName,
+  role,
+  avatar // resolved via avatarResolver ONLY
+}
+
+Hard Rules
+
+❌ No direct Supabase calls in components
+
+❌ No duplicated profile fetches
+
+✅ Every page imports this hook
+
+Components that MUST use it
+
+Header
+
+Profile Settings
+
+Artist Connect
+
+Community Hall (threads)
+
+Bio Link public page
+
+Step 3 — Avatar Resolver (Strict)
+File
+apps/web/lib/avatar/avatarResolver.ts
+
+Resolution Order (do not change)
+if (profile.metadata.avatarImage) return image
+if (profile.metadata.generatedAvatarSvg) return svg
+return deterministicFallback(seed)
+
+Forbidden
+
+Inline avatar logic
+
+Per-page fallbacks
+
+Initials-only avatars
+
+Step 4 — Avatar Upload (Replace URL)
+UI Changes
+
+Remove Avatar URL input entirely
+
+Add Upload Image button
+
+Upload Rules
+
+Accept: .jpg, .jpeg, .png
+
+Max size: 2 MB
+
+Client-side validation only
+
+On Upload
+
+Convert file → base64
+
+Store in profile.metadata.avatarImage
+
+Trigger profile refresh
+
+Avatar updates everywhere instantly
+
+Step 5 — Fix Header Identity
+Header MUST display
+
+Avatar → avatarResolver
+
+Display name:
+
+Artist → artistName
+
+User → username
+
+Username shown next to avatar
+
+Remove
+
+Cached header state
+
+Hardcoded user objects
+
+Click Behavior (REQUIRED)
+
+Clicking avatar always routes to:
+
+/settings/profile
+
+
+No dropdown routing. No exceptions.
+
+Step 6 — Fix Community / Artist Avatars
+Community Hall
+
+Thread author avatar must use resolver
+
+Admin avatars must never fall back to initials
+
+Artist Connect
+
+Suggested artists use same resolver
+
+No local avatar generation
+
+Step 7 — Droid Avatar Visual Upgrade (No Logic Change)
+Visual Only
+
+Thicker strokes (no hairline SVG)
+
+High-contrast core
+
+Subtle glow layers
+
+Geometric + underground aesthetic
+
+Motion (CSS only)
+
+Slow idle oscillation
+
+Soft hover scale (≤ 1.03)
+
+Respect prefers-reduced-motion
+
+No JS timers. No reactivity logic.
+
+Step 8 — Verification Checklist
+
+ Avatar URL input is gone everywhere
+
+ Upload image updates avatar globally
+
+ Header, Settings, Artist Connect show identical avatar
+
+ Community Hall shows correct avatars (admin + artists)
+
+ Header avatar click opens Profile Settings
+
+ No console errors
+
+ No layout shifts
+
+Final Outcome
+
+One avatar system
+
+One profile source
+
+No broken admin avatars
+
+No mismatched header identity
+
+Clean, deterministic behavior
