@@ -1,0 +1,161 @@
+This is a hard cleanup and enforcement task.
+Do NOT redesign UI.
+Do NOT add schemas, tables, services, or routes.
+
+PHASE 1 — DELETE LEGACY AVATAR & IDENTITY PATHS (MANDATORY)
+
+Actions (do these first, before adding anything):
+
+Remove all references to:
+
+avatarUrl
+
+profile.avatarUrl
+
+profile.avatar_url
+
+initials-based avatars
+
+placeholder letter avatars
+
+Remove avatar URL inputs from:
+
+Profile Settings
+
+Bio Link Studio
+
+Any other form
+
+Delete all conditional logic like:
+
+if (avatarUrl)
+
+|| defaultAvatar
+
+per-component fallbacks
+
+Verification:
+
+Searching the repo for avatarUrl returns zero results.
+
+PHASE 2 — SINGLE SOURCE OF TRUTH (ENFORCEMENT)
+
+Create (or enforce) one identity hook:
+
+apps/web/lib/identity/useCurrentProfile.ts
+
+
+It must return:
+
+username
+
+artistName
+
+role
+
+avatar (from resolver only)
+
+Rules:
+
+Components may NOT read Supabase directly.
+
+Components may NOT compute identity locally.
+
+PHASE 3 — CANONICAL AVATAR RESOLVER
+
+Create (or enforce):
+
+apps/web/lib/avatar/avatarResolver.ts
+
+
+Strict priority:
+
+profile.metadata.avatarImage (base64 upload)
+
+profile.metadata.generatedAvatarSvg
+
+deterministic fallback
+
+Delete:
+
+inline generators
+
+per-page avatar logic
+
+PHASE 4 — AVATAR UPLOAD (FILE ONLY)
+
+Replace URL input with:
+
+Upload button
+
+Accept .jpg, .jpeg, .png
+
+Max size 2 MB
+
+Client-side validation
+
+On upload:
+
+Convert to base64
+
+Store in profile.metadata.avatarImage
+
+Refresh resolver output immediately
+
+No backend changes. No external storage.
+
+PHASE 5 — APPLY EVERYWHERE (NO EXCEPTIONS)
+
+All of these MUST use useCurrentProfile + resolver:
+
+Header avatar
+
+Artist Connect
+
+Community Hall threads (including admin)
+
+Profile Settings
+
+Public Bio page
+
+PHASE 6 — HEADER FIX
+
+Header must:
+
+Render avatar from resolver
+
+Show artistName + username
+
+On avatar click → /settings/profile
+
+Remove:
+
+cached header user state
+
+alternate avatar sources
+
+PHASE 7 — VISUAL ONLY (OPTIONAL, SAFE)
+
+Improve generated avatar visuals:
+
+Thicker strokes
+
+Higher contrast
+
+Subtle glow
+
+Industrial / underground geometry
+
+CSS + SVG only.
+
+FINAL CHECK
+
+✔ One avatar everywhere
+✔ Admin avatar renders correctly
+✔ No URL inputs remain
+✔ Header matches settings
+✔ No console errors
+
+Do not explain.
+Do not add features.
+Implement directly.

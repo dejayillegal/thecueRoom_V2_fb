@@ -7,9 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { User, Music, Globe, Bell, Lock, Shield, Loader2, Save, CheckCircle2, Wand2, RotateCcw } from 'lucide-react';
+import { User, Music, Globe, Bell, Lock, Shield, Loader2, Save, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { generateDeterministicAvatar } from '@/lib/artist-identity';
+import { resolveAvatar } from '@/lib/avatar/avatarResolver';
 
 interface UserProfile {
   user: {
@@ -53,9 +53,6 @@ export default function SettingsPage() {
   const [formData, setFormData] = useState({
     displayName: '',
     artistName: '',
-    avatarUrl: '',
-    avatarType: 'generated',
-    avatarSeed: '',
     firstName: '',
     lastName: '',
     bio: '',
@@ -74,33 +71,6 @@ export default function SettingsPage() {
   useEffect(() => {
     fetchProfile();
   }, []);
-
-  const generateNewAvatar = () => {
-    const newSeed = Math.random().toString(36).substring(7);
-    const newAvatar = generateDeterministicAvatar(newSeed);
-    setAvatarPreview(newAvatar);
-    setFormData(prev => ({ 
-      ...prev, 
-      avatarSeed: newSeed, 
-      avatarType: 'generated'
-    }));
-    setSaved(false);
-  };
-
-  const revertAvatar = () => {
-    if (userProfile?.user) {
-      const originalSeed = userProfile.user.id;
-      const originalAvatar = generateDeterministicAvatar(originalSeed);
-      setAvatarPreview(originalAvatar);
-      setFormData(prev => ({ 
-        ...prev, 
-        avatarSeed: originalSeed, 
-        avatarType: 'generated',
-        avatarUrl: ''
-      }));
-      setSaved(false);
-    }
-  };
 
   const fetchProfile = async () => {
     try {
@@ -124,13 +94,9 @@ export default function SettingsPage() {
       // Populate form with profile data
       if (data.profile) {
         const profile = data.profile;
-        const seed = profile.avatarSeed || data.user.id;
         setFormData({
           displayName: profile.displayName || '',
           artistName: profile.artistName || '',
-          avatarUrl: profile.avatarUrl || '',
-          avatarType: profile.avatarType || 'generated',
-          avatarSeed: seed,
           firstName: profile.firstName || '',
           lastName: profile.lastName || '',
           bio: profile.bio || '',
@@ -143,11 +109,7 @@ export default function SettingsPage() {
           allowContactRequests: profile.allowContactRequests ?? true,
         });
         
-        if (profile.avatarType === 'custom' && profile.avatarUrl) {
-          setAvatarPreview(profile.avatarUrl);
-        } else {
-          setAvatarPreview(generateDeterministicAvatar(seed));
-        }
+        setAvatarPreview(resolveAvatar(data));
       }
     } catch (err) {
       console.error('Profile fetch error:', err);
@@ -188,19 +150,7 @@ export default function SettingsPage() {
   };
 
   const handleFieldChange = (field: string, value: any) => {
-    setFormData(prev => {
-      const newData = { ...prev, [field]: value };
-      if (field === 'avatarUrl') {
-        if (value) {
-          newData.avatarType = 'custom';
-          setAvatarPreview(value);
-        } else {
-          newData.avatarType = 'generated';
-          setAvatarPreview(generateDeterministicAvatar(prev.avatarSeed || userProfile?.user.id || 'default'));
-        }
-      }
-      return newData;
-    });
+    setFormData(prev => ({ ...prev, [field]: value }));
     setSaved(false);
   };
 
@@ -302,9 +252,6 @@ export default function SettingsPage() {
                         )}
                         <div className="absolute inset-0 pointer-events-none border border-[#D7FF3C]/20 rounded-lg animate-pulse" />
                       </div>
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg pointer-events-none">
-                        <Wand2 size={24} className="text-[#D7FF3C]" />
-                      </div>
                     </div>
                     
                     <div className="flex flex-col items-center gap-2">
@@ -325,11 +272,24 @@ export default function SettingsPage() {
                               reader.onloadend = async () => {
                                 const base64 = reader.result as string;
                                 setAvatarPreview(base64);
-                                setFormData(prev => ({
-                                  ...prev,
-                                  avatarUrl: base64,
-                                  avatarType: 'custom'
-                                }));
+                                
+                                // Update via API directly for instant persistence in metadata
+                                const patchRes = await fetch('/api/profile', {
+                                  method: 'PATCH',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    socialLinks: {
+                                      ...(userProfile?.profile?.socialLinks || {}),
+                                      metadata: {
+                                        ...((userProfile?.profile?.socialLinks as any)?.metadata || {}),
+                                        avatarImage: base64
+                                      }
+                                    }
+                                  })
+                                });
+                                if (patchRes.ok) {
+                                  window.dispatchEvent(new CustomEvent('profile-updated'));
+                                }
                               };
                               reader.readAsDataURL(file);
                             }
@@ -337,43 +297,30 @@ export default function SettingsPage() {
                         />
                       </label>
                       <button
-                        onClick={() => {
-                          setFormData(prev => ({
-                            ...prev,
-                            avatarUrl: '',
-                            avatarType: 'generated'
-                          }));
-                          setAvatarPreview(generateDeterministicAvatar(formData.avatarSeed || userProfile?.user.id || 'default'));
+                        onClick={async () => {
+                          const patchRes = await fetch('/api/profile', {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              socialLinks: {
+                                ...(userProfile?.profile?.socialLinks || {}),
+                                metadata: {
+                                  ...((userProfile?.profile?.socialLinks as any)?.metadata || {}),
+                                  avatarImage: null
+                                }
+                              }
+                            })
+                          });
+                          if (patchRes.ok) {
+                            setAvatarPreview(resolveAvatar({ ...userProfile, profile: { ...userProfile?.profile, socialLinks: { ...(userProfile?.profile?.socialLinks || {}), metadata: { ...((userProfile?.profile?.socialLinks as any)?.metadata || {}), avatarImage: null } } } }));
+                            window.dispatchEvent(new CustomEvent('profile-updated'));
+                          }
                         }}
                         className="text-[10px] text-zinc-500 hover:text-white uppercase tracking-tighter"
                       >
-                        Remove Custom Avatar
+                        Reset to Droid
                       </button>
                     </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2 w-full text-center">
-                    <h3 className="text-[#D7FF3C] font-mono text-[10px] uppercase tracking-[0.2em]">Droid Model Configuration</h3>
-                    <p className="text-zinc-500 text-[10px] font-mono uppercase">Unit: {formData.avatarSeed || 'NATIVE-CORE'}</p>
-                  </div>
-
-                  <div className="flex gap-3 w-full">
-                    <Button 
-                      onClick={generateNewAvatar}
-                      variant="outline"
-                      className="flex-1 bg-transparent border-white/10 hover:border-[#D7FF3C]/50 hover:bg-[#D7FF3C]/5 text-white gap-2 font-bold uppercase text-[10px] tracking-widest"
-                    >
-                      <Wand2 size={14} />
-                      Reconfigure Droid
-                    </Button>
-                    <Button 
-                      onClick={revertAvatar}
-                      variant="ghost"
-                      className="text-zinc-500 hover:text-white gap-2 font-bold uppercase text-[10px] tracking-widest"
-                    >
-                      <RotateCcw size={14} />
-                      Reset Core
-                    </Button>
                   </div>
                 </div>
 
