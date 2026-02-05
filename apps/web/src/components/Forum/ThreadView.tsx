@@ -4,6 +4,7 @@ import { useThread } from "../../hooks/use-thread";
 import ReplyComposer from "./ReplyComposer";
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
+import { UserAvatar } from "../UserAvatar";
 
 interface ThreadViewProps {
   threadId: string;
@@ -13,6 +14,10 @@ export default function ThreadView({ threadId }: ThreadViewProps) {
   const { thread, replies, loading, error, addReply, likeThread } =
     useThread(threadId);
   const [isLiked, setIsLiked] = useState(false);
+
+  // Cast thread and author for TypeScript
+  const author = thread?.author as any;
+  const authorProfile = author?.profile;
 
   if (loading) {
     return (
@@ -56,21 +61,9 @@ export default function ThreadView({ threadId }: ThreadViewProps) {
             </h1>
             <div className="flex items-center gap-4 text-sm text-gray-400">
               <span className="flex items-center gap-2">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
+                <UserAvatar profile={authorProfile} user={author} size="sm" />
                 <span className="font-medium text-white">
-                  {thread.author?.username}
+                  {author?.username}
                 </span>
                 {thread.author?.verified && (
                   <svg
@@ -171,6 +164,7 @@ export default function ThreadView({ threadId }: ThreadViewProps) {
             className="bg-gray-800 p-4 rounded-lg border border-gray-700"
           >
             <div className="flex items-center gap-2 mb-3">
+              <UserAvatar profile={reply.author?.profile} user={reply.author} size="sm" />
               <span className="font-medium text-white">
                 {reply.author?.username}
               </span>

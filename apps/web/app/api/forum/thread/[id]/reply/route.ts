@@ -94,7 +94,6 @@ export async function POST(
       .select({
         username: users.username,
         displayName: profiles.displayName,
-        avatar: profiles.avatar,
       })
       .from(users)
       .leftJoin(profiles, eq(users.id, profiles.userId))
@@ -106,7 +105,6 @@ export async function POST(
         ...newReply,
         username: userInfo[0]?.username,
         displayName: userInfo[0]?.displayName,
-        avatar: userInfo[0]?.avatar,
       },
       moderation: modResult,
       status: moderationStatus,
