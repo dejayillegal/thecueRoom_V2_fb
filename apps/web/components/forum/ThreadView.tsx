@@ -119,9 +119,7 @@ export function ThreadView({ threadId }: { threadId: string }) {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <div className="lg:col-span-8 space-y-8">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+            <div 
               className="bg-[#111111]/40 border border-white/5 rounded-[40px] overflow-hidden backdrop-blur-xl shadow-2xl"
             >
               <div className="p-10 border-b border-white/5">
@@ -283,7 +281,7 @@ export function ThreadView({ threadId }: { threadId: string }) {
                   </div>
                 )}
               </div>
-            </motion.div>
+            </div>
           </div>
 
           <div className="lg:col-span-4">

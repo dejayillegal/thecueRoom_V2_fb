@@ -112,9 +112,7 @@ export function ThreadsList() {
       <div className="space-y-4">
         <AnimatePresence mode="popLayout">
           {threads.length === 0 ? (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+            <div 
               className="text-center py-20 bg-white/[0.02] rounded-[32px] border border-dashed border-white/10"
             >
               <div className="mb-4 inline-flex p-4 rounded-full bg-white/5">
@@ -122,7 +120,7 @@ export function ThreadsList() {
               </div>
               <h3 className="text-white font-bold tracking-tight">Transmission Silence</h3>
               <p className="text-zinc-600 text-xs font-light mt-2">The frequency is clear. Start a new signal to begin discussion.</p>
-            </motion.div>
+            </div>
           ) : (
             threads.map((thread, idx) => (
               <motion.div

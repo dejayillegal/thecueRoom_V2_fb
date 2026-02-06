@@ -32,7 +32,7 @@ export default function ThreadList({
   const threadsData = useThreads({
     categoryId,
     limit,
-  });
+  } as any);
 
   // Handle both possible structures from useThreads hook
   const threads = Array.isArray(threadsData) ? threadsData : (threadsData as any)?.threads || [];
