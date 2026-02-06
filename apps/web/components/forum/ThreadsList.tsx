@@ -85,7 +85,7 @@ export function ThreadsList() {
               onClick={() => setSortBy(tab as any)}
               className={`
                 px-5 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] rounded-full transition-all border
-                ${sortBy === tab 
+                \${sortBy === tab 
                   ? 'bg-[#D1FF3D] text-black border-[#D1FF3D] shadow-[0_0_15px_rgba(209,255,61,0.2)]' 
                   : 'bg-white/5 text-zinc-500 border-white/5 hover:border-white/10 hover:text-white'
                 }
@@ -99,7 +99,7 @@ export function ThreadsList() {
         <div className="flex items-center gap-4">
           <button 
             onClick={handleRefresh}
-            className={`p-2 rounded-full border border-white/5 hover:border-[#D1FF3D]/30 transition-all group ${isRefreshing ? 'animate-spin' : ''}`}
+            className={`p-2 rounded-full border border-white/5 hover:border-[#D1FF3D]/30 transition-all group \${isRefreshing ? 'animate-spin' : ''}`}
           >
             <RefreshCcw className="w-3 h-3 text-zinc-500 group-hover:text-[#D1FF3D]" />
           </button>
@@ -132,9 +132,7 @@ export function ThreadsList() {
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.4, delay: idx * 0.05 }}
               >
-                <div className="block group">
-                  <ThreadCard thread={thread} />
-                </div>
+                <ThreadCard thread={thread} />
               </motion.div>
             ))
           )}
@@ -152,9 +150,9 @@ function ThreadCard({ thread }: { thread: Thread }) {
     <div className={`
       bg-[#111111]/40 border border-white/5 rounded-2xl sm:rounded-[32px] p-4 sm:p-8
       hover:bg-[#151515] hover:border-[#D1FF3D]/20 transition-all duration-500 backdrop-blur-md relative overflow-hidden
-      ${thread.isPinned ? 'ring-1 ring-[#D1FF3D]/20' : ''}
+      \${thread.isPinned ? 'ring-1 ring-[#D1FF3D]/20' : ''}
     `}>
-      <Link href={`/community/thread/${thread.id}`} className="absolute inset-0 z-0" />
+      <Link href={`/community/thread/\${thread.id}`} className="absolute inset-0 z-0" />
       
       <div className="absolute top-0 right-0 p-4 sm:p-8 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
          <TrendingUp className="w-4 h-4 text-[#D1FF3D]/20" />
@@ -236,20 +234,20 @@ function ThreadCard({ thread }: { thread: Thread }) {
           </div>
         </div>
       </div>
-    </div>
   );
 }
 
-function formatTimeAgo(date: Date): string {
-  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+function formatTimeAgo(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const seconds = Math.floor((new Date().getTime() - d.getTime()) / 1000);
   if (seconds < 60) return 'just now';
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  if (seconds < 3600) return `\${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `\${Math.floor(seconds / 3600)}h ago`;
+  if (seconds < 604800) return `\${Math.floor(seconds / 86400)}d ago`;
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 function formatNumber(num: number): string {
-  if (num >= 1000) return `${(num / 1000).toFixed(1)}k`;
+  if (num >= 1000) return `\${(num / 1000).toFixed(1)}k`;
   return num.toString();
 }

@@ -29,10 +29,17 @@ export default function ThreadList({
   categoryId,
   limit = 25,
 }: ThreadListProps) {
-  const { threads, loading, error, loadMore, hasMore } = useThreads({
+  const threadsData = useThreads({
     categoryId,
     limit,
   });
+
+  // Handle both possible structures from useThreads hook
+  const threads = Array.isArray(threadsData) ? threadsData : (threadsData as any).threads || [];
+  const loading = (threadsData as any).loading;
+  const error = (threadsData as any).error;
+  const loadMore = (threadsData as any).loadMore;
+  const hasMore = (threadsData as any).hasMore;
 
   if (loading && !threads.length) {
     return (
@@ -62,9 +69,8 @@ export default function ThreadList({
   const sortedThreads = [...pinnedThreads, ...regularThreads];
 
   const renderThread = (thread: Thread, index: number) => (
-    <Link
+    <div
       key={thread.id}
-      href={`/community/thread/${thread.id}`}
       className="block bg-gray-800 hover:bg-gray-750 p-4 rounded-lg transition-colors border border-gray-700 hover:border-gray-600"
     >
       <div className="flex items-start justify-between">
@@ -89,9 +95,11 @@ export default function ThreadList({
             )}
           </div>
 
-          <h3 className="text-lg font-semibold text-white mb-1 truncate">
-            {thread.title}
-          </h3>
+          <Link href={`/community/thread/\${thread.id}`}>
+            <h3 className="text-lg font-semibold text-white mb-1 truncate hover:text-[#D1FF3D]">
+              {thread.title}
+            </h3>
+          </Link>
 
           <div className="flex items-center gap-3 text-sm text-gray-400">
             <Link href={getArtistProfileHref(thread.author.username)} className="flex items-center gap-2 hover:text-[#D1FF3D] transition-colors">
@@ -181,7 +189,7 @@ export default function ThreadList({
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 
   return (
@@ -189,7 +197,6 @@ export default function ThreadList({
       <VirtualizedList
         items={sortedThreads}
         renderItem={renderThread}
-        itemHeight={120}
         overscan={5}
         className="space-y-4"
       />

@@ -47,8 +47,8 @@ interface Reply {
 
 const mockThread: ThreadData = {
   id: '1',
-  title: 'What\'s the best synth for a beginner under $500?',
-  body: 'I\'ve been producing music in the box for the past year and I\'m ready to get my first hardware synthesizer. My budget is around $500 and I\'m interested in both FM and subtractive synthesis.\n\nI\'ve been looking at:\n- Korg Minilogue XD\n- Arturia MicroFreak\n- Behringer DeepMind 6\n\nWhich one would you recommend for someone who wants to learn synthesis fundamentals while still being able to create professional-sounding patches? Also open to other suggestions!',
+  title: "What's the best synth for a beginner under $500?",
+  body: "I've been producing music in the box for the past year and I'm ready to get my first hardware synthesizer. My budget is around $500 and I'm interested in both FM and subtractive synthesis.\n\nI've been looking at:\n- Korg Minilogue XD\n- Arturia MicroFreak\n- Behringer DeepMind 6\n\nWhich one would you recommend for someone who wants to learn synthesis fundamentals while still being able to create professional-sounding patches? Also open to other suggestions!",
   author: {
     username: 'synthwave_kid',
     displayName: 'Alex Chen',
@@ -67,7 +67,7 @@ const mockThread: ThreadData = {
   replies: [
     {
       id: 'r1',
-      body: 'I started with the Minilogue XD and it\'s absolutely fantastic for learning. The interface is super intuitive and the sound quality is professional-grade. Plus, you get both analog and digital oscillators which gives you a lot of versatility.',
+      body: "I started with the Minilogue XD and it's absolutely fantastic for learning. The interface is super intuitive and the sound quality is professional-grade. Plus, you get both analog and digital oscillators which gives you a lot of versatility.",
       author: {
         username: 'jazzfusion_pro',
         displayName: 'Marcus J.',
@@ -169,9 +169,9 @@ export function ThreadView({ threadId }: { threadId: string }) {
                    <div className="flex items-center gap-2">
                       <button 
                         onClick={() => setIsLiked(!isLiked)}
-                        className={`p-4 rounded-2xl border transition-all ${isLiked ? 'bg-[#D1FF3D]/10 border-[#D1FF3D]/30 text-[#D1FF3D]' : 'bg-white/5 border-white/5 text-zinc-500 hover:text-white'}`}
+                        className={`p-4 rounded-2xl border transition-all \${isLiked ? 'bg-[#D1FF3D]/10 border-[#D1FF3D]/30 text-[#D1FF3D]' : 'bg-white/5 border-white/5 text-zinc-500 hover:text-white'}`}
                       >
-                        <ThumbsUp className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
+                        <ThumbsUp className={`w-4 h-4 \${isLiked ? 'fill-current' : ''}`} />
                       </button>
                       <button className="p-4 rounded-2xl bg-white/5 border border-white/5 text-zinc-500 hover:text-white transition-all">
                         <Bookmark className="w-4 h-4" />
@@ -240,18 +240,19 @@ export function ThreadView({ threadId }: { threadId: string }) {
                             </span>
                           </div>
 
-                        <p className="text-sm text-zinc-400 font-light leading-relaxed group-hover:text-zinc-200 transition-colors">
-                          {reply.body}
-                        </p>
+                          <p className="text-sm text-zinc-400 font-light leading-relaxed group-hover:text-zinc-200 transition-colors">
+                            {reply.body}
+                          </p>
 
-                        <div className="flex items-center gap-6 pt-2">
-                          <button className="flex items-center gap-2 text-[9px] font-black text-zinc-600 hover:text-[#D1FF3D] transition-all uppercase tracking-widest">
-                            <ThumbsUp className="w-3 h-3" />
-                            {reply.likes} UPVOTES
-                          </button>
-                          <button className="text-[9px] font-black text-zinc-600 hover:text-white transition-all uppercase tracking-widest">
-                            REPLY
-                          </button>
+                          <div className="flex items-center gap-6 pt-2">
+                            <button className="flex items-center gap-2 text-[9px] font-black text-zinc-600 hover:text-[#D1FF3D] transition-all uppercase tracking-widest">
+                              <ThumbsUp className="w-3 h-3" />
+                              {reply.likes} UPVOTES
+                            </button>
+                            <button className="text-[9px] font-black text-zinc-600 hover:text-white transition-all uppercase tracking-widest">
+                              REPLY
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </motion.div>
@@ -319,7 +320,7 @@ export function ThreadView({ threadId }: { threadId: string }) {
                  </p>
                  <div className="space-y-4">
                     {[1, 2, 3].map((i) => (
-                      <Link key={i} href={`/community/forum/thread/${i}`} className="block group">
+                      <Link key={i} href={`/community/forum/thread/\${i}`} className="block group">
                          <h4 className="text-xs font-bold text-zinc-400 group-hover:text-[#D1FF3D] transition-all line-clamp-1 mb-1 italic">
                            Hardware modular synthesis vs VST workflows...
                          </h4>
@@ -342,8 +343,8 @@ export function ThreadView({ threadId }: { threadId: string }) {
 function formatTimeAgo(date: Date): string {
   const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
   if (seconds < 60) return 'just now';
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+  if (seconds < 3600) return `\${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `\${Math.floor(seconds / 3600)}h ago`;
+  if (seconds < 604800) return `\${Math.floor(seconds / 86400)}d ago`;
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
