@@ -1,9 +1,9 @@
-import ArtistSocialProfile from '@/components/artist/ArtistSocialProfile';
+import { PublicProfile } from '@/components/Profile/PublicProfile';
 
 export default function ArtistProfilePage({
   params,
 }: {
   params: { username: string };
 }) {
-  return <ArtistSocialProfile username={params.username} />;
+  return <PublicProfile username={params.username} />;
 }
