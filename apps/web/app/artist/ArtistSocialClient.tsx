@@ -193,8 +193,8 @@ export default function ArtistSocialClient({
     window.location.href = `/forum/thread/${threadId}`;
   };
 
-  const navigateToArtist = (username: string) => {
-    window.location.href = getArtistProfileHref(username);
+  const navigateToArtist = (idOrUsername: string) => {
+    window.location.href = getArtistProfileHref(idOrUsername);
   };
 
   const filteredFeed = activeTab === 'following' 

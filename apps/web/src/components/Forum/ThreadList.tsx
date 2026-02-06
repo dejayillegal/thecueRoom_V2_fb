@@ -35,11 +35,11 @@ export default function ThreadList({
   });
 
   // Handle both possible structures from useThreads hook
-  const threads = Array.isArray(threadsData) ? threadsData : (threadsData as any).threads || [];
-  const loading = (threadsData as any).loading;
-  const error = (threadsData as any).error;
-  const loadMore = (threadsData as any).loadMore;
-  const hasMore = (threadsData as any).hasMore;
+  const threads = Array.isArray(threadsData) ? threadsData : (threadsData as any)?.threads || [];
+  const loading = (threadsData as any)?.loading;
+  const error = (threadsData as any)?.error;
+  const loadMore = (threadsData as any)?.loadMore;
+  const hasMore = (threadsData as any)?.hasMore;
 
   if (loading && !threads.length) {
     return (
@@ -102,7 +102,7 @@ export default function ThreadList({
           </Link>
 
           <div className="flex items-center gap-3 text-sm text-gray-400">
-            <Link href={getArtistProfileHref(thread.author.username)} className="flex items-center gap-2 hover:text-[#D1FF3D] transition-colors">
+          <Link href={getArtistProfileHref(thread.author.username)} className="flex items-center gap-2 hover:text-[#D1FF3D] transition-colors">
               <UserAvatar profile={thread.author.profile} user={thread.author} size="sm" />
               <div className="flex flex-col">
                 <span className="font-bold">{thread.author.profile?.artistName || thread.author.username}</span>
