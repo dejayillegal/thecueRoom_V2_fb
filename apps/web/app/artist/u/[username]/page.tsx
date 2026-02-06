@@ -1,9 +1,8 @@
 import { PublicProfile } from '@/components/Profile/PublicProfile';
 
-export default function ArtistProfilePage({
-  params,
-}: {
-  params: { username: string };
+export default async function ArtistProfilePage(props: {
+  params: Promise<{ username: string }>;
 }) {
-  return <PublicProfile username={params.username} />;
+  const { username } = await props.params;
+  return <PublicProfile username={username} />;
 }
