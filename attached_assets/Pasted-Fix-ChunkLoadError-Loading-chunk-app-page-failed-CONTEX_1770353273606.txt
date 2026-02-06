@@ -1,0 +1,163 @@
+Fix ChunkLoadError: Loading chunk app/page failed
+CONTEXT (DO NOT SKIP)
+
+Error:
+
+Runtime ChunkLoadError
+Loading chunk app/page failed
+/_next/static/chunks/app/page.js
+
+
+Environment:
+
+Next.js 15.5.6 (Webpack)
+
+App Router
+
+Replit (Janeway runtime)
+
+Cause:
+
+Stale .next artifacts
+
+Moved / renamed routes
+
+Broken dynamic imports
+
+Webpack chunk map out of sync
+
+GOAL
+
+Restore platform stability by:
+
+Resetting the build graph
+
+Fixing invalid imports
+
+Ensuring app/page.tsx is clean and static
+
+Preventing stale chunk references
+
+NO UI changes
+NO feature changes
+NO redesign
+
+STEP 1 — HARD RESET BUILD STATE (MANDATORY)
+
+Delete ALL generated artifacts:
+
+rm -rf .next
+rm -rf node_modules/.cache
+rm -rf apps/web/.next
+
+
+Then restart Replit from scratch (not hot reload).
+
+STEP 2 — VERIFY app/page.tsx IS SAFE
+
+Open:
+
+apps/web/app/page.tsx
+
+RULES (CRITICAL)
+
+app/page.tsx MUST NOT:
+
+Import client-only hooks
+
+Import dynamic routes
+
+Import files from /lib that depend on browser APIs
+
+Import components marked "use client"
+
+TEMP SAFE VERSION (to unblock runtime)
+
+Replace contents with:
+
+export default function LandingPage() {
+  return (
+    <main style={{ padding: 24 }}>
+      <h1>thecueRoom</h1>
+    </main>
+  );
+}
+
+
+This isolates whether the crash is chunk-related (it is).
+
+STEP 3 — REMOVE INVALID DYNAMIC IMPORTS
+
+Search globally for:
+
+dynamic(() => import('app/page'))
+dynamic(() => import('@/app/page'))
+
+
+❌ These are illegal
+❌ App Router pages must NOT be dynamically imported
+
+Delete them.
+
+STEP 4 — FIX BROKEN ALIASES
+
+Open:
+
+apps/web/tsconfig.json
+
+
+Ensure this exists:
+
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  }
+}
+
+
+Then verify every import path exists physically.
+
+Common breakage:
+
+Renamed folders
+
+Moved routes
+
+Deleted components still imported
+
+STEP 5 — CLEAR SERVICE WORKER / CACHE (REPLIT-SPECIFIC)
+
+In browser:
+
+Hard reload
+
+Disable cache
+
+Open in incognito
+
+Replit aggressively caches _next/static.
+
+STEP 6 — REBUILD CLEAN
+
+Run:
+
+npm run build
+npm run dev
+
+
+No hot reload. Full restart only.
+
+VERIFICATION (MANDATORY)
+
+✅ No ChunkLoadError
+
+✅ / loads
+
+✅ _next/static/chunks/app/page.js exists
+
+✅ No red errors in console
+
+✅ Navigation works again
