@@ -1,0 +1,116 @@
+Artist Connect “Suggested Profiles” 404
+Scope (STRICT)
+
+Fix routing only
+
+Do NOT redesign UI
+
+Do NOT touch avatar logic
+
+Do NOT add routes or schemas
+
+Do NOT refactor identity system
+
+ROOT CAUSE (what’s actually broken)
+
+The Suggested Artists cards in Artist Connect are linking to a non-existent or wrong route, usually by:
+
+Hardcoding /profile/${username} ❌
+
+Using /artist/${username} when that route doesn’t exist ❌
+
+Copy-pasting logic different from Community Hall ❌
+
+So:
+
+Threads → one route
+
+Suggested artists → another route
+→ 404
+
+FIX — SINGLE CANONICAL ARTIST PROFILE LINK
+STEP 1 — Identify the REAL artist profile route
+
+Find the page that renders Artist Connect profiles (the page you already have).
+
+Example (use what exists in your app):
+
+/artist-connect/${username}
+
+OR /artists/${username}
+
+OR /social/artist/${username}
+
+⚠️ Do not invent a new route.
+
+STEP 2 — Create a shared helper (UI-only)
+
+Add this helper once (or reuse if already present):
+
+// lib/routing/getArtistProfileHref.ts
+export function getArtistProfileHref(username: string) {
+  return `/artist-connect/${username}`; // adjust to actual route
+}
+
+STEP 3 — Fix Suggested Artists cards
+
+In Artist Connect → Suggested for you component:
+
+❌ Remove:
+
+href={`/profile/${artist.username}`}
+
+
+❌ Remove:
+
+href={`/artist/${artist.username}`}
+
+
+✅ Replace with:
+
+import { getArtistProfileHref } from '@/lib/routing/getArtistProfileHref';
+
+<Link href={getArtistProfileHref(artist.username)}>
+
+
+Apply this to:
+
+Avatar click
+
+Artist name click
+
+Any “Follow / View” card wrapper
+
+STEP 4 — Ensure consistency with Community Hall
+
+Verify both use the same helper:
+
+Community Hall thread author links ✅
+
+Artist Connect suggested artist links ✅
+
+There must be one route source of truth.
+
+VERIFICATION CHECKLIST (MANDATORY)
+
+Confirm all of the following:
+
+✅ Clicking a suggested artist never 404s
+
+✅ Artist profile opens correctly
+
+✅ Same behavior as clicking artist name in threads
+
+✅ No console errors
+
+✅ No UI layout changes
+
+REQUIRED OUTPUT
+
+Suggested artists click → valid artist profile
+
+No 404s
+
+Routing consistent across Artist Connect & Community Hall
+
+Zero avatar or UI regressions

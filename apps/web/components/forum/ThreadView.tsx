@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { UserProfileCard } from './UserProfileCard';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
+import { getArtistProfileHref } from '@/lib/routing/getArtistProfileHref';
 
 interface ThreadData {
   id: string;
@@ -151,7 +152,7 @@ export function ThreadView({ threadId }: { threadId: string }) {
                 </div>
 
                 <div className="flex items-center justify-between pt-4">
-                   <Link href={`/artist/u/${thread.author.username}`} className="flex items-center gap-4 group/author">
+                   <Link href={getArtistProfileHref(thread.author.username)} className="flex items-center gap-4 group/author">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#D1FF3D] to-[#9B5CFF] p-[1px]">
                         <div className="w-full h-full rounded-full bg-black flex items-center justify-center text-sm font-black text-white">
                           {thread.author.displayName[0]}
@@ -221,7 +222,7 @@ export function ThreadView({ threadId }: { threadId: string }) {
                     >
                       <div className="group flex gap-6">
                         <div className="flex-shrink-0">
-                          <Link href={`/artist/u/${reply.author.username}`}>
+                          <Link href={getArtistProfileHref(reply.author.username)}>
                             <div className="w-10 h-10 rounded-full bg-zinc-900 border border-white/5 flex items-center justify-center text-[10px] font-black text-zinc-500">
                               {reply.author.displayName[0]}
                             </div>
@@ -230,7 +231,7 @@ export function ThreadView({ threadId }: { threadId: string }) {
 
                         <div className="flex-1 space-y-3">
                           <div className="flex items-center gap-3">
-                            <Link href={`/artist/u/${reply.author.username}`} className="text-xs font-black text-white uppercase tracking-widest group-hover:text-[#D1FF3D] transition-colors">
+                            <Link href={getArtistProfileHref(reply.author.username)} className="text-xs font-black text-white uppercase tracking-widest group-hover:text-[#D1FF3D] transition-colors">
                               {reply.author.displayName}
                             </Link>
                             {reply.author.verified && <CheckCircle2 className="w-3 h-3 text-[#D1FF3D]" />}
