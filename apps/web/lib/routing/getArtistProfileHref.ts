@@ -1,4 +1,2 @@
-export function getArtistProfileHref(usernameOrId: string) {
-  if (!usernameOrId) return '#';
-  return `/artist/${usernameOrId}`;
-}
+export const getArtistProfileHref = (username: string) =>
+  `/artist/u/${username}`;

@@ -37,11 +37,9 @@ export function UserProfileCard({ user, variant = 'full' }: UserProfileCardProps
         <Avatar {...avatarProps} className="w-8 h-8" />
         <div className="flex flex-col">
           <span className="text-sm text-white font-medium flex items-center gap-1">
-            {user.displayName || user.username}
+            {user.artistName || user.displayName || user.username}
           </span>
-          {user.artistName && (
-            <span className="text-xs text-gray-500">@{user.username}</span>
-          )}
+          <span className="text-xs text-gray-500">@{user.username}</span>
         </div>
       </div>
     );
@@ -54,7 +52,7 @@ export function UserProfileCard({ user, variant = 'full' }: UserProfileCardProps
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <h4 className="text-sm font-semibold text-white truncate">
-              {user.displayName || user.username}
+              {user.artistName || user.displayName || user.username}
             </h4>
             {user.verified && (
               <span className="text-[10px] px-1.5 py-0.5 bg-green-500/10 text-green-500 border border-green-500/30 rounded">
@@ -62,9 +60,7 @@ export function UserProfileCard({ user, variant = 'full' }: UserProfileCardProps
               </span>
             )}
           </div>
-          {user.artistName && (
-            <p className="text-xs text-gray-400 mb-1">@{user.username}</p>
-          )}
+          <p className="text-xs text-gray-400 mb-1">@{user.username}</p>
           <div className="flex items-center gap-3 text-xs text-gray-500">
             {user.genre && (
               <span className="flex items-center gap-1">
@@ -103,7 +99,7 @@ export function UserProfileCard({ user, variant = 'full' }: UserProfileCardProps
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <h3 className="text-lg font-bold text-white truncate">
-              {user.displayName || user.username}
+              {user.artistName || user.displayName || user.username}
             </h3>
             {user.verified && (
               <span className="text-xs px-2 py-0.5 bg-green-500/10 text-green-500 border border-green-500/30 rounded font-medium">
@@ -111,9 +107,7 @@ export function UserProfileCard({ user, variant = 'full' }: UserProfileCardProps
               </span>
             )}
           </div>
-          {user.artistName && (
-            <p className="text-sm text-gray-400 mb-2">Artist: {user.artistName}</p>
-          )}
+          <p className="text-sm text-gray-400 mb-2">@{user.username}</p>
           {user.bio && (
             <p className="text-sm text-gray-300 mb-3 line-clamp-2">{user.bio}</p>
           )}

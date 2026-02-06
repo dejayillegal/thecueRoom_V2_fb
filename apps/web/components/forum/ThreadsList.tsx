@@ -25,6 +25,7 @@ interface Thread {
     username: string;
     profile?: {
       displayName?: string;
+      artistName?: string;
       avatar?: string;
     };
     verified: boolean;
@@ -167,7 +168,7 @@ function ThreadCard({ thread }: { thread: Thread }) {
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[10px] sm:text-xs font-bold text-white flex items-center gap-1 group-hover/author:text-[#D1FF3D] transition-colors">
-                      {thread.user?.profile?.displayName || thread.user?.username || 'Anonymous'}
+                      {thread.user?.profile?.artistName || thread.user?.profile?.displayName || thread.user?.username || 'Anonymous'}
                       {thread.user?.verified && <CheckCircle2 className="w-2.5 sm:w-3 h-2.5 sm:h-3 text-[#D1FF3D]" />}
                     </span>
                     <span className="text-[8px] sm:text-[9px] text-zinc-600 font-mono uppercase tracking-widest">

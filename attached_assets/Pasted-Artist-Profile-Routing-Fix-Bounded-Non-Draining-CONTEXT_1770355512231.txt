@@ -1,0 +1,163 @@
+Artist Profile Routing Fix (Bounded · Non-Draining)
+CONTEXT (DO NOT SKIP)
+
+Current error:
+
+GET /artist/u/{username} → 404
+
+
+Cause:
+
+UI links point to /artist/u/{username}
+
+That route does not exist physically
+
+Multiple components hardcode artist links inconsistently
+
+GOAL
+
+Make all artist clicks (threads, suggested artists, avatars) behave like Instagram:
+
+✔ Clicking an artist always opens their profile
+✔ No 404
+✔ No new features
+✔ No UI redesign
+✔ No codebase-wide refactor
+
+STEP 1 — CREATE THE MISSING ROUTE (ONE FILE ONLY)
+
+Create this file exactly:
+
+apps/web/app/artist/u/[username]/page.tsx
+
+
+Contents:
+
+import ArtistSocialProfile from '@/components/artist/ArtistSocialProfile';
+
+export default function ArtistProfilePage({
+  params,
+}: {
+  params: { username: string };
+}) {
+  return <ArtistSocialProfile username={params.username} />;
+}
+
+
+Rules:
+
+Server component (NO "use client")
+
+Reuse existing profile UI
+
+No new layout, no redesign
+
+✅ Exit condition: route exists physically
+
+STEP 2 — NORMALIZE ARTIST LINKS (TARGETED ONLY)
+
+Create a single helper:
+
+apps/web/lib/routing/getArtistProfileHref.ts
+
+export const getArtistProfileHref = (username: string) =>
+  `/artist/u/${username}`;
+
+
+Now update ONLY these locations (do NOT search blindly):
+
+Replace hardcoded artist links in:
+
+Artist Connect → Suggested Artists card
+
+Community Hall → Thread author name
+
+Community Hall → Avatar click
+
+Artist Social → Artist name click
+
+❌ Remove:
+
+href={`/artist/${username}`}
+href={`/profile/${username}`}
+href={`/artist-connect/${username}`}
+
+
+✅ Replace with:
+
+import { getArtistProfileHref } from '@/lib/routing/getArtistProfileHref';
+
+<Link href={getArtistProfileHref(username)}>
+
+
+⚠️ Do NOT touch unrelated links
+⚠️ Do NOT refactor identity logic
+
+STEP 3 — FIX NAME DISPLAY (RENDER-ONLY)
+
+Problem:
+Artist name shows username twice.
+
+Rule (apply where artist name is rendered):
+
+Primary label → artistName
+
+Secondary label → @username
+
+Replace patterns like:
+
+{displayName || username}
+
+
+With:
+
+{artistName}
+<span>@{username}</span>
+
+
+No data changes. UI only.
+
+STEP 4 — SAFE BUILD RESET (NON-DESTRUCTIVE)
+
+Delete generated files only:
+
+rm -rf apps/web/.next
+rm -rf node_modules/.cache
+
+
+Do NOT delete source files.
+
+Restart dev server once.
+
+VERIFICATION (MANDATORY)
+
+After reload:
+
+✅ /artist/u/techno_ritual loads
+
+✅ Clicking artist in:
+
+Threads
+
+Suggested artists
+
+Artist Connect
+opens profile
+
+✅ No ChunkLoadError
+
+✅ Landing page unchanged
+
+✅ No console errors
+
+REQUIRED OUTPUT
+
+Artist profile route works
+
+No 404s
+
+One canonical artist URL
+
+No UI regressions
+
+No infinite search loops

@@ -3,7 +3,7 @@
 import { useFollow } from '@/hooks/useFollow';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserPlus, UserMinus, Zap, MessageSquare } from 'lucide-react';
-import Link from 'next/link';
+import { getArtistProfileHref } from '@/lib/routing/getArtistProfileHref';
 import { useRef, useEffect, useState } from 'react';
 
 interface ArtistPreviewCardProps {
@@ -70,13 +70,13 @@ export function ArtistPreviewCard({
       >
         <div className="p-4 space-y-4">
           <div className="flex items-start gap-3">
-            <Link href={`/bio/${username}`} className="flex-shrink-0">
+            <Link href={getArtistProfileHref(username)} className="flex-shrink-0">
               <div className="w-14 h-14 bg-zinc-800 border border-white/10 overflow-hidden hover:border-[#D1FF3D]/50 transition-colors">
                 <img src={avatar} alt="" className="w-full h-full object-cover grayscale hover:grayscale-0 opacity-80 hover:opacity-100 transition-all" />
               </div>
             </Link>
             <div className="flex-1 min-w-0">
-              <Link href={`/bio/${username}`}>
+              <Link href={getArtistProfileHref(username)}>
                 <h3 className="text-sm font-bold uppercase tracking-tight hover:text-[#D1FF3D] transition-colors truncate">
                   {displayName}
                 </h3>
