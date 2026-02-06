@@ -1,0 +1,187 @@
+Safe Chunk + Routing Repair (NO FEATURE LOSS)
+CONTEXT (CRITICAL)
+
+Environment:
+
+Next.js 15.5.6 (App Router)
+
+Replit
+
+Existing landing page must remain unchanged
+
+Existing Artist Connect UI must remain unchanged
+
+Errors observed:
+
+ChunkLoadError: Loading chunk app/page failed
+
+/artist/u/{username} → 404
+
+Clicking artist avatars breaks navigation
+
+GOAL
+
+Repair build integrity and routing resolution without breaking:
+
+Landing page
+
+Existing routes
+
+UI
+
+Data
+
+STEP 1 — SAFE BUILD CACHE RESET (NON-DESTRUCTIVE)
+
+DO NOT touch source files.
+
+Delete ONLY generated artifacts:
+
+rm -rf apps/web/.next
+rm -rf node_modules/.cache
+
+
+DO NOT delete:
+
+node_modules
+
+app/page.tsx
+
+any source files
+
+Restart dev server after cleanup.
+
+STEP 2 — VERIFY app/page.tsx IS SERVER-SAFE (NO REWRITE)
+
+Open:
+
+apps/web/app/page.tsx
+
+DO NOT MODIFY UI
+
+Only verify the following rules:
+
+app/page.tsx must NOT:
+
+Import "use client" components
+
+Import useEffect, useState
+
+Import next/navigation hooks
+
+Import dynamic routes (/artist/*)
+
+If violations exist:
+➡️ move those imports into child client components, not the page.
+
+STEP 3 — FIX ARTIST PROFILE ROUTING (ROOT CAUSE OF 404)
+Problem
+
+Links resolve to:
+
+/artist/u/{username}
+
+
+But no matching route exists.
+
+Fix (Minimal, Correct)
+
+Create ONE dynamic route:
+
+apps/web/app/artist/u/[username]/page.tsx
+
+
+This page must:
+
+Be server component (NO "use client")
+
+Fetch artist profile by username
+
+Render existing Artist Profile UI (reuse component)
+
+⚠️ DO NOT duplicate layouts
+⚠️ DO NOT create new designs
+
+STEP 4 — ENSURE ALL ARTIST LINKS POINT TO SAME ROUTE
+
+Search and normalize all artist links to:
+
+href={`/artist/u/${username}`}
+
+
+Fix locations:
+
+Artist Connect suggested cards
+
+Community Hall avatars
+
+Thread author avatars
+
+Artist Social profile headers
+
+NO alternate routes allowed.
+
+STEP 5 — PREVENT STALE CHUNK REFERENCES
+Problem
+
+Replit caches old chunk maps.
+
+Fix
+
+Disable dynamic imports of App Router pages.
+
+Search and REMOVE any usage of:
+
+dynamic(() => import("app/page"))
+dynamic(() => import("@/app/page"))
+
+
+Pages must never be dynamically imported.
+
+STEP 6 — ENSURE PATH ALIASES ARE CONSISTENT
+
+Open:
+
+apps/web/tsconfig.json
+
+
+Ensure:
+
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  }
+}
+
+
+Then verify:
+
+No imports reference deleted folders
+
+No ../../app/page imports exist
+
+STEP 7 — SAFE REBUILD (NO FEATURE LOSS)
+
+Run:
+
+npm run build
+npm run dev
+
+
+Then:
+
+Hard refresh browser
+
+Test in incognito
+
+VERIFICATION CHECKLIST
+
+✅ Landing page unchanged
+✅ No ChunkLoadError
+✅ /artist/u/{username} loads
+✅ Clicking artist avatars works
+✅ No UI regressions
+✅ No console errors
