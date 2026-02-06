@@ -1,0 +1,126 @@
+Fix Artist Profile Routing (No 404, Instagram-style)
+CONTEXT (DO NOT SKIP)
+
+Current behavior:
+
+GET /artist/u/techno_ritual → 404
+
+
+Reason:
+
+UI links point to /artist/u/{username}
+
+That route does not exist
+
+Actual artist profile page lives elsewhere
+
+GOAL
+
+Clicking on any artist (Suggested Artists, Artist Connect, Community Hall, Threads):
+
+✅ Opens the existing Artist Social Profile page
+❌ Never 404
+❌ No new routes
+❌ No UI redesign
+
+STEP 1 — CONFIRM THE REAL ARTIST PROFILE ROUTE (CRITICAL)
+
+Find the page that already renders artist profiles.
+
+It will be ONE of these (use the one that exists):
+
+/artist-connect/[username]
+/artists/[username]
+/social/[username]
+/u/[username]
+
+
+⚠️ DO NOT CREATE A NEW PAGE
+⚠️ DO NOT KEEP /artist/u/*
+
+STEP 2 — DELETE ALL /artist/u/* LINKS (HARD REQUIREMENT)
+
+Search globally for:
+
+/artist/u/
+
+
+Remove or replace every instance.
+
+This includes:
+
+Suggested artists cards
+
+Avatar links
+
+Artist name links
+
+Follow cards
+
+STEP 3 — CREATE A SINGLE CANONICAL HELPER
+
+Create this file (or overwrite if exists):
+
+// apps/web/lib/routing/getArtistProfileHref.ts
+export function getArtistProfileHref(username: string) {
+  return `/artist-connect/${username}`; // 🔴 CHANGE to your REAL route
+}
+
+
+This is the only place artist profile URLs are defined.
+
+STEP 4 — UPDATE ALL ARTIST LINKS TO USE THE HELPER
+Replace ❌
+href={`/artist/u/${artist.username}`}
+
+With ✅
+import { getArtistProfileHref } from '@/lib/routing/getArtistProfileHref';
+
+<Link href={getArtistProfileHref(artist.username)}>
+
+
+Apply to:
+
+Suggested Artists (Artist Connect)
+
+Artist avatar click
+
+Artist name click
+
+Any “View profile” action
+
+STEP 5 — ENSURE THREADS & SUGGESTIONS MATCH
+
+Confirm BOTH use the same helper:
+
+Community Hall → artist name click
+
+Artist Connect → suggested artist click
+
+No custom routes. No hardcoding.
+
+VERIFICATION (MANDATORY)
+
+After reload:
+
+✅ Clicking any artist opens profile
+
+✅ URL is NOT /artist/u/*
+
+✅ No 404 in Network tab
+
+✅ Same behavior as Instagram / Threads
+
+✅ Works logged out & logged in
+
+REQUIRED OUTPUT
+
+/artist/u/{username} is never used
+
+Artist clicks always resolve
+
+One canonical route
+
+No new pages created
+
+No UI changes
