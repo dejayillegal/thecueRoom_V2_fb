@@ -3,6 +3,7 @@
 import { useFollow } from '@/hooks/useFollow';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserPlus, UserMinus, Zap, MessageSquare } from 'lucide-react';
+import Link from 'next/link';
 import { getArtistProfileHref } from '@/lib/routing/getArtistProfileHref';
 import { useRef, useEffect, useState } from 'react';
 
