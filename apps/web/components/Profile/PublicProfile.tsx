@@ -75,8 +75,6 @@ export default function PublicProfile({ username, currentUserId }: PublicProfile
       
       if (!response.ok) {
         console.error('API Response not OK:', response.status);
-        const text = await response.text();
-        console.error('API Response body:', text);
         if (response.status === 404) {
           setError('User not found');
         } else {
