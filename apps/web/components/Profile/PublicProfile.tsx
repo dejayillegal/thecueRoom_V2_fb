@@ -54,7 +54,7 @@ interface UserProfile {
   };
 }
 
-export function PublicProfile({ username, currentUserId }: PublicProfileProps) {
+export default function PublicProfile({ username, currentUserId }: PublicProfileProps) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);

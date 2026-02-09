@@ -1,4 +1,4 @@
-import { PublicProfile } from '@/components/Profile/PublicProfile';
+import PublicProfile from '@/components/Profile/PublicProfile';
 
 export default async function ArtistProfilePage(props: {
   params: Promise<{ username: string }>;
