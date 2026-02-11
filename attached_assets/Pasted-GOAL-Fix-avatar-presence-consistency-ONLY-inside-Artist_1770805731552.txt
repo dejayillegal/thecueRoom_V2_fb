@@ -1,0 +1,141 @@
+GOAL
+
+Fix avatar + presence consistency ONLY inside Artist Connect page.
+
+Do NOT modify:
+
+identity hook
+
+avatar resolver
+
+header component
+
+routing
+
+database
+
+other working pages
+
+Only patch Artist Connect implementation.
+
+STEP 1 — IMPORT CANONICAL AVATAR RESOLVER
+
+In:
+
+app/artist-connect/page.tsx
+
+
+OR wherever Artist Connect profile header renders.
+
+Remove any usage of:
+
+profile.avatarUrl
+
+profile.generatedAvatar
+
+inline SVG generator
+
+fallback initial avatar logic
+
+Import instead:
+
+import { resolveAvatar } from '@/lib/identity/avatarResolver'
+
+
+Where avatar is rendered, replace logic with:
+
+const avatar = resolveAvatar(profile)
+
+<img
+  src={avatar}
+  alt={profile.username}
+  className="avatar"
+/>
+
+
+Do NOT generate anything locally.
+
+STEP 2 — FIX OTHER ARTIST CARDS IN ARTIST CONNECT
+
+Where suggested artists render (inside Artist Connect only):
+
+Replace:
+
+artist.avatarUrl
+
+
+With:
+
+resolveAvatar(artist)
+
+
+Ensure import is present.
+
+STEP 3 — FIX PRESENCE DOT LOGIC
+
+Problem:
+Active dot is inconsistent.
+
+Inside Artist Connect:
+
+Replace any boolean artist.isOnline logic with:
+
+const isActive = Date.now() - new Date(artist.lastActive).getTime() < 2 * 60 * 1000
+
+
+Render dot:
+
+{isActive && <span className="presence-dot" />}
+
+
+Add CSS:
+
+.presence-dot {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  background: #A3FF12;
+  border-radius: 50%;
+}
+
+
+Do NOT animate. Just correct state.
+
+STEP 4 — ENSURE CURRENT USER USES SAME PROFILE OBJECT
+
+Inside Artist Connect:
+
+Remove any local useSession() avatar logic.
+
+Instead:
+
+const { profile } = useCurrentProfile()
+
+
+Use that profile everywhere.
+
+No duplicate state.
+
+STEP 5 — VERIFY
+
+After patch:
+
+• Logged-in user avatar = header avatar
+• Suggested avatars = same as profile page
+• Clicking artist → correct avatar
+• Active dot shows only for <2 min users
+• No UI changes
+• No routing changes
+• No resolver rewrite
+
+DO NOT:
+
+• Create new files
+• Modify identity system
+• Modify avatarResolver
+• Touch settings page
+• Touch header
+
+Only fix Artist Connect page usage.

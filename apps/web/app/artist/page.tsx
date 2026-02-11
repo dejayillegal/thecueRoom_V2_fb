@@ -68,7 +68,8 @@ export default async function ArtistDirectoryPage() {
       bio: (profile?.bio || '') as string,
       isFollowing: myFollowing.includes(a.username || ''),
       followers,
-      following: following.length
+      following: following.length,
+      lastActive: profile?.lastActivity
     };
   });
 
