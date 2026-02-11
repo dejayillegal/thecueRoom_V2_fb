@@ -33,14 +33,16 @@ export function resolveAvatar(profile: any) {
   
   const p = profile.profile || profile;
   const u = profile.user || profile;
-  const metadata = p.socialLinks?.metadata || {};
+  const metadata = p.socialLinks?.metadata || p.metadata || {};
   
   if (metadata.avatarImage) return metadata.avatarImage;
   
   if (metadata.generatedAvatarSvg) {
+    const svg = metadata.generatedAvatarSvg;
+    if (svg.startsWith('data:image/svg+xml')) return svg;
     const svgBase64 = typeof window !== 'undefined'
-      ? window.btoa(metadata.generatedAvatarSvg)
-      : Buffer.from(metadata.generatedAvatarSvg).toString('base64');
+      ? window.btoa(svg)
+      : Buffer.from(svg).toString('base64');
     return `data:image/svg+xml;base64,${svgBase64}`;
   }
 
@@ -50,4 +52,8 @@ export function resolveAvatar(profile: any) {
     ? window.btoa(svg)
     : Buffer.from(svg).toString('base64');
   return `data:image/svg+xml;base64,${svgBase64}`;
+}
+
+export function useAvatarResolver(profile: any) {
+  return resolveAvatar(profile);
 }

@@ -1,0 +1,242 @@
+TASK: Artist Profile UX + Avatar Consistency Patch
+
+This is a UI correction patch.
+
+DO NOT:
+
+Modify landing page
+
+Touch app/page.tsx
+
+Change routing structure
+
+Create new API routes
+
+Modify database schema
+
+Only adjust existing components safely.
+
+STEP 1 — ADD BACK BUTTON ON PUBLIC ARTIST PROFILE
+
+File:
+
+apps/web/app/artist/u/[username]/page.tsx
+
+
+At top of the page component (inside layout container), add:
+
+import { useRouter } from 'next/navigation'
+
+const router = useRouter()
+
+<button
+  onClick={() => router.back()}
+  className="mb-6 text-sm opacity-70 hover:opacity-100 transition"
+>
+  ← Back
+</button>
+
+
+Rules:
+
+Must appear above artist card
+
+Must not replace layout
+
+Must not wrap entire page
+
+Just simple back navigation
+
+Verification:
+Clicking other artist → Back → returns to previous screen.
+
+STEP 2 — SHOW FULL ARTIST ACTIVITY (NOT JUST RELEASES)
+
+Inside the same [username]/page.tsx:
+
+Replace “Recent Releases” block with:
+
+<ActivityFeed userId={artist.id} />
+
+
+Use existing activity source:
+
+forumThreads
+
+comments
+
+likes
+
+DO NOT:
+
+create new queries
+
+create new table
+
+create new fetch layer
+
+Just reuse same feed logic used in Artist Connect page.
+
+Verification:
+Public artist profile shows:
+
+Threads created
+
+Comments posted
+
+Like activity
+
+In timeline format
+
+STEP 3 — FIX AVATAR COLOR MISMATCH (CRITICAL)
+
+Problem:
+Header avatar and Artist Connect avatar use different resolver logic.
+
+Fix:
+
+Find all usages of avatar rendering and replace with:
+
+import { useAvatarResolver } from '@/lib/identity/avatarResolver'
+
+const avatar = useAvatarResolver(profile)
+
+
+Apply same component everywhere:
+
+Header
+
+Artist Connect
+
+Suggested Profiles
+
+Public Artist Profile
+
+DO NOT:
+
+Regenerate avatar per page
+
+Pass random seed
+
+Inline generate SVG
+
+All avatar color + seed must come from:
+
+profile.metadata.generatedAvatarSvg
+
+
+If that exists → use it.
+Else fallback to deterministic generator using username.
+
+Verification:
+Header avatar == Artist Connect avatar == Public Profile avatar.
+
+STEP 4 — FIX HEADER AVATAR COLOR BUG
+
+File:
+
+apps/web/components/Header.tsx
+
+
+Remove any hardcoded theme color or role-based override.
+
+Ensure it uses:
+
+const { profile } = useCurrentProfile()
+const avatar = useAvatarResolver(profile)
+
+
+No local state.
+No cached avatar.
+No theme injection.
+
+Verification:
+Header avatar color matches settings avatar exactly.
+
+STEP 5 — FIX ACTIVE DOT LOGIC
+
+Presence must depend on:
+
+profile.lastActivityAt
+
+
+Add presence logic:
+
+const minutes = (Date.now() - new Date(profile.lastActivityAt).getTime()) / 60000
+
+if (minutes < 2) state = "active"
+else if (minutes < 10) state = "fading"
+else state = "idle"
+
+
+Render dot only for:
+
+Active → green
+
+Fading → dim green
+
+Idle → gray
+
+Do NOT:
+
+use timers
+
+use intervals
+
+use websocket
+
+Pure calculation only.
+
+Apply this logic everywhere avatar is rendered.
+
+STEP 6 — DO NOT TOUCH
+
+Landing page
+
+app/page.tsx
+
+Sidebar layout
+
+next.config.js
+
+Supabase config
+
+Build config
+
+This is strictly UI + resolver patch.
+
+STEP 7 — BUILD SAFETY
+
+After changes:
+
+Run:
+
+rm -rf .next
+npm run dev
+
+
+Verification checklist:
+
+No 404
+
+No ChunkLoadError
+
+No missing module
+
+No avatar mismatch
+
+Back button works
+
+Activity visible
+
+Active dot correct
+
+EXPECTED RESULT
+
+✔ Back button on public artist profile
+✔ Full activity feed for other artists
+✔ Avatar color identical everywhere
+✔ Header avatar consistent
+✔ Active dot correct
+✔ No regressions
+✔ Landing page untouched

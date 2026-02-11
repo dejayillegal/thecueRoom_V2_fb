@@ -17,7 +17,12 @@ import {
   UserPlus,
   MessageSquare,
   Loader2,
+  Heart,
+  Share2,
+  Zap
 } from 'lucide-react';
+import { useAvatarResolver, resolveAvatar } from '@/lib/avatar/avatarResolver';
+import { useCurrentProfile } from '@/lib/identity/useCurrentProfile';
 
 interface PublicProfileProps {
   username: string;
@@ -46,12 +51,76 @@ interface UserProfile {
     showPhone: boolean;
     publicReleases: boolean;
     allowContactRequests: boolean;
+    lastActivityAt?: string;
   };
   stats?: {
     followersCount?: number;
     gigsCount?: number;
     releasesCount?: number;
   };
+  activity?: any[];
+}
+
+function PresenceDot({ profile }: { profile: any }) {
+  const lastActivity = profile?.profile?.lastActivityAt || profile?.lastActivityAt;
+  if (!lastActivity) return null;
+  
+  const minutes = (Date.now() - new Date(lastActivity).getTime()) / 60000;
+  let state: 'active' | 'fading' | 'idle' = 'idle';
+  
+  if (minutes < 2) state = 'active';
+  else if (minutes < 10) state = 'fading';
+  
+  const color = state === 'active' ? '#A3FF12' : state === 'fading' ? '#4a6b0c' : '#333';
+  
+  return (
+    <span 
+      className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#0b0b0b]"
+      style={{ backgroundColor: color }}
+    />
+  );
+}
+
+function ActivityFeed({ activity }: { activity?: any[] }) {
+  const avatarResolver = useAvatarResolver;
+  
+  if (!activity || activity.length === 0) {
+    return <p className="text-gray-400 text-center py-8">No activity yet</p>;
+  }
+
+  return (
+    <div className="space-y-4">
+      {activity.map((item) => (
+        <div key={item.id} className="p-4 bg-[#111] rounded-lg border border-white/5 flex gap-3">
+          <div className="relative h-10 w-10">
+            <img 
+              src={resolveAvatar(item.profile)} 
+              className="rounded-full h-10 w-10" 
+              alt=""
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-semibold text-sm">{item.artistName}</span>
+              <span className="text-zinc-500 text-xs">· {item.timestamp}</span>
+            </div>
+            <h4 className="text-white font-medium text-sm mb-1">{item.title}</h4>
+            <p className="text-zinc-400 text-sm line-clamp-2">{item.content}</p>
+            <div className="flex items-center gap-4 mt-2">
+              <div className="flex items-center gap-1 text-zinc-500 text-xs">
+                <MessageSquare size={14} />
+                {item.stats?.replies || 0}
+              </div>
+              <div className="flex items-center gap-1 text-zinc-500 text-xs">
+                <Heart size={14} />
+                {item.stats?.signals || 0}
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function PublicProfile({ username, currentUserId }: PublicProfileProps) {
@@ -59,6 +128,8 @@ export default function PublicProfile({ username, currentUserId }: PublicProfile
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  const avatar = useAvatarResolver(profile);
 
   const isOwnProfile = currentUserId && profile?.id === currentUserId;
 
@@ -160,15 +231,14 @@ export default function PublicProfile({ username, currentUserId }: PublicProfile
       {/* Header Card */}
       <Card className="bg-[#0b0b0b] border-[#1a1a1a] p-6">
         <div className="flex items-start gap-6">
-          <Avatar className="h-24 w-24 flex-shrink-0">
-            <AvatarImage 
-              src={profile.profile.avatar} 
-              alt={profile.profile.displayName || profile.username} 
+          <div className="relative h-24 w-24 flex-shrink-0">
+            <img 
+              src={avatar} 
+              className="h-24 w-24 rounded-full object-cover" 
+              alt={profile.profile.displayName || profile.username}
             />
-            <AvatarFallback className="bg-[#9B5CFF] text-white text-2xl">
-              {(profile.profile.artistName || profile.username).charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+            <PresenceDot profile={profile} />
+          </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-4 mb-2">
@@ -314,16 +384,14 @@ export default function PublicProfile({ username, currentUserId }: PublicProfile
         </Card>
       )}
 
-      {/* Releases */}
-      {profile.profile.publicReleases && (
-        <Card className="bg-[#0b0b0b] border-[#1a1a1a] p-6">
-          <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-            <Music className="w-5 h-5 text-[#D7FF3C]" />
-            Recent Releases
-          </h2>
-          <p className="text-gray-400 text-center py-8">No releases yet</p>
-        </Card>
-      )}
+      {/* Activity Feed */}
+      <Card className="bg-[#0b0b0b] border-[#1a1a1a] p-6">
+        <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+          <Zap className="w-5 h-5 text-[#D7FF3C]" />
+          Full Activity
+        </h2>
+        <ActivityFeed activity={profile.activity} />
+      </Card>
     </div>
   );
 }

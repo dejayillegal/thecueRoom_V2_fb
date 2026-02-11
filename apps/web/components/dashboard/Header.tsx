@@ -12,6 +12,9 @@ import { Button } from '@/components/ui/button';
 import { NotificationsPanel as NotificationsButton } from '@/components/Notifications/NotificationsPanel';
 import { useNotifications } from '../../hooks/useNotifications';
 
+import { useCurrentProfile } from '@/lib/identity/useCurrentProfile';
+import { useAvatarResolver } from '@/lib/avatar/avatarResolver';
+
 interface HeaderProps {
   user?: {
     name?: string | null;
@@ -22,9 +25,17 @@ interface HeaderProps {
   onToggleSidebar?: () => void;
 }
 
-export const Header = memo(function Header({ user, sidebarOpen, onToggleSidebar }: HeaderProps) {
+export const Header = memo(function Header({ user: initialUser, sidebarOpen, onToggleSidebar }: HeaderProps) {
   const router = useRouter();
   const [userId, setUserId] = useState<string | undefined>();
+  const { profile, loading: profileLoading } = useCurrentProfile();
+  const avatar = useAvatarResolver(profile);
+
+  const user = profile ? {
+    name: profile.artistName || profile.username,
+    email: profile.profile?.email || initialUser?.email,
+    image: avatar
+  } : initialUser;
 
   useEffect(() => {
     // Fetch current user session
@@ -64,7 +75,7 @@ export const Header = memo(function Header({ user, sidebarOpen, onToggleSidebar 
 
   const initials = user?.name
     ?.split(' ')
-    .map(n => n[0])
+    .map((n: string) => n[0])
     .join('')
     .toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U';
 
@@ -142,12 +153,9 @@ export const Header = memo(function Header({ user, sidebarOpen, onToggleSidebar 
               <p className="text-sm font-bold text-white group-hover:text-[var(--tcr-accent)] transition-colors">{user?.name || 'User'}</p>
               <p className="text-[10px] text-zinc-500 font-mono lowercase">@{user?.name?.toLowerCase().replace(/\s+/g, '_') || 'artist'}</p>
             </div>
-            <Avatar className="w-9 h-9 cursor-pointer ring-2 ring-transparent hover:ring-[#D1FF3D]/50 transition-all">
-              <AvatarImage src={user?.image || undefined} alt={user?.name || 'User'} />
-              <AvatarFallback className="bg-[var(--tcr-accent)] text-black text-sm font-semibold">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
+            <div className="w-9 h-9 cursor-pointer ring-2 ring-transparent hover:ring-[#D1FF3D]/50 transition-all rounded-full overflow-hidden">
+              <img src={user?.image || undefined} alt={user?.name || 'User'} className="w-full h-full object-cover" />
+            </div>
           </Link>
         </div>
       </div>
