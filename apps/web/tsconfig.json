@@ -16,8 +16,8 @@
     "plugins": [{ "name": "next" }],
     "paths": {
       "@/*": ["./*"],
-      "@/components/*": ["./src/components/*", "./components/*"],
-      "@/lib/*": ["./src/lib/*", "./lib/*"],
+      "@/components/*": ["./components/*", "./src/components/*"],
+      "@/lib/*": ["./lib/*", "./src/lib/*"],
       "@/app/*": ["./app/*"],
       "@/hooks/*": ["./hooks/*", "./src/hooks/*"],
       "@thecueroom/ai/*": ["../../packages/ai/*"],
