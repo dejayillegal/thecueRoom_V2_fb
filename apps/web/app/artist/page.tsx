@@ -19,7 +19,10 @@ export default async function ArtistDirectoryPage() {
     role: users.role,
   }).from(users).where(eq(users.role, 'artist' as any) as any).limit(50);
 
-  const allProfiles = await db.select().from(profiles).catch(() => []);
+  const allProfiles = await (db.select().from(profiles) as any).catch((err: any) => {
+    console.error('Error fetching profiles:', err);
+    return [];
+  });
   const profileMap = new Map(allProfiles.map((p: any) => [p.userId, p]));
   
   const myProfile: any = profileMap.get(session.uid);
