@@ -1,9 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import '../src/styles/performance.css';
 import FooterLinks from '@/components/FooterLinks';
-import { Toaster } from '@/components/ui/toaster';
 import AppShell from '@/components/AppShell';
 
 const inter = Inter({ 
@@ -33,7 +31,6 @@ export default function RootLayout({
           {children}
         </AppShell>
         <FooterLinks />
-        <Toaster />
       </body>
     </html>
   );

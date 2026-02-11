@@ -5,13 +5,11 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Bell, CheckCircle2, AlertCircle, Clock, X, Info, Filter } from 'lucide-react';
-import { useToast } from '@/../../src/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
 
 export function NotificationsPanel({ userId }: { userId?: string }) {
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<'all' | 'unread' | 'verification' | 'promo'>('all');
-  const { toast } = useToast();
   const {
     notifications,
     unreadCount,
@@ -125,7 +123,7 @@ export function NotificationsPanel({ userId }: { userId?: string }) {
                         {notification.title}
                       </h4>
                       <p className="text-gray-400 text-xs mt-1">
-                        {notification.message}
+                        {notification.body}
                       </p>
                       <span className="text-gray-500 text-xs mt-2 block">
                         {new Date(notification.createdAt).toLocaleString()}

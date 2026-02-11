@@ -31,7 +31,12 @@ import {
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/Logo';
 import { SidebarItem } from './SidebarItem';
-import { usePersistentToggle } from '@/hooks/usePersistentToggle';
+
+const usePersistentToggle = (key: string, initialValue: boolean) => {
+  const [state, setState] = useState(initialValue);
+  const toggle = () => setState(prev => !prev);
+  return [state, toggle] as const;
+};
 
 interface SidebarProps {
   className?: string;

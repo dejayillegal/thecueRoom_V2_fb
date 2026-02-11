@@ -9,7 +9,7 @@ import { Bell, Menu, Settings, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { NotificationsButton } from '@/components/notifications';
+import { NotificationsPanel as NotificationsButton } from '@/components/Notifications/NotificationsPanel';
 import { useNotifications } from '../../hooks/useNotifications';
 
 interface HeaderProps {
@@ -123,13 +123,7 @@ export const Header = memo(function Header({ user, sidebarOpen, onToggleSidebar 
 
       <div className="flex items-center gap-4">
         <NotificationsButton
-          notifications={notifications as any}
-          unreadCount={unreadCount}
-          onMarkAsRead={markAsRead}
-          onMarkAllAsRead={markAllAsRead}
-          onDelete={handleDelete}
-          onClearAll={handleClearAll}
-          isLoading={loading}
+          userId={userId}
         />
         <button className="p-2 text-white hover:bg-[#1a1a1a] rounded-md" aria-label="Settings">
           <Settings size={20} />
