@@ -16,10 +16,10 @@
     "plugins": [{ "name": "next" }],
     "paths": {
       "@/*": ["./*"],
-      "@/components/*": ["./components/*", "./src/components/*"],
-      "@/lib/*": ["./lib/*", "./src/lib/*"],
+      "@/components/*": ["./components/*"],
+      "@/lib/*": ["./lib/*"],
       "@/app/*": ["./app/*"],
-      "@/hooks/*": ["./hooks/*", "./src/hooks/*"],
+      "@/hooks/*": ["./hooks/*"],
       "@thecueroom/ai/*": ["../../packages/ai/*"],
       "@thecueroom/fallback/*": ["../../packages/fallback/*"],
       "@thecueroom/epk": ["../../packages/epk/index.ts"],

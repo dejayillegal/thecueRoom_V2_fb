@@ -42,6 +42,14 @@ const nextConfig: NextConfig = {
     position: 'bottom-right',
   },
   serverExternalPackages: ['drizzle-orm'],
+  experimental: {
+    allowedDevOrigins: ['*'],
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-dialog', '@radix-ui/react-tabs'],
+    optimizeCss: true,
+  },
 };
 
 export default nextConfig;
