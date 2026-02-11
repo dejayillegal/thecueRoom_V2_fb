@@ -51,51 +51,58 @@ export function SpotlightCarousel({ items }: { items: SpotlightItem[] }) {
       onMouseLeave={() => setIsPaused(false)}
     >
       <AnimatePresence mode="wait">
-        <motion.div
+        <div
           key={current.id}
-          initial={{ opacity: 0, scale: 1.05 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.98 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           className="absolute inset-0"
         >
-          <img 
-            src={current.imageUrl} 
-            className="w-full h-full object-cover grayscale opacity-40 mix-blend-luminosity"
-            alt=""
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/40 to-transparent" />
-        </motion.div>
+          <motion.div
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="w-full h-full"
+          >
+            <img 
+              src={current.imageUrl} 
+              className="w-full h-full object-cover grayscale opacity-40 mix-blend-luminosity"
+              alt=""
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/40 to-transparent" />
+          </motion.div>
+        </div>
       </AnimatePresence>
 
       <div className="absolute inset-0 p-12 flex flex-col justify-end">
-        <motion.div
+        <div
           key={current.id + "content"}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
           className="max-w-2xl space-y-4"
         >
-          {current.tag && (
-            <span className="inline-block px-3 py-1 bg-[#D7FF3C] text-black text-[10px] font-black uppercase tracking-widest rounded-full">
-              {current.tag}
-            </span>
-          )}
-          <h3 className="text-4xl md:text-5xl font-light tracking-tighter leading-none text-white italic">
-            {current.title}
-          </h3>
-          <p className="text-sm text-zinc-400 font-light max-w-lg leading-relaxed line-clamp-2">
-            {current.subtitle}
-          </p>
-          <div className="pt-6">
-            <Link 
-              href={current.link}
-              className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.4em] text-[#D7FF3C] hover:text-white transition-colors group/btn"
-            >
-              Access Data <span className="group-hover:translate-x-1 transition-transform">→</span>
-            </Link>
-          </div>
-        </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+          >
+            {current.tag && (
+              <span className="inline-block px-3 py-1 bg-[#D7FF3C] text-black text-[10px] font-black uppercase tracking-widest rounded-full">
+                {current.tag}
+              </span>
+            )}
+            <h3 className="text-4xl md:text-5xl font-light tracking-tighter leading-none text-white italic">
+              {current.title}
+            </h3>
+            <p className="text-sm text-zinc-400 font-light max-w-lg leading-relaxed line-clamp-2">
+              {current.subtitle}
+            </p>
+            <div className="pt-6">
+              <Link 
+                href={current.link}
+                className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.4em] text-[#D7FF3C] hover:text-white transition-colors group/btn"
+              >
+                Access Data <span className="group-hover:translate-x-1 transition-transform">→</span>
+              </Link>
+            </div>
+          </motion.div>
+        </div>
       </div>
 
       <div className="absolute bottom-12 right-12 flex gap-4">
