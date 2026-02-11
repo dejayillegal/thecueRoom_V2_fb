@@ -3,19 +3,23 @@ import { User } from 'lucide-react';
 import { resolveAvatar } from '@/lib/identity/avatarResolver';
 
 interface UserAvatarProps {
-  user: {
-    id: string;
+  profile?: {
+    id?: string;
+    userId?: string;
     avatarUrl?: string | null;
     generatedAvatarUrl?: string | null;
+    avatarSeed?: string | null;
+    avatarType?: string | null;
     displayName?: string | null;
-  };
+  } | null;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
 
-export function UserAvatar({ user, size = 'md', className = '' }: UserAvatarProps) {
-  const avatarUrl = resolveAvatar(user.avatarUrl, user.generatedAvatarUrl);
-  
+export function UserAvatar({ profile, size = 'md', className = '' }: UserAvatarProps) {
+  // Gracefully handle missing profile or data
+  const avatarUrl = profile ? resolveAvatar(profile, (profile.userId || profile.id || 'default') as string) : null;
+
   const sizeClasses = {
     sm: 'w-8 h-8',
     md: 'w-10 h-10',
@@ -29,7 +33,7 @@ export function UserAvatar({ user, size = 'md', className = '' }: UserAvatarProp
         {avatarUrl ? (
           <img 
             src={avatarUrl} 
-            alt={user.displayName || 'User avatar'} 
+            alt={profile?.displayName || 'User avatar'} 
             className="w-full h-full object-cover"
           />
         ) : (

@@ -17,7 +17,7 @@ export default async function ArtistDirectoryPage() {
     id: users.id,
     username: users.username,
     role: users.role,
-  }).from(users).where(eq(users.role, 'artist' as any) as any).limit(50);
+  }).from(users).where(eq(users.role as any, 'artist')).limit(50);
 
   const allProfiles = await (db.select().from(profiles) as any).catch((err: any) => {
     console.error('Error fetching profiles:', err);
@@ -42,7 +42,7 @@ export default async function ArtistDirectoryPage() {
     id: session.uid,
     username: session.username || 'unknown',
     artistName: (myProfile?.artistName || myProfile?.displayName || session.username || 'Artist') as string,
-    profile: myProfile,
+    profile: myProfile || { userId: session.uid, username: session.username },
     bio: (myProfile?.bio || '') as string,
     following: myFollowing.length,
     followers: myFollowers
@@ -72,7 +72,7 @@ export default async function ArtistDirectoryPage() {
     };
   });
 
-  const threads = await db.select({
+  const threads: any = await db.select({
     id: forumThreads.id,
     title: forumThreads.title,
     body: forumThreads.body,
@@ -83,8 +83,8 @@ export default async function ArtistDirectoryPage() {
     likesCount: forumThreads.likesCount
   })
   .from(forumThreads)
-  .leftJoin(users, eq(forumThreads.userId, users.id as any) as any)
-  .where(eq(forumThreads.moderationStatus, 'approved' as any) as any)
+  .leftJoin(users, eq(forumThreads.userId as any, users.id as any))
+  .where(eq(forumThreads.moderationStatus as any, 'approved'))
   .orderBy(desc(forumThreads.createdAt as any))
   .limit(30);
 
