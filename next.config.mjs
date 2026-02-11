@@ -2,6 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   
+  allowedDevOrigins: ['*'],
+  
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-switch'],
   },
