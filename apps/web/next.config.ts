@@ -43,7 +43,6 @@ const nextConfig: NextConfig = {
   },
   serverExternalPackages: ['drizzle-orm'],
   experimental: {
-    allowedDevOrigins: ['*'],
     serverActions: {
       bodySizeLimit: '10mb',
     },
